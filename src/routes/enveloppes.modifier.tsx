@@ -290,11 +290,40 @@ function ModifierEnveloppe() {
         titre={demande?.type === "suppression" ? "Supprimer cette enveloppe ?" : "Confirmer la modification"}
         message={
           demande?.type === "suppression"
-            ? `L'enveloppe « ${demande.nom} » sera définitivement supprimée. Cette action est irréversible.`
-            : demande
-              ? `L'enveloppe sera enregistrée sous « ${demande.nom} » (${demande.categorie || "sans catégorie"}${demande.sousCategorie ? ` › ${demande.sousCategorie}` : ""}) avec un plafond de ${formatFCFA(demande.plafond)}.`
-              : ""
+            ? "Cette suppression est irréversible. Vérifiez l'enveloppe concernée."
+            : "Vérifiez les champs modifiés avant d'enregistrer."
         }
+        details={(() => {
+          if (!demande) return [];
+          const avant = enveloppes.find((x) => x.id === demande.id);
+          if (demande.type === "suppression") {
+            return [
+              { label: "Enveloppe", apres: demande.nom },
+              { label: "Plafond", apres: formatFCFA(avant?.plafond ?? 0) },
+              { label: "Catégorie", apres: avant?.categorie || "Sans catégorie" },
+              { label: "Sous-catégorie", apres: avant?.sousCategorie || "Général" },
+            ];
+          }
+          return [
+            { label: "Emoji", avant: avant?.emoji ?? "", apres: demande.emoji },
+            { label: "Nom", avant: avant?.nom ?? "", apres: demande.nom },
+            {
+              label: "Plafond",
+              avant: formatFCFA(avant?.plafond ?? 0),
+              apres: formatFCFA(demande.plafond),
+            },
+            {
+              label: "Catégorie",
+              avant: avant?.categorie || "Sans catégorie",
+              apres: demande.categorie || "Sans catégorie",
+            },
+            {
+              label: "Sous-catégorie",
+              avant: avant?.sousCategorie || "Général",
+              apres: demande.sousCategorie || "Général",
+            },
+          ];
+        })()}
         confirmerLabel={demande?.type === "suppression" ? "Supprimer" : "Enregistrer"}
         danger={demande?.type === "suppression"}
         onConfirmer={confirmer}
