@@ -270,43 +270,46 @@ function ActionEnveloppes() {
 
               <div>
                 <label htmlFor="e-categorie" className="text-sm font-medium">
-                  Catégorie
+                  Catégorie (obligatoire)
                 </label>
-                <input
+                <select
                   id="e-categorie"
-                  list="liste-categories"
                   value={categorie}
                   onChange={(ev) => {
                     setCategorie(ev.target.value);
                     setSousCategorie("");
                   }}
-                  placeholder="Transport, Factures…"
                   className={champ}
-                />
-                <datalist id="liste-categories">
-                  {categories.map((c) => (
-                    <option key={c} value={c} />
+                >
+                  <option value="">Choisir une catégorie…</option>
+                  {listeCategories.map((c) => (
+                    <option key={c.id} value={c.nom}>
+                      {c.nom}
+                    </option>
                   ))}
-                </datalist>
+                </select>
               </div>
 
               <div>
                 <label htmlFor="e-sous-categorie" className="text-sm font-medium">
-                  Sous-catégorie
+                  Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
                 </label>
-                <input
+                <select
                   id="e-sous-categorie"
-                  list="liste-sous-categories"
                   value={sousCategorie}
                   onChange={(ev) => setSousCategorie(ev.target.value)}
-                  placeholder="Carburant, Facture SBEE…"
+                  disabled={!categorieChoisie || sousCategories.length === 0}
                   className={champ}
-                />
-                <datalist id="liste-sous-categories">
+                >
+                  <option value="">
+                    {sousCategories.length === 0 ? "Général" : "Choisir une sous-catégorie…"}
+                  </option>
                   {sousCategories.map((s) => (
-                    <option key={s} value={s} />
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
-                </datalist>
+                </select>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Exemple : Transport › Carburant, Factures › Facture SONEB.
                 </p>
