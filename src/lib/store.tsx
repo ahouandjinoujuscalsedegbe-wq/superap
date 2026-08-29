@@ -20,6 +20,12 @@ export type Enveloppe = {
   sousCategorie?: string;
 };
 
+export type CategorieEnveloppe = {
+  id: string;
+  nom: string;
+  sousCategories: string[];
+};
+
 export type Transaction = {
   id: string;
   type: "revenu" | "depense";
@@ -79,11 +85,21 @@ export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
   { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, categorie: "Santé", sousCategorie: "Pharmacie" },
 ];
 
+export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
+  { id: "cat-transport", nom: "Transport", sousCategories: ["Carburant", "Vidange voiture", "Taxi / Zémidjan"] },
+  { id: "cat-factures", nom: "Factures", sousCategories: ["Facture SBEE", "Facture SONEB", "Internet"] },
+  { id: "cat-alimentation", nom: "Alimentation", sousCategories: ["Marché", "Boutique"] },
+  { id: "cat-sante", nom: "Santé", sousCategories: ["Pharmacie", "Consultation"] },
+  { id: "cat-epargne", nom: "Épargne", sousCategories: ["Tontine", "Épargne banque"] },
+  { id: "cat-famille", nom: "Famille", sousCategories: ["Cadeaux", "Cérémonies"] },
+];
+
 const SOURCES_REVENU = ["Salaire", "Activité", "Aide famille", "Prime", "Autre"];
 
 type Etat = {
   transactions: Transaction[];
   enveloppes: Enveloppe[];
+  categories: CategorieEnveloppe[];
   comptes: string[];
   transferts: Transfert[];
   budgets: Budget[];
@@ -93,6 +109,7 @@ type Etat = {
 const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
+  categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
   transferts: [],
   budgets: [],
@@ -111,6 +128,13 @@ type Contexte = Etat & {
   ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
+  deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
+  ajouterCategorie: (nom: string) => void;
+  renommerCategorie: (id: string, nom: string) => void;
+  supprimerCategorie: (id: string) => void;
+  ajouterSousCategorie: (id: string, nom: string) => void;
+  renommerSousCategorie: (id: string, ancien: string, nom: string) => void;
+  supprimerSousCategorie: (id: string, nom: string) => void;
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
@@ -224,6 +248,116 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  /** Déplace une enveloppe d'un cran vers le haut ou le bas dans sa catégorie. */
+  const deplacerEnveloppe = useCallback((id: string, sens: "haut" | "bas") => {
+    setEtat((e) => {
+      const liste = [...e.enveloppes];
+      const index = liste.findIndex((x) => x.id === id);
+      const courante = liste[index];
+      if (!courante) return e;
+      const cat = (courante.categorie ?? "").trim();
+      const memeCat = (x: Enveloppe | undefined) => (x?.categorie ?? "").trim() === cat;
+      let voisin = -1;
+      if (sens === "haut") {
+        for (let i = index - 1; i >= 0; i -= 1) if (memeCat(liste[i])) { voisin = i; break; }
+      } else {
+        for (let i = index + 1; i < liste.length; i += 1) if (memeCat(liste[i])) { voisin = i; break; }
+      }
+      const autre = voisin < 0 ? undefined : liste[voisin];
+      if (!autre) return e;
+      liste[index] = autre;
+      liste[voisin] = courante;
+
+      return { ...e, enveloppes: liste };
+    });
+  }, []);
+
+  const ajouterCategorie = useCallback((nom: string) => {
+    setEtat((e) =>
+      e.categories.some((c) => c.nom === nom)
+        ? e
+        : { ...e, categories: [...e.categories, { id: crypto.randomUUID(), nom, sousCategories: [] }] },
+    );
+  }, []);
+
+  const renommerCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) => (c.id === id ? { ...c, nom } : c)),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom ? { ...x, categorie: nom } : x,
+        ),
+      };
+    });
+  }, []);
+
+  const supprimerCategorie = useCallback((id: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.filter((c) => c.id !== id),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom ? { ...x, categorie: "", sousCategorie: "" } : x,
+        ),
+      };
+    });
+  }, []);
+
+  const ajouterSousCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => ({
+      ...e,
+      categories: e.categories.map((c) =>
+        c.id === id && !c.sousCategories.includes(nom)
+          ? { ...c, sousCategories: [...c.sousCategories, nom] }
+          : c,
+      ),
+    }));
+  }, []);
+
+  const renommerSousCategorie = useCallback((id: string, ancien: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) =>
+          c.id === id
+            ? { ...c, sousCategories: c.sousCategories.map((s) => (s === ancien ? nom : s)) }
+            : c,
+        ),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom && (x.sousCategorie ?? "") === ancien
+            ? { ...x, sousCategorie: nom }
+            : x,
+        ),
+      };
+    });
+  }, []);
+
+  const supprimerSousCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) =>
+          c.id === id ? { ...c, sousCategories: c.sousCategories.filter((s) => s !== nom) } : c,
+        ),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom && (x.sousCategorie ?? "") === nom
+            ? { ...x, sousCategorie: "" }
+            : x,
+        ),
+      };
+    });
+  }, []);
+
+
   const ajouterBudget = useCallback((b: Omit<Budget, "id">) => {
     setEtat((e) => ({ ...e, budgets: [{ ...b, id: crypto.randomUUID() }, ...e.budgets] }));
   }, []);
@@ -311,6 +445,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
+      deplacerEnveloppe,
+      ajouterCategorie,
+      renommerCategorie,
+      supprimerCategorie,
+      ajouterSousCategorie,
+      renommerSousCategorie,
+      supprimerSousCategorie,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
@@ -330,6 +471,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
+      deplacerEnveloppe,
+      ajouterCategorie,
+      renommerCategorie,
+      supprimerCategorie,
+      ajouterSousCategorie,
+      renommerSousCategorie,
+      supprimerSousCategorie,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,

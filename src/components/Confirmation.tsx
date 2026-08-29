@@ -5,6 +5,8 @@ export interface ConfirmationProps {
   ouvert: boolean;
   titre: string;
   message: string;
+  /** Aperçu détaillé des champs concernés, affiché avant validation. */
+  details?: { label: string; avant?: string; apres: string }[];
   confirmerLabel?: string;
   danger?: boolean;
   onConfirmer: () => void;
@@ -19,6 +21,7 @@ export function Confirmation({
   ouvert,
   titre,
   message,
+  details,
   confirmerLabel = "Confirmer",
   danger = false,
   onConfirmer,
@@ -60,6 +63,24 @@ export function Confirmation({
             <p className="mt-1 text-sm text-muted-foreground">{message}</p>
           </div>
         </div>
+
+        {details && details.length > 0 && (
+          <dl className="space-y-2 rounded-xl border border-border/70 bg-background/50 p-3 text-sm">
+            {details.map((d) => (
+              <div key={d.label} className="flex items-start justify-between gap-3">
+                <dt className="shrink-0 text-muted-foreground">{d.label}</dt>
+                <dd className="min-w-0 text-right font-medium">
+                  {d.avant !== undefined && d.avant !== d.apres && (
+                    <span className="mr-1 text-muted-foreground line-through">{d.avant || "—"}</span>
+                  )}
+                  <span className={d.avant !== undefined && d.avant !== d.apres ? "text-primary" : ""}>
+                    {d.apres || "—"}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
         <div className="flex gap-2">
           <button
