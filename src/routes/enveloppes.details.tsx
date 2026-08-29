@@ -135,7 +135,7 @@ function DetailsActuels() {
   );
 }
 
-function CarteEnveloppe({
+export function CarteEnveloppe({
   e,
   estOuverte,
   onToggle,
