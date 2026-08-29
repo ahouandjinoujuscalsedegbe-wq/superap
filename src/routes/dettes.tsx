@@ -69,6 +69,9 @@ function PageDettes() {
   const [form, setForm] = useState<Formulaire>(FORM_VIDE);
   const [montantRemb, setMontantRemb] = useState("");
   const [dateRemb, setDateRemb] = useState(new Date().toISOString().slice(0, 10));
+  /** Compte impacté par le mouvement d'argent ; vide = aucun mouvement de trésorerie. */
+  const [compteMouvement, setCompteMouvement] = useState("");
+  const [compteRemb, setCompteRemb] = useState("");
   const [confirmation, setConfirmation] = useState<{
     titre: string;
     message: string;
