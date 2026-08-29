@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, GripVertical } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -55,6 +55,8 @@ function PageCategories() {
     ajouterSousCategorie,
     renommerSousCategorie,
     supprimerSousCategorie,
+    reordonnerCategories,
+    reordonnerSousCategories,
   } = useSuperApp();
 
   const [saisie, setSaisie] = useState<Saisie>(null);
@@ -62,6 +64,8 @@ function PageCategories() {
   const [demande, setDemande] = useState<Demande>(null);
   const [erreurPopup, setErreurPopup] = useState<string | null>(null);
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
+  const [dragCat, setDragCat] = useState<number | null>(null);
+  const [dragSous, setDragSous] = useState<{ id: string; index: number } | null>(null);
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
@@ -246,12 +250,38 @@ function PageCategories() {
         </p>
       </header>
 
+      <p className="text-xs text-muted-foreground">
+        Astuce : faites glisser une bande (ou une sous-catégorie) pour la réorganiser. L’ordre est
+        enregistré automatiquement.
+      </p>
+
       <ul className="space-y-3">
-        {categories.map((c) => {
+        {categories.map((c, index) => {
           const ouverte = categorieOuverte === c.id;
           return (
-            <li key={c.id} className="carte overflow-hidden">
+            <li
+              key={c.id}
+              draggable
+              onDragStart={() => setDragCat(index)}
+              onDragOver={(ev) => ev.preventDefault()}
+              onDrop={(ev) => {
+                ev.preventDefault();
+                if (dragCat !== null && dragCat !== index) {
+                  reordonnerCategories(dragCat, index);
+                  toast.success("Ordre des catégories enregistré.");
+                }
+                setDragCat(null);
+              }}
+              onDragEnd={() => setDragCat(null)}
+              className={`carte overflow-hidden ${dragCat === index ? "opacity-60" : ""}`}
+            >
               <div className="flex items-center gap-2 p-4">
+                <span
+                  aria-hidden
+                  className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                >
+                  <GripVertical className="h-4 w-4" />
+                </span>
                 <button
                   type="button"
                   onClick={() => setCategorieOuverte(ouverte ? null : c.id)}
@@ -269,6 +299,9 @@ function PageCategories() {
                     </span>
                   </span>
                 </button>
+                <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold">
+                  {compter(c.nom)}
+                </span>
                 <div className="flex shrink-0 gap-1">
                   <button
                     type="button"
@@ -306,13 +339,43 @@ function PageCategories() {
                         Aucune sous-catégorie pour l’instant.
                       </li>
                     )}
-                    {c.sousCategories.map((s) => (
+                    {c.sousCategories.map((s, iSous) => (
                       <li
                         key={s}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2"
+                        draggable
+                        onDragStart={(ev) => {
+                          ev.stopPropagation();
+                          setDragSous({ id: c.id, index: iSous });
+                        }}
+                        onDragOver={(ev) => {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                        }}
+                        onDrop={(ev) => {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          if (dragSous && dragSous.id === c.id && dragSous.index !== iSous) {
+                            reordonnerSousCategories(c.id, dragSous.index, iSous);
+                            toast.success("Ordre des sous-catégories enregistré.");
+                          }
+                          setDragSous(null);
+                        }}
+                        onDragEnd={() => setDragSous(null)}
+                        className={`flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2 ${
+                          dragSous?.id === c.id && dragSous.index === iSous ? "opacity-60" : ""
+                        }`}
                       >
-                        <span className="min-w-0 truncate text-sm">{s}</span>
-                        <span className="flex shrink-0 gap-1">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <GripVertical
+                            aria-hidden
+                            className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                          />
+                          <span className="min-w-0 truncate text-sm">{s}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1">
+                          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold">
+                            {compter(c.nom, s)}
+                          </span>
                           <button
                             type="button"
                             aria-label={`Renommer ${s}`}
