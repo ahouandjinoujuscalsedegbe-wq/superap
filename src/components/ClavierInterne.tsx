@@ -54,6 +54,7 @@ export function ClavierInterne() {
     setOuvert(false);
     champRef.current = null;
     setDecimale(false);
+    setNumeriqueForce(false);
   }, []);
 
   useEffect(() => {
@@ -147,13 +148,15 @@ export function ClavierInterne() {
             Clavier de l’application
           </span>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMode(mode === "texte" ? "numerique" : "texte")}
-              className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
-            >
-              {mode === "texte" ? "123" : "ABC"}
-            </button>
+            {!numeriqueForce && (
+              <button
+                type="button"
+                onClick={() => setMode(mode === "texte" ? "numerique" : "texte")}
+                className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
+              >
+                {mode === "texte" ? "123" : "ABC"}
+              </button>
+            )}
             <button
               type="button"
               onClick={valider}
