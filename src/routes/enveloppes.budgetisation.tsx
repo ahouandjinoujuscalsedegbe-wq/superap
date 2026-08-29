@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronDown, Plus } from "lucide-react";
+import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
-import { nombreEcheancesDues, equivalentMensuel, libellePlage } from "@/lib/periodes";
+import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
