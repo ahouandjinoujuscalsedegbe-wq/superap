@@ -60,6 +60,8 @@ function Parametres() {
         />
       </section>
 
+      <SectionSecurite />
+
       <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Devise et langue</h2>
         <p className="text-sm text-muted-foreground">
