@@ -78,6 +78,33 @@ export type Budget = {
   actif: boolean;
 };
 
+export type Remboursement = {
+  id: string;
+  montant: number;
+  date: string;
+  note?: string;
+};
+
+export type Dette = {
+  id: string;
+  /** Personne concernée (prêteur ou emprunteur). */
+  personne: string;
+  /** "dette" = je dois ; "creance" = on me doit. */
+  sens: "dette" | "creance";
+  montantInitial: number;
+  note?: string;
+  /** Date limite de remboursement (YYYY-MM-DD), optionnelle. */
+  dateLimite?: string;
+  creeLe: string;
+  remboursements: Remboursement[];
+};
+
+/** Montant restant dû sur une dette ou créance. */
+export function resteDu(d: Dette): number {
+  const rembourse = d.remboursements.reduce((s, r) => s + r.montant, 0);
+  return Math.max(0, d.montantInitial - rembourse);
+}
+
 export const COMPTES = [
   "Espèces",
   "Banque",
@@ -114,6 +141,7 @@ type Etat = {
   comptes: string[];
   transferts: Transfert[];
   budgets: Budget[];
+  dettes: Dette[];
   transparence: number;
 };
 
