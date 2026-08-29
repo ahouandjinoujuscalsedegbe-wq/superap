@@ -20,6 +20,12 @@ export type Enveloppe = {
   sousCategorie?: string;
 };
 
+export type CategorieEnveloppe = {
+  id: string;
+  nom: string;
+  sousCategories: string[];
+};
+
 export type Transaction = {
   id: string;
   type: "revenu" | "depense";
@@ -79,11 +85,21 @@ export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
   { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, categorie: "Santé", sousCategorie: "Pharmacie" },
 ];
 
+export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
+  { id: "cat-transport", nom: "Transport", sousCategories: ["Carburant", "Vidange voiture", "Taxi / Zémidjan"] },
+  { id: "cat-factures", nom: "Factures", sousCategories: ["Facture SBEE", "Facture SONEB", "Internet"] },
+  { id: "cat-alimentation", nom: "Alimentation", sousCategories: ["Marché", "Boutique"] },
+  { id: "cat-sante", nom: "Santé", sousCategories: ["Pharmacie", "Consultation"] },
+  { id: "cat-epargne", nom: "Épargne", sousCategories: ["Tontine", "Épargne banque"] },
+  { id: "cat-famille", nom: "Famille", sousCategories: ["Cadeaux", "Cérémonies"] },
+];
+
 const SOURCES_REVENU = ["Salaire", "Activité", "Aide famille", "Prime", "Autre"];
 
 type Etat = {
   transactions: Transaction[];
   enveloppes: Enveloppe[];
+  categories: CategorieEnveloppe[];
   comptes: string[];
   transferts: Transfert[];
   budgets: Budget[];
@@ -93,6 +109,7 @@ type Etat = {
 const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
+  categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
   transferts: [],
   budgets: [],
@@ -111,6 +128,13 @@ type Contexte = Etat & {
   ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
+  deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
+  ajouterCategorie: (nom: string) => void;
+  renommerCategorie: (id: string, nom: string) => void;
+  supprimerCategorie: (id: string) => void;
+  ajouterSousCategorie: (id: string, nom: string) => void;
+  renommerSousCategorie: (id: string, ancien: string, nom: string) => void;
+  supprimerSousCategorie: (id: string, nom: string) => void;
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
@@ -421,6 +445,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
+      deplacerEnveloppe,
+      ajouterCategorie,
+      renommerCategorie,
+      supprimerCategorie,
+      ajouterSousCategorie,
+      renommerSousCategorie,
+      supprimerSousCategorie,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
@@ -440,6 +471,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
+      deplacerEnveloppe,
+      ajouterCategorie,
+      renommerCategorie,
+      supprimerCategorie,
+      ajouterSousCategorie,
+      renommerSousCategorie,
+      supprimerSousCategorie,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
