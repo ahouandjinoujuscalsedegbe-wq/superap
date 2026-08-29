@@ -771,33 +771,41 @@ function Analyses() {
         ))}
       </section>
 
-      <button
-        type="button"
-        onClick={async () => {
-          const texte = resumeTexte({
-            fenetre: FENETRES.find((f) => f.id === fenetre)?.label ?? "",
-            diagnostic,
-            totaux,
-            projection: projection.projection,
-            repartition,
-          });
-          try {
-            await navigator.clipboard.writeText(texte);
-            setCopie(true);
-            window.setTimeout(() => setCopie(false), 2500);
-          } catch {
-            setCopie(false);
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(rapportComplet());
+              setCopie(true);
+              window.setTimeout(() => setCopie(false), 2500);
+            } catch {
+              setCopie(false);
+            }
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-sm font-semibold"
+        >
+          {copie ? (
+            <Check className="h-4 w-4 text-success" aria-hidden />
+          ) : (
+            <Copy className="h-4 w-4" aria-hidden />
+          )}
+          {copie ? "Rapport copié" : "Copier le rapport d'analyse"}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            exporterRapportPdf(
+              `Rapport financier — ${FENETRES.find((f) => f.id === fenetre)?.label ?? ""}`,
+              rapportComplet(),
+            )
           }
-        }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-sm font-semibold"
-      >
-        {copie ? (
-          <Check className="h-4 w-4 text-success" aria-hidden />
-        ) : (
-          <Copy className="h-4 w-4" aria-hidden />
-        )}
-        {copie ? "Rapport copié" : "Copier le rapport d'analyse"}
-      </button>
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary p-3 text-sm font-semibold text-primary-foreground"
+        >
+          <FileDown className="h-4 w-4" aria-hidden />
+          Exporter le rapport en PDF
+        </button>
+      </div>
     </div>
   );
 }
