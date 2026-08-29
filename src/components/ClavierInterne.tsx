@@ -59,11 +59,16 @@ export function ClavierInterne() {
       if (cible.dataset["clavier"] === "off" || cible.readOnly || cible.disabled) return;
 
       champRef.current = cible;
+      const modeOrigine =
+        cible.getAttribute("data-inputmode-origine") ?? cible.getAttribute("inputmode") ?? "";
+      if (!cible.hasAttribute("data-inputmode-origine")) {
+        cible.setAttribute("data-inputmode-origine", modeOrigine);
+      }
       cible.setAttribute("inputmode", "none");
       const numerique =
         (cible as HTMLInputElement).type === "number" ||
         cible.dataset["clavier"] === "numerique" ||
-        cible.getAttribute("data-inputmode-origine") === "numeric";
+        ["numeric", "decimal", "tel"].includes(modeOrigine);
       setMode(numerique ? "numerique" : "texte");
       setMajuscule(false);
       setOuvert(true);
