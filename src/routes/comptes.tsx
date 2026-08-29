@@ -72,8 +72,8 @@ function Comptes() {
   function creerCompte(ev: React.FormEvent) {
     ev.preventDefault();
     const nom = nouveauCompte.trim();
-    if (!nom) return toast.error("Donnez un nom au compte.");
-    if (comptes.includes(nom)) return toast.error("Ce compte existe déjà.");
+    if (!nom) { toast.error("Donnez un nom au compte."); return; }
+    if (comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
     ajouterCompte(nom);
     setNouveauCompte("");
     toast.success(`Compte « ${nom} » ajouté.`);
@@ -81,8 +81,8 @@ function Comptes() {
 
   function validerEdition(ancien: string) {
     const nom = nomEdite.trim();
-    if (!nom) return toast.error("Le nom ne peut pas être vide.");
-    if (nom !== ancien && comptes.includes(nom)) return toast.error("Ce compte existe déjà.");
+    if (!nom) { toast.error("Le nom ne peut pas être vide."); return; }
+    if (nom !== ancien && comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
     renommerCompte(ancien, nom);
     setEnEdition(null);
     toast.success("Compte modifié.");
@@ -90,10 +90,10 @@ function Comptes() {
 
   function retirerCompte(nom: string) {
     if (transactions.some((t) => t.compte === nom)) {
-      return toast.error("Ce compte contient des opérations.");
+      { toast.error("Ce compte contient des opérations."); return; }
     }
     if (transferts.some((t) => t.source === nom || t.destination === nom)) {
-      return toast.error("Ce compte est lié à des transferts.");
+      { toast.error("Ce compte est lié à des transferts."); return; }
     }
     supprimerCompte(nom);
     toast.success("Compte supprimé.");
@@ -102,9 +102,9 @@ function Comptes() {
   function faireTransfert(ev: React.FormEvent) {
     ev.preventDefault();
     const valeur = Number(montant);
-    if (!Number.isFinite(valeur) || valeur <= 0) return toast.error("Montant invalide.");
-    if (!source || !destination) return toast.error("Choisissez les deux comptes.");
-    if (source === destination) return toast.error("Choisissez deux comptes différents.");
+    if (!Number.isFinite(valeur) || valeur <= 0) { toast.error("Montant invalide."); return; }
+    if (!source || !destination) { toast.error("Choisissez les deux comptes."); return; }
+    if (source === destination) { toast.error("Choisissez deux comptes différents."); return; }
     ajouterTransfert({
       source,
       destination,
