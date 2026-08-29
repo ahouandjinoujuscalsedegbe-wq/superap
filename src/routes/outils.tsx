@@ -660,6 +660,463 @@ function Outils() {
           </>
         }
       />
+
+      <Section
+        titre="Simulateur de découvert"
+        icone={<TrendingDown className="h-5 w-5" />}
+        enfants={
+          <>
+            <label className="block text-sm">
+              Horizon d'analyse (jours)
+              <input
+                type="number"
+                inputMode="numeric"
+                min={7}
+                max={180}
+                value={horizon}
+                onChange={(e) => setHorizon(Math.max(7, Number(e.target.value)))}
+                className={champ}
+              />
+            </label>
+            {decouverts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aucun compte enregistré.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {decouverts.map((d) => (
+                  <li
+                    key={d.compte}
+                    className={`rounded-xl border p-3 ${
+                      d.dateDecouvert ? "border-destructive/40 bg-destructive/10" : "border-border"
+                    }`}
+                  >
+                    <p className="font-semibold">{d.compte}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sortie estimée {formatFCFA(d.sortieParJour)} par jour ·{" "}
+                      {d.joursTenus === null ? "aucune sortie détectée" : `${d.joursTenus} jours tenus`}
+                    </p>
+                    <p className="mt-1">{d.message}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        }
+      />
+
+      <Section
+        titre="Simulateur de perte de revenu"
+        icone={<TrendingDown className="h-5 w-5" />}
+        enfants={
+          <>
+            <label className="block text-sm">
+              Baisse de revenu simulée (%)
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={100}
+                value={baisse}
+                onChange={(e) => setBaisse(Number(e.target.value))}
+                className={champ}
+              />
+            </label>
+            <div
+              className={`rounded-xl p-3 text-sm ${
+                chocRevenu.margeApres < 0
+                  ? "bg-destructive/10 text-destructive"
+                  : "bg-success/10 text-success"
+              }`}
+            >
+              {chocRevenu.message}
+            </div>
+            <ul className="space-y-1 text-sm">
+              <li>
+                Revenu actuel : <strong>{formatFCFA(chocRevenu.revenuActuel)}</strong>
+              </li>
+              <li>
+                Revenu après baisse : <strong>{formatFCFA(chocRevenu.revenuApres)}</strong>
+              </li>
+              <li>
+                Dépenses mensuelles : <strong>{formatFCFA(chocRevenu.depensesMensuelles)}</strong>
+              </li>
+              <li>
+                Marge restante : <strong>{formatFCFA(chocRevenu.margeApres)}</strong>
+              </li>
+            </ul>
+          </>
+        }
+      />
+
+      <Section
+        titre="Simulateur d'inflation"
+        icone={<TrendingDown className="h-5 w-5" />}
+        enfants={
+          <>
+            <label className="block text-sm">
+              Hausse annuelle des prix (%)
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step={0.5}
+                value={tauxInflation}
+                onChange={(e) => setTauxInflation(Number(e.target.value))}
+                className={champ}
+              />
+            </label>
+            <p className="rounded-xl bg-accent px-3 py-2 text-sm text-accent-foreground">
+              {inflation.message}
+            </p>
+            <ul className="space-y-1 text-sm">
+              <li>
+                Aujourd'hui : <strong>{formatFCFA(inflation.depensesActuelles)}</strong> par mois
+              </li>
+              <li>
+                Dans 1 an : <strong>{formatFCFA(inflation.depensesDans1An)}</strong> par mois
+              </li>
+              <li>
+                Dans 5 ans : <strong>{formatFCFA(inflation.depensesDans5Ans)}</strong> par mois
+              </li>
+            </ul>
+          </>
+        }
+      />
+
+      <Section
+        titre="Comparateur de scénarios"
+        icone={<Scale className="h-5 w-5" />}
+        enfants={
+          <>
+            {[
+              { val: optA, set: setOptA, titre: "Scénario A" },
+              { val: optB, set: setOptB, titre: "Scénario B" },
+            ].map((bloc) => (
+              <div key={bloc.titre} className="rounded-xl border border-border p-3">
+                <p className="text-xs font-semibold text-muted-foreground">{bloc.titre}</p>
+                <label className="block text-sm">
+                  Nom
+                  <input
+                    type="text"
+                    value={bloc.val.nom}
+                    onChange={(e) => bloc.set({ ...bloc.val, nom: e.target.value })}
+                    className={champ}
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm">
+                    Coût (FCFA)
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      value={bloc.val.cout}
+                      onChange={(e) => bloc.set({ ...bloc.val, cout: Number(e.target.value) })}
+                      className={champ}
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    Durée (mois)
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      value={bloc.val.dureeMois}
+                      onChange={(e) =>
+                        bloc.set({ ...bloc.val, dureeMois: Math.max(1, Number(e.target.value)) })
+                      }
+                      className={champ}
+                    />
+                  </label>
+                </div>
+              </div>
+            ))}
+            <ul className="space-y-2 text-sm">
+              {comparaison.map((c) => (
+                <li
+                  key={c.nom}
+                  className={`rounded-xl border p-3 ${
+                    c.meilleur ? "border-success/50 bg-success/10" : "border-border"
+                  }`}
+                >
+                  <p className="font-semibold">
+                    {c.nom} {c.meilleur && "· meilleur choix"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFCFA(c.coutMensuel)} par mois pendant {c.dureeMois} mois
+                  </p>
+                  <p>
+                    Solde final projeté : <strong>{formatFCFA(c.soldeFinal)}</strong>
+                    {!c.meilleur && ` (${formatFCFA(c.ecartMeilleur)} face au meilleur)`}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        }
+      />
+
+      <Section
+        titre="Stratégie de remboursement des dettes"
+        icone={<Wrench className="h-5 w-5" />}
+        enfants={
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  { id: "boule-de-neige", label: "Boule de neige" },
+                  { id: "avalanche", label: "Avalanche" },
+                ] as const
+              ).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setStrategie(s.id)}
+                  className={`rounded-xl border p-2 text-xs font-semibold ${
+                    strategie === s.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <p className="rounded-xl bg-accent px-3 py-2 text-sm text-accent-foreground">
+              {plan.message}
+            </p>
+            {plan.etapes.length > 0 && (
+              <ol className="space-y-2 text-sm">
+                {plan.etapes.map((e, k) => (
+                  <li key={e.personne + k} className="rounded-xl border border-border p-3">
+                    <p className="font-semibold">
+                      {k + 1}. {e.personne}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Reste {formatFCFA(e.reste)} · soldé en {e.moisPourSolder} mois (cumul{" "}
+                      {e.cumulMois} mois)
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </>
+        }
+      />
+
+      <Section
+        titre="Fonds d'urgence"
+        icone={<LifeBuoy className="h-5 w-5" />}
+        enfants={
+          <>
+            <label className="block text-sm">
+              Mois de dépenses à couvrir
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={24}
+                value={moisCibles}
+                onChange={(e) => setMoisCibles(Math.max(1, Number(e.target.value)))}
+                className={champ}
+              />
+            </label>
+            <div
+              className={`rounded-xl p-3 text-sm ${
+                fonds.niveau === "solide"
+                  ? "bg-success/10 text-success"
+                  : fonds.niveau === "correct"
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-destructive/10 text-destructive"
+              }`}
+            >
+              {fonds.message}
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{
+                  width: `${Math.min(100, Math.round((fonds.moisCouverts / Math.max(1, moisCibles)) * 100))}%`,
+                }}
+              />
+            </div>
+            <ul className="space-y-1 text-sm">
+              <li>
+                Couverture actuelle : <strong>{fonds.moisCouverts} mois</strong>
+              </li>
+              <li>
+                Cible : <strong>{formatFCFA(fonds.cible)}</strong>
+              </li>
+              <li>
+                Manquant : <strong>{formatFCFA(fonds.manquant)}</strong>
+              </li>
+            </ul>
+          </>
+        }
+      />
+
+      <Section
+        titre="Crédit contre paiement comptant"
+        icone={<CreditCard className="h-5 w-5" />}
+        enfants={
+          <>
+            <label className="block text-sm">
+              Prix du bien (FCFA)
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={prixBien}
+                onChange={(e) => setPrixBien(Number(e.target.value))}
+                className={champ}
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-sm">
+                Taux du crédit (%/an)
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step={0.5}
+                  value={tauxCredit}
+                  onChange={(e) => setTauxCredit(Number(e.target.value))}
+                  className={champ}
+                />
+              </label>
+              <label className="block text-sm">
+                Durée (mois)
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  value={dureeCredit}
+                  onChange={(e) => setDureeCredit(Math.max(1, Number(e.target.value)))}
+                  className={champ}
+                />
+              </label>
+            </div>
+            <div className="rounded-xl bg-accent p-3 text-sm text-accent-foreground">
+              {creditComptant.message}
+            </div>
+            <ul className="space-y-1 text-sm">
+              <li>
+                Mensualité : <strong>{formatFCFA(creditComptant.mensualite)}</strong>
+              </li>
+              <li>
+                Coût total du crédit : <strong>{formatFCFA(creditComptant.coutCredit)}</strong>
+              </li>
+              <li>
+                Surcoût des intérêts : <strong>{formatFCFA(creditComptant.surcout)}</strong>
+              </li>
+              <li>
+                Solde après achat comptant :{" "}
+                <strong>{formatFCFA(creditComptant.soldeApresComptant)}</strong>
+              </li>
+            </ul>
+          </>
+        }
+      />
+
+      <Section
+        titre="Alertes proactives"
+        icone={<Bell className="h-5 w-5" />}
+        ouvertParDefaut
+        enfants={
+          <ul className="space-y-2 text-sm">
+            {proactives.map((a) => (
+              <li
+                key={a.id}
+                className={`rounded-xl border p-3 ${
+                  a.niveau === "critique"
+                    ? "border-destructive/40 bg-destructive/10"
+                    : a.niveau === "attention"
+                      ? "border-border bg-accent"
+                      : "border-border"
+                }`}
+              >
+                <p className="font-semibold">{a.titre}</p>
+                <p className="text-xs text-muted-foreground">{a.detail}</p>
+              </li>
+            ))}
+          </ul>
+        }
+      />
+
+      <Section
+        titre="Historique des simulations"
+        icone={<History className="h-5 w-5" />}
+        enfants={
+          historique.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Aucune simulation enregistrée pour le moment.
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {historique.map((s) => (
+                <li key={s.id} className="rounded-xl border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{s.titre}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(s.date).toLocaleString("fr-FR")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => exporterRapportPdf(s.titre, s.contenu)}
+                      aria-label="Exporter cette simulation en PDF"
+                      title="Exporter en PDF"
+                      className="rounded-lg border border-border p-2"
+                    >
+                      <FileDown className="h-4 w-4" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHistorique(supprimerSimulation(s.id))}
+                      aria-label="Supprimer cette simulation"
+                      title="Supprimer"
+                      className="rounded-lg border border-destructive/40 p-2 text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      />
+
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={copierRapport}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-sm font-semibold"
+        >
+          {copie ? (
+            <Check className="h-4 w-4 text-success" aria-hidden />
+          ) : (
+            <Copy className="h-4 w-4" aria-hidden />
+          )}
+          {copie ? "Simulation copiée" : "Copier la simulation"}
+        </button>
+        <button
+          type="button"
+          onClick={() => exporterRapportPdf("Rapport de simulations", rapportSimulations())}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary p-3 text-sm font-semibold text-primary-foreground"
+        >
+          <FileDown className="h-4 w-4" aria-hidden />
+          Exporter la simulation en PDF
+        </button>
+        <button
+          type="button"
+          onClick={sauvegarder}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-sm font-semibold"
+        >
+          <History className="h-4 w-4" aria-hidden />
+          Enregistrer dans l'historique
+        </button>
+      </div>
     </div>
   );
 }
