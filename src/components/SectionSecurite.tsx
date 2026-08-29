@@ -172,7 +172,7 @@ export function SectionSecurite() {
         </div>
       )}
 
-      {processus && (
+      {processus && !demandeConfirmation && (
         <div
           role="dialog"
           aria-modal="true"
