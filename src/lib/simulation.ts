@@ -13,9 +13,6 @@ function jour(iso: string): string {
   return iso.slice(0, 10);
 }
 
-function joursDansLeMois(d = new Date()): number {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-}
 
 /* ------------------------------------------------------------------ */
 /* Rythme de dépense                                                    */
