@@ -41,7 +41,7 @@ export const Route = createFileRoute("/analyses")({
 
 const COULEUR_NIVEAU = {
   alerte: "border-destructive/40 bg-destructive/10",
-  attention: "border-warning/40 bg-warning/10",
+  attention: "border-primary/40 bg-primary/10",
   bon: "border-success/40 bg-success/10",
 } as const;
 
