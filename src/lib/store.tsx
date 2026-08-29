@@ -152,6 +152,7 @@ const ETAT_INITIAL: Etat = {
   comptes: [...COMPTES],
   transferts: [],
   budgets: [],
+  dettes: [],
   transparence: 85,
 };
 
@@ -182,6 +183,11 @@ type Contexte = Etat & {
   genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
+  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">) => void;
+  modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
+  supprimerDette: (id: string) => void;
+  ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">) => void;
+  supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
   reinitialiser: () => void;
   totalRevenus: number;
