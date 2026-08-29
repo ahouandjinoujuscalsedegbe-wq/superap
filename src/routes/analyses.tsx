@@ -1,15 +1,20 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown, TrendingDown, TrendingUp } from "lucide-react";
+import { Check, ChevronDown, Copy, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
+  alertesEnveloppes,
+  comparerCategories,
+  detecterAnomalies,
   diagnostiquer,
   filtrerFenetre,
   filtrerFenetrePrecedente,
   plusGrossesDepenses,
+  prevuContreReel,
   projectionFinDeMois,
+  resumeTexte,
   repartitionParCategorie,
   tendanceMensuelle,
   totaliser,
@@ -58,6 +63,7 @@ function Analyses() {
   } = useSuperApp();
   const [fenetre, setFenetre] = useState<Fenetre>("mois");
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
+  const [copie, setCopie] = useState(false);
 
   const periode = useMemo(() => filtrerFenetre(transactions, fenetre), [transactions, fenetre]);
   const precedente = useMemo(
@@ -85,6 +91,23 @@ function Analyses() {
         solde,
       }),
     [totaux, precedents, enveloppes, depensesParEnveloppe, dettes, budgets, solde],
+  );
+
+  const evolutions = useMemo(
+    () => comparerCategories(periode, precedente, enveloppes),
+    [periode, precedente, enveloppes],
+  );
+  const prevuReel = useMemo(
+    () => prevuContreReel(budgets, transactions, enveloppes),
+    [budgets, transactions, enveloppes],
+  );
+  const anomalies = useMemo(
+    () => detecterAnomalies(periode, enveloppes),
+    [periode, enveloppes],
+  );
+  const alertes = useMemo(
+    () => alertesEnveloppes(enveloppes, depensesParEnveloppe, transactions),
+    [enveloppes, depensesParEnveloppe, transactions],
   );
 
   const evolution = variation(totaux.depenses, precedents.depenses);
@@ -278,6 +301,149 @@ function Analyses() {
         </section>
       )}
 
+      {alertes.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <h2 className="font-semibold">Enveloppes à surveiller</h2>
+          <ul className="space-y-2 text-sm">
+            {alertes.map((a) => (
+              <li key={a.id} className="rounded-xl border border-border p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate font-medium">
+                    {a.emoji} {a.nom}
+                  </span>
+                  <span
+                    className={`shrink-0 text-xs font-semibold ${
+                      a.plafondAtteint ? "text-destructive" : "text-primary"
+                    }`}
+                  >
+                    {a.pourcentage} % du plafond
+                  </span>
+                </div>
+                <div className="mt-2 h-2 rounded-full bg-muted">
+                  <div
+                    className={`h-2 rounded-full ${a.plafondAtteint ? "bg-destructive" : "bg-primary"}`}
+                    style={{ width: `${Math.min(100, a.pourcentage)}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Reste {formatFCFA(a.restant)}
+                  {a.joursRestants !== null
+                    ? ` · épuisement estimé dans ${a.joursRestants} jour(s)`
+                    : ""}
+                  {a.plafondAtteint ? " · zone rouge : vous puisez dans la réserve." : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Budget prévu contre dépenses réelles (ce mois)</h2>
+        {prevuReel.lignes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune planification ni dépense ce mois-ci. Planifiez vos dépenses dans la
+            Budgétisation pour activer cette comparaison.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Prévu <strong>{formatFCFA(prevuReel.totalPrevu)}</strong> · réel{" "}
+              <strong>{formatFCFA(prevuReel.totalReel)}</strong>
+            </p>
+            <ul className="space-y-2 text-sm">
+              {prevuReel.lignes.map((l) => (
+                <li key={l.enveloppeId} className="rounded-xl border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium">
+                      {l.emoji} {l.nom}
+                    </span>
+                    <span
+                      className={`shrink-0 text-xs font-semibold ${
+                        l.ecart > 0 ? "text-destructive" : "text-success"
+                      }`}
+                    >
+                      {l.ecart > 0 ? "+" : ""}
+                      {formatFCFA(l.ecart)}
+                    </span>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div className="h-1.5 rounded-full bg-muted">
+                      <div
+                        className="h-1.5 rounded-full bg-primary/50"
+                        style={{
+                          width: `${Math.min(100, (l.prevu / Math.max(l.prevu, l.reel, 1)) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted">
+                      <div
+                        className="h-1.5 rounded-full bg-destructive"
+                        style={{
+                          width: `${Math.min(100, (l.reel / Math.max(l.prevu, l.reel, 1)) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Prévu {formatFCFA(l.prevu)} · réel {formatFCFA(l.reel)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
+      {evolutions.length > 0 && fenetre !== "tout" && (
+        <section className="carte space-y-2 p-4">
+          <h2 className="font-semibold">Ce qui a le plus changé</h2>
+          <ul className="divide-y divide-border text-sm">
+            {evolutions.slice(0, 5).map((e) => (
+              <li key={e.nom} className="flex items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{e.nom}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFCFA(e.precedent)} → {formatFCFA(e.actuel)}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 text-xs font-semibold ${
+                    e.ecart > 0 ? "text-destructive" : "text-success"
+                  }`}
+                >
+                  {e.ecart > 0 ? "+" : ""}
+                  {formatFCFA(e.ecart)}
+                  {e.pourcentage !== null ? ` (${e.pourcentage > 0 ? "+" : ""}${e.pourcentage} %)` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {anomalies.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <h2 className="font-semibold">Dépenses inhabituelles</h2>
+          <ul className="divide-y divide-border text-sm">
+            {anomalies.map((a) => (
+              <li key={a.transaction.id} className="py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate font-medium">{a.transaction.libelle}</p>
+                  <span className="shrink-0 font-semibold text-destructive">
+                    {formatFCFA(a.transaction.montant)}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {a.enveloppe} · {formatDateFr(a.transaction.date)} · {a.facteur}× la moyenne
+                  habituelle ({formatFCFA(a.moyenne)})
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="space-y-2">
         <h2 className="px-1 font-semibold">Conseils personnalisés</h2>
         {diagnostic.conseils.map((c) => (
@@ -290,6 +456,34 @@ function Analyses() {
           </article>
         ))}
       </section>
+
+      <button
+        type="button"
+        onClick={async () => {
+          const texte = resumeTexte({
+            fenetre: FENETRES.find((f) => f.id === fenetre)?.label ?? "",
+            diagnostic,
+            totaux,
+            projection: projection.projection,
+            repartition,
+          });
+          try {
+            await navigator.clipboard.writeText(texte);
+            setCopie(true);
+            window.setTimeout(() => setCopie(false), 2500);
+          } catch {
+            setCopie(false);
+          }
+        }}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-sm font-semibold"
+      >
+        {copie ? (
+          <Check className="h-4 w-4 text-success" aria-hidden />
+        ) : (
+          <Copy className="h-4 w-4" aria-hidden />
+        )}
+        {copie ? "Rapport copié" : "Copier le rapport d'analyse"}
+      </button>
     </div>
   );
 }
