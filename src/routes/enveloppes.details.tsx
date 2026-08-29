@@ -28,6 +28,7 @@ export const Route = createFileRoute("/enveloppes/details")({
 
 function DetailsActuels() {
   const { enveloppes, depensesParEnveloppe, budgets, transactions } = useSuperApp();
+  const [ouverte, setOuverte] = useState<string | null>(null);
 
   return (
     <div className="space-y-5">
