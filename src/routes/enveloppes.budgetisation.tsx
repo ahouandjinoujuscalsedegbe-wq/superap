@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Plus } from "lucide-react";
-import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
+import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
-import { nombreEcheancesDues, equivalentMensuel, bornesPeriode, libellePlage } from "@/lib/periodes";
+import { nombreEcheancesDues, equivalentMensuel, libellePlage } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/enveloppes/budgetisation")({
       {
         name: "description",
         content:
-          "Planifiez une dépense existante sur une période précise choisie au calendrier : jour, semaine, mois, trimestre, semestre ou année, en francs CFA.",
+          "Planifiez une dépense en répondant à quelques questions : sujet, périodicité, fréquence, montant, enveloppe, compte et durée, en francs CFA.",
       },
       { property: "og:title", content: "Budgétisation — SUPER APP" },
       {
@@ -34,7 +34,41 @@ export const Route = createFileRoute("/enveloppes/budgetisation")({
 const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
 
-const libellePeriode = (p: Periode) => PERIODES.find((x) => x.id === p)?.label ?? p;
+/** Fréquences proposées, converties en période de base + intervalle. */
+const FREQUENCES: { id: string; label: string; periode: Periode; intervalle: number }[] = [
+  { id: "j1", label: "Journalière (chaque jour)", periode: "jour", intervalle: 1 },
+  { id: "j2", label: "Tous les 2 jours", periode: "jour", intervalle: 2 },
+  { id: "j3", label: "Tous les 3 jours", periode: "jour", intervalle: 3 },
+  { id: "s1", label: "Hebdomadaire (chaque semaine)", periode: "semaine", intervalle: 1 },
+  { id: "s2", label: "Toutes les 2 semaines", periode: "semaine", intervalle: 2 },
+  { id: "m1", label: "Mensuelle (chaque mois)", periode: "mois", intervalle: 1 },
+  { id: "m2", label: "Tous les 2 mois", periode: "mois", intervalle: 2 },
+  { id: "t1", label: "Trimestrielle (3 mois)", periode: "trimestre", intervalle: 1 },
+  { id: "se1", label: "Semestrielle (6 mois)", periode: "semestre", intervalle: 1 },
+  { id: "a1", label: "Annuelle (chaque année)", periode: "annee", intervalle: 1 },
+  { id: "a2", label: "Tous les 2 ans", periode: "annee", intervalle: 2 },
+];
+
+/** Durée sur laquelle s'étend la périodicité. */
+const DUREES: { id: string; label: string; jours?: number; mois?: number }[] = [
+  { id: "1sem", label: "1 semaine", jours: 7 },
+  { id: "2sem", label: "2 semaines", jours: 14 },
+  { id: "1m", label: "1 mois", mois: 1 },
+  { id: "2m", label: "2 mois", mois: 2 },
+  { id: "3m", label: "3 mois", mois: 3 },
+  { id: "6m", label: "6 mois", mois: 6 },
+  { id: "1a", label: "1 an", mois: 12 },
+  { id: "2a", label: "2 ans", mois: 24 },
+];
+
+function finDepuis(debut: string, dureeId: string): string {
+  const d = DUREES.find((x) => x.id === dureeId) ?? DUREES[0];
+  const date = new Date(`${debut}T12:00:00`);
+  if (d.jours) date.setDate(date.getDate() + d.jours);
+  if (d.mois) date.setMonth(date.getMonth() + d.mois);
+  date.setDate(date.getDate() - 1);
+  return jourISO(date);
+}
 
 function Budgetisation() {
   const {
@@ -59,6 +93,10 @@ function Budgetisation() {
         debut: string;
         fin: string;
         ponctuel: boolean;
+        periode: Periode;
+        intervalle: number;
+        frequenceLabel: string;
+        dureeLabel: string;
       }
     | { type: "conversion-tout"; nb: number; montant: number }
     | { type: "conversion-un"; id: string; libelle: string; montant: number }
@@ -69,26 +107,27 @@ function Budgetisation() {
   const [popupOuvert, setPopupOuvert] = useState(false);
   const [ouverte, setOuverte] = useState<string | null>(null);
 
-  const [periode, setPeriode] = useState<Periode>("semaine");
-  const [jour, setJour] = useState(() => jourISO(new Date()));
-  const [situation, setSituation] = useState("");
-  const [autreSituation, setAutreSituation] = useState("");
-  const [bEnveloppe, setBEnveloppe] = useState(enveloppes[0]?.id ?? "");
+  // Réponses du questionnaire
+  const [sujet, setSujet] = useState("");
+  const [periodique, setPeriodique] = useState<boolean | null>(null);
+  const [frequenceId, setFrequenceId] = useState("");
   const [bMontant, setBMontant] = useState("");
+  const [bEnveloppe, setBEnveloppe] = useState(enveloppes[0]?.id ?? "");
   const [bCompte, setBCompte] = useState(comptes[0] ?? "");
-  const [recurrent, setRecurrent] = useState(false);
+  const [dureeId, setDureeId] = useState("");
+  const [debut, setDebut] = useState(() => jourISO(new Date()));
 
-  const plage = useMemo(() => bornesPeriode(jour, periode), [jour, periode]);
+  const frequence = FREQUENCES.find((f) => f.id === frequenceId);
+  const duree = DUREES.find((d) => d.id === dureeId);
+  const fin = periodique && duree ? finDepuis(debut, duree.id) : debut;
 
-  /** Dépenses déjà existantes dans l'application, proposées comme « situations ». */
-  const situations = useMemo(() => {
+  /** Dépenses déjà existantes dans l'application, proposées comme sujets. */
+  const sujets = useMemo(() => {
     const set = new Set<string>();
     for (const t of transactions) if (t.type === "depense" && t.libelle.trim()) set.add(t.libelle.trim());
     for (const b of budgets) if (b.libelle.trim()) set.add(b.libelle.trim());
     return Array.from(set).sort((a, z) => a.localeCompare(z, "fr"));
   }, [transactions, budgets]);
-
-  const libelleChoisi = situation === "__autre" ? autreSituation.trim() : situation.trim();
 
   const totalMensuel = budgets.reduce((s, b) => s + equivalentMensuel(b), 0);
   const dues = budgets.map((b) => ({ b, n: b.actif ? nombreEcheancesDues(b) : 0 }));
@@ -116,38 +155,59 @@ function Budgetisation() {
   }, [budgets, enveloppes]);
 
   const totalPlanifie = budgets.reduce((s, b) => s + b.montant, 0);
-
   const enveloppeChoisie = enveloppes.find((e) => e.id === bEnveloppe);
+
+  function libelleRepetition(b: { periode: Periode; intervalle?: number; ponctuel?: boolean }) {
+    if (b.ponctuel !== false) return "Une seule fois";
+    const f = FREQUENCES.find((x) => x.periode === b.periode && x.intervalle === (b.intervalle ?? 1));
+    return f ? f.label : b.periode;
+  }
 
   function creerBudget(ev: React.FormEvent) {
     ev.preventDefault();
     const valeur = Number(bMontant);
-    if (!libelleChoisi) {
-      toast.error("Choisissez la dépense (situation) à planifier.");
+    if (!sujet.trim()) {
+      toast.error("Indiquez le sujet de votre dépense.");
       return;
     }
-    if (!bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe)) {
-      toast.error("Enveloppe introuvable : choisissez une enveloppe existante.");
+    if (periodique === null) {
+      toast.error("Précisez si votre dépense est périodique.");
+      return;
+    }
+    if (periodique && !frequence) {
+      toast.error("Choisissez la périodicité de cette dépense.");
       return;
     }
     if (!Number.isFinite(valeur) || valeur <= 0) {
       toast.error("Montant invalide : saisissez un montant positif en FCFA.");
       return;
     }
+    if (!bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe)) {
+      toast.error("Choisissez l'enveloppe de prélèvement.");
+      return;
+    }
     if (!bCompte) {
       toast.error("Choisissez le compte à débiter.");
       return;
     }
+    if (periodique && !duree) {
+      toast.error("Précisez sur quel temps s'étend la périodicité.");
+      return;
+    }
     setDemande({
       type: "creation",
-      libelle: libelleChoisi,
+      libelle: sujet.trim(),
       enveloppeId: bEnveloppe,
       montant: valeur,
       compte: bCompte,
-      prochaine: new Date(`${plage.debut}T08:00:00`).toISOString(),
-      debut: plage.debut,
-      fin: plage.fin,
-      ponctuel: !recurrent,
+      prochaine: new Date(`${debut}T08:00:00`).toISOString(),
+      debut,
+      fin,
+      ponctuel: !periodique,
+      periode: frequence?.periode ?? "jour",
+      intervalle: frequence?.intervalle ?? 1,
+      frequenceLabel: periodique ? (frequence?.label ?? "—") : "Aucune (dépense unique)",
+      dureeLabel: periodique ? (duree?.label ?? "—") : "Une seule échéance",
     });
   }
 
@@ -158,7 +218,8 @@ function Budgetisation() {
         libelle: demande.libelle,
         enveloppeId: demande.enveloppeId,
         montant: demande.montant,
-        periode,
+        periode: demande.periode,
+        intervalle: demande.intervalle,
         compte: demande.compte,
         prochaine: demande.prochaine,
         debut: demande.debut,
@@ -166,11 +227,13 @@ function Budgetisation() {
         ponctuel: demande.ponctuel,
         actif: true,
       });
-      setSituation("");
-      setAutreSituation("");
+      setSujet("");
+      setPeriodique(null);
+      setFrequenceId("");
+      setDureeId("");
       setBMontant("");
       setPopupOuvert(false);
-      toast.success("Dépense prévue pour la période choisie.");
+      toast.success("Dépense prévue.");
     } else if (demande.type === "conversion-tout") {
       genererEcheancesDues();
       toast.success("Dépenses réelles générées.");
@@ -202,8 +265,7 @@ function Budgetisation() {
         <div>
           <h2 className="text-lg font-semibold">Budgétisation</h2>
           <p className="text-sm text-muted-foreground">
-            Prévoyez une dépense existante sur une période précise : « cette semaine, tel montant
-            pour telle situation, prélevé dans telle enveloppe ».
+            Prévoyez vos dépenses en répondant à quelques questions simples.
           </p>
         </div>
 
@@ -279,8 +341,8 @@ function Budgetisation() {
                               {g.nom}
                             </p>
                             <p>
-                              <span className="text-muted-foreground">Type de période : </span>
-                              {libellePeriode(b.periode)}
+                              <span className="text-muted-foreground">Périodicité : </span>
+                              {libelleRepetition(b)}
                             </p>
                             <p>
                               <span className="text-muted-foreground">Compte débité : </span>
@@ -289,12 +351,6 @@ function Budgetisation() {
                             <p>
                               <span className="text-muted-foreground">Prochaine échéance : </span>
                               {formatDateFr(b.prochaine)}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Répétition : </span>
-                              {b.ponctuel === false
-                                ? `À chaque ${libellePeriode(b.periode).toLowerCase()}`
-                                : "Une seule fois"}
                             </p>
                             <div className="flex gap-2 pt-1">
                               <button
@@ -347,76 +403,88 @@ function Budgetisation() {
           >
             <h3 className="text-base font-semibold">Planifier une dépense</h3>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">1. Type de période</p>
-              <div className="flex flex-wrap gap-2">
-                {PERIODES.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPeriode(p.id)}
-                    aria-pressed={periode === p.id}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                      periode === p.id
-                        ? "bg-primary text-primary-foreground"
-                        : "border border-input text-muted-foreground"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+            <form onSubmit={creerBudget} className="space-y-4">
+              <div>
+                <label htmlFor="b-sujet" className="text-sm font-medium">
+                  Quel est le sujet de votre dépense ?
+                </label>
+                <input
+                  id="b-sujet"
+                  list="b-sujets"
+                  value={sujet}
+                  onChange={(ev) => setSujet(ev.target.value)}
+                  placeholder="Loyer, école, carburant…"
+                  className={champ}
+                />
+                <datalist id="b-sujets">
+                  {sujets.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium">2. Période concernée</p>
-              <Calendrier valeur={jour} onSelection={setJour} plage={plage} />
-              <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
-                Période sélectionnée : <span className="font-semibold">{libellePlage(plage)}</span>
-              </p>
-            </div>
-
-            <form onSubmit={creerBudget} className="space-y-3">
-              <p className="text-sm font-medium">3. Dépense à prévoir</p>
 
               <div>
-                <label htmlFor="b-situation" className="text-sm font-medium">
-                  Situation (dépense existante)
-                </label>
-                <select
-                  id="b-situation"
-                  value={situation}
-                  onChange={(ev) => setSituation(ev.target.value)}
-                  className={champ}
-                >
-                  <option value="">— Choisir une dépense —</option>
-                  {situations.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                <p className="text-sm font-medium">Votre dépense est-elle périodique ?</p>
+                <div className="mt-1.5 flex gap-2">
+                  {[
+                    { v: true, l: "Oui" },
+                    { v: false, l: "Non" },
+                  ].map((o) => (
+                    <button
+                      key={o.l}
+                      type="button"
+                      onClick={() => setPeriodique(o.v)}
+                      aria-pressed={periodique === o.v}
+                      className={`flex-1 rounded-xl px-3 py-2 text-sm font-medium ${
+                        periodique === o.v
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-input text-muted-foreground"
+                      }`}
+                    >
+                      {o.l}
+                    </button>
                   ))}
-                  <option value="__autre">Autre dépense…</option>
-                </select>
+                </div>
               </div>
 
-              {situation === "__autre" && (
+              {periodique === true && (
                 <div>
-                  <label htmlFor="b-autre" className="text-sm font-medium">
-                    Nommer la dépense
+                  <label htmlFor="b-frequence" className="text-sm font-medium">
+                    Quelle est la périodicité de cette dépense ?
                   </label>
-                  <input
-                    id="b-autre"
-                    value={autreSituation}
-                    onChange={(ev) => setAutreSituation(ev.target.value)}
-                    placeholder="Loyer, école, carburant…"
+                  <select
+                    id="b-frequence"
+                    value={frequenceId}
+                    onChange={(ev) => setFrequenceId(ev.target.value)}
                     className={champ}
-                  />
+                  >
+                    <option value="">— Choisir une fréquence —</option>
+                    {FREQUENCES.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
               <div>
+                <label htmlFor="b-montant" className="text-sm font-medium">
+                  Quel est le montant de la dépense ? (FCFA)
+                </label>
+                <input
+                  id="b-montant"
+                  inputMode="numeric"
+                  value={bMontant}
+                  onChange={(ev) => setBMontant(ev.target.value.replace(/[^\d]/g, ""))}
+                  placeholder="50000"
+                  className={champ}
+                />
+              </div>
+
+              <div>
                 <label htmlFor="b-enveloppe" className="text-sm font-medium">
-                  Enveloppe de prélèvement
+                  Dans quelle enveloppe souhaitez-vous prélever les sous ?
                 </label>
                 <select
                   id="b-enveloppe"
@@ -424,6 +492,7 @@ function Budgetisation() {
                   onChange={(ev) => setBEnveloppe(ev.target.value)}
                   className={champ}
                 >
+                  <option value="">— Choisir une enveloppe —</option>
                   {enveloppes.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.emoji} {e.nom}
@@ -438,22 +507,8 @@ function Budgetisation() {
               </div>
 
               <div>
-                <label htmlFor="b-montant" className="text-sm font-medium">
-                  Montant prévu pour la période (FCFA)
-                </label>
-                <input
-                  id="b-montant"
-                  inputMode="numeric"
-                  value={bMontant}
-                  onChange={(ev) => setBMontant(ev.target.value.replace(/[^\d]/g, ""))}
-                  placeholder="50000"
-                  className={champ}
-                />
-              </div>
-
-              <div>
                 <label htmlFor="b-compte" className="text-sm font-medium">
-                  Compte débité
+                  Dans quel compte voulez-vous puiser cette somme ?
                 </label>
                 <select
                   id="b-compte"
@@ -461,6 +516,7 @@ function Budgetisation() {
                   onChange={(ev) => setBCompte(ev.target.value)}
                   className={champ}
                 >
+                  <option value="">— Choisir un compte —</option>
                   {comptes.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -469,15 +525,36 @@ function Budgetisation() {
                 </select>
               </div>
 
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={recurrent}
-                  onChange={(ev) => setRecurrent(ev.target.checked)}
-                  className="h-4 w-4 accent-[hsl(var(--primary))]"
-                />
-                Répéter à chaque période ({libellePeriode(periode).toLowerCase()})
-              </label>
+              {periodique === true && (
+                <div>
+                  <label htmlFor="b-duree" className="text-sm font-medium">
+                    Sur quel temps doit s'étendre la périodicité de cette dépense ?
+                  </label>
+                  <select
+                    id="b-duree"
+                    value={dureeId}
+                    onChange={(ev) => setDureeId(ev.target.value)}
+                    className={champ}
+                  >
+                    <option value="">— Choisir une durée —</option>
+                    {DUREES.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">
+                  {periodique === true ? "À partir de quelle date ?" : "Quel jour ?"}
+                </p>
+                <Calendrier valeur={debut} onSelection={setDebut} plage={{ debut, fin }} />
+                <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
+                  Période couverte : <span className="font-semibold">{libellePlage({ debut, fin })}</span>
+                </p>
+              </div>
 
               <div className="flex gap-2">
                 <button
@@ -522,12 +599,9 @@ function Budgetisation() {
         details={
           demande?.type === "creation"
             ? [
-                { label: "Dépense", avant: "—", apres: demande.libelle },
-                {
-                  label: "Période",
-                  avant: libellePeriode(periode),
-                  apres: libellePlage({ debut: demande.debut, fin: demande.fin }),
-                },
+                { label: "Sujet de la dépense", avant: "—", apres: demande.libelle },
+                { label: "Périodique", avant: "—", apres: demande.ponctuel ? "Non" : "Oui" },
+                { label: "Périodicité", avant: "—", apres: demande.frequenceLabel },
                 { label: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
                 {
                   label: "Enveloppe",
@@ -535,10 +609,11 @@ function Budgetisation() {
                   apres: enveloppes.find((e) => e.id === demande.enveloppeId)?.nom ?? "—",
                 },
                 { label: "Compte débité", avant: "—", apres: demande.compte },
+                { label: "Étendue", avant: "—", apres: demande.dureeLabel },
                 {
-                  label: "Répétition",
+                  label: "Période couverte",
                   avant: "—",
-                  apres: demande.ponctuel ? "Une seule fois" : `À chaque ${libellePeriode(periode).toLowerCase()}`,
+                  apres: libellePlage({ debut: demande.debut, fin: demande.fin }),
                 },
               ]
             : []
