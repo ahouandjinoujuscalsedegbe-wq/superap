@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SuperAppProvider } from "@/lib/store";
 import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
+import { ClavierInterne } from "../components/ClavierInterne";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -137,6 +138,7 @@ function RootComponent() {
         </div>
         <MenuPrincipal />
         <BottomNav />
+        <ClavierInterne />
         <Toaster position="top-center" richColors />
       </SuperAppProvider>
     </QueryClientProvider>
