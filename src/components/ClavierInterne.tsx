@@ -65,7 +65,7 @@ export function ClavierInterne() {
     const champ = champRef.current;
     if (!champ) return;
 
-    const rendreVisible = () => {
+    const rendreVisible = (fluide = true) => {
       const clavier = clavierRef.current;
       const hauteurClavier = clavier ? clavier.getBoundingClientRect().height : 0;
       document.body.style.paddingBottom = `${hauteurClavier + 16}px`;
@@ -74,17 +74,31 @@ export function ClavierInterne() {
       const limiteVisible = window.innerHeight - hauteurClavier - 12;
       if (rect.bottom > limiteVisible || rect.top < 0) {
         const decalage = rect.bottom - limiteVisible;
-        window.scrollBy({ top: Math.max(decalage, rect.top - 12), behavior: "smooth" });
+        window.scrollBy({
+          top: Math.max(decalage, rect.top - 12),
+          behavior: fluide ? "smooth" : "auto",
+        });
       }
+    };
+
+    // Suivi pendant la saisie : à chaque frappe, le champ actif reste
+    // visible au-dessus du clavier, même si la ligne de saisie se déplace.
+    const surSaisie = (ev: Event) => {
+      if (ev.target === champRef.current) rendreVisible(false);
     };
 
     const t1 = window.setTimeout(rendreVisible, 60);
     const t2 = window.setTimeout(rendreVisible, 250);
-    window.addEventListener("resize", rendreVisible);
+    const surRedimensionnement = () => rendreVisible();
+    window.addEventListener("resize", surRedimensionnement);
+    document.addEventListener("input", surSaisie, true);
+    document.addEventListener("focusin", surSaisie, true);
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
-      window.removeEventListener("resize", rendreVisible);
+      window.removeEventListener("resize", surRedimensionnement);
+      document.removeEventListener("input", surSaisie, true);
+      document.removeEventListener("focusin", surSaisie, true);
       document.body.style.paddingBottom = "";
     };
   }, [ouvert, mode]);
