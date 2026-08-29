@@ -81,7 +81,7 @@ function Accueil() {
       </section>
 
       {rappels > 0 && (
-        <section className="carte space-y-2 border-warning/40 p-4">
+        <section className="carte space-y-2 border-destructive/30 p-4">
           <h2 className="flex items-center gap-1.5 text-sm font-semibold">
             <AlertTriangle className="h-4 w-4 text-destructive" aria-hidden />
             Rappels ({rappels})
