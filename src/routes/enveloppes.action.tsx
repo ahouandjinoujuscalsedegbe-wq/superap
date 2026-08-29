@@ -138,6 +138,42 @@ function ActionEnveloppes() {
         </div>
       </section>
 
+      <section className="carte space-y-4 p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Classement par catégorie</h2>
+          <p className="text-sm text-muted-foreground">
+            Vos enveloppes regroupées par catégorie et sous-catégorie.
+          </p>
+        </div>
+
+        <ul className="space-y-3">
+          {groupes.map((g) => (
+            <li key={g.categorie} className="rounded-xl border border-border/70 p-3">
+              <p className="text-sm font-semibold">{g.categorie}</p>
+              <ul className="mt-2 space-y-2">
+                {g.sousCategories.map((s) => (
+                  <li key={s.sousCategorie}>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {s.sousCategorie}
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {s.enveloppes.map((e) => (
+                        <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="min-w-0 truncate">
+                            <span aria-hidden>{e.emoji}</span> {e.nom}
+                          </span>
+                          <span className="shrink-0 font-medium">{formatFCFA(e.plafond)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {modal === "creer" && (
         <div
           role="dialog"
