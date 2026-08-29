@@ -30,20 +30,34 @@ const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
 
 function ActionEnveloppes() {
-  const { ajouterEnveloppe } = useSuperApp();
+  const { enveloppes, ajouterEnveloppe } = useSuperApp();
 
   const [modal, setModal] = useState<"creer" | null>(null);
 
   const [nom, setNom] = useState("");
   const [emoji, setEmoji] = useState("💡");
   const [plafond, setPlafond] = useState("");
+  const [categorie, setCategorie] = useState("");
+  const [sousCategorie, setSousCategorie] = useState("");
 
-  const [confirmation, setConfirmation] = useState<{ nom: string; emoji: string; plafond: number } | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    nom: string;
+    emoji: string;
+    plafond: number;
+    categorie: string;
+    sousCategorie: string;
+  } | null>(null);
+
+  const categories = categoriesDisponibles(enveloppes);
+  const sousCategories = sousCategoriesDisponibles(enveloppes, categorie.trim());
+  const groupes = grouperParCategorie(enveloppes);
 
   function ouvrirCreer() {
     setNom("");
     setEmoji("💡");
     setPlafond("");
+    setCategorie("");
+    setSousCategorie("");
     setModal("creer");
   }
 
@@ -62,7 +76,17 @@ function ActionEnveloppes() {
       toast.error("Plafond invalide.");
       return;
     }
-    setConfirmation({ nom: nom.trim(), emoji: emoji.trim() || "💡", plafond: valeur });
+    if (sousCategorie.trim() && !categorie.trim()) {
+      toast.error("Choisissez d'abord une catégorie.");
+      return;
+    }
+    setConfirmation({
+      nom: nom.trim(),
+      emoji: emoji.trim() || "💡",
+      plafond: valeur,
+      categorie: categorie.trim(),
+      sousCategorie: sousCategorie.trim(),
+    });
   }
 
   function confirmerCreation() {
