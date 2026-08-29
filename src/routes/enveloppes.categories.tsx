@@ -225,10 +225,12 @@ function PageCategories() {
       )}
 
       <ul className="space-y-3">
-        {categories.map((c) => (
-          <li key={c.id} className="carte space-y-3 p-4">
+        {categories.map((c) => {
+          const ouverte = categorieOuverte === c.id;
+          return (
+          <li key={c.id} className="carte overflow-hidden">
             {editionCat === c.id ? (
-              <div className="flex gap-2">
+              <div className="flex gap-2 p-4">
                 <input
                   aria-label={`Nouveau nom pour ${c.nom}`}
                   value={valeurCat}
@@ -257,13 +259,24 @@ function PageCategories() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{c.nom}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {compter(c.nom)} enveloppe(s) · {c.sousCategories.length} sous-catégorie(s)
-                  </p>
-                </div>
+              <div className="flex items-center gap-2 p-4">
+                <button
+                  type="button"
+                  onClick={() => setCategorieOuverte(ouverte ? null : c.id)}
+                  aria-expanded={ouverte}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${ouverte ? "rotate-180" : ""}`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{c.nom}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {compter(c.nom)} enveloppe(s) · {c.sousCategories.length} sous-catégorie(s)
+                    </span>
+                  </span>
+                </button>
                 <div className="flex shrink-0 gap-1">
                   <button
                     type="button"
@@ -295,7 +308,12 @@ function PageCategories() {
               </div>
             )}
 
+            {ouverte && (
+            <div className="space-y-3 border-t border-border/70 p-4">
             <ul className="space-y-2">
+              {c.sousCategories.length === 0 && (
+                <li className="text-xs text-muted-foreground">Aucune sous-catégorie pour l’instant.</li>
+              )}
               {c.sousCategories.map((s) => (
                 <li key={s} className="flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2">
                   {editionSous === `${c.id}:${s}` ? (
@@ -392,9 +410,13 @@ function PageCategories() {
                 Ajouter
               </button>
             </div>
+            </div>
+            )}
           </li>
-        ))}
+          );
+        })}
       </ul>
+
 
       <Confirmation
         ouvert={demande !== null}
