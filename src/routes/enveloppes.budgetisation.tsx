@@ -124,6 +124,7 @@ function Budgetisation() {
         intervalle: number;
         frequenceLabel: string;
         dureeLabel: string;
+        occurrences: number;
       }
     | { type: "conversion-tout"; nb: number; montant: number }
     | { type: "conversion-un"; id: string; libelle: string; montant: number }
@@ -133,6 +134,7 @@ function Budgetisation() {
 
   const [popupOuvert, setPopupOuvert] = useState(false);
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [calendrierOuvert, setCalendrierOuvert] = useState(false);
 
   // Réponses du questionnaire
   const [sujet, setSujet] = useState("");
@@ -147,6 +149,11 @@ function Budgetisation() {
   const frequence = FREQUENCES.find((f) => f.id === frequenceId);
   const duree = DUREES.find((d) => d.id === dureeId);
   const fin = periodique && duree ? finDepuis(debut, duree.id) : debut;
+  const occurrencesPrevues =
+    periodique && frequence && duree
+      ? nombreOccurrences(debut, fin, frequence.periode, frequence.intervalle)
+      : 1;
+
 
   /** Dépenses déjà existantes dans l'application, proposées comme sujets. */
   const sujets = useMemo(() => {
