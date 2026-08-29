@@ -56,7 +56,7 @@ export function MenuPrincipal() {
       <aside
         role="menu"
         aria-label="Menu principal"
-        className={`surface fixed right-0 top-0 z-50 flex h-full w-[16.5rem] max-w-[80%] flex-col border-l border-border shadow-2xl transition-transform duration-250 ${
+        className={`fixed right-0 top-0 bg-card z-50 flex h-full w-[16.5rem] max-w-[80%] flex-col border-l border-border shadow-2xl transition-transform duration-250 ${
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >
