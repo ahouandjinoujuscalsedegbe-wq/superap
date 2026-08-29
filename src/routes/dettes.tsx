@@ -634,6 +634,27 @@ function PageDettes() {
                 className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
               />
             </div>
+            <div className="space-y-1.5">
+              <label htmlFor="compte-remb" className="text-sm font-semibold">
+                {dialogue.dette.sens === "dette"
+                  ? "De quel compte sort cet argent ?"
+                  : "Sur quel compte cet argent entre-t-il ?"}
+              </label>
+              <select
+                id="compte-remb"
+                data-clavier="off"
+                value={compteRemb}
+                onChange={(e) => setCompteRemb(e.target.value)}
+                className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
+              >
+                <option value="">Aucun mouvement de compte</option>
+                {comptes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
