@@ -56,7 +56,7 @@ export function MenuPrincipal() {
         aria-haspopup="menu"
         aria-expanded={ouvert}
         aria-controls="menu-principal"
-        className="surface fixed right-3 top-3 z-60 rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+        className="surface fixed right-3 top-3 z-[60] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
       >
         {ouvert ? (
           <X className="h-5 w-5" aria-hidden />

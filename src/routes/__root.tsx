@@ -131,7 +131,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SuperAppProvider>
-        <div className="mx-auto min-h-screen w-full max-w-md px-4 pt-6 pb-28">
+        <div className="mx-auto min-h-screen w-full max-w-md px-3 pt-6 pb-28 sm:px-4">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </div>
