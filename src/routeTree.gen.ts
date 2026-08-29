@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as RevenuRouteImport } from './routes/revenu'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DepenseRoute = DepenseRouteImport.update({
+  id: '/depense',
+  path: '/depense',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnveloppesRoute = EnveloppesRouteImport.update({
@@ -31,30 +37,34 @@ const RevenuRoute = RevenuRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/enveloppes' | '/revenu'
+  fullPaths: '/' | '/depense' | '/enveloppes' | '/revenu'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/enveloppes' | '/revenu'
-  id: '__root__' | '/' | '/enveloppes' | '/revenu'
+  to: '/' | '/depense' | '/enveloppes' | '/revenu'
+  id: '__root__' | '/' | '/depense' | '/enveloppes' | '/revenu'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DepenseRoute: typeof DepenseRoute
   EnveloppesRoute: typeof EnveloppesRoute
   RevenuRoute: typeof RevenuRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/depense': {
+      id: '/depense'
+      path: '/depense'
+      fullPath: '/depense'
+      preLoaderRoute: typeof DepenseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/enveloppes': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DepenseRoute: DepenseRoute,
   EnveloppesRoute: EnveloppesRoute,
   RevenuRoute: RevenuRoute,
 }
