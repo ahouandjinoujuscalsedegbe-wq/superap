@@ -18,6 +18,7 @@ import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as PlanningRouteImport } from './routes/planning'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
@@ -75,6 +76,11 @@ const OutilsRoute = OutilsRouteImport.update({
 const ParametresRoute = ParametresRouteImport.update({
   id: '/parametres',
   path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanningRoute = PlanningRouteImport.update({
+  id: '/planning',
+  path: '/planning',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevenuRoute = RevenuRouteImport.update({
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
+  '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/comptes/$compte': typeof ComptesCompteRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
+  '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/comptes/$compte': typeof ComptesCompteRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
+  '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/comptes/$compte': typeof ComptesCompteRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/outils'
     | '/parametres'
+    | '/planning'
     | '/revenu'
     | '/saisie'
     | '/comptes/$compte'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/outils'
     | '/parametres'
+    | '/planning'
     | '/revenu'
     | '/saisie'
     | '/comptes/$compte'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/outils'
     | '/parametres'
+    | '/planning'
     | '/revenu'
     | '/saisie'
     | '/comptes/$compte'
@@ -299,6 +311,7 @@ export interface RootRouteChildren {
   JournalRoute: typeof JournalRoute
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRoute
+  PlanningRoute: typeof PlanningRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   ComptesCompteRoute: typeof ComptesCompteRoute
@@ -368,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/parametres'
       fullPath: '/parametres'
       preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planning': {
+      id: '/planning'
+      path: '/planning'
+      fullPath: '/planning'
+      preLoaderRoute: typeof PlanningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenu': {
@@ -502,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   JournalRoute: JournalRoute,
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRoute,
+  PlanningRoute: PlanningRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   ComptesCompteRoute: ComptesCompteRoute,
