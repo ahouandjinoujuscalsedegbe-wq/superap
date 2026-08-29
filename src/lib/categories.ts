@@ -1,4 +1,4 @@
-import type { Enveloppe } from "./store";
+import type { CategorieEnveloppe, Enveloppe } from "./store";
 
 /** Catégories et sous-catégories proposées par défaut au foyer. */
 export const CATEGORIES_SUGGEREES: Record<string, string[]> = {
@@ -15,15 +15,24 @@ export const CATEGORIES_SUGGEREES: Record<string, string[]> = {
 export const CATEGORIE_LIBRE = "Sans catégorie";
 
 /** Liste des catégories connues : suggestions + celles déjà saisies. */
-export function categoriesDisponibles(enveloppes: Enveloppe[]): string[] {
-  const set = new Set(Object.keys(CATEGORIES_SUGGEREES));
+export function categoriesDisponibles(
+  enveloppes: Enveloppe[],
+  categories: CategorieEnveloppe[] = [],
+): string[] {
+  const set = new Set(categories.map((c) => c.nom));
+  if (set.size === 0) for (const c of Object.keys(CATEGORIES_SUGGEREES)) set.add(c);
   for (const e of enveloppes) if (e.categorie?.trim()) set.add(e.categorie.trim());
   return [...set].sort((a, b) => a.localeCompare(b, "fr"));
 }
 
 /** Sous-catégories connues pour une catégorie donnée. */
-export function sousCategoriesDisponibles(enveloppes: Enveloppe[], categorie: string): string[] {
-  const set = new Set(CATEGORIES_SUGGEREES[categorie] ?? []);
+export function sousCategoriesDisponibles(
+  enveloppes: Enveloppe[],
+  categorie: string,
+  categories: CategorieEnveloppe[] = [],
+): string[] {
+  const declaree = categories.find((c) => c.nom === categorie);
+  const set = new Set(declaree ? declaree.sousCategories : CATEGORIES_SUGGEREES[categorie] ?? []);
   for (const e of enveloppes) {
     if (e.categorie?.trim() === categorie && e.sousCategorie?.trim()) set.add(e.sousCategorie.trim());
   }
