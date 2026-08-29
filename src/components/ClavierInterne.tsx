@@ -89,13 +89,14 @@ export function ClavierInterne() {
 
     const t1 = window.setTimeout(rendreVisible, 60);
     const t2 = window.setTimeout(rendreVisible, 250);
-    window.addEventListener("resize", () => rendreVisible());
+    const surRedimensionnement = () => rendreVisible();
+    window.addEventListener("resize", surRedimensionnement);
     document.addEventListener("input", surSaisie, true);
     document.addEventListener("focusin", surSaisie, true);
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
-      window.removeEventListener("resize", rendreVisible);
+      window.removeEventListener("resize", surRedimensionnement);
       document.removeEventListener("input", surSaisie, true);
       document.removeEventListener("focusin", surSaisie, true);
       document.body.style.paddingBottom = "";
