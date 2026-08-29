@@ -71,6 +71,8 @@ export type Budget = {
   fin?: string;
   /** true = planification unique sur la période, false = récurrente */
   ponctuel?: boolean;
+  /** Nombre d'unités de période entre deux échéances (ex. 2 = tous les 2 jours) */
+  intervalle?: number;
   actif: boolean;
 };
 
@@ -426,7 +428,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           compte: b.compte,
           date,
         });
-        date = avancerDate(date, b.periode);
+        date = avancerDate(date, b.periode, b.intervalle);
       }
       return {
         ...e,
@@ -454,7 +456,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             compte: b.compte,
             date,
           });
-          date = avancerDate(date, b.periode);
+          date = avancerDate(date, b.periode, b.intervalle);
           garde += 1;
         }
         return garde > 0 ? { ...b, prochaine: date } : b;

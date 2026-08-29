@@ -9,26 +9,27 @@ export const PAR_AN: Record<Periode, number> = {
   annee: 1,
 };
 
-export function avancerDate(iso: string, periode: Periode): string {
+export function avancerDate(iso: string, periode: Periode, intervalle = 1): string {
   const d = new Date(iso);
+  const n = Math.max(1, Math.round(intervalle));
   switch (periode) {
     case "jour":
-      d.setDate(d.getDate() + 1);
+      d.setDate(d.getDate() + n);
       break;
     case "semaine":
-      d.setDate(d.getDate() + 7);
+      d.setDate(d.getDate() + 7 * n);
       break;
     case "mois":
-      d.setMonth(d.getMonth() + 1);
+      d.setMonth(d.getMonth() + n);
       break;
     case "trimestre":
-      d.setMonth(d.getMonth() + 3);
+      d.setMonth(d.getMonth() + 3 * n);
       break;
     case "semestre":
-      d.setMonth(d.getMonth() + 6);
+      d.setMonth(d.getMonth() + 6 * n);
       break;
     case "annee":
-      d.setFullYear(d.getFullYear() + 1);
+      d.setFullYear(d.getFullYear() + n);
       break;
   }
   return d.toISOString();
@@ -40,7 +41,7 @@ export function nombreEcheancesDues(b: Budget, maintenant = new Date()): number 
   let date = b.prochaine;
   while (new Date(date).getTime() <= maintenant.getTime() && n < 240) {
     n += 1;
-    date = avancerDate(date, b.periode);
+    date = avancerDate(date, b.periode, b.intervalle);
   }
   return n;
 }
@@ -63,14 +64,14 @@ export function prochainesEcheances(
     let date = b.prochaine;
     for (let i = 0; i < 6; i += 1) {
       if (new Date(date).getTime() >= maintenant.getTime()) liste.push({ budget: b, date });
-      date = avancerDate(date, b.periode);
+      date = avancerDate(date, b.periode, b.intervalle);
     }
   }
   return liste.sort((a, z) => +new Date(a.date) - +new Date(z.date)).slice(0, nombre);
 }
 
 export function equivalentMensuel(b: Budget): number {
-  return (b.montant * PAR_AN[b.periode]) / 12;
+  return (b.montant * PAR_AN[b.periode]) / Math.max(1, b.intervalle ?? 1) / 12;
 }
 
 /** Bornes (YYYY-MM-DD) de la période contenant le jour donné. */
