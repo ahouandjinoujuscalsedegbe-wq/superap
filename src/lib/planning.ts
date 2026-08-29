@@ -112,17 +112,17 @@ export type OptionsPlanning = {
   enveloppes: Enveloppe[];
   depensesParEnveloppe: Record<string, number>;
   soldeActuel: number;
-  maintenant?: Date;
+  maintenant?: Date | undefined;
   /** Nombre de semaines projetées (7, 14 ou 26). */
-  nbSemaines?: number;
+  nbSemaines?: number | undefined;
   /** Date de départ du planning (par défaut aujourd'hui). */
-  depart?: string;
+  depart?: string | undefined;
   /** N'afficher que les échéances d'une enveloppe donnée. */
-  filtreEnveloppeId?: string | null;
+  filtreEnveloppeId?: string | null | undefined;
   /** Revenus exceptionnels planifiés manuellement. */
-  revenusPrevus?: RevenuPrevu[];
+  revenusPrevus?: RevenuPrevu[] | undefined;
   /** Nombre de semaines passées à analyser (réel vs projeté). */
-  nbSemainesPassees?: number;
+  nbSemainesPassees?: number | undefined;
 };
 
 export function construirePlanning(params: OptionsPlanning): Planning {
