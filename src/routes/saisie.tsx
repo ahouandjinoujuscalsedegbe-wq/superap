@@ -1,11 +1,43 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Mic, MicOff, Loader2, ScanText, Check } from "lucide-react";
+import {
+  Camera,
+  Mic,
+  MicOff,
+  Loader2,
+  ScanText,
+  Check,
+  Volume2,
+  History,
+  Images,
+  Trash2,
+  Brain,
+  CopyCheck,
+  Repeat,
+  ChevronRight,
+} from "lucide-react";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import {
+  ajouterHistoriqueSaisie,
+  analyserPlusieurs,
+  apprendreEnveloppe,
+  arreterLecture,
+  detecterDoublon,
+  detecterRecurrence,
+  lireAVoixHaute,
+  lireHistoriqueSaisies,
+  preparerImage,
+  reconnaitreCommande,
+  suggererEnveloppe,
+  supprimerHistoriqueSaisie,
+  syntheseDisponible,
+  viderHistoriqueSaisies,
+  type SaisieHistorique,
+} from "@/lib/saisie-plus";
 import { Confirmation } from "@/components/Confirmation";
 
 export const Route = createFileRoute("/saisie")({
@@ -15,12 +47,13 @@ export const Route = createFileRoute("/saisie")({
       {
         name: "description",
         content:
-          "Photographiez un ticket ou dictez votre opération : l'application extrait le montant, la date et le libellé en FCFA.",
+          "Photographiez un ou plusieurs tickets ou dictez vos opérations : montant, date, libellé et enveloppe sont extraits automatiquement en FCFA.",
       },
       { property: "og:title", content: "Saisie intelligente — SUPER APP" },
       {
         property: "og:description",
-        content: "OCR de tickets et dictée vocale pour enregistrer vos opérations en francs CFA.",
+        content:
+          "OCR par lot, dictée vocale, apprentissage des commerçants et détection des doublons pour vos opérations en francs CFA.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -29,73 +62,158 @@ export const Route = createFileRoute("/saisie")({
   component: SaisieIntelligente,
 });
 
+type Brouillon = {
+  id: string;
+  origine: "ocr" | "dictee" | "manuel";
+  texte: string;
+  vignette?: string;
+  confiance: number;
+  type: "revenu" | "depense";
+  montant: string;
+  libelle: string;
+  date: string;
+  enveloppe: string;
+  source: string;
+  compte: string;
+};
+
 function SaisieIntelligente() {
-  const { ajouterTransaction, enveloppes, comptes, sourcesRevenu } = useSuperApp();
+  const { ajouterTransaction, enveloppes, comptes, sourcesRevenu, transactions } = useSuperApp();
   const navigate = useNavigate();
 
+  const [brouillons, setBrouillons] = useState<Brouillon[]>([]);
   const [texte, setTexte] = useState("");
-  const [progression, setProgression] = useState<number | null>(null);
+  const [progression, setProgression] = useState<string | null>(null);
   const [ecoute, setEcoute] = useState(false);
-  const [extrait, setExtrait] = useState<OperationExtraite | null>(null);
-  const [confirmation, setConfirmation] = useState(false);
+  const [confirmation, setConfirmation] = useState<{ mode: "un" | "tous"; id?: string } | null>(
+    null,
+  );
+  const [historique, setHistorique] = useState<SaisieHistorique[]>([]);
+  const [ongletBas, setOngletBas] = useState<"historique" | "galerie" | null>(null);
+  const [aSupprimer, setASupprimer] = useState<SaisieHistorique | null>(null);
+  const [viderDemande, setViderDemande] = useState(false);
   const fichier = useRef<HTMLInputElement>(null);
   const reco = useRef<ReturnType<typeof creerDictee>>(null);
 
-  // Champs corrigeables avant enregistrement.
-  const [type, setType] = useState<"revenu" | "depense">("depense");
-  const [montant, setMontant] = useState("");
-  const [libelle, setLibelle] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [enveloppe, setEnveloppe] = useState(enveloppes[0]?.id ?? "");
-  const [source, setSource] = useState(sourcesRevenu[0] ?? "Salaire");
-  const [compte, setCompte] = useState(comptes[0] ?? COMPTES[0]);
+  useEffect(() => {
+    setHistorique(lireHistoriqueSaisies());
+  }, []);
 
   useEffect(() => {
     return () => {
       reco.current?.stop();
+      arreterLecture();
     };
   }, []);
 
-  function appliquer(resultat: OperationExtraite) {
-    setExtrait(resultat);
-    setType(resultat.type);
-    setMontant(resultat.montant ? String(resultat.montant) : "");
-    setLibelle(resultat.libelle);
-    setDate(resultat.date);
-    if (resultat.indiceEnveloppe) setEnveloppe(resultat.indiceEnveloppe);
-  }
+  const operationsSimples = useMemo(
+    () =>
+      transactions.map((t) => ({
+        id: t.id,
+        type: t.type,
+        montant: t.montant,
+        libelle: t.libelle,
+        date: t.date,
+      })),
+    [transactions],
+  );
+
+  const creerBrouillon = useCallback(
+    (
+      resultat: OperationExtraite,
+      origine: Brouillon["origine"],
+      texteSource: string,
+      vignette?: string,
+    ): Brouillon => {
+      const apprise = suggererEnveloppe(resultat.libelle);
+      const enveloppeChoisie =
+        (apprise && enveloppes.some((e) => e.id === apprise) ? apprise : undefined) ??
+        resultat.indiceEnveloppe ??
+        enveloppes[0]?.id ??
+        "";
+      return {
+        id: crypto.randomUUID(),
+        origine,
+        texte: texteSource,
+        ...(vignette ? { vignette } : {}),
+        confiance: resultat.confiance,
+        type: resultat.type,
+        montant: resultat.montant ? String(resultat.montant) : "",
+        libelle: resultat.libelle,
+        date: resultat.date,
+        enveloppe: enveloppeChoisie,
+        source: sourcesRevenu[0] ?? "Salaire",
+        compte: comptes[0] ?? COMPTES[0] ?? "",
+      };
+    },
+    [comptes, enveloppes, sourcesRevenu],
+  );
+
+  const majBrouillon = useCallback((id: string, champs: Partial<Brouillon>) => {
+    setBrouillons((liste) => liste.map((b) => (b.id === id ? { ...b, ...champs } : b)));
+  }, []);
+
+  /* ------------------------- Analyse de texte ------------------------- */
 
   function analyser(source_: string) {
     if (!source_.trim()) {
       toast.error("Aucun texte à analyser.");
       return;
     }
-    appliquer(analyserTexte(source_, enveloppes));
+    const commande = reconnaitreCommande(source_);
+    if (commande) {
+      toast.success(`Ouverture : ${commande.libelle}`);
+      void navigate({ to: commande.chemin });
+      return;
+    }
+    const resultats = analyserPlusieurs(source_, enveloppes);
+    setBrouillons((liste) => [
+      ...liste,
+      ...resultats.map((r) => creerBrouillon(r, "dictee", source_)),
+    ]);
+    toast.success(
+      resultats.length > 1
+        ? `${resultats.length} opérations détectées. Vérifiez-les avant d'enregistrer.`
+        : "Opération détectée. Vérifiez avant d'enregistrer.",
+    );
   }
 
-  async function lireImage(f: File) {
-    setProgression(0);
-    try {
-      const { default: Tesseract } = await import("tesseract.js");
-      const resultat = await Tesseract.recognize(f, "fra", {
-        logger: (m: { status: string; progress: number }) => {
-          if (m.status === "recognizing text") setProgression(Math.round(m.progress * 100));
-        },
-      });
-      const lu = resultat.data.text ?? "";
-      setTexte(lu);
-      if (!lu.trim()) {
-        toast.error("Aucun texte lisible sur l'image. Reprenez la photo bien à plat et éclairée.");
-      } else {
-        appliquer(analyserTexte(lu, enveloppes));
-        toast.success("Ticket analysé. Vérifiez les informations avant d'enregistrer.");
+  /* ---------------------- OCR par lot de tickets ---------------------- */
+
+  async function lireImages(fichiers: File[]) {
+    for (let i = 0; i < fichiers.length; i += 1) {
+      const f = fichiers[i];
+      if (!f) continue;
+      setProgression(`Ticket ${i + 1}/${fichiers.length} — préparation`);
+      try {
+        const { blob, apercu } = await preparerImage(f);
+        const { default: Tesseract } = await import("tesseract.js");
+        const resultat = await Tesseract.recognize(blob, "fra", {
+          logger: (m: { status: string; progress: number }) => {
+            if (m.status === "recognizing text") {
+              setProgression(
+                `Ticket ${i + 1}/${fichiers.length} — lecture ${Math.round(m.progress * 100)} %`,
+              );
+            }
+          },
+        });
+        const lu = resultat.data.text ?? "";
+        if (!lu.trim()) {
+          toast.error(`Ticket ${i + 1} : aucun texte lisible. Reprenez la photo bien éclairée.`);
+          continue;
+        }
+        setTexte(lu);
+        const extrait = analyserTexte(lu, enveloppes);
+        setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu)]);
+      } catch {
+        toast.error(`Ticket ${i + 1} : la lecture a échoué. Réessayez avec une photo plus nette.`);
       }
-    } catch {
-      toast.error("La lecture du ticket a échoué. Réessayez avec une photo plus nette.");
-    } finally {
-      setProgression(null);
     }
+    setProgression(null);
+    toast.success("Lecture terminée. Vérifiez les opérations détectées.");
   }
+
+  /* ---------------------------- Dictée -------------------------------- */
 
   function basculerDictee() {
     if (ecoute) {
@@ -110,7 +228,7 @@ function SaisieIntelligente() {
     const instance = creerDictee(
       (t, definitif) => {
         setTexte(t);
-        if (definitif) appliquer(analyserTexte(t, enveloppes));
+        if (definitif) analyser(t);
       },
       (message) => {
         toast.error(message);
@@ -123,45 +241,109 @@ function SaisieIntelligente() {
     setEcoute(true);
   }
 
-  const valeur = Number(montant.replace(/\s/g, "")) || 0;
+  /* --------------------------- Enregistrement ------------------------- */
 
-  function demanderEnregistrement() {
-    if (valeur <= 0) {
-      toast.error("Le montant doit être supérieur à zéro.");
-      return;
-    }
-    if (type === "depense" && !enveloppe) {
-      toast.error("Choisissez une enveloppe pour cette dépense.");
-      return;
-    }
-    setConfirmation(true);
+  const valeurDe = (b: Brouillon) => Number(b.montant.replace(/\s/g, "")) || 0;
+
+  const nomEnveloppe = (id: string) => enveloppes.find((e) => e.id === id)?.nom ?? "—";
+
+  function verifier(b: Brouillon): string | null {
+    if (valeurDe(b) <= 0) return "Le montant doit être supérieur à zéro.";
+    if (b.type === "depense" && !b.enveloppe) return "Choisissez une enveloppe pour cette dépense.";
+    if (!b.compte) return "Choisissez un compte.";
+    return null;
   }
 
-  function enregistrer() {
+  function demanderEnregistrement(mode: "un" | "tous", id?: string) {
+    const cibles = mode === "tous" ? brouillons : brouillons.filter((b) => b.id === id);
+    if (cibles.length === 0) return;
+    for (const b of cibles) {
+      const erreur = verifier(b);
+      if (erreur) {
+        toast.error(`${b.libelle || "Opération"} : ${erreur}`);
+        return;
+      }
+    }
+    setConfirmation(mode === "tous" ? { mode } : { mode, id: id! });
+  }
+
+  function enregistrerBrouillon(b: Brouillon) {
+    const valeur = valeurDe(b);
     ajouterTransaction({
-      type,
+      type: b.type,
       montant: valeur,
-      libelle: libelle.trim() || (type === "revenu" ? source : "Opération"),
-      categorie: type === "revenu" ? source : enveloppe,
-      compte,
-      date: new Date(date).toISOString(),
+      libelle: b.libelle.trim() || (b.type === "revenu" ? b.source : "Opération"),
+      categorie: b.type === "revenu" ? b.source : b.enveloppe,
+      compte: b.compte,
+      date: new Date(b.date).toISOString(),
     });
-    setConfirmation(false);
-    toast.success(
-      `${type === "revenu" ? "Revenu" : "Dépense"} de ${formatFCFA(valeur)} enregistré${type === "revenu" ? "" : "e"}.`,
-    );
-    navigate({ to: "/" });
+    if (b.type === "depense") apprendreEnveloppe(b.libelle, b.enveloppe);
+    const liste = ajouterHistoriqueSaisie({
+      source: b.origine,
+      type: b.type,
+      montant: valeur,
+      libelle: b.libelle.trim() || "Opération",
+      dateOperation: b.date,
+      ...(b.type === "depense" ? { enveloppe: nomEnveloppe(b.enveloppe) } : {}),
+      compte: b.compte,
+      texte: b.texte.slice(0, 400),
+      ...(b.vignette ? { vignette: b.vignette } : {}),
+    });
+    setHistorique(liste);
   }
 
-  const nomEnveloppe = enveloppes.find((e) => e.id === enveloppe)?.nom ?? "—";
+  function confirmerEnregistrement() {
+    if (!confirmation) return;
+    const cibles =
+      confirmation.mode === "tous"
+        ? brouillons
+        : brouillons.filter((b) => b.id === confirmation.id);
+    cibles.forEach(enregistrerBrouillon);
+    const total = cibles.reduce((s, b) => s + valeurDe(b), 0);
+    setBrouillons((liste) =>
+      confirmation.mode === "tous" ? [] : liste.filter((b) => b.id !== confirmation.id),
+    );
+    setConfirmation(null);
+    toast.success(
+      cibles.length > 1
+        ? `${cibles.length} opérations enregistrées (${formatFCFA(total)}).`
+        : `Opération de ${formatFCFA(total)} enregistrée.`,
+    );
+    if (confirmation.mode === "tous" || brouillons.length <= 1) {
+      void navigate({ to: "/" });
+    }
+  }
+
+  /* ----------------------- Lecture vocale du résumé -------------------- */
+
+  function resumeTexte(): string {
+    if (brouillons.length === 0) return "Aucune opération en attente.";
+    const parties = brouillons.map((b) => {
+      const valeur = valeurDe(b);
+      return `${b.type === "revenu" ? "Revenu" : "Dépense"} de ${valeur} francs CFA, ${
+        b.libelle || "sans libellé"
+      }, le ${b.date}${b.type === "depense" ? `, enveloppe ${nomEnveloppe(b.enveloppe)}` : ""}.`;
+    });
+    const total = brouillons.reduce((s, b) => s + valeurDe(b), 0);
+    return `${brouillons.length} opération${brouillons.length > 1 ? "s" : ""} en attente. ${parties.join(
+      " ",
+    )} Total ${total} francs CFA.`;
+  }
+
+  const confirmationCibles =
+    confirmation?.mode === "tous"
+      ? brouillons
+      : brouillons.filter((b) => b.id === confirmation?.id);
+  const totalConfirmation = confirmationCibles.reduce((s, b) => s + valeurDe(b), 0);
+  const galerie = historique.filter((h) => h.vignette);
 
   return (
     <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Saisie intelligente</h1>
         <p className="text-sm text-muted-foreground">
-          Photographiez un ticket ou dictez votre opération : le montant, la date et le libellé sont
-          extraits automatiquement.
+          Photographiez plusieurs tickets ou dictez vos opérations : montant, date, libellé et
+          enveloppe sont extraits, les doublons signalés et vos habitudes mémorisées.
         </p>
       </header>
 
@@ -179,7 +361,7 @@ function SaisieIntelligente() {
             ) : (
               <Camera className="h-4 w-4" aria-hidden />
             )}
-            {progression !== null ? `Lecture ${progression}%` : "Photo du ticket"}
+            {progression !== null ? "Lecture…" : "Photos de tickets"}
           </button>
           <button
             type="button"
@@ -198,18 +380,29 @@ function SaisieIntelligente() {
             {ecoute ? "Arrêter" : "Dicter"}
           </button>
         </div>
+        {progression && (
+          <p className="rounded-lg bg-secondary px-3 py-2 text-xs text-secondary-foreground">
+            {progression}
+          </p>
+        )}
         <input
           ref={fichier}
           type="file"
           accept="image/*"
+          multiple
           capture="environment"
           className="hidden"
           onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void lireImage(f);
+            const liste = Array.from(e.target.files ?? []);
+            if (liste.length > 0) void lireImages(liste);
             e.target.value = "";
           }}
         />
+
+        <p className="text-[11px] text-muted-foreground">
+          Astuce : dictez plusieurs opérations d'affilée en disant « puis » entre chacune, ou une
+          commande de navigation comme « ouvre les enveloppes ».
+        </p>
 
         <div>
           <label htmlFor="texte-source" className="text-xs font-medium text-muted-foreground">
@@ -220,7 +413,7 @@ function SaisieIntelligente() {
             value={texte}
             onChange={(e) => setTexte(e.target.value)}
             rows={4}
-            placeholder="Exemple : dépense essence cinq mille francs hier"
+            placeholder="Exemple : dépense essence cinq mille francs hier puis dépense marché deux mille francs"
             className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <button
@@ -234,156 +427,377 @@ function SaisieIntelligente() {
         </div>
       </section>
 
-      {extrait && (
-        <section className="carte space-y-4 p-4">
+      {brouillons.length > 0 && (
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">2. Vérifier et corriger</p>
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
-              Fiabilité {Math.round(extrait.confiance * 100)} %
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            {(["depense", "revenu"] as const).map((t) => (
+            <p className="text-sm font-semibold">
+              2. Vérifier et corriger ({brouillons.length} en attente)
+            </p>
+            {syntheseDisponible() && (
               <button
-                key={t}
                 type="button"
-                aria-pressed={type === t}
-                onClick={() => setType(t)}
-                className={`rounded-xl border px-3 py-2 text-sm font-medium ${
-                  type === t
-                    ? "border-primary bg-accent text-accent-foreground"
-                    : "border-input bg-background/60 text-muted-foreground"
-                }`}
+                onClick={() => lireAVoixHaute(resumeTexte())}
+                className="flex items-center gap-1.5 rounded-lg border border-input px-2 py-1.5 text-xs font-semibold"
               >
-                {t === "depense" ? "Dépense" : "Revenu"}
+                <Volume2 className="h-3.5 w-3.5" aria-hidden />
+                Écouter le résumé
               </button>
-            ))}
+            )}
           </div>
 
-          <div>
-            <label htmlFor="montant-extrait" className="text-sm font-medium">
-              Montant (FCFA)
-            </label>
-            <input
-              id="montant-extrait"
-              inputMode="numeric"
-              value={montant}
-              onChange={(e) => setMontant(e.target.value.replace(/[^\d]/g, ""))}
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-xl font-bold outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+          {brouillons.map((b) => {
+            const valeur = valeurDe(b);
+            const doublon = detecterDoublon(operationsSimples, {
+              type: b.type,
+              montant: valeur,
+              libelle: b.libelle,
+              date: b.date,
+            });
+            const recurrence = detecterRecurrence(operationsSimples, {
+              libelle: b.libelle,
+              type: b.type,
+              date: b.date,
+            });
+            const apprise = suggererEnveloppe(b.libelle);
+            return (
+              <article key={b.id} className="carte space-y-4 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {b.origine === "ocr" ? "Ticket photographié" : "Dictée / texte"}
+                  </span>
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+                    Fiabilité {Math.round(b.confiance * 100)} %
+                  </span>
+                </div>
 
-          <div>
-            <label htmlFor="libelle-extrait" className="text-sm font-medium">
-              Libellé
-            </label>
-            <input
-              id="libelle-extrait"
-              value={libelle}
-              onChange={(e) => setLibelle(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+                {b.vignette && (
+                  <img
+                    src={b.vignette}
+                    alt={`Ticket ${b.libelle || "sans libellé"}`}
+                    loading="lazy"
+                    className="h-24 w-auto rounded-lg border border-border object-cover"
+                  />
+                )}
 
-          {type === "depense" ? (
-            <div>
-              <label htmlFor="enveloppe-extrait" className="text-sm font-medium">
-                Enveloppe
-              </label>
-              <select
-                id="enveloppe-extrait"
-                value={enveloppe}
-                onChange={(e) => setEnveloppe(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-              >
-                {enveloppes.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.emoji} {e.nom}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <div>
-              <label htmlFor="source-extrait" className="text-sm font-medium">
-                Source du revenu
-              </label>
-              <select
-                id="source-extrait"
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-              >
-                {sourcesRevenu.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {doublon && (
+                  <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                    <CopyCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Doublon probable : « {doublon.libelle} » de {formatFCFA(doublon.montant)} le{" "}
+                    {doublon.date.slice(0, 10)} existe déjà.
+                  </p>
+                )}
+
+                {recurrence && (
+                  <p className="flex items-start gap-2 rounded-xl bg-accent/60 px-3 py-2 text-xs text-accent-foreground">
+                    <Repeat className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Opération récurrente : {recurrence.occurrences} fois, environ tous les{" "}
+                    {recurrence.intervalleMoyen} jours ({formatFCFA(recurrence.montantMoyen)} en
+                    moyenne). Prochaine attendue le {recurrence.prochaineDate}.
+                  </p>
+                )}
+
+                {apprise && b.type === "depense" && apprise === b.enveloppe && (
+                  <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2 text-xs text-secondary-foreground">
+                    <Brain className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Enveloppe proposée d'après vos saisies précédentes pour ce commerçant.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  {(["depense", "revenu"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      aria-pressed={b.type === t}
+                      onClick={() => majBrouillon(b.id, { type: t })}
+                      className={`rounded-xl border px-3 py-2 text-sm font-medium ${
+                        b.type === t
+                          ? "border-primary bg-accent text-accent-foreground"
+                          : "border-input bg-background/60 text-muted-foreground"
+                      }`}
+                    >
+                      {t === "depense" ? "Dépense" : "Revenu"}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label htmlFor={`montant-${b.id}`} className="text-sm font-medium">
+                    Montant (FCFA)
+                  </label>
+                  <input
+                    id={`montant-${b.id}`}
+                    inputMode="numeric"
+                    value={b.montant}
+                    onChange={(e) =>
+                      majBrouillon(b.id, { montant: e.target.value.replace(/[^\d]/g, "") })
+                    }
+                    className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-xl font-bold outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`libelle-${b.id}`} className="text-sm font-medium">
+                    Libellé
+                  </label>
+                  <input
+                    id={`libelle-${b.id}`}
+                    value={b.libelle}
+                    onChange={(e) => majBrouillon(b.id, { libelle: e.target.value })}
+                    className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
+                {b.type === "depense" ? (
+                  <div>
+                    <label htmlFor={`enveloppe-${b.id}`} className="text-sm font-medium">
+                      Enveloppe
+                    </label>
+                    <select
+                      id={`enveloppe-${b.id}`}
+                      value={b.enveloppe}
+                      onChange={(e) => majBrouillon(b.id, { enveloppe: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {enveloppes.map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {e.emoji} {e.nom}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor={`source-${b.id}`} className="text-sm font-medium">
+                      Source du revenu
+                    </label>
+                    <select
+                      id={`source-${b.id}`}
+                      value={b.source}
+                      onChange={(e) => majBrouillon(b.id, { source: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {sourcesRevenu.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor={`compte-${b.id}`} className="text-sm font-medium">
+                      Compte
+                    </label>
+                    <select
+                      id={`compte-${b.id}`}
+                      value={b.compte}
+                      onChange={(e) => majBrouillon(b.id, { compte: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {comptes.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor={`date-${b.id}`} className="text-sm font-medium">
+                      Date
+                    </label>
+                    <input
+                      id={`date-${b.id}`}
+                      type="date"
+                      value={b.date}
+                      onChange={(e) => majBrouillon(b.id, { date: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBrouillons((l) => l.filter((x) => x.id !== b.id))}
+                    className="rounded-xl border border-input px-3 py-2.5 text-sm font-semibold text-muted-foreground"
+                  >
+                    Ignorer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => demanderEnregistrement("un", b.id)}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground active:scale-[0.98]"
+                  >
+                    <Check className="h-4 w-4" aria-hidden />
+                    Enregistrer
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+
+          {brouillons.length > 1 && (
+            <button
+              type="button"
+              onClick={() => demanderEnregistrement("tous")}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground shadow-lg active:scale-[0.98]"
+            >
+              <Check className="h-4 w-4" aria-hidden />
+              Tout enregistrer ({brouillons.length})
+            </button>
           )}
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label htmlFor="compte-extrait" className="text-sm font-medium">
-                Compte
-              </label>
-              <select
-                id="compte-extrait"
-                value={compte}
-                onChange={(e) => setCompte(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-              >
-                {comptes.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="date-extrait" className="text-sm font-medium">
-                Date
-              </label>
-              <input
-                id="date-extrait"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={demanderEnregistrement}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3.5 font-semibold text-primary-foreground shadow-lg active:scale-[0.98]"
-          >
-            <Check className="h-4 w-4" aria-hidden />
-            Enregistrer l'opération
-          </button>
         </section>
       )}
 
+      {/* Historique et galerie */}
+      <section className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setOngletBas((o) => (o === "historique" ? null : "historique"))}
+          className="flex w-full items-center justify-between rounded-2xl border border-input bg-background/60 px-4 py-3 text-sm font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <History className="h-4 w-4" aria-hidden />
+            Historique des saisies ({historique.length})
+          </span>
+          <ChevronRight
+            className={`h-4 w-4 transition-transform ${ongletBas === "historique" ? "rotate-90" : ""}`}
+            aria-hidden
+          />
+        </button>
+
+        {ongletBas === "historique" && (
+          <div className="carte space-y-2 p-4">
+            {historique.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aucune saisie enregistrée.</p>
+            ) : (
+              <>
+                {historique.map((h) => (
+                  <div
+                    key={h.id}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-border px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {h.libelle} · {formatFCFA(h.montant)}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {h.type === "revenu" ? "Revenu" : "Dépense"} ·{" "}
+                        {h.source === "ocr" ? "Ticket" : h.source === "dictee" ? "Dictée" : "Manuel"}{" "}
+                        · {h.dateOperation} · {h.compte}
+                        {h.enveloppe ? ` · ${h.enveloppe}` : ""}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setASupprimer(h)}
+                      aria-label={`Supprimer la saisie ${h.libelle}`}
+                      title="Supprimer de l'historique"
+                      className="shrink-0 rounded-lg border border-input p-1.5 text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setViderDemande(true)}
+                  className="w-full rounded-xl border border-input px-3 py-2 text-xs font-semibold text-destructive"
+                >
+                  Vider l'historique
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setOngletBas((o) => (o === "galerie" ? null : "galerie"))}
+          className="flex w-full items-center justify-between rounded-2xl border border-input bg-background/60 px-4 py-3 text-sm font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <Images className="h-4 w-4" aria-hidden />
+            Galerie des tickets ({galerie.length})
+          </span>
+          <ChevronRight
+            className={`h-4 w-4 transition-transform ${ongletBas === "galerie" ? "rotate-90" : ""}`}
+            aria-hidden
+          />
+        </button>
+
+        {ongletBas === "galerie" && (
+          <div className="carte p-4">
+            {galerie.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Aucun ticket photographié pour le moment.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {galerie.map((h) => (
+                  <figure key={h.id} className="space-y-1">
+                    <img
+                      src={h.vignette}
+                      alt={`Ticket ${h.libelle}`}
+                      loading="lazy"
+                      className="h-24 w-full rounded-lg border border-border object-cover"
+                    />
+                    <figcaption className="truncate text-[10px] text-muted-foreground">
+                      {h.libelle} · {formatFCFA(h.montant)}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       <Confirmation
-        ouvert={confirmation}
-        titre="Confirmer l'opération"
-        message={`Enregistrer ${type === "revenu" ? "un revenu" : "une dépense"} de ${formatFCFA(valeur)} ?`}
-        details={[
-          { label: "Type", apres: type === "revenu" ? "Revenu" : "Dépense" },
-          { label: "Montant", apres: formatFCFA(valeur) },
-          { label: "Libellé", apres: libelle || "—" },
-          {
-            label: type === "revenu" ? "Source" : "Enveloppe",
-            apres: type === "revenu" ? source : nomEnveloppe,
-          },
-          { label: "Compte", apres: compte },
-          { label: "Date", apres: date },
-        ]}
-        onAnnuler={() => setConfirmation(false)}
-        onConfirmer={enregistrer}
+        ouvert={confirmation !== null}
+        titre={
+          confirmation?.mode === "tous" ? "Confirmer toutes les opérations" : "Confirmer l'opération"
+        }
+        message={
+          confirmation?.mode === "tous"
+            ? `Enregistrer ${confirmationCibles.length} opérations pour un total de ${formatFCFA(totalConfirmation)} ?`
+            : `Enregistrer cette opération de ${formatFCFA(totalConfirmation)} ?`
+        }
+        details={confirmationCibles.map((b) => ({
+          label: `${b.type === "revenu" ? "Revenu" : "Dépense"} · ${b.date}`,
+          apres: `${b.libelle || "Opération"} — ${formatFCFA(valeurDe(b))} · ${
+            b.type === "revenu" ? b.source : nomEnveloppe(b.enveloppe)
+          } · ${b.compte}`,
+        }))}
+        onAnnuler={() => setConfirmation(null)}
+        onConfirmer={confirmerEnregistrement}
+      />
+
+      <Confirmation
+        ouvert={aSupprimer !== null}
+        titre="Supprimer de l'historique"
+        message={`Retirer « ${aSupprimer?.libelle ?? ""} » de l'historique des saisies ? L'opération enregistrée dans vos comptes reste inchangée.`}
+        onAnnuler={() => setASupprimer(null)}
+        onConfirmer={() => {
+          if (aSupprimer) setHistorique(supprimerHistoriqueSaisie(aSupprimer.id));
+          setASupprimer(null);
+          toast.success("Saisie retirée de l'historique.");
+        }}
+      />
+
+      <Confirmation
+        ouvert={viderDemande}
+        titre="Vider l'historique"
+        message="Effacer tout l'historique des saisies et la galerie de tickets ? Vos opérations enregistrées ne sont pas supprimées."
+        onAnnuler={() => setViderDemande(false)}
+        onConfirmer={() => {
+          setHistorique(viderHistoriqueSaisies());
+          setViderDemande(false);
+          toast.success("Historique vidé.");
+        }}
       />
     </div>
   );
