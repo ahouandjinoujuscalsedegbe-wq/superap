@@ -273,6 +273,34 @@ function Analyses() {
 
       <section className="carte space-y-3 p-4">
         <h2 className="font-semibold">Répartition par catégorie</h2>
+        {repartition.length > 0 && (
+          <div className="flex items-center gap-4">
+            <div
+              className="relative h-28 w-28 shrink-0 rounded-full"
+              style={{ background: camembert }}
+              role="img"
+              aria-label="Graphique circulaire de la répartition des dépenses"
+            >
+              <div className="absolute inset-[22%] flex flex-col items-center justify-center rounded-full bg-card text-center">
+                <span className="text-[10px] text-muted-foreground">Total</span>
+                <span className="text-[11px] font-bold">{formatFCFA(totaux.depenses)}</span>
+              </div>
+            </div>
+            <ul className="min-w-0 flex-1 space-y-1 text-xs">
+              {repartition.slice(0, 6).map((c, i) => (
+                <li key={c.nom} className="flex items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: COULEURS_SECTEURS[i % COULEURS_SECTEURS.length] }}
+                    aria-hidden
+                  />
+                  <span className="truncate">{c.nom}</span>
+                  <span className="ml-auto shrink-0 font-semibold">{c.part} %</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {repartition.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Aucune dépense enregistrée sur cette période.
