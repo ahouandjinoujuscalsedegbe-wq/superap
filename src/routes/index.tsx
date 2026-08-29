@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownRight, ArrowUpRight, Settings, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 
