@@ -1,6 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ChevronDown, Scale, Sparkles, Wrench } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  Check,
+  ChevronDown,
+  Copy,
+  CreditCard,
+  FileDown,
+  History,
+  LifeBuoy,
+  Scale,
+  Sparkles,
+  Trash2,
+  TrendingDown,
+  Wrench,
+} from "lucide-react";
 import { formatFCFA } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import {
@@ -11,6 +26,22 @@ import {
   plansRedressement,
   simulerAchat,
 } from "@/lib/simulation";
+import {
+  type SimulationEnregistree,
+  alertesProactives,
+  comparerCreditComptant,
+  comparerScenarios,
+  enregistrerSimulation,
+  evaluerFondsUrgence,
+  lireHistoriqueSimulations,
+  simulerChocRevenu,
+  simulerDecouvert,
+  simulerInflation,
+  strategieRemboursement,
+  supprimerSimulation,
+  texteSimulation,
+} from "@/lib/simulation-plus";
+import { exporterRapportPdf } from "@/lib/intelligence-plus";
 
 export const Route = createFileRoute("/outils")({
   head: () => ({
