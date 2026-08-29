@@ -548,7 +548,7 @@ function Budgetisation() {
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  {periodique === true ? "À partir de quelle date ?" : "Quel jour ?"}
+                  {periodique === true ? "Quel est le jour de la première dépense ?" : "Quel jour ?"}
                 </p>
                 <Calendrier valeur={debut} onSelection={setDebut} plage={{ debut, fin }} />
                 <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
