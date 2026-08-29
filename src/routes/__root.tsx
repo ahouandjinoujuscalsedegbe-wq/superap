@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { SuperAppProvider } from "../lib/store";
+import { BottomNav } from "../components/BottomNav";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,11 +80,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SUPER APP — Budget du foyer en FCFA" },
+      {
+        name: "description",
+        content:
+          "Application de gestion budgétaire du foyer en francs CFA : enveloppes, revenus et dépenses, 100% en local.",
+      },
+      { property: "og:title", content: "SUPER APP — Budget du foyer en FCFA" },
+      {
+        property: "og:description",
+        content: "Enveloppes, revenus et dépenses du foyer en francs CFA, hors ligne.",
+      },
+      { name: "theme-color", content: "#f8dbe6" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -102,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         <HeadContent />
       </head>
@@ -119,8 +129,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <SuperAppProvider>
+        <div className="mx-auto min-h-screen w-full max-w-md px-4 pt-6 pb-28">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </div>
+        <BottomNav />
+        <Toaster position="top-center" richColors />
+      </SuperAppProvider>
     </QueryClientProvider>
   );
 }

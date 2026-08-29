@@ -1,0 +1,84 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+import { useSuperApp } from "@/lib/store";
+
+export const Route = createFileRoute("/parametres")({
+  head: () => ({
+    meta: [
+      { title: "Paramètres — Transparence du thème rose" },
+      {
+        name: "description",
+        content:
+          "Réglez manuellement la transparence des surfaces roses de l'application et gérez vos données locales.",
+      },
+      { property: "og:title", content: "Paramètres — SUPER APP" },
+      {
+        property: "og:description",
+        content: "Transparence ajustable du thème rose et gestion des données locales.",
+      },
+    ],
+  }),
+  component: Parametres,
+});
+
+function Parametres() {
+  const { transparence, definirTransparence, reinitialiser } = useSuperApp();
+
+  return (
+    <div className="space-y-5">
+      <header className="flex items-center gap-3">
+        <Link
+          to="/"
+          aria-label="Retour à l'accueil"
+          className="surface rounded-full border border-border p-2 text-muted-foreground"
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden />
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
+      </header>
+
+      <section className="carte p-4">
+        <div className="flex items-center justify-between">
+          <label htmlFor="transparence" className="font-semibold">
+            Opacité des surfaces roses
+          </label>
+          <span className="text-sm font-semibold text-primary">{transparence} %</span>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Faites glisser pour rendre les cartes plus ou moins transparentes.
+        </p>
+        <input
+          id="transparence"
+          type="range"
+          min={20}
+          max={100}
+          step={1}
+          value={transparence}
+          onChange={(e) => definirTransparence(Number(e.target.value))}
+          className="mt-4 w-full accent-[var(--primary)]"
+        />
+      </section>
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Devise et langue</h2>
+        <p className="text-sm text-muted-foreground">
+          Franc CFA (XOF / XAF) · Interface entièrement en français.
+        </p>
+      </section>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="font-semibold">Données locales</h2>
+        <p className="text-sm text-muted-foreground">
+          Toutes vos opérations sont stockées sur cet appareil uniquement.
+        </p>
+        <button
+          type="button"
+          onClick={() => reinitialiser()}
+          className="w-full rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive"
+        >
+          Réinitialiser les données
+        </button>
+      </section>
+    </div>
+  );
+}
