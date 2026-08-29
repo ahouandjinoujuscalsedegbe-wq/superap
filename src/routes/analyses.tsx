@@ -77,6 +77,17 @@ function Analyses() {
   const [fenetre, setFenetre] = useState<Fenetre>("mois");
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
+  const [objectif, setObjectif] = useState(0);
+
+  useEffect(() => {
+    const brut = window.localStorage.getItem("superapp:objectif-epargne");
+    if (brut) setObjectif(Number(brut) || 0);
+  }, []);
+
+  const enregistrerObjectif = (valeur: number) => {
+    setObjectif(valeur);
+    window.localStorage.setItem("superapp:objectif-epargne", String(valeur));
+  };
 
   const periode = useMemo(() => filtrerFenetre(transactions, fenetre), [transactions, fenetre]);
   const precedente = useMemo(
