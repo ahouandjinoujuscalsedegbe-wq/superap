@@ -201,7 +201,7 @@ export function ClavierInterne() {
                     petite
                   />
                 ))}
-                {i === 2 && (
+                {i === 3 && (
                   <Touche
                     onClick={effacer}
                     label={<Delete aria-hidden className="h-4 w-4" />}
