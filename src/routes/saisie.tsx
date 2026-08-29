@@ -372,15 +372,15 @@ function SaisieIntelligente() {
         titre="Confirmer l'opération"
         message={`Enregistrer ${type === "revenu" ? "un revenu" : "une dépense"} de ${formatFCFA(valeur)} ?`}
         details={[
-          { libelle: "Type", valeur: type === "revenu" ? "Revenu" : "Dépense" },
-          { libelle: "Montant", valeur: formatFCFA(valeur) },
-          { libelle: "Libellé", valeur: libelle || "—" },
+          { label: "Type", apres: type === "revenu" ? "Revenu" : "Dépense" },
+          { label: "Montant", apres: formatFCFA(valeur) },
+          { label: "Libellé", apres: libelle || "—" },
           {
-            libelle: type === "revenu" ? "Source" : "Enveloppe",
-            valeur: type === "revenu" ? source : nomEnveloppe,
+            label: type === "revenu" ? "Source" : "Enveloppe",
+            apres: type === "revenu" ? source : nomEnveloppe,
           },
-          { libelle: "Compte", valeur: compte },
-          { libelle: "Date", valeur: date },
+          { label: "Compte", apres: compte },
+          { label: "Date", apres: date },
         ]}
         onAnnuler={() => setConfirmation(false)}
         onConfirmer={enregistrer}
