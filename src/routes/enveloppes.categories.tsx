@@ -59,6 +59,7 @@ function PageCategories() {
   const [popupCreation, setPopupCreation] = useState(false);
   const [nomCreation, setNomCreation] = useState("");
   const [erreurPopup, setErreurPopup] = useState<string | null>(null);
+  const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
