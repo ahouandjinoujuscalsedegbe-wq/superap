@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SuperAppProvider } from "@/lib/store";
+import { EcheancesAuto } from "@/components/EcheancesAuto";
 import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
@@ -140,6 +141,7 @@ function RootComponent() {
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </div>
+          <EcheancesAuto />
           <MenuPrincipal />
           <BottomNav />
           <ClavierInterne />

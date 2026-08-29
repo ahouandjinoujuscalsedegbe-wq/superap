@@ -37,6 +37,10 @@ export type Transaction = {
   categorie: string;
   compte: string;
   date: string;
+  /** Budget planifié à l'origine de cette opération, si elle vient de la Budgétisation. */
+  budgetId?: string | undefined;
+  /** Dette ou créance à l'origine de cette opération, si elle vient du module Dettes. */
+  detteId?: string | undefined;
 };
 
 export type Transfert = {
@@ -183,10 +187,17 @@ type Contexte = Etat & {
   genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
-  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">) => void;
+  ajouterDette: (
+    d: Omit<Dette, "id" | "creeLe" | "remboursements">,
+    compte?: string,
+  ) => void;
   modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
   supprimerDette: (id: string) => void;
-  ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">) => void;
+  ajouterRemboursement: (
+    detteId: string,
+    r: Omit<Remboursement, "id">,
+    compte?: string,
+  ) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
   reinitialiser: () => void;
@@ -471,6 +482,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           categorie: b.enveloppeId,
           compte: b.compte,
           date,
+          budgetId: b.id,
         });
         date = avancerDate(date, b.periode, b.intervalle);
       }
@@ -499,6 +511,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             categorie: b.enveloppeId,
             compte: b.compte,
             date,
+            budgetId: b.id,
           });
           date = avancerDate(date, b.periode, b.intervalle);
           garde += 1;
@@ -521,20 +534,33 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, budgets: e.budgets.filter((b) => b.id !== id) }));
   }, []);
 
-  const ajouterDette = useCallback((d: Omit<Dette, "id" | "creeLe" | "remboursements">) => {
-    setEtat((e) => ({
-      ...e,
-      dettes: [
-        {
-          ...d,
+  const ajouterDette = useCallback(
+    (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => {
+      setEtat((e) => {
+        const id = crypto.randomUUID();
+        const creeLe = new Date().toISOString().slice(0, 10);
+        const fiche: Dette = { ...d, id, creeLe, remboursements: [] };
+        const etatSuivant: Etat = { ...e, dettes: [fiche, ...e.dettes] };
+        if (!compte) return etatSuivant;
+        // Une dette contractée fait entrer de l'argent ; une créance accordée en fait sortir.
+        const mouvement: Transaction = {
           id: crypto.randomUUID(),
-          creeLe: new Date().toISOString().slice(0, 10),
-          remboursements: [],
-        },
-        ...e.dettes,
-      ],
-    }));
-  }, []);
+          type: d.sens === "dette" ? "revenu" : "depense",
+          montant: d.montantInitial,
+          libelle:
+            d.sens === "dette"
+              ? `Emprunt auprès de ${d.personne}`
+              : `Prêt accordé à ${d.personne}`,
+          categorie: "dettes",
+          compte,
+          date: new Date(creeLe).toISOString(),
+          detteId: id,
+        };
+        return { ...etatSuivant, transactions: [mouvement, ...e.transactions] };
+      });
+    },
+    [],
+  );
 
   const modifierDette = useCallback(
     (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
@@ -547,14 +573,20 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   );
 
   const supprimerDette = useCallback((id: string) => {
-    setEtat((e) => ({ ...e, dettes: e.dettes.filter((x) => x.id !== id) }));
+    setEtat((e) => ({
+      ...e,
+      dettes: e.dettes.filter((x) => x.id !== id),
+      // Les mouvements de trésorerie liés à la fiche disparaissent avec elle.
+      transactions: e.transactions.filter((t) => t.detteId !== id),
+    }));
   }, []);
 
   const ajouterRemboursement = useCallback(
-    (detteId: string, r: Omit<Remboursement, "id">) => {
-      setEtat((e) => ({
-        ...e,
-        dettes: e.dettes.map((x) =>
+    (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => {
+      setEtat((e) => {
+        const cible = e.dettes.find((x) => x.id === detteId);
+        if (!cible) return e;
+        const dettes = e.dettes.map((x) =>
           x.id === detteId
             ? {
                 ...x,
@@ -564,8 +596,24 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
                 ].sort((a, b) => a.date.localeCompare(b.date)),
               }
             : x,
-        ),
-      }));
+        );
+        if (!compte) return { ...e, dettes };
+        // Rembourser une dette sort de l'argent ; encaisser une créance en fait entrer.
+        const mouvement: Transaction = {
+          id: crypto.randomUUID(),
+          type: cible.sens === "dette" ? "depense" : "revenu",
+          montant: r.montant,
+          libelle:
+            cible.sens === "dette"
+              ? `Remboursement à ${cible.personne}`
+              : `Encaissement de ${cible.personne}`,
+          categorie: "dettes",
+          compte,
+          date: new Date(r.date).toISOString(),
+          detteId,
+        };
+        return { ...e, dettes, transactions: [mouvement, ...e.transactions] };
+      });
     },
     [],
   );

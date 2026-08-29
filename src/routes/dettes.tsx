@@ -60,6 +60,7 @@ function PageDettes() {
     supprimerDette,
     ajouterRemboursement,
     supprimerRemboursement,
+    comptes,
   } = useSuperApp();
 
   const [ouvertId, setOuvertId] = useState<string | null>(null);
@@ -68,6 +69,9 @@ function PageDettes() {
   const [form, setForm] = useState<Formulaire>(FORM_VIDE);
   const [montantRemb, setMontantRemb] = useState("");
   const [dateRemb, setDateRemb] = useState(new Date().toISOString().slice(0, 10));
+  /** Compte impacté par le mouvement d'argent ; vide = aucun mouvement de trésorerie. */
+  const [compteMouvement, setCompteMouvement] = useState("");
+  const [compteRemb, setCompteRemb] = useState("");
   const [confirmation, setConfirmation] = useState<{
     titre: string;
     message: string;
@@ -84,6 +88,7 @@ function PageDettes() {
 
   const ouvrirCreation = () => {
     setForm(FORM_VIDE);
+    setCompteMouvement("");
     setDialogue({ type: "creer" });
   };
 
@@ -95,12 +100,14 @@ function PageDettes() {
       dateLimite: d.dateLimite ?? "",
       note: d.note ?? "",
     });
+    setCompteMouvement("");
     setDialogue({ type: "modifier", dette: d });
   };
 
   const ouvrirRemboursement = (d: Dette) => {
     setMontantRemb("");
     setDateRemb(new Date().toISOString().slice(0, 10));
+    setCompteRemb("");
     setDialogue({ type: "rembourser", dette: d });
   };
 
@@ -146,6 +153,16 @@ function PageDettes() {
           avant: dialogue?.type === "modifier" ? (dialogue.dette.dateLimite ? formatDateFr(dialogue.dette.dateLimite) : "Aucune") : undefined,
           apres: form.dateLimite ? formatDateFr(form.dateLimite) : "Aucune",
         },
+        ...(dialogue?.type === "creer"
+          ? [
+              {
+                label: "Mouvement d'argent",
+                apres: compteMouvement
+                  ? `${form.sens === "dette" ? "Entrée" : "Sortie"} de ${formatFCFA(montant)} sur « ${compteMouvement} »`
+                  : "Aucun mouvement de compte",
+              },
+            ]
+          : []),
         { label: "Résumé", apres: `${label} ${form.personne.trim()} : ${formatFCFA(montant)}` },
       ],
       action: () => {
@@ -157,7 +174,7 @@ function PageDettes() {
           dateLimite: form.dateLimite || undefined,
         };
         if (dialogue?.type === "modifier") modifierDette(dialogue.dette.id, base);
-        else ajouterDette(base);
+        else ajouterDette(base, compteMouvement || undefined);
         setDialogue(null);
       },
     });
@@ -189,9 +206,19 @@ function PageDettes() {
         { label: "Montant", apres: formatFCFA(montant) },
         { label: "Date", apres: formatDateFr(dateRemb) },
         { label: "Reste après opération", avant: formatFCFA(reste), apres: formatFCFA(reste - montant) },
+        {
+          label: "Mouvement d'argent",
+          apres: compteRemb
+            ? `${dialogue.dette.sens === "dette" ? "Sortie" : "Entrée"} de ${formatFCFA(montant)} sur « ${compteRemb} »`
+            : "Aucun mouvement de compte",
+        },
       ],
       action: () => {
-        ajouterRemboursement(dialogue.dette.id, { montant, date: dateRemb });
+        ajouterRemboursement(
+          dialogue.dette.id,
+          { montant, date: dateRemb },
+          compteRemb || undefined,
+        );
         setDialogue(null);
       },
     });
@@ -519,6 +546,33 @@ function PageDettes() {
               />
             </div>
 
+            {dialogue.type === "creer" && (
+              <div className="space-y-1.5">
+                <label htmlFor="compte-dette" className="text-sm font-semibold">
+                  {form.sens === "dette"
+                    ? "Sur quel compte l'argent emprunté est-il entré ?"
+                    : "De quel compte l'argent prêté est-il sorti ?"}
+                </label>
+                <select
+                  id="compte-dette"
+                  data-clavier="off"
+                  value={compteMouvement}
+                  onChange={(e) => setCompteMouvement(e.target.value)}
+                  className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
+                >
+                  <option value="">Aucun mouvement de compte</option>
+                  {comptes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Si un compte est choisi, le solde de ce compte est mis à jour automatiquement.
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 type="button"
@@ -579,6 +633,27 @@ function PageDettes() {
                 onChange={(e) => setDateRemb(e.target.value)}
                 className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
               />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="compte-remb" className="text-sm font-semibold">
+                {dialogue.dette.sens === "dette"
+                  ? "De quel compte sort cet argent ?"
+                  : "Sur quel compte cet argent entre-t-il ?"}
+              </label>
+              <select
+                id="compte-remb"
+                data-clavier="off"
+                value={compteRemb}
+                onChange={(e) => setCompteRemb(e.target.value)}
+                className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
+              >
+                <option value="">Aucun mouvement de compte</option>
+                {comptes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2">
               <button
