@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, formatDateFr } from "@/lib/format";
+import { nombreEcheancesDues, prochainesEcheances, equivalentMensuel } from "@/lib/periodes";
 
 export const Route = createFileRoute("/enveloppes")({
   head: () => ({
@@ -34,7 +35,10 @@ function Enveloppes() {
     enveloppes,
     depensesParEnveloppe,
     budgets,
+    comptes,
     ajouterBudget,
+    convertirBudget,
+    genererEcheancesDues,
     supprimerBudget,
     ajouterEnveloppe,
     modifierEnveloppe,
@@ -49,6 +53,8 @@ function Enveloppes() {
   const [bLibelle, setBLibelle] = useState("");
   const [bEnveloppe, setBEnveloppe] = useState(enveloppes[0]?.id ?? "");
   const [bMontant, setBMontant] = useState("");
+  const [bCompte, setBCompte] = useState(comptes[0] ?? "");
+  const [bDate, setBDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   // Action (enveloppes)
   const [nom, setNom] = useState("");
@@ -61,7 +67,11 @@ function Enveloppes() {
 
   const budgetsPeriode = budgets.filter((b) => b.periode === periode);
   const totalPeriode = budgetsPeriode.reduce((s, b) => s + b.montant, 0);
-  const equivalentMensuel = budgets.reduce((s, b) => s + (b.montant * parAn(b.periode)) / 12, 0);
+  const totalMensuel = budgets.reduce((s, b) => s + equivalentMensuel(b), 0);
+  const dues = budgets.map((b) => ({ b, n: b.actif ? nombreEcheancesDues(b) : 0 }));
+  const nbDues = dues.reduce((s, d) => s + d.n, 0);
+  const montantDu = dues.reduce((s, d) => s + d.n * d.b.montant, 0);
+  const chronologie = prochainesEcheances(budgets, 10);
 
   function creerBudget(ev: React.FormEvent) {
     ev.preventDefault();
@@ -78,11 +88,23 @@ function Enveloppes() {
       toast.error("Montant invalide.");
       return;
     }
+    if (!bCompte) {
+      toast.error("Choisissez le compte à débiter.");
+      return;
+    }
+    const debut = new Date(`${bDate}T08:00:00`);
+    if (Number.isNaN(debut.getTime())) {
+      toast.error("Date de première échéance invalide.");
+      return;
+    }
     ajouterBudget({
       libelle: bLibelle.trim(),
       enveloppeId: bEnveloppe,
       montant: valeur,
       periode,
+      compte: bCompte,
+      prochaine: debut.toISOString(),
+      actif: true,
     });
     setBLibelle("");
     setBMontant("");
@@ -252,6 +274,38 @@ function Enveloppes() {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="b-compte" className="text-sm font-medium">
+                Compte débité
+              </label>
+              <select
+                id="b-compte"
+                value={bCompte}
+                onChange={(ev) => setBCompte(ev.target.value)}
+                className={champ}
+              >
+                {comptes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="b-date" className="text-sm font-medium">
+                1re échéance
+              </label>
+              <input
+                id="b-date"
+                type="date"
+                value={bDate}
+                onChange={(ev) => setBDate(ev.target.value)}
+                className={champ}
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
@@ -265,9 +319,27 @@ function Enveloppes() {
             Total {libellePeriode(periode).toLowerCase()} : {formatFCFA(totalPeriode)}
           </p>
           <p className="text-xs text-muted-foreground">
-            Équivalent mensuel de tout le plan : {formatFCFA(equivalentMensuel)}
+            Équivalent mensuel de tout le plan : {formatFCFA(totalMensuel)}
           </p>
         </div>
+
+        {nbDues > 0 && (
+          <div className="rounded-xl border border-primary/40 bg-primary/10 p-3">
+            <p className="text-sm font-semibold">
+              {nbDues} échéance{nbDues > 1 ? "s" : ""} à générer · {formatFCFA(montantDu)}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                genererEcheancesDues();
+                toast.success("Dépenses réelles générées.");
+              }}
+              className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Convertir en dépenses réelles
+            </button>
+          </div>
+        )}
 
         {budgetsPeriode.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -286,8 +358,21 @@ function Enveloppes() {
                     <p className="truncate text-sm font-medium">{b.libelle}</p>
                     <p className="text-xs text-muted-foreground">
                       {env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée"} ·{" "}
-                      {libellePeriode(b.periode)}
+                      {libellePeriode(b.periode)} · {b.compte}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      Prochaine échéance : {formatDateFr(b.prochaine)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        convertirBudget(b.id);
+                        toast.success("Dépense réelle créée.");
+                      }}
+                      className="mt-1.5 rounded-lg border border-input px-2.5 py-1 text-xs font-medium"
+                    >
+                      Convertir maintenant
+                    </button>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className="text-sm font-semibold">{formatFCFA(b.montant)}</span>
