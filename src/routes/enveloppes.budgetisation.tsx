@@ -262,7 +262,7 @@ function Budgetisation() {
             </select>
             {enveloppeChoisie && (
               <p className="mt-1 text-xs text-muted-foreground">
-                Budget de l'enveloppe : {formatFCFA(enveloppeChoisie.budget ?? 0)}
+                Plafond de l'enveloppe : {formatFCFA(enveloppeChoisie.plafond)}
               </p>
             )}
           </div>
@@ -422,19 +422,19 @@ function Budgetisation() {
         details={
           demande?.type === "creation"
             ? [
-                { champ: "Dépense", avant: "—", apres: demande.libelle },
+                { label: "Dépense", avant: "—", apres: demande.libelle },
                 {
                   champ: "Période",
                   avant: libellePeriode(periode),
                   apres: libellePlage({ debut: demande.debut, fin: demande.fin }),
                 },
-                { champ: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
+                { label: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
                 {
                   champ: "Enveloppe",
                   avant: "—",
                   apres: enveloppes.find((e) => e.id === demande.enveloppeId)?.nom ?? "—",
                 },
-                { champ: "Compte débité", avant: "—", apres: demande.compte },
+                { label: "Compte débité", avant: "—", apres: demande.compte },
                 {
                   champ: "Répétition",
                   avant: "—",
