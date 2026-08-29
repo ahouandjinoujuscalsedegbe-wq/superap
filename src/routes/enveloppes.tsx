@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, formatDateFr } from "@/lib/format";
+import { nombreEcheancesDues, prochainesEcheances, equivalentMensuel } from "@/lib/periodes";
 
 export const Route = createFileRoute("/enveloppes")({
   head: () => ({
@@ -26,7 +27,6 @@ export const Route = createFileRoute("/enveloppes")({
 const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
 
-const parAn = (p: Periode) => PERIODES.find((x) => x.id === p)?.parAn ?? 12;
 const libellePeriode = (p: Periode) => PERIODES.find((x) => x.id === p)?.label ?? p;
 
 function Enveloppes() {
@@ -34,7 +34,10 @@ function Enveloppes() {
     enveloppes,
     depensesParEnveloppe,
     budgets,
+    comptes,
     ajouterBudget,
+    convertirBudget,
+    genererEcheancesDues,
     supprimerBudget,
     ajouterEnveloppe,
     modifierEnveloppe,
@@ -49,6 +52,8 @@ function Enveloppes() {
   const [bLibelle, setBLibelle] = useState("");
   const [bEnveloppe, setBEnveloppe] = useState(enveloppes[0]?.id ?? "");
   const [bMontant, setBMontant] = useState("");
+  const [bCompte, setBCompte] = useState(comptes[0] ?? "");
+  const [bDate, setBDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   // Action (enveloppes)
   const [nom, setNom] = useState("");
@@ -61,7 +66,11 @@ function Enveloppes() {
 
   const budgetsPeriode = budgets.filter((b) => b.periode === periode);
   const totalPeriode = budgetsPeriode.reduce((s, b) => s + b.montant, 0);
-  const equivalentMensuel = budgets.reduce((s, b) => s + (b.montant * parAn(b.periode)) / 12, 0);
+  const totalMensuel = budgets.reduce((s, b) => s + equivalentMensuel(b), 0);
+  const dues = budgets.map((b) => ({ b, n: b.actif ? nombreEcheancesDues(b) : 0 }));
+  const nbDues = dues.reduce((s, d) => s + d.n, 0);
+  const montantDu = dues.reduce((s, d) => s + d.n * d.b.montant, 0);
+  const chronologie = prochainesEcheances(budgets, 10);
 
   function creerBudget(ev: React.FormEvent) {
     ev.preventDefault();
@@ -75,7 +84,20 @@ function Enveloppes() {
       return;
     }
     if (!Number.isFinite(valeur) || valeur <= 0) {
-      toast.error("Montant invalide.");
+      toast.error("Montant invalide : saisissez un montant positif en FCFA.");
+      return;
+    }
+    if (!enveloppes.some((e) => e.id === bEnveloppe)) {
+      toast.error("Enveloppe introuvable : choisissez une enveloppe existante.");
+      return;
+    }
+    if (!bCompte) {
+      toast.error("Choisissez le compte à débiter.");
+      return;
+    }
+    const debut = new Date(`${bDate}T08:00:00`);
+    if (Number.isNaN(debut.getTime())) {
+      toast.error("Date de première échéance invalide.");
       return;
     }
     ajouterBudget({
@@ -83,6 +105,9 @@ function Enveloppes() {
       enveloppeId: bEnveloppe,
       montant: valeur,
       periode,
+      compte: bCompte,
+      prochaine: debut.toISOString(),
+      actif: true,
     });
     setBLibelle("");
     setBMontant("");
@@ -252,6 +277,38 @@ function Enveloppes() {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="b-compte" className="text-sm font-medium">
+                Compte débité
+              </label>
+              <select
+                id="b-compte"
+                value={bCompte}
+                onChange={(ev) => setBCompte(ev.target.value)}
+                className={champ}
+              >
+                {comptes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="b-date" className="text-sm font-medium">
+                1re échéance
+              </label>
+              <input
+                id="b-date"
+                type="date"
+                value={bDate}
+                onChange={(ev) => setBDate(ev.target.value)}
+                className={champ}
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
@@ -265,9 +322,27 @@ function Enveloppes() {
             Total {libellePeriode(periode).toLowerCase()} : {formatFCFA(totalPeriode)}
           </p>
           <p className="text-xs text-muted-foreground">
-            Équivalent mensuel de tout le plan : {formatFCFA(equivalentMensuel)}
+            Équivalent mensuel de tout le plan : {formatFCFA(totalMensuel)}
           </p>
         </div>
+
+        {nbDues > 0 && (
+          <div className="rounded-xl border border-primary/40 bg-primary/10 p-3">
+            <p className="text-sm font-semibold">
+              {nbDues} échéance{nbDues > 1 ? "s" : ""} à générer · {formatFCFA(montantDu)}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                genererEcheancesDues();
+                toast.success("Dépenses réelles générées.");
+              }}
+              className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Convertir en dépenses réelles
+            </button>
+          </div>
+        )}
 
         {budgetsPeriode.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -286,8 +361,21 @@ function Enveloppes() {
                     <p className="truncate text-sm font-medium">{b.libelle}</p>
                     <p className="text-xs text-muted-foreground">
                       {env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée"} ·{" "}
-                      {libellePeriode(b.periode)}
+                      {libellePeriode(b.periode)} · {b.compte}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      Prochaine échéance : {formatDateFr(b.prochaine)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        convertirBudget(b.id);
+                        toast.success("Dépense réelle créée.");
+                      }}
+                      className="mt-1.5 rounded-lg border border-input px-2.5 py-1 text-xs font-medium"
+                    >
+                      Convertir maintenant
+                    </button>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className="text-sm font-semibold">{formatFCFA(b.montant)}</span>
@@ -305,6 +393,73 @@ function Enveloppes() {
             })}
           </ul>
         )}
+      </section>
+
+      <section className="carte space-y-4 p-4">
+        <div>
+          <h2 className="text-lg font-semibold">Chronologie & suivi</h2>
+          <p className="text-sm text-muted-foreground">Prévu contre réellement dépensé.</p>
+        </div>
+
+        {chronologie.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucune échéance à venir.</p>
+        ) : (
+          <ol className="relative space-y-3 border-l border-border pl-4">
+            {chronologie.map(({ budget: b, date }) => (
+              <li key={`${b.id}-${date}`} className="relative">
+                <span
+                  aria-hidden
+                  className="absolute -left-[1.32rem] top-1.5 h-2.5 w-2.5 rounded-full bg-primary"
+                />
+                <p className="text-sm font-medium">
+                  {formatDateFr(date)} · {b.libelle}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFCFA(b.montant)} · {libellePeriode(b.periode)} · {b.compte}
+                </p>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        <ul className="space-y-3">
+          {enveloppes.map((e) => {
+            const prevu = budgets
+              .filter((b) => b.enveloppeId === e.id)
+              .reduce((s, b) => s + equivalentMensuel(b), 0);
+            const reel = depensesParEnveloppe[e.id] ?? 0;
+            const base = Math.max(prevu, reel, 1);
+            return (
+              <li key={e.id}>
+                <div className="flex justify-between text-sm">
+                  <span className="truncate">
+                    <span aria-hidden>{e.emoji}</span> {e.nom}
+                  </span>
+                  <span className={reel > prevu ? "text-destructive" : "text-muted-foreground"}>
+                    {formatFCFA(reel)} / {formatFCFA(prevu)}
+                  </span>
+                </div>
+                <div className="mt-1 space-y-1">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-primary/50"
+                      style={{ width: `${(prevu / base) * 100}%` }}
+                    />
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className={`h-full rounded-full ${reel > prevu ? "bg-destructive" : "bg-primary"}`}
+                      style={{ width: `${(reel / base) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          Barre claire : budget mensualisé · barre pleine : dépenses réelles.
+        </p>
       </section>
 
       <section className="carte space-y-4 p-4">

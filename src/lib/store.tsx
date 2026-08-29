@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { avancerDate } from "./periodes";
 
 export type Enveloppe = {
   id: string;
@@ -51,6 +52,9 @@ export type Budget = {
   enveloppeId: string;
   montant: number;
   periode: Periode;
+  compte: string;
+  prochaine: string;
+  actif: boolean;
 };
 
 export const COMPTES = [
@@ -104,6 +108,8 @@ type Contexte = Etat & {
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
   ajouterBudget: (b: Omit<Budget, "id">) => void;
+  convertirBudget: (id: string, fois?: number) => void;
+  genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
   definirTransparence: (v: number) => void;
@@ -218,6 +224,60 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, budgets: [{ ...b, id: crypto.randomUUID() }, ...e.budgets] }));
   }, []);
 
+  const convertirBudget = useCallback((id: string, fois = 1) => {
+    setEtat((e) => {
+      const b = e.budgets.find((x) => x.id === id);
+      if (!b) return e;
+      const nouvelles: Transaction[] = [];
+      let date = b.prochaine;
+      for (let i = 0; i < fois; i += 1) {
+        nouvelles.push({
+          id: crypto.randomUUID(),
+          type: "depense",
+          montant: b.montant,
+          libelle: b.libelle,
+          categorie: b.enveloppeId,
+          compte: b.compte,
+          date,
+        });
+        date = avancerDate(date, b.periode);
+      }
+      return {
+        ...e,
+        transactions: [...nouvelles, ...e.transactions],
+        budgets: e.budgets.map((x) => (x.id === id ? { ...x, prochaine: date } : x)),
+      };
+    });
+  }, []);
+
+  const genererEcheancesDues = useCallback(() => {
+    setEtat((e) => {
+      const maintenant = Date.now();
+      const nouvelles: Transaction[] = [];
+      const budgets = e.budgets.map((b) => {
+        if (!b.actif) return b;
+        let date = b.prochaine;
+        let garde = 0;
+        while (new Date(date).getTime() <= maintenant && garde < 240) {
+          nouvelles.push({
+            id: crypto.randomUUID(),
+            type: "depense",
+            montant: b.montant,
+            libelle: b.libelle,
+            categorie: b.enveloppeId,
+            compte: b.compte,
+            date,
+          });
+          date = avancerDate(date, b.periode);
+          garde += 1;
+        }
+        return garde > 0 ? { ...b, prochaine: date } : b;
+      });
+      if (nouvelles.length === 0) return e;
+      return { ...e, transactions: [...nouvelles, ...e.transactions], budgets };
+    });
+  }, []);
+
   const modifierBudget = useCallback((id: string, b: Partial<Omit<Budget, "id">>) => {
     setEtat((e) => ({
       ...e,
@@ -248,6 +308,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       modifierEnveloppe,
       supprimerEnveloppe,
       ajouterBudget,
+      convertirBudget,
+      genererEcheancesDues,
       modifierBudget,
       supprimerBudget,
       definirTransparence,
@@ -265,6 +327,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       modifierEnveloppe,
       supprimerEnveloppe,
       ajouterBudget,
+      convertirBudget,
+      genererEcheancesDues,
       modifierBudget,
       supprimerBudget,
       definirTransparence,

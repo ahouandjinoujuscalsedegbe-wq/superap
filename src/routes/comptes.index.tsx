@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 
-export const Route = createFileRoute("/comptes")({
+export const Route = createFileRoute("/comptes/")({
   head: () => ({
     meta: [
       { title: "Comptes — Soldes, actions et transferts en FCFA" },
@@ -74,6 +74,7 @@ function Comptes() {
     const nom = nouveauCompte.trim();
     if (!nom) { toast.error("Donnez un nom au compte."); return; }
     if (comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
+    if (nom.length > 30) { toast.error("Nom trop long (30 caractères maximum)."); return; }
     ajouterCompte(nom);
     setNouveauCompte("");
     toast.success(`Compte « ${nom} » ajouté.`);
@@ -95,6 +96,10 @@ function Comptes() {
     if (transferts.some((t) => t.source === nom || t.destination === nom)) {
       { toast.error("Ce compte est lié à des transferts."); return; }
     }
+    if ((soldesParCompte[nom] ?? 0) !== 0) {
+      toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
+      return;
+    }
     supprimerCompte(nom);
     toast.success("Compte supprimé.");
   }
@@ -105,6 +110,14 @@ function Comptes() {
     if (!Number.isFinite(valeur) || valeur <= 0) { toast.error("Montant invalide."); return; }
     if (!source || !destination) { toast.error("Choisissez les deux comptes."); return; }
     if (source === destination) { toast.error("Choisissez deux comptes différents."); return; }
+    if (!Number.isInteger(valeur)) { toast.error("Le montant doit être un nombre entier de FCFA."); return; }
+    const dispo = soldesParCompte[source] ?? 0;
+    if (valeur > dispo) {
+      toast.error(
+        `Solde insuffisant sur ${source} : ${formatFCFA(dispo)} disponible${dispo > 1 ? "s" : ""}.`,
+      );
+      return;
+    }
     ajouterTransfert({
       source,
       destination,
@@ -131,7 +144,12 @@ function Comptes() {
 
       <ul className="space-y-3">
         {lignes.map((l) => (
-          <li key={l.compte} className="carte p-4">
+          <li key={l.compte}>
+            <Link
+              to="/comptes/$compte"
+              params={{ compte: l.compte }}
+              className="carte block p-4 transition-transform active:scale-[0.99]"
+            >
             <div className="flex items-center justify-between">
               <span className="font-semibold">{l.compte}</span>
               <span className="font-bold">{formatFCFA(l.solde)}</span>
@@ -141,9 +159,10 @@ function Comptes() {
                 + {formatFCFA(l.entrees)} · − {formatFCFA(l.sorties)}
               </span>
               <span>
-                {l.nb} opération{l.nb > 1 ? "s" : ""}
+                {l.nb} opération{l.nb > 1 ? "s" : ""} · détails ›
               </span>
             </div>
+            </Link>
           </li>
         ))}
       </ul>
