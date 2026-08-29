@@ -405,6 +405,12 @@ function PageCategories() {
         onConfirmer={confirmer}
         onAnnuler={() => setDemande(null)}
       />
+
+      <ErreurPopup
+        ouvert={erreurPopup !== null}
+        message={erreurPopup ?? ""}
+        onFermer={() => setErreurPopup(null)}
+      />
     </div>
   );
 }
