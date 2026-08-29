@@ -49,10 +49,13 @@ function ActionEnveloppes() {
     sousCategorie: string;
   } | null>(null);
 
+  const [erreur, setErreur] = useState<string | null>(null);
+
   const listeCategories = useSuperApp().categories;
-  const categories = categoriesDisponibles(enveloppes, listeCategories);
-  const sousCategories = sousCategoriesDisponibles(enveloppes, categorie.trim(), listeCategories);
+  const categorieChoisie = listeCategories.find((c) => c.nom === categorie.trim());
+  const sousCategories = categorieChoisie?.sousCategories ?? [];
   const groupes = grouperParCategorie(enveloppes);
+
 
   function ouvrirCreer() {
     setNom("");
