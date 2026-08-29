@@ -56,7 +56,7 @@ function DetailsActuels() {
                 (somme, sous) =>
                   somme +
                   sous.enveloppes.reduce(
-                    (s, e) => s + Math.max(0, e.plafond - (depensesParEnveloppe[e.id] ?? 0)),
+                    (s, e) => s + etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
                     0,
                   ),
                 0,
