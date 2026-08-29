@@ -123,6 +123,25 @@ function Analyses() {
     [enveloppes, depensesParEnveloppe, transactions],
   );
 
+  const douzeMois = useMemo(() => comparaisonMensuelle(transactions, 12), [transactions]);
+  const joursSemaine = useMemo(() => analyseJoursSemaine(periode), [periode]);
+  const realisation = useMemo(
+    () => tauxRealisationBudgets(budgets, transactions, enveloppes),
+    [budgets, transactions, enveloppes],
+  );
+  const sources = useMemo(() => revenusParSource(periode), [periode]);
+  const recurrentes = useMemo(() => depensesRecurrentes(transactions), [transactions]);
+  const moyenne = useMemo(() => comparerALaMoyenne(transactions, 6), [transactions]);
+  const scores = useMemo(() => historiqueScores(transactions, 6), [transactions]);
+  const objectifSuivi = useMemo(
+    () => suivreObjectifEpargne(transactions, objectif),
+    [transactions, objectif],
+  );
+  const camembert = useMemo(() => degradeCirculaire(repartition), [repartition]);
+
+  const maxMois = Math.max(1, ...douzeMois.map((m) => Math.max(m.revenus, m.depenses)));
+  const maxJour = Math.max(1, ...joursSemaine.map((j) => j.montant));
+
   const evolution = variation(totaux.depenses, precedents.depenses);
   const tauxEpargne = totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
   const maxTendance = Math.max(
