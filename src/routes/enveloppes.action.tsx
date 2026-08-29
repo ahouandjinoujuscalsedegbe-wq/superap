@@ -306,7 +306,17 @@ function ActionEnveloppes() {
                 <select
                   id="e-sous-categorie"
                   value={sousCategorie}
-                  onChange={(ev) => setSousCategorie(ev.target.value)}
+                  onChange={(ev) => {
+                    const valeur = ev.target.value;
+                    if (valeur && !sousCategories.includes(valeur)) {
+                      setErreur(
+                        `La sous-catégorie « ${valeur} » n'existe pas dans la catégorie « ${categorie.trim()} ». Choisissez une sous-catégorie proposée dans la liste.`
+                      );
+                      ev.target.value = sousCategorie;
+                      return;
+                    }
+                    setSousCategorie(valeur);
+                  }}
                   disabled={!categorieChoisie || sousCategories.length === 0}
                   className={champ}
                 >
