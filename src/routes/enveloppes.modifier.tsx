@@ -292,7 +292,7 @@ function ModifierEnveloppe() {
           demande?.type === "suppression"
             ? `L'enveloppe « ${demande.nom} » sera définitivement supprimée. Cette action est irréversible.`
             : demande
-              ? `L'enveloppe sera renommée « ${demande.nom} » avec un plafond de ${formatFCFA(demande.plafond)}.`
+              ? `L'enveloppe sera enregistrée sous « ${demande.nom} » (${demande.categorie || "sans catégorie"}${demande.sousCategorie ? ` › ${demande.sousCategorie}` : ""}) avec un plafond de ${formatFCFA(demande.plafond)}.`
               : ""
         }
         confirmerLabel={demande?.type === "suppression" ? "Supprimer" : "Enregistrer"}
