@@ -1,16 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { X, Plus, Pencil, Tags, FolderTree } from "lucide-react";
+import { X, Plus, Pencil, FolderTree } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
-import {
-  categoriesDisponibles,
-  sousCategoriesDisponibles,
-  grouperParCategorie,
-} from "@/lib/categories";
+import { grouperParCategorie } from "@/lib/categories";
 
 export const Route = createFileRoute("/enveloppes/action")({
   head: () => ({
