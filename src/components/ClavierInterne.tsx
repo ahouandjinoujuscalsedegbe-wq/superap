@@ -49,6 +49,7 @@ export function ClavierInterne() {
   const [decimale, setDecimale] = useState(false);
   const [numeriqueForce, setNumeriqueForce] = useState(false);
   const champRef = useRef<Champ | null>(null);
+  const clavierRef = useRef<HTMLDivElement | null>(null);
 
   const fermer = useCallback(() => {
     setOuvert(false);
@@ -56,6 +57,37 @@ export function ClavierInterne() {
     setDecimale(false);
     setNumeriqueForce(false);
   }, []);
+
+  // Quand le clavier est ouvert : réserve de l'espace en bas de page et
+  // remonte le champ actif juste au-dessus du clavier pour qu'il reste visible.
+  useEffect(() => {
+    if (!ouvert) return;
+    const champ = champRef.current;
+    if (!champ) return;
+
+    const rendreVisible = () => {
+      const clavier = clavierRef.current;
+      const hauteurClavier = clavier ? clavier.getBoundingClientRect().height : 0;
+      document.body.style.paddingBottom = `${hauteurClavier + 16}px`;
+
+      const rect = champ.getBoundingClientRect();
+      const limiteVisible = window.innerHeight - hauteurClavier - 12;
+      if (rect.bottom > limiteVisible || rect.top < 0) {
+        const decalage = rect.bottom - limiteVisible;
+        window.scrollBy({ top: Math.max(decalage, rect.top - 12), behavior: "smooth" });
+      }
+    };
+
+    const t1 = window.setTimeout(rendreVisible, 60);
+    const t2 = window.setTimeout(rendreVisible, 250);
+    window.addEventListener("resize", rendreVisible);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.removeEventListener("resize", rendreVisible);
+      document.body.style.paddingBottom = "";
+    };
+  }, [ouvert, mode]);
 
   useEffect(() => {
     const onFocus = (ev: FocusEvent) => {
