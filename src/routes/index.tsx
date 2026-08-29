@@ -24,8 +24,33 @@ export const Route = createFileRoute("/")({
 });
 
 function Accueil() {
-  const { solde, totalRevenus, totalDepenses, transactions } = useSuperApp();
+  const {
+    solde,
+    totalRevenus,
+    totalDepenses,
+    transactions,
+    budgets,
+    dettes,
+    enveloppes,
+    depensesParEnveloppe,
+  } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
+
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const dansSeptJours = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+
+  // Rappels : échéances planifiées à venir, dettes échues et enveloppes en zone rouge.
+  const echeancesProches = budgets
+    .filter((b) => b.actif && b.prochaine.slice(0, 10) <= dansSeptJours)
+    .sort((a, b) => a.prochaine.localeCompare(b.prochaine))
+    .slice(0, 3);
+  const dettesEchues = dettes.filter(
+    (d) => d.dateLimite && d.dateLimite <= aujourdHui && resteDu(d) > 0,
+  );
+  const enveloppesRouges = enveloppes.filter(
+    (e) => etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).plafondAtteint,
+  );
+  const rappels = echeancesProches.length + dettesEchues.length + enveloppesRouges.length;
 
   return (
     <div className="space-y-5">
