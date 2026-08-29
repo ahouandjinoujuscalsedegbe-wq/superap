@@ -17,6 +17,8 @@ import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
+import { installerCaptureGlobale } from "@/lib/journal";
+
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { Toaster } from "sonner";
