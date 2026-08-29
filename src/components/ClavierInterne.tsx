@@ -185,7 +185,7 @@ export function ClavierInterne() {
             </div>
             {LIGNES_TEXTE.map((ligne, i) => (
               <div key={i} className="flex justify-center gap-1">
-                {i === 2 && (
+                {i === 3 && (
                   <Touche
                     onClick={() => setMajuscule((m) => !m)}
                     label={<ArrowBigUp aria-hidden className="h-4 w-4" />}
