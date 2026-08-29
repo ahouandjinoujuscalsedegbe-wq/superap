@@ -121,6 +121,19 @@ function ActionEnveloppes() {
         <h2 className="text-lg font-semibold">Action</h2>
 
         <div className="space-y-3">
+          <Link
+            to="/enveloppes/categories"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <FolderTree aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Gérer les catégories et sous-catégories</p>
+              <p className="text-sm text-muted-foreground">Créez, renommez ou supprimez vos classements.</p>
+            </div>
+          </Link>
+
           <button
             type="button"
             onClick={ouvrirCreer}
@@ -147,57 +160,7 @@ function ActionEnveloppes() {
               <p className="text-sm text-muted-foreground">Renommez, changez le plafond ou supprimez.</p>
             </div>
           </Link>
-
-
-          <Link
-            to="/enveloppes/categories"
-            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <FolderTree aria-hidden className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-semibold">Gérer les catégories et sous-catégories</p>
-              <p className="text-sm text-muted-foreground">Créez, renommez ou supprimez vos classements.</p>
-            </div>
-          </Link>
         </div>
-      </section>
-
-      <section className="carte space-y-4 p-4">
-        <div>
-          <h2 className="text-lg font-semibold">Classement par catégorie</h2>
-          <p className="text-sm text-muted-foreground">
-            Vos enveloppes regroupées par catégorie et sous-catégorie.
-          </p>
-        </div>
-
-        <ul className="space-y-3">
-          {groupes.map((g) => (
-            <li key={g.categorie} className="rounded-xl border border-border/70 p-3">
-              <p className="text-sm font-semibold">{g.categorie}</p>
-              <ul className="mt-2 space-y-2">
-                {g.sousCategories.map((s) => (
-                  <li key={s.sousCategorie}>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {s.sousCategorie}
-                    </p>
-                    <ul className="mt-1 space-y-1">
-                      {s.enveloppes.map((e) => (
-                        <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
-                          <span className="min-w-0 truncate">
-                            <span aria-hidden>{e.emoji}</span> {e.nom}
-                          </span>
-                          <span className="shrink-0 font-medium">{formatFCFA(e.plafond)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
       </section>
 
       {modal === "creer" && (
