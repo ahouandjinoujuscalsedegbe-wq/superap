@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
+import { ErreurPopup } from "@/components/ErreurPopup";
 
 export const Route = createFileRoute("/enveloppes/categories")({
   head: () => ({
