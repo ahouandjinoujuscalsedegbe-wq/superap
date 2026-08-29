@@ -21,6 +21,19 @@ import {
   variation,
   type Fenetre,
 } from "@/lib/intelligence";
+import {
+  COULEURS_SECTEURS,
+  analyseJoursSemaine,
+  comparaisonMensuelle,
+  comparerALaMoyenne,
+  degradeCirculaire,
+  depensesRecurrentes,
+  exporterRapportPdf,
+  historiqueScores,
+  revenusParSource,
+  suivreObjectifEpargne,
+  tauxRealisationBudgets,
+} from "@/lib/intelligence-plus";
 
 export const Route = createFileRoute("/analyses")({
   head: () => ({
