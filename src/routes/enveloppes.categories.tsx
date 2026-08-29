@@ -66,8 +66,8 @@ function PageCategories() {
   function creerCategorie(ev: React.FormEvent) {
     ev.preventDefault();
     const nom = nouvelle.trim();
-    if (!nom) return toast.error("Donnez un nom à la catégorie.");
-    if (categories.some((c) => c.nom === nom)) return toast.error("Cette catégorie existe déjà.");
+    if (!nom) { toast.error("Donnez un nom à la catégorie."); return; }
+    if (categories.some((c) => c.nom === nom)) { toast.error("Cette catégorie existe déjà."); return; }
     setDemande({ type: "creation-categorie", nom });
   }
 
@@ -192,7 +192,7 @@ function PageCategories() {
                   aria-label="Valider le renommage"
                   onClick={() => {
                     const nom = valeurCat.trim();
-                    if (!nom) return toast.error("Nom vide.");
+                    if (!nom) { toast.error("Nom vide."); return; }
                     setDemande({ type: "renommage-categorie", id: c.id, ancien: c.nom, nom });
                   }}
                   className="rounded-xl bg-primary px-3 text-primary-foreground"
@@ -263,7 +263,7 @@ function PageCategories() {
                         aria-label="Valider le renommage de la sous-catégorie"
                         onClick={() => {
                           const nom = valeurSous.trim();
-                          if (!nom) return toast.error("Nom vide.");
+                          if (!nom) { toast.error("Nom vide."); return; }
                           setDemande({
                             type: "renommage-sous",
                             id: c.id,
@@ -335,8 +335,8 @@ function PageCategories() {
                 type="button"
                 onClick={() => {
                   const nom = (nouvelleSous[c.id] ?? "").trim();
-                  if (!nom) return toast.error("Donnez un nom à la sous-catégorie.");
-                  if (c.sousCategories.includes(nom)) return toast.error("Elle existe déjà.");
+                  if (!nom) { toast.error("Donnez un nom à la sous-catégorie."); return; }
+                  if (c.sousCategories.includes(nom)) { toast.error("Elle existe déjà."); return; }
                   setDemande({ type: "creation-sous", id: c.id, categorie: c.nom, nom });
                 }}
                 className="shrink-0 rounded-xl bg-secondary px-3 font-medium"
@@ -353,7 +353,7 @@ function PageCategories() {
         titre={demande ? titres[demande.type] : ""}
         message="Vérifiez les informations ci-dessous avant de valider."
         details={details()}
-        danger={demande?.type.startsWith("suppression")}
+        danger={demande?.type.startsWith("suppression") ?? false}
         confirmerLabel={demande?.type.startsWith("suppression") ? "Supprimer" : "Confirmer"}
         onConfirmer={confirmer}
         onAnnuler={() => setDemande(null)}
