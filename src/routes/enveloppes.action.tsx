@@ -81,8 +81,20 @@ function ActionEnveloppes() {
       toast.error("Plafond invalide.");
       return;
     }
-    if (sousCategorie.trim() && !categorie.trim()) {
-      toast.error("Choisissez d'abord une catégorie.");
+    if (!categorie.trim()) {
+      setErreur("La catégorie est obligatoire : choisissez-en une dans la liste déroulante avant de créer l'enveloppe.");
+      return;
+    }
+    if (!categorieChoisie) {
+      setErreur(`La catégorie « ${categorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`);
+      return;
+    }
+    if (sousCategories.length > 0 && !sousCategorie.trim()) {
+      setErreur("Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.");
+      return;
+    }
+    if (sousCategorie.trim() && !sousCategories.includes(sousCategorie.trim())) {
+      setErreur(`La sous-catégorie « ${sousCategorie.trim()} » n'existe pas dans la catégorie « ${categorie.trim()} ». Reprenez votre choix.`);
       return;
     }
     setConfirmation({
