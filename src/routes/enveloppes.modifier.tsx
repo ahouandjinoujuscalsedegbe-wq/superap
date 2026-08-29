@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { grouperParCategorie } from "@/lib/categories";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
+import { CarteEnveloppe } from "./enveloppes.details";
 
 export const Route = createFileRoute("/enveloppes/modifier")({
   head: () => ({
@@ -39,6 +41,7 @@ type Demande =
       nom: string;
       emoji: string;
       plafond: number;
+      dotation: number;
       categorie: string;
       sousCategorie: string;
     }
@@ -46,18 +49,27 @@ type Demande =
   | null;
 
 function ModifierEnveloppe() {
-  const { enveloppes, categories: listeCategories, modifierEnveloppe, supprimerEnveloppe } = useSuperApp();
+  const {
+    enveloppes,
+    categories: listeCategories,
+    depensesParEnveloppe,
+    modifierEnveloppe,
+    supprimerEnveloppe,
+  } = useSuperApp();
 
   // Processus dédié : la modification se fait dans une fenêtre pop-up guidée.
   const [edition, setEdition] = useState<string | null>(null);
   const [eNom, setENom] = useState("");
   const [eEmoji, setEEmoji] = useState("");
   const [ePlafond, setEPlafond] = useState("");
+  const [eDotation, setEDotation] = useState("");
   const [eCategorie, setECategorie] = useState("");
   const [eSousCategorie, setESousCategorie] = useState("");
 
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
+  const [operations, setOperations] = useState<string | null>(null);
 
   const categorieChoisie = listeCategories.find((c) => c.nom === eCategorie.trim());
   const sousCategories = categorieChoisie?.sousCategories ?? [];
@@ -71,6 +83,7 @@ function ModifierEnveloppe() {
     setENom(e.nom);
     setEEmoji(e.emoji);
     setEPlafond(String(e.plafond));
+    setEDotation(String(e.dotation ?? e.plafond));
     setECategorie(e.categorie ?? "");
     setESousCategorie(e.sousCategorie ?? "");
   }
@@ -87,6 +100,17 @@ function ModifierEnveloppe() {
     }
     if (!Number.isFinite(valeur) || valeur < 0) {
       setErreur("Le plafond saisi est invalide : indiquez un montant en FCFA.");
+      return;
+    }
+    const somme = Number(eDotation);
+    if (!Number.isFinite(somme) || somme <= 0) {
+      setErreur("La somme attribuée est invalide : indiquez le montant placé dans l'enveloppe.");
+      return;
+    }
+    if (somme < valeur) {
+      setErreur(
+        "Le plafond ne peut pas dépasser la somme attribuée à l'enveloppe : le plafond est le montant de dépenses à ne pas dépasser.",
+      );
       return;
     }
     if (!eCategorie.trim()) {
@@ -115,6 +139,7 @@ function ModifierEnveloppe() {
       nom: eNom.trim(),
       emoji: eEmoji.trim() || "💡",
       plafond: valeur,
+      dotation: somme,
       categorie: eCategorie.trim(),
       sousCategorie: eSousCategorie.trim(),
     });
@@ -133,6 +158,7 @@ function ModifierEnveloppe() {
         nom: demande.nom,
         emoji: demande.emoji,
         plafond: demande.plafond,
+        dotation: demande.dotation,
         categorie: demande.categorie,
         sousCategorie: demande.sousCategorie,
       });
@@ -174,14 +200,28 @@ function ModifierEnveloppe() {
                     {s.enveloppes.map((e) => (
                       <li key={e.id} className="carte p-4">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="min-w-0">
-                            <span className="block truncate font-semibold">
-                              <span aria-hidden>{e.emoji}</span> {e.nom}
+                          <button
+                            type="button"
+                            onClick={() => setDetail(detail === e.id ? null : e.id)}
+                            aria-expanded={detail === e.id}
+                            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                          >
+                            <ChevronDown
+                              aria-hidden
+                              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
+                                detail === e.id ? "rotate-180" : ""
+                              }`}
+                            />
+                            <span className="min-w-0">
+                              <span className="block truncate font-semibold">
+                                <span aria-hidden>{e.emoji}</span> {e.nom}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {formatFCFA(etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant)} restants
+                                · plafond {formatFCFA(e.plafond)}
+                              </span>
                             </span>
-                            <span className="text-sm text-muted-foreground">
-                              Plafond : {formatFCFA(e.plafond)}
-                            </span>
-                          </span>
+                          </button>
                           <span className="flex shrink-0 gap-2">
                             <button
                               type="button"
@@ -203,6 +243,16 @@ function ModifierEnveloppe() {
                             </button>
                           </span>
                         </div>
+
+                        {detail === e.id && (
+                          <div className="mt-3 border-t border-border/70 pt-3">
+                            <CarteEnveloppe
+                              e={e}
+                              estOuverte={operations === e.id}
+                              onToggle={() => setOperations(operations === e.id ? null : e.id)}
+                            />
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -270,6 +320,22 @@ function ModifierEnveloppe() {
                   onChange={(ev) => setEPlafond(ev.target.value.replace(/[^\d]/g, ""))}
                   className={champ}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="edit-dotation" className="text-sm font-medium">
+                  Quelle somme est attribuée à cette enveloppe ? (FCFA)
+                </label>
+                <input
+                  id="edit-dotation"
+                  inputMode="numeric"
+                  value={eDotation}
+                  onChange={(ev) => setEDotation(ev.target.value.replace(/[^\d]/g, ""))}
+                  className={champ}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Cette somme diminue à chaque dépense. Au-delà du plafond, vous puisez dans la réserve.
+                </p>
               </div>
 
               <div>
