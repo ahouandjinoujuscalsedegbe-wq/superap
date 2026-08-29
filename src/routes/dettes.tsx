@@ -546,6 +546,33 @@ function PageDettes() {
               />
             </div>
 
+            {dialogue.type === "creer" && (
+              <div className="space-y-1.5">
+                <label htmlFor="compte-dette" className="text-sm font-semibold">
+                  {form.sens === "dette"
+                    ? "Sur quel compte l'argent emprunté est-il entré ?"
+                    : "De quel compte l'argent prêté est-il sorti ?"}
+                </label>
+                <select
+                  id="compte-dette"
+                  data-clavier="off"
+                  value={compteMouvement}
+                  onChange={(e) => setCompteMouvement(e.target.value)}
+                  className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
+                >
+                  <option value="">Aucun mouvement de compte</option>
+                  {comptes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Si un compte est choisi, le solde de ce compte est mis à jour automatiquement.
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 type="button"
