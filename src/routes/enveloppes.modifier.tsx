@@ -6,11 +6,8 @@ import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
-import {
-  categoriesDisponibles,
-  sousCategoriesDisponibles,
-  grouperParCategorie,
-} from "@/lib/categories";
+import { ErreurPopup } from "@/components/ErreurPopup";
+import { grouperParCategorie } from "@/lib/categories";
 
 export const Route = createFileRoute("/enveloppes/modifier")({
   head: () => ({
@@ -59,9 +56,11 @@ function ModifierEnveloppe() {
 
   const [demande, setDemande] = useState<Demande>(null);
 
+  const [erreur, setErreur] = useState<string | null>(null);
+
   const listeCategories = useSuperApp().categories;
-  const categories = categoriesDisponibles(enveloppes, listeCategories);
-  const sousCategories = sousCategoriesDisponibles(enveloppes, eCategorie.trim(), listeCategories);
+  const categorieChoisie = listeCategories.find((c) => c.nom === eCategorie.trim());
+  const sousCategories = categorieChoisie?.sousCategories ?? [];
   const groupes = grouperParCategorie(enveloppes);
 
   function commencerEdition(id: string) {
@@ -85,8 +84,20 @@ function ModifierEnveloppe() {
       toast.error("Plafond invalide.");
       return;
     }
-    if (eSousCategorie.trim() && !eCategorie.trim()) {
-      toast.error("Choisissez d'abord une catégorie.");
+    if (!eCategorie.trim()) {
+      setErreur("La catégorie est obligatoire : choisissez-en une dans la liste déroulante.");
+      return;
+    }
+    if (!categorieChoisie) {
+      setErreur(`La catégorie « ${eCategorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`);
+      return;
+    }
+    if (sousCategories.length > 0 && !eSousCategorie.trim()) {
+      setErreur("Cette catégorie possède des sous-catégories : choisissez-en une.");
+      return;
+    }
+    if (eSousCategorie.trim() && !sousCategories.includes(eSousCategorie.trim())) {
+      setErreur(`La sous-catégorie « ${eSousCategorie.trim()} » n'existe pas dans la catégorie « ${eCategorie.trim()} ». Reprenez votre choix.`);
       return;
     }
     setDemande({
@@ -192,32 +203,45 @@ function ModifierEnveloppe() {
                   </div>
                   <div>
                     <label htmlFor={`categorie-${e.id}`} className="text-sm font-medium">
-                      Catégorie
+                      Catégorie (obligatoire)
                     </label>
-                    <input
+                    <select
                       id={`categorie-${e.id}`}
-                      list="liste-categories-mod"
                       value={eCategorie}
                       onChange={(ev) => {
                         setECategorie(ev.target.value);
                         setESousCategorie("");
                       }}
-                      placeholder="Transport, Factures…"
                       className={champ}
-                    />
+                    >
+                      <option value="">Choisir une catégorie…</option>
+                      {listeCategories.map((c) => (
+                        <option key={c.id} value={c.nom}>
+                          {c.nom}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label htmlFor={`sous-categorie-${e.id}`} className="text-sm font-medium">
-                      Sous-catégorie
+                      Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
                     </label>
-                    <input
+                    <select
                       id={`sous-categorie-${e.id}`}
-                      list="liste-sous-categories-mod"
                       value={eSousCategorie}
                       onChange={(ev) => setESousCategorie(ev.target.value)}
-                      placeholder="Carburant, Facture SBEE…"
+                      disabled={!categorieChoisie || sousCategories.length === 0}
                       className={champ}
-                    />
+                    >
+                      <option value="">
+                        {sousCategories.length === 0 ? "Général" : "Choisir une sous-catégorie…"}
+                      </option>
+                      {sousCategories.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -274,16 +298,8 @@ function ModifierEnveloppe() {
         </div>
       )}
 
-      <datalist id="liste-categories-mod">
-        {categories.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
-      <datalist id="liste-sous-categories-mod">
-        {sousCategories.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
+      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
+
 
       <Confirmation
         ouvert={demande !== null}

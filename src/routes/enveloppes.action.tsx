@@ -1,16 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { X, Plus, Pencil, Tags, FolderTree } from "lucide-react";
+import { X, Plus, Pencil, FolderTree } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
-import {
-  categoriesDisponibles,
-  sousCategoriesDisponibles,
-  grouperParCategorie,
-} from "@/lib/categories";
+import { ErreurPopup } from "@/components/ErreurPopup";
+import { grouperParCategorie } from "@/lib/categories";
 
 export const Route = createFileRoute("/enveloppes/action")({
   head: () => ({
@@ -53,10 +50,13 @@ function ActionEnveloppes() {
     sousCategorie: string;
   } | null>(null);
 
+  const [erreur, setErreur] = useState<string | null>(null);
+
   const listeCategories = useSuperApp().categories;
-  const categories = categoriesDisponibles(enveloppes, listeCategories);
-  const sousCategories = sousCategoriesDisponibles(enveloppes, categorie.trim(), listeCategories);
+  const categorieChoisie = listeCategories.find((c) => c.nom === categorie.trim());
+  const sousCategories = categorieChoisie?.sousCategories ?? [];
   const groupes = grouperParCategorie(enveloppes);
+
 
   function ouvrirCreer() {
     setNom("");
@@ -82,8 +82,20 @@ function ActionEnveloppes() {
       toast.error("Plafond invalide.");
       return;
     }
-    if (sousCategorie.trim() && !categorie.trim()) {
-      toast.error("Choisissez d'abord une catégorie.");
+    if (!categorie.trim()) {
+      setErreur("La catégorie est obligatoire : choisissez-en une dans la liste déroulante avant de créer l'enveloppe.");
+      return;
+    }
+    if (!categorieChoisie) {
+      setErreur(`La catégorie « ${categorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`);
+      return;
+    }
+    if (sousCategories.length > 0 && !sousCategorie.trim()) {
+      setErreur("Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.");
+      return;
+    }
+    if (sousCategorie.trim() && !sousCategories.includes(sousCategorie.trim())) {
+      setErreur(`La sous-catégorie « ${sousCategorie.trim()} » n'existe pas dans la catégorie « ${categorie.trim()} ». Reprenez votre choix.`);
       return;
     }
     setConfirmation({
@@ -137,20 +149,6 @@ function ActionEnveloppes() {
             </div>
           </Link>
 
-          <Link
-            to="/enveloppes/classer"
-            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Tags aria-hidden className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-semibold">Catégoriser les enveloppes existantes</p>
-              <p className="text-sm text-muted-foreground">
-                Attribuez une catégorie, une sous-catégorie et réordonnez-les.
-              </p>
-            </div>
-          </Link>
 
           <Link
             to="/enveloppes/categories"
@@ -273,43 +271,46 @@ function ActionEnveloppes() {
 
               <div>
                 <label htmlFor="e-categorie" className="text-sm font-medium">
-                  Catégorie
+                  Catégorie (obligatoire)
                 </label>
-                <input
+                <select
                   id="e-categorie"
-                  list="liste-categories"
                   value={categorie}
                   onChange={(ev) => {
                     setCategorie(ev.target.value);
                     setSousCategorie("");
                   }}
-                  placeholder="Transport, Factures…"
                   className={champ}
-                />
-                <datalist id="liste-categories">
-                  {categories.map((c) => (
-                    <option key={c} value={c} />
+                >
+                  <option value="">Choisir une catégorie…</option>
+                  {listeCategories.map((c) => (
+                    <option key={c.id} value={c.nom}>
+                      {c.nom}
+                    </option>
                   ))}
-                </datalist>
+                </select>
               </div>
 
               <div>
                 <label htmlFor="e-sous-categorie" className="text-sm font-medium">
-                  Sous-catégorie
+                  Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
                 </label>
-                <input
+                <select
                   id="e-sous-categorie"
-                  list="liste-sous-categories"
                   value={sousCategorie}
                   onChange={(ev) => setSousCategorie(ev.target.value)}
-                  placeholder="Carburant, Facture SBEE…"
+                  disabled={!categorieChoisie || sousCategories.length === 0}
                   className={champ}
-                />
-                <datalist id="liste-sous-categories">
+                >
+                  <option value="">
+                    {sousCategories.length === 0 ? "Général" : "Choisir une sous-catégorie…"}
+                  </option>
                   {sousCategories.map((s) => (
-                    <option key={s} value={s} />
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
-                </datalist>
+                </select>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Exemple : Transport › Carburant, Factures › Facture SONEB.
                 </p>
@@ -334,6 +335,8 @@ function ActionEnveloppes() {
           </div>
         </div>
       )}
+
+      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
 
       <Confirmation
         ouvert={confirmation !== null}
