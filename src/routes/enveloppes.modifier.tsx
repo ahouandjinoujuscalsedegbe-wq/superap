@@ -30,7 +30,15 @@ const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
 
 type Demande =
-  | { type: "modification"; id: string; nom: string; emoji: string; plafond: number }
+  | {
+      type: "modification";
+      id: string;
+      nom: string;
+      emoji: string;
+      plafond: number;
+      categorie: string;
+      sousCategorie: string;
+    }
   | { type: "suppression"; id: string; nom: string }
   | null;
 
@@ -41,8 +49,14 @@ function ModifierEnveloppe() {
   const [eNom, setENom] = useState("");
   const [eEmoji, setEEmoji] = useState("");
   const [ePlafond, setEPlafond] = useState("");
+  const [eCategorie, setECategorie] = useState("");
+  const [eSousCategorie, setESousCategorie] = useState("");
 
   const [demande, setDemande] = useState<Demande>(null);
+
+  const categories = categoriesDisponibles(enveloppes);
+  const sousCategories = sousCategoriesDisponibles(enveloppes, eCategorie.trim());
+  const groupes = grouperParCategorie(enveloppes);
 
   function commencerEdition(id: string) {
     const e = enveloppes.find((x) => x.id === id);
@@ -51,6 +65,8 @@ function ModifierEnveloppe() {
     setENom(e.nom);
     setEEmoji(e.emoji);
     setEPlafond(String(e.plafond));
+    setECategorie(e.categorie ?? "");
+    setESousCategorie(e.sousCategorie ?? "");
   }
 
   function demanderModification(id: string) {
@@ -63,7 +79,19 @@ function ModifierEnveloppe() {
       toast.error("Plafond invalide.");
       return;
     }
-    setDemande({ type: "modification", id, nom: eNom.trim(), emoji: eEmoji.trim() || "💡", plafond: valeur });
+    if (eSousCategorie.trim() && !eCategorie.trim()) {
+      toast.error("Choisissez d'abord une catégorie.");
+      return;
+    }
+    setDemande({
+      type: "modification",
+      id,
+      nom: eNom.trim(),
+      emoji: eEmoji.trim() || "💡",
+      plafond: valeur,
+      categorie: eCategorie.trim(),
+      sousCategorie: eSousCategorie.trim(),
+    });
   }
 
   function demanderSuppression(id: string) {
@@ -75,7 +103,13 @@ function ModifierEnveloppe() {
   function confirmer() {
     if (!demande) return;
     if (demande.type === "modification") {
-      modifierEnveloppe(demande.id, { nom: demande.nom, emoji: demande.emoji, plafond: demande.plafond });
+      modifierEnveloppe(demande.id, {
+        nom: demande.nom,
+        emoji: demande.emoji,
+        plafond: demande.plafond,
+        categorie: demande.categorie,
+        sousCategorie: demande.sousCategorie,
+      });
       setEdition(null);
       toast.success("Enveloppe modifiée.");
     } else {
