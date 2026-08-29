@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type Context,
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
@@ -159,7 +160,16 @@ type Contexte = Etat & {
 };
 
 const CLE = "superapp:etat:v1";
-const SuperAppContext = createContext<Contexte | null>(null);
+// Les composants de routes sont chargés en modules séparés. Pendant un
+// rechargement à chaud, le provider et une route peuvent momentanément recevoir
+// deux évaluations différentes de ce fichier. Conserver le contexte sur
+// globalThis garantit qu'ils utilisent toujours exactement la même instance.
+const registreGlobal = globalThis as typeof globalThis & {
+  __superAppContext?: Context<Contexte | null>;
+};
+const SuperAppContext =
+  registreGlobal.__superAppContext ?? createContext<Contexte | null>(null);
+registreGlobal.__superAppContext = SuperAppContext;
 
 export function SuperAppProvider({ children }: { children: ReactNode }) {
   const [etat, setEtat] = useState<Etat>(ETAT_INITIAL);
