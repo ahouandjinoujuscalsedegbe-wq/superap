@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
+import { SectionSecurite } from "@/components/SectionSecurite";
 
 export const Route = createFileRoute("/parametres")({
   head: () => ({
