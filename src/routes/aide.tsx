@@ -62,8 +62,13 @@ function Aide() {
       <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Besoin d'aller plus loin ?</h2>
         <p className="text-sm text-muted-foreground">
-          Les prochains modules ajouteront les dettes, les objectifs et la synchronisation entre
-          appareils du foyer.
+          Déjà disponibles : comptes et transferts, enveloppes classées par catégorie,
+          budgétisation avec conversion automatique des échéances, dettes et créances avec impact
+          sur les comptes, code PIN et biométrie.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Les prochains modules ajouteront les conseils intelligents avancés, la lecture de reçus,
+          la sauvegarde exportable et la synchronisation entre appareils du foyer.
         </p>
       </section>
     </div>
