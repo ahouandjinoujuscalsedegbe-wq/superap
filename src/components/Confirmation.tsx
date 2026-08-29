@@ -6,9 +6,9 @@ export interface ConfirmationProps {
   titre: string;
   message: string;
   /** Aperçu détaillé des champs concernés, affiché avant validation. */
-  details?: { label: string; avant?: string; apres: string }[];
+  details?: { label: string; avant?: string | undefined; apres: string }[] | undefined;
   confirmerLabel?: string;
-  danger?: boolean;
+  danger?: boolean | undefined;
   onConfirmer: () => void;
   onAnnuler: () => void;
 }

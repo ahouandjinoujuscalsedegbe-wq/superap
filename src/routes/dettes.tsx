@@ -202,7 +202,6 @@ function PageDettes() {
       titre: "Supprimer la fiche",
       message: `La fiche de ${d.personne} et tout son historique de remboursements seront supprimés. Cette action est définitive.`,
       danger: true,
-      confirmerLabel: "Supprimer",
       details: [
         { label: "Type", apres: d.sens === "dette" ? "Dette" : "Créance" },
         { label: "Montant initial", apres: formatFCFA(d.montantInitial) },
@@ -217,7 +216,6 @@ function PageDettes() {
       titre: "Supprimer le remboursement",
       message: "Confirmez-vous la suppression de ce remboursement ?",
       danger: true,
-      confirmerLabel: "Supprimer",
       details: [
         { label: "Montant", apres: formatFCFA(montant) },
         { label: "Date", apres: formatDateFr(date) },
