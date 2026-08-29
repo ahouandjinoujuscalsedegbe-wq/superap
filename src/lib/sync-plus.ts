@@ -23,9 +23,9 @@ export type Appareil = {
   nom: string;
   email: string;
   /** Indice de phrase secrète propre à cet appareil (jamais la phrase elle-même). */
-  indicePhrase?: string;
-  dernierEnvoi?: string;
-  dernierImport?: string;
+  indicePhrase?: string | undefined;
+  dernierEnvoi?: string | undefined;
+  dernierImport?: string | undefined;
   creeLe: string;
 };
 
@@ -33,16 +33,16 @@ export type FrequenceSync = "jamais" | "quotidienne" | "hebdomadaire" | "mensuel
 
 export type ReglagesSyncPlus = {
   appareils: Appareil[];
-  appareilActifId?: string;
+  appareilActifId?: string | undefined;
   frequence: FrequenceSync;
   /** Nombre de jours sans échange avant alerte. */
   seuilRappelJours: number;
   compresser: boolean;
   differentiel: boolean;
   /** Date ISO du dernier envoi, sert de point de départ au colis différentiel. */
-  dernierEnvoiGlobal?: string;
+  dernierEnvoiGlobal?: string | undefined;
   /** Date ISO du dernier rappel affiché (évite les répétitions). */
-  dernierRappel?: string;
+  dernierRappel?: string | undefined;
 };
 
 export const REGLAGES_PLUS_INITIAUX: ReglagesSyncPlus = {
