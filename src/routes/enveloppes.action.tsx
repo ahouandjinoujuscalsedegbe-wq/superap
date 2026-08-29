@@ -311,7 +311,7 @@ function ActionEnveloppes() {
         titre="Confirmer la création"
         message={
           confirmation
-            ? `Créer l'enveloppe « ${confirmation.nom} » avec un plafond de ${formatFCFA(confirmation.plafond)} ?`
+            ? `Créer l'enveloppe « ${confirmation.nom} » (${confirmation.categorie || "sans catégorie"}${confirmation.sousCategorie ? ` › ${confirmation.sousCategorie}` : ""}) avec un plafond de ${formatFCFA(confirmation.plafond)} ?`
             : ""
         }
         confirmerLabel="Créer"
