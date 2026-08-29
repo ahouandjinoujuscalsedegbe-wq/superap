@@ -261,17 +261,41 @@ export function CarteEnveloppe({
         type="button"
         onClick={onToggle}
         aria-expanded={estOuverte}
-        className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+        className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
       >
-        Détails des opérations
+        <span className="min-w-0 truncate text-left">
+          Détails · {formatFCFA(etat.restant)} restants · {Math.round(pourcentage)} %
+        </span>
         <ChevronDown
           aria-hidden
-          className={`h-4 w-4 transition-transform duration-300 ${estOuverte ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 transition-transform duration-300 ${estOuverte ? "rotate-180" : ""}`}
         />
       </button>
 
       {estOuverte && (
         <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
+          <div className="rounded-lg border border-border/70 bg-card p-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Solde restant</span>
+              <span
+                className={`text-base font-bold ${
+                  etat.epuisee || depasse ? "text-destructive" : "text-foreground"
+                }`}
+              >
+                {formatFCFA(etat.restant)}
+              </span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className={`h-full rounded-full ${depasse ? "bg-destructive" : "bg-primary"}`}
+                style={{ width: `${pourcentage}%` }}
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Plafond consommé à {Math.round(pourcentage)} % ({formatFCFA(utilise)} /{" "}
+              {formatFCFA(e.plafond)})
+            </p>
+          </div>
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Opérations réelles
