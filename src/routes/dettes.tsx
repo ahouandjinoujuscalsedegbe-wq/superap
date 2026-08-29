@@ -88,6 +88,7 @@ function PageDettes() {
 
   const ouvrirCreation = () => {
     setForm(FORM_VIDE);
+    setCompteMouvement("");
     setDialogue({ type: "creer" });
   };
 
