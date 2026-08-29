@@ -91,6 +91,7 @@ export function MenuPrincipal() {
           <ul>
             {ENTREES.map((e) => {
               const Icone = e.icone;
+              const actif = pathname === e.to;
               return (
                 <li key={e.to}>
                   <Link
@@ -98,11 +99,17 @@ export function MenuPrincipal() {
                     role="menuitem"
                     tabIndex={ouvert ? 0 : -1}
                     activeOptions={{ exact: true }}
-                    className="relative flex items-center gap-3 py-3 pl-4 pr-3 text-sm text-foreground transition-colors hover:bg-accent/60 data-[status=active]:bg-accent data-[status=active]:font-semibold data-[status=active]:text-accent-foreground"
+                    className={`relative flex items-center gap-3 py-3 pl-4 pr-3 text-sm transition-colors hover:bg-accent/60 ${
+                      actif
+                        ? "bg-accent font-semibold text-accent-foreground"
+                        : "text-foreground"
+                    }`}
                   >
                     <span
                       aria-hidden
-                      className="absolute inset-y-1 left-0 w-1 origin-center scale-y-0 rounded-r-full bg-primary transition-transform duration-300 group-data-[status=active]:scale-y-100 [a[data-status=active]>&]:scale-y-100"
+                      className={`absolute inset-y-1 left-0 w-1 origin-center rounded-r-full bg-primary transition-transform duration-300 ${
+                        actif ? "scale-y-100" : "scale-y-0"
+                      }`}
                     />
                     <Icone className="h-[1.15rem] w-[1.15rem] shrink-0 text-primary" aria-hidden />
                     <span className="truncate">{e.label}</span>
