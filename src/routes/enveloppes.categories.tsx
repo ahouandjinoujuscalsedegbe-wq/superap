@@ -166,16 +166,17 @@ function PageCategories() {
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <div className="flex-1">
-          <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
+          <BoutonRetour to="/enveloppes/action" label="Retour à Action" compact />
         </div>
         <button
           type="button"
           onClick={ouvrirCreation}
-          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground"
         >
-          <Plus aria-hidden className="h-4 w-4" /> Ajouter une nouvelle catégorie
+          <Plus aria-hidden className="h-3.5 w-3.5" /> Ajouter une nouvelle catégorie
         </button>
       </div>
+
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégories et sous-catégories</h1>
