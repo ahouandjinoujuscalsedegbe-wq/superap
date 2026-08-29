@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Context,
   type ReactNode,
@@ -138,7 +139,7 @@ export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
 
 const SOURCES_REVENU = ["Salaire", "Activité", "Aide famille", "Prime", "Autre"];
 
-type Etat = {
+export type Etat = {
   transactions: Transaction[];
   enveloppes: Enveloppe[];
   categories: CategorieEnveloppe[];
@@ -200,6 +201,8 @@ type Contexte = Etat & {
   ) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
+  remplacerEtat: (e: Partial<Etat>) => void;
+  etatComplet: () => Etat;
   reinitialiser: () => void;
   totalRevenus: number;
   totalDepenses: number;
@@ -633,6 +636,21 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, transparence: v }));
   }, []);
 
+  const remplacerEtat = useCallback((nouveau: Partial<Etat>) => {
+    setEtat((e) => {
+      const fusion = { ...ETAT_INITIAL, ...e, ...nouveau };
+      fusion.enveloppes = fusion.enveloppes.map((x) => ({
+        ...x,
+        dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
+      }));
+      return fusion;
+    });
+  }, []);
+
+  const etatRef = useRef<Etat>(etat);
+  etatRef.current = etat;
+  const etatComplet = useCallback(() => etatRef.current, []);
+
   const reinitialiser = useCallback(() => setEtat(ETAT_INITIAL), []);
 
   const actions = useMemo(
@@ -668,6 +686,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterRemboursement,
       supprimerRemboursement,
       definirTransparence,
+      remplacerEtat,
+      etatComplet,
       reinitialiser,
     }),
     [
@@ -702,6 +722,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterRemboursement,
       supprimerRemboursement,
       definirTransparence,
+      remplacerEtat,
+      etatComplet,
       reinitialiser,
     ],
   );

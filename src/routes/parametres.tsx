@@ -39,6 +39,19 @@ function Parametres() {
       </header>
 
       <Link
+        to="/sauvegarde"
+        className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
+      >
+        <span>
+          Sauvegarde et chiffrement local
+          <span className="block text-xs font-normal text-muted-foreground">
+            Export chiffré par phrase secrète, export lisible et points de restauration.
+          </span>
+        </span>
+        <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground" aria-hidden />
+      </Link>
+
+      <Link
         to="/journal"
         className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
       >
