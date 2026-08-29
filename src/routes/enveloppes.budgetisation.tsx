@@ -228,6 +228,26 @@ function Budgetisation() {
       toast.error("Précisez sur quel temps s'étend la périodicité.");
       return;
     }
+    if (!debut) {
+      toast.error(
+        periodique ? "Choisissez le jour de la première dépense." : "Choisissez le jour de la dépense.",
+      );
+      return;
+    }
+    if (debut < jourISO(new Date())) {
+      toast.error(
+        periodique
+          ? "Le jour de la première dépense ne peut pas être dans le passé."
+          : "Le jour de la dépense ne peut pas être dans le passé.",
+      );
+      return;
+    }
+    if (periodique && frequence && duree && occurrencesPrevues < 2) {
+      toast.error(
+        `Incohérence : « ${frequence.label} » sur ${duree.label} à partir du ${jourLong(debut)} ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée.`,
+      );
+      return;
+    }
     setDemande({
       type: "creation",
       libelle: sujet.trim(),
@@ -242,6 +262,7 @@ function Budgetisation() {
       intervalle: frequence?.intervalle ?? 1,
       frequenceLabel: periodique ? (frequence?.label ?? "—") : "Aucune (dépense unique)",
       dureeLabel: periodique ? (duree?.label ?? "—") : "Une seule échéance",
+      occurrences: periodique ? occurrencesPrevues : 1,
     });
   }
 
