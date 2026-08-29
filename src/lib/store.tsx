@@ -64,6 +64,12 @@ export type Budget = {
   periode: Periode;
   compte: string;
   prochaine: string;
+  /** Début de la période planifiée (YYYY-MM-DD) */
+  debut?: string;
+  /** Fin de la période planifiée (YYYY-MM-DD) */
+  fin?: string;
+  /** true = planification unique sur la période, false = récurrente */
+  ponctuel?: boolean;
   actif: boolean;
 };
 
