@@ -13,6 +13,7 @@ import {
   Stethoscope,
   CalendarRange,
   ShieldCheck,
+  RefreshCw,
 } from "lucide-react";
 
 const ENTREES = [
@@ -24,6 +25,7 @@ const ENTREES = [
   { to: "/outils", label: "Outils et Simulation", icone: Calculator },
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
+  { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
   { to: "/journal", label: "Journal de diagnostic", icone: Stethoscope },
   { to: "/aide", label: "Aide", icone: HelpCircle },
 ] as const;

@@ -52,6 +52,19 @@ function Parametres() {
       </Link>
 
       <Link
+        to="/synchronisation"
+        className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
+      >
+        <span>
+          Synchronisation chiffrée par e-mail
+          <span className="block text-xs font-normal text-muted-foreground">
+            Envoyez un colis chiffré et fusionnez vos données entre deux appareils.
+          </span>
+        </span>
+        <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground" aria-hidden />
+      </Link>
+
+      <Link
         to="/journal"
         className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
       >
