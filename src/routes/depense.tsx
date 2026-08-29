@@ -32,7 +32,7 @@ function AjouterDepense() {
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
-  const [compte, setCompte] = useState<string>(COMPTES[0]);
+  const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
