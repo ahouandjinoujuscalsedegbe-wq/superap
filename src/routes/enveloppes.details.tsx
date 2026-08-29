@@ -45,7 +45,7 @@ function DetailsActuels() {
               const depasse = utilise > e.plafond;
               const planifie = budgets.filter((b) => b.enveloppeId === e.id);
               const prevuMensuel = planifie.reduce((s, b) => s + equivalentMensuel(b), 0);
-              const nbOperations = transactions.filter((t) => t.enveloppeId === e.id).length;
+              const nbOperations = transactions.filter((t) => t.categorie === e.id).length;
               return (
                 <li key={e.id} className="rounded-xl border border-border/70 p-4">
                   <div className="flex items-center justify-between gap-3">
