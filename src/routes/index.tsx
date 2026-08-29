@@ -80,6 +80,42 @@ function Accueil() {
         </div>
       </section>
 
+      {rappels > 0 && (
+        <section className="carte space-y-2 border-warning/40 p-4">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+            <AlertTriangle className="h-4 w-4 text-destructive" aria-hidden />
+            Rappels ({rappels})
+          </h2>
+          <ul className="space-y-1.5 text-sm">
+            {echeancesProches.map((b) => (
+              <li key={b.id} className="flex justify-between gap-2">
+                <Link to="/enveloppes/budgetisation" className="truncate underline-offset-2 hover:underline">
+                  {b.libelle} · {formatDateFr(b.prochaine)}
+                </Link>
+                <span className="shrink-0 font-semibold">{formatFCFA(b.montant)}</span>
+              </li>
+            ))}
+            {dettesEchues.map((d) => (
+              <li key={d.id} className="flex justify-between gap-2">
+                <Link to="/dettes" className="truncate underline-offset-2 hover:underline">
+                  {d.sens === "dette" ? "À rembourser" : "À encaisser"} — {d.personne}
+                </Link>
+                <span className="shrink-0 font-semibold text-destructive">
+                  {formatFCFA(resteDu(d))}
+                </span>
+              </li>
+            ))}
+            {enveloppesRouges.map((e) => (
+              <li key={e.id} className="flex justify-between gap-2">
+                <Link to="/enveloppes/details" className="truncate underline-offset-2 hover:underline">
+                  {e.emoji} {e.nom} — plafond atteint
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="grid grid-cols-2 gap-3">
         <Link
           to="/revenu"
