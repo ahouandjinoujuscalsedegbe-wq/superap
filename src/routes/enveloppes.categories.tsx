@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Check, X, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
+import { PopupSaisie } from "@/components/PopupSaisie";
 
 export const Route = createFileRoute("/enveloppes/categories")({
   head: () => ({
@@ -26,9 +27,15 @@ export const Route = createFileRoute("/enveloppes/categories")({
   component: PageCategories,
 });
 
-const champ =
-  "w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
+/** Pop-up de saisie en cours : toute création/modification passe par là. */
+type Saisie =
+  | { type: "creation-categorie" }
+  | { type: "renommage-categorie"; id: string; ancien: string }
+  | { type: "creation-sous"; id: string; categorie: string; existantes: string[] }
+  | { type: "renommage-sous"; id: string; categorie: string; ancien: string }
+  | null;
 
+/** Confirmation obligatoire avant application de la modification. */
 type Demande =
   | { type: "creation-categorie"; nom: string }
   | { type: "renommage-categorie"; id: string; ancien: string; nom: string }
@@ -50,14 +57,9 @@ function PageCategories() {
     supprimerSousCategorie,
   } = useSuperApp();
 
-  const [nouvelleSous, setNouvelleSous] = useState<Record<string, string>>({});
-  const [editionCat, setEditionCat] = useState<string | null>(null);
-  const [valeurCat, setValeurCat] = useState("");
-  const [editionSous, setEditionSous] = useState<string | null>(null);
-  const [valeurSous, setValeurSous] = useState("");
+  const [saisie, setSaisie] = useState<Saisie>(null);
+  const [valeur, setValeur] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
-  const [popupCreation, setPopupCreation] = useState(false);
-  const [nomCreation, setNomCreation] = useState("");
   const [erreurPopup, setErreurPopup] = useState<string | null>(null);
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
 
@@ -67,25 +69,74 @@ function PageCategories() {
         (e.categorie ?? "") === cat && (sous === undefined || (e.sousCategorie ?? "") === sous),
     ).length;
 
-  function ouvrirCreation() {
-    setNomCreation("");
+  function ouvrirSaisie(s: NonNullable<Saisie>) {
+    setSaisie(s);
+    setValeur(
+      s.type === "renommage-categorie" || s.type === "renommage-sous" ? s.ancien : "",
+    );
     setErreurPopup(null);
-    setPopupCreation(true);
   }
 
-  function validerCreation() {
-    const nom = nomCreation.trim();
+  /** Valide la saisie du pop-up puis ouvre la confirmation obligatoire. */
+  function validerSaisie() {
+    if (!saisie) return;
+    const nom = valeur.trim();
     if (!nom) {
-      setErreurPopup("Donnez un nom à la catégorie.");
+      setSaisie(null);
+      setErreurPopup("Le nom ne peut pas être vide. Reprenez votre action.");
       return;
     }
-    if (categories.some((c) => c.nom === nom)) {
-      setErreurPopup("Cette catégorie existe déjà.");
-      return;
+    switch (saisie.type) {
+      case "creation-categorie":
+        if (categories.some((c) => c.nom.toLowerCase() === nom.toLowerCase())) {
+          setSaisie(null);
+          setErreurPopup(`La catégorie « ${nom} » existe déjà. Reprenez votre action.`);
+          return;
+        }
+        setDemande({ type: "creation-categorie", nom });
+        break;
+      case "renommage-categorie":
+        if (nom !== saisie.ancien && categories.some((c) => c.nom.toLowerCase() === nom.toLowerCase())) {
+          setSaisie(null);
+          setErreurPopup(`La catégorie « ${nom} » existe déjà. Reprenez votre action.`);
+          return;
+        }
+        setDemande({ type: "renommage-categorie", id: saisie.id, ancien: saisie.ancien, nom });
+        break;
+      case "creation-sous":
+        if (saisie.existantes.some((s) => s.toLowerCase() === nom.toLowerCase())) {
+          setSaisie(null);
+          setErreurPopup(
+            `La sous-catégorie « ${nom} » existe déjà dans ${saisie.categorie}. Reprenez votre action.`,
+          );
+          return;
+        }
+        setDemande({ type: "creation-sous", id: saisie.id, categorie: saisie.categorie, nom });
+        break;
+      case "renommage-sous": {
+        const cat = categories.find((c) => c.id === saisie.id);
+        if (
+          nom !== saisie.ancien &&
+          cat?.sousCategories.some((s) => s.toLowerCase() === nom.toLowerCase())
+        ) {
+          setSaisie(null);
+          setErreurPopup(
+            `La sous-catégorie « ${nom} » existe déjà dans ${saisie.categorie}. Reprenez votre action.`,
+          );
+          return;
+        }
+        setDemande({
+          type: "renommage-sous",
+          id: saisie.id,
+          categorie: saisie.categorie,
+          ancien: saisie.ancien,
+          nom,
+        });
+        break;
+      }
     }
-    setErreurPopup(null);
-    setPopupCreation(false);
-    setDemande({ type: "creation-categorie", nom });
+    setSaisie(null);
+    setValeur("");
   }
 
   function confirmer() {
@@ -93,12 +144,10 @@ function PageCategories() {
     switch (demande.type) {
       case "creation-categorie":
         ajouterCategorie(demande.nom);
-        setNomCreation("");
         toast.success("Catégorie créée.");
         break;
       case "renommage-categorie":
         renommerCategorie(demande.id, demande.nom);
-        setEditionCat(null);
         toast.success("Catégorie renommée.");
         break;
       case "suppression-categorie":
@@ -107,12 +156,10 @@ function PageCategories() {
         break;
       case "creation-sous":
         ajouterSousCategorie(demande.id, demande.nom);
-        setNouvelleSous((s) => ({ ...s, [demande.id]: "" }));
         toast.success("Sous-catégorie créée.");
         break;
       case "renommage-sous":
         renommerSousCategorie(demande.id, demande.ancien, demande.nom);
-        setEditionSous(null);
         toast.success("Sous-catégorie renommée.");
         break;
       case "suppression-sous":
@@ -163,6 +210,20 @@ function PageCategories() {
     }
   }
 
+  const titreSaisie: Record<NonNullable<Saisie>["type"], string> = {
+    "creation-categorie": "Ajouter une nouvelle catégorie",
+    "renommage-categorie": "Renommer la catégorie",
+    "creation-sous": "Ajouter une sous-catégorie",
+    "renommage-sous": "Renommer la sous-catégorie",
+  };
+
+  const labelSaisie: Record<NonNullable<Saisie>["type"], string> = {
+    "creation-categorie": "Nom de la nouvelle catégorie",
+    "renommage-categorie": "Nouveau nom de la catégorie",
+    "creation-sous": "Nom de la nouvelle sous-catégorie",
+    "renommage-sous": "Nouveau nom de la sous-catégorie",
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
@@ -171,95 +232,25 @@ function PageCategories() {
         </div>
         <button
           type="button"
-          onClick={ouvrirCreation}
+          onClick={() => ouvrirSaisie({ type: "creation-categorie" })}
           className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground"
         >
           <Plus aria-hidden className="h-3.5 w-3.5" /> Ajouter une nouvelle catégorie
         </button>
       </div>
 
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégories et sous-catégories</h1>
         <p className="text-sm text-muted-foreground">
-          Organisez le classement de vos enveloppes. Chaque action est confirmée.
+          Toute création ou modification se fait dans un pop-up, avec confirmation obligatoire.
         </p>
       </header>
-
-      {popupCreation && (
-        <div className="carte space-y-3 p-4">
-          <label htmlFor="nouvelle-categorie" className="text-sm font-medium">
-            Nouvelle catégorie
-          </label>
-          <input
-            id="nouvelle-categorie"
-            autoFocus
-            value={nomCreation}
-            onChange={(e) => {
-              setNomCreation(e.target.value);
-              setErreurPopup(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") validerCreation();
-              if (e.key === "Escape") setPopupCreation(false);
-            }}
-            placeholder="Transport, Factures…"
-            className={champ}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setPopupCreation(false)}
-              className="flex-1 rounded-xl border border-input py-2.5 text-sm font-medium"
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={validerCreation}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
-            >
-              <Plus aria-hidden className="h-4 w-4" /> Ajouter
-            </button>
-          </div>
-        </div>
-      )}
 
       <ul className="space-y-3">
         {categories.map((c) => {
           const ouverte = categorieOuverte === c.id;
           return (
-          <li key={c.id} className="carte overflow-hidden">
-            {editionCat === c.id ? (
-              <div className="flex gap-2 p-4">
-                <input
-                  aria-label={`Nouveau nom pour ${c.nom}`}
-                  value={valeurCat}
-                  onChange={(e) => setValeurCat(e.target.value)}
-                  className={champ}
-                />
-                <button
-                  type="button"
-                  aria-label="Valider le renommage"
-                  onClick={() => {
-                    const nom = valeurCat.trim();
-                    if (!nom) { toast.error("Nom vide."); return; }
-                    setDemande({ type: "renommage-categorie", id: c.id, ancien: c.nom, nom });
-                  }}
-                  className="rounded-xl bg-primary px-3 text-primary-foreground"
-                >
-                  <Check aria-hidden className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Annuler"
-                  onClick={() => setEditionCat(null)}
-                  className="rounded-xl border border-input px-3"
-                >
-                  <X aria-hidden className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
+            <li key={c.id} className="carte overflow-hidden">
               <div className="flex items-center gap-2 p-4">
                 <button
                   type="button"
@@ -282,10 +273,9 @@ function PageCategories() {
                   <button
                     type="button"
                     aria-label={`Renommer ${c.nom}`}
-                    onClick={() => {
-                      setEditionCat(c.id);
-                      setValeurCat(c.nom);
-                    }}
+                    onClick={() =>
+                      ouvrirSaisie({ type: "renommage-categorie", id: c.id, ancien: c.nom })
+                    }
                     className="rounded-full p-2 hover:bg-secondary"
                   >
                     <Pencil aria-hidden className="h-4 w-4" />
@@ -307,117 +297,89 @@ function PageCategories() {
                   </button>
                 </div>
               </div>
-            )}
 
-            {ouverte && (
-            <div className="space-y-3 border-t border-border/70 p-4">
-            <ul className="space-y-2">
-              {c.sousCategories.length === 0 && (
-                <li className="text-xs text-muted-foreground">Aucune sous-catégorie pour l’instant.</li>
+              {ouverte && (
+                <div className="space-y-3 border-t border-border/70 p-4">
+                  <ul className="space-y-2">
+                    {c.sousCategories.length === 0 && (
+                      <li className="text-xs text-muted-foreground">
+                        Aucune sous-catégorie pour l’instant.
+                      </li>
+                    )}
+                    {c.sousCategories.map((s) => (
+                      <li
+                        key={s}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2"
+                      >
+                        <span className="min-w-0 truncate text-sm">{s}</span>
+                        <span className="flex shrink-0 gap-1">
+                          <button
+                            type="button"
+                            aria-label={`Renommer ${s}`}
+                            onClick={() =>
+                              ouvrirSaisie({
+                                type: "renommage-sous",
+                                id: c.id,
+                                categorie: c.nom,
+                                ancien: s,
+                              })
+                            }
+                            className="rounded-full p-2 hover:bg-secondary"
+                          >
+                            <Pencil aria-hidden className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Supprimer ${s}`}
+                            onClick={() =>
+                              setDemande({
+                                type: "suppression-sous",
+                                id: c.id,
+                                categorie: c.nom,
+                                nom: s,
+                                nbEnveloppes: compter(c.nom, s),
+                              })
+                            }
+                            className="rounded-full p-2 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 aria-hidden className="h-4 w-4" />
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      ouvrirSaisie({
+                        type: "creation-sous",
+                        id: c.id,
+                        categorie: c.nom,
+                        existantes: c.sousCategories,
+                      })
+                    }
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-2.5 text-sm font-medium"
+                  >
+                    <Plus aria-hidden className="h-4 w-4" /> Ajouter une sous-catégorie
+                  </button>
+                </div>
               )}
-              {c.sousCategories.map((s) => (
-                <li key={s} className="flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2">
-                  {editionSous === `${c.id}:${s}` ? (
-                    <>
-                      <input
-                        aria-label={`Nouveau nom pour ${s}`}
-                        value={valeurSous}
-                        onChange={(e) => setValeurSous(e.target.value)}
-                        className={champ}
-                      />
-                      <button
-                        type="button"
-                        aria-label="Valider le renommage de la sous-catégorie"
-                        onClick={() => {
-                          const nom = valeurSous.trim();
-                          if (!nom) { toast.error("Nom vide."); return; }
-                          setDemande({
-                            type: "renommage-sous",
-                            id: c.id,
-                            categorie: c.nom,
-                            ancien: s,
-                            nom,
-                          });
-                        }}
-                        className="rounded-xl bg-primary px-3 py-2 text-primary-foreground"
-                      >
-                        <Check aria-hidden className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Annuler"
-                        onClick={() => setEditionSous(null)}
-                        className="rounded-xl border border-input px-3 py-2"
-                      >
-                        <X aria-hidden className="h-4 w-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="min-w-0 truncate text-sm">{s}</span>
-                      <span className="flex shrink-0 gap-1">
-                        <button
-                          type="button"
-                          aria-label={`Renommer ${s}`}
-                          onClick={() => {
-                            setEditionSous(`${c.id}:${s}`);
-                            setValeurSous(s);
-                          }}
-                          className="rounded-full p-2 hover:bg-secondary"
-                        >
-                          <Pencil aria-hidden className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Supprimer ${s}`}
-                          onClick={() =>
-                            setDemande({
-                              type: "suppression-sous",
-                              id: c.id,
-                              categorie: c.nom,
-                              nom: s,
-                              nbEnveloppes: compter(c.nom, s),
-                            })
-                          }
-                          className="rounded-full p-2 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 aria-hidden className="h-4 w-4" />
-                        </button>
-                      </span>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex gap-2">
-              <input
-                aria-label={`Nouvelle sous-catégorie de ${c.nom}`}
-                value={nouvelleSous[c.id] ?? ""}
-                onChange={(e) => setNouvelleSous((v) => ({ ...v, [c.id]: e.target.value }))}
-                placeholder="Carburant, Facture SBEE…"
-                className={champ}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const nom = (nouvelleSous[c.id] ?? "").trim();
-                  if (!nom) { toast.error("Donnez un nom à la sous-catégorie."); return; }
-                  if (c.sousCategories.includes(nom)) { toast.error("Elle existe déjà."); return; }
-                  setDemande({ type: "creation-sous", id: c.id, categorie: c.nom, nom });
-                }}
-                className="shrink-0 rounded-xl bg-secondary px-3 font-medium"
-              >
-                Ajouter
-              </button>
-            </div>
-            </div>
-            )}
-          </li>
+            </li>
           );
         })}
       </ul>
 
+      <PopupSaisie
+        ouvert={saisie !== null}
+        titre={saisie ? titreSaisie[saisie.type] : ""}
+        label={saisie ? labelSaisie[saisie.type] : ""}
+        valeur={valeur}
+        placeholder="Transport, Facture SBEE…"
+        onChanger={setValeur}
+        onValider={validerSaisie}
+        onAnnuler={() => setSaisie(null)}
+      />
 
       <Confirmation
         ouvert={demande !== null}
