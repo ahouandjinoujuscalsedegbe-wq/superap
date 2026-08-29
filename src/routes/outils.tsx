@@ -161,6 +161,161 @@ function Outils() {
   const fuites = useMemo(() => detecterFuites(transactions), [transactions]);
   const doublons = useMemo(() => detecterDoublons(transactions), [transactions]);
 
+  /* ---------------- Nouveaux outils ---------------- */
+
+  // 1. Découvert
+  const [horizon, setHorizon] = useState(30);
+  const decouverts = useMemo(
+    () => simulerDecouvert({ soldesParCompte, transactions, horizonJours: horizon }),
+    [soldesParCompte, transactions, horizon],
+  );
+
+  // 2. Choc de revenu
+  const [baisse, setBaisse] = useState(30);
+  const chocRevenu = useMemo(
+    () => simulerChocRevenu({ transactions, solde, baissePourcent: baisse }),
+    [transactions, solde, baisse],
+  );
+
+  // 3. Inflation
+  const [tauxInflation, setTauxInflation] = useState(5);
+  const inflation = useMemo(
+    () => simulerInflation({ transactions, tauxAnnuel: tauxInflation }),
+    [transactions, tauxInflation],
+  );
+
+  // 4. Comparateur de scénarios
+  const [optA, setOptA] = useState({ nom: "OPTION A", cout: 300000, dureeMois: 6 });
+  const [optB, setOptB] = useState({ nom: "OPTION B", cout: 450000, dureeMois: 12 });
+  const comparaison = useMemo(
+    () =>
+      comparerScenarios({
+        options: [optA, optB],
+        solde,
+        capaciteMensuelle: impact.capaciteMensuelle,
+      }),
+    [optA, optB, solde, impact.capaciteMensuelle],
+  );
+
+  // 5. Stratégie de remboursement
+  const [strategie, setStrategie] = useState<"boule-de-neige" | "avalanche">("boule-de-neige");
+  const plan = useMemo(
+    () =>
+      strategieRemboursement({
+        dettes,
+        capaciteMensuelle: Math.max(1, impact.capaciteMensuelle),
+        strategie,
+      }),
+    [dettes, impact.capaciteMensuelle, strategie],
+  );
+
+  // 6. Fonds d'urgence
+  const [moisCibles, setMoisCibles] = useState(3);
+  const fonds = useMemo(
+    () =>
+      evaluerFondsUrgence({
+        transactions,
+        solde,
+        moisCibles,
+        capaciteMensuelle: impact.capaciteMensuelle,
+      }),
+    [transactions, solde, moisCibles, impact.capaciteMensuelle],
+  );
+
+  // 7. Crédit contre comptant
+  const [prixBien, setPrixBien] = useState(600000);
+  const [tauxCredit, setTauxCredit] = useState(12);
+  const [dureeCredit, setDureeCredit] = useState(12);
+  const creditComptant = useMemo(
+    () =>
+      comparerCreditComptant({
+        prix: prixBien,
+        tauxAnnuel: tauxCredit,
+        dureeMois: dureeCredit,
+        solde,
+        tauxEpargne,
+      }),
+    [prixBien, tauxCredit, dureeCredit, solde, tauxEpargne],
+  );
+
+  // 8. Alertes proactives
+  const proactives = useMemo(
+    () =>
+      alertesProactives({
+        decouverts,
+        fondsUrgence: fonds,
+        capaciteMensuelle: impact.capaciteMensuelle,
+        dettes,
+      }),
+    [decouverts, fonds, impact.capaciteMensuelle, dettes],
+  );
+
+  // 9 & 10. Partage et historique
+  const [historique, setHistorique] = useState<SimulationEnregistree[]>([]);
+  const [copie, setCopie] = useState(false);
+  useEffect(() => {
+    setHistorique(lireHistoriqueSimulations());
+  }, []);
+
+  const rapportSimulations = () =>
+    texteSimulation("Rapport de simulations", [
+      "— SIMULATEUR « ET SI ? »",
+      `Achat envisagé : ${formatFCFA(achat)} étalé sur ${etalement} mois`,
+      impact.message,
+      `Capacité d'épargne mensuelle : ${formatFCFA(impact.capaciteMensuelle)}`,
+      "",
+      "— DÉCOUVERT",
+      ...decouverts.map((d) => `• ${d.message}`),
+      "",
+      "— CHOC DE REVENU",
+      `Baisse simulée : ${baisse} %`,
+      chocRevenu.message,
+      "",
+      "— INFLATION",
+      inflation.message,
+      `Dépenses mensuelles dans 5 ans : ${formatFCFA(inflation.depensesDans5Ans)}`,
+      "",
+      "— COMPARATEUR DE SCÉNARIOS",
+      ...comparaison.map(
+        (c) =>
+          `• ${c.nom} : ${formatFCFA(c.cout)} sur ${c.dureeMois} mois → solde final ${formatFCFA(
+            c.soldeFinal,
+          )}${c.meilleur ? " (meilleur)" : ""}`,
+      ),
+      "",
+      "— REMBOURSEMENT DES DETTES",
+      plan.message,
+      ...plan.etapes.map(
+        (e) => `• ${e.personne} : ${formatFCFA(e.reste)} en ${e.moisPourSolder} mois`,
+      ),
+      "",
+      "— FONDS D'URGENCE",
+      fonds.message,
+      `Couverture actuelle : ${fonds.moisCouverts} mois · cible ${formatFCFA(fonds.cible)}`,
+      "",
+      "— CRÉDIT CONTRE COMPTANT",
+      creditComptant.message,
+      `Mensualité : ${formatFCFA(creditComptant.mensualite)} · surcoût ${formatFCFA(creditComptant.surcout)}`,
+      "",
+      "— ALERTES",
+      ...proactives.map((a) => `• [${a.niveau}] ${a.titre} : ${a.detail}`),
+    ]);
+
+  const copierRapport = async () => {
+    try {
+      await navigator.clipboard.writeText(rapportSimulations());
+      setCopie(true);
+      window.setTimeout(() => setCopie(false), 2500);
+    } catch {
+      setCopie(false);
+    }
+  };
+
+  const sauvegarder = () => {
+    setHistorique(enregistrerSimulation("Simulation complète", rapportSimulations()));
+  };
+
+
   return (
     <div className="space-y-4">
       <header>
