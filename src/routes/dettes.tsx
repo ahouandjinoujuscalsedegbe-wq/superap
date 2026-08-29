@@ -60,6 +60,7 @@ function PageDettes() {
     supprimerDette,
     ajouterRemboursement,
     supprimerRemboursement,
+    comptes,
   } = useSuperApp();
 
   const [ouvertId, setOuvertId] = useState<string | null>(null);
