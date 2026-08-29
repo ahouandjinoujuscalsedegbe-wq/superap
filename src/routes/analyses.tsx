@@ -154,6 +154,47 @@ function Analyses() {
   const maxJour = Math.max(1, ...joursSemaine.map((j) => j.montant));
 
   const evolution = variation(totaux.depenses, precedents.depenses);
+
+  const rapportComplet = () => {
+    const f = (n: number) => formatFCFA(n);
+    const base = resumeTexte({
+      fenetre: FENETRES.find((x) => x.id === fenetre)?.label ?? "",
+      diagnostic,
+      totaux,
+      projection: projection.projection,
+      repartition,
+    });
+    const extras = [
+      "",
+      "Sources de revenus :",
+      ...(sources.length > 0
+        ? sources.map((s) => `- ${s.nom} : ${f(s.montant)} (${s.part} %)`)
+        : ["- Aucune"]),
+      "",
+      `Réalisation des budgets planifiés : ${realisation.tauxGlobal} %`,
+      ...realisation.lignes
+        .slice(0, 8)
+        .map((l) => `- ${l.libelle} : prévu ${f(l.prevu)} / réalisé ${f(l.realise)} (${l.taux} %)`),
+      "",
+      "Dépenses récurrentes :",
+      ...(recurrentes.length > 0
+        ? recurrentes
+            .slice(0, 6)
+            .map((r) => `- ${r.libelle} : ${r.occurrences} fois, moyenne ${f(r.montantMoyen)}`)
+        : ["- Aucune détectée"]),
+      "",
+      `Comparaison à la moyenne (${moyenne.moisComptes} mois) : ${f(moyenne.moisCourant)} contre ${f(
+        moyenne.moyenne,
+      )}`,
+      objectif > 0
+        ? `Objectif d'épargne : ${f(objectifSuivi.epargneReelle)} / ${f(objectif)} (${objectifSuivi.progression} %)`
+        : "Objectif d'épargne : non défini",
+      "",
+      "Historique du score :",
+      ...scores.map((s) => `- ${s.label} : ${s.score}/100`),
+    ];
+    return `${base}\n${extras.join("\n")}`;
+  };
   const tauxEpargne = totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
   const maxTendance = Math.max(
     1,
