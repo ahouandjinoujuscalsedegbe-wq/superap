@@ -72,6 +72,8 @@ export function ClavierInterne() {
         (cible as HTMLInputElement).type === "number" ||
         cible.dataset["clavier"] === "numerique" ||
         ["numeric", "decimal", "tel"].includes(modeOrigine);
+      decimalRef.current =
+        (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal";
       setMode(numerique ? "numerique" : "texte");
       setMajuscule(false);
       setOuvert(true);
