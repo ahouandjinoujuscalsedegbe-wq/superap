@@ -290,18 +290,20 @@ function ModifierEnveloppe() {
                     <button
                       type="button"
                       onClick={() => commencerEdition(e.id)}
-                      className="flex items-center gap-1 rounded-lg border border-input px-3 py-2 text-xs font-medium"
+                      aria-label="Modifier"
+                      title="Modifier"
+                      className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium"
                     >
-                      <Pencil aria-hidden className="h-3.5 w-3.5" />
-                      Modifier
+                      <Pencil aria-hidden className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => demanderSuppression(e.id)}
-                      className="flex items-center gap-1 rounded-lg border border-input px-3 py-2 text-xs font-medium text-destructive"
+                      aria-label="Supprimer"
+                      title="Supprimer"
+                      className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium text-destructive"
                     >
-                      <Trash2 aria-hidden className="h-3.5 w-3.5" />
-                      Supprimer
+                      <Trash2 aria-hidden className="h-4 w-4" />
                     </button>
                   </span>
                 </div>
