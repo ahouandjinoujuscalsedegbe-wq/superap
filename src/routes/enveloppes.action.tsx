@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { X, Plus, Pencil } from "lucide-react";
+import { X, Plus, Pencil, Tags, FolderTree } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
@@ -53,8 +53,9 @@ function ActionEnveloppes() {
     sousCategorie: string;
   } | null>(null);
 
-  const categories = categoriesDisponibles(enveloppes);
-  const sousCategories = sousCategoriesDisponibles(enveloppes, categorie.trim());
+  const listeCategories = useSuperApp().categories;
+  const categories = categoriesDisponibles(enveloppes, listeCategories);
+  const sousCategories = sousCategoriesDisponibles(enveloppes, categorie.trim(), listeCategories);
   const groupes = grouperParCategorie(enveloppes);
 
   function ouvrirCreer() {
@@ -133,6 +134,34 @@ function ActionEnveloppes() {
             <div>
               <p className="font-semibold">Modifier une enveloppe existante</p>
               <p className="text-sm text-muted-foreground">Renommez, changez le plafond ou supprimez.</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/enveloppes/classer"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Tags aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Catégoriser les enveloppes existantes</p>
+              <p className="text-sm text-muted-foreground">
+                Attribuez une catégorie, une sous-catégorie et réordonnez-les.
+              </p>
+            </div>
+          </Link>
+
+          <Link
+            to="/enveloppes/categories"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <FolderTree aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Gérer les catégories et sous-catégories</p>
+              <p className="text-sm text-muted-foreground">Créez, renommez ou supprimez vos classements.</p>
             </div>
           </Link>
         </div>
