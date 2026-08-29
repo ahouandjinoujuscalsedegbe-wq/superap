@@ -12,6 +12,7 @@ import { ArrowBigUp, Check, Delete, X } from "lucide-react";
 type Mode = "texte" | "numerique";
 
 const LIGNES_TEXTE = [
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
   ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
   ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
   ["w", "x", "c", "v", "b", "n", "'", "-"],
@@ -45,11 +46,15 @@ export function ClavierInterne() {
   const [ouvert, setOuvert] = useState(false);
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
+  const [decimale, setDecimale] = useState(false);
+  const [numeriqueForce, setNumeriqueForce] = useState(false);
   const champRef = useRef<Champ | null>(null);
 
   const fermer = useCallback(() => {
     setOuvert(false);
     champRef.current = null;
+    setDecimale(false);
+    setNumeriqueForce(false);
   }, []);
 
   useEffect(() => {
@@ -69,7 +74,11 @@ export function ClavierInterne() {
         (cible as HTMLInputElement).type === "number" ||
         cible.dataset["clavier"] === "numerique" ||
         ["numeric", "decimal", "tel"].includes(modeOrigine);
+      setDecimale(
+        (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal",
+      );
       setMode(numerique ? "numerique" : "texte");
+      setNumeriqueForce(numerique);
       setMajuscule(false);
       setOuvert(true);
       window.setTimeout(
@@ -95,8 +104,19 @@ export function ClavierInterne() {
   const taper = (touche: string) => {
     const champ = champRef.current;
     if (!champ) return;
-    const valeur = champ.value ?? "";
-    ecrire(champ, valeur + (majuscule ? touche.toUpperCase() : touche));
+    let valeur = champ.value ?? "";
+    let ajout = touche;
+    if (mode === "numerique") {
+      // Champ numérique : chiffres uniquement, point décimal seulement si autorisé.
+      if (ajout === ".") {
+        if (!decimale || valeur.includes(".")) return;
+      } else if (!/^\d$/.test(ajout)) {
+        return;
+      }
+    } else if (majuscule) {
+      ajout = ajout.toUpperCase();
+    }
+    ecrire(champ, valeur + ajout);
     if (majuscule) setMajuscule(false);
   };
 
@@ -128,13 +148,15 @@ export function ClavierInterne() {
             Clavier de l’application
           </span>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMode(mode === "texte" ? "numerique" : "texte")}
-              className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
-            >
-              {mode === "texte" ? "123" : "ABC"}
-            </button>
+            {!numeriqueForce && (
+              <button
+                type="button"
+                onClick={() => setMode(mode === "texte" ? "numerique" : "texte")}
+                className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
+              >
+                {mode === "texte" ? "123" : "ABC"}
+              </button>
+            )}
             <button
               type="button"
               onClick={valider}
@@ -148,7 +170,7 @@ export function ClavierInterne() {
 
         {mode === "numerique" ? (
           <div className="grid grid-cols-3 gap-1.5">
-            {TOUCHES_NUM.map((t) => (
+            {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
               <Touche key={t} onClick={() => taper(t)} label={t} />
             ))}
             <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
@@ -169,7 +191,7 @@ export function ClavierInterne() {
             </div>
             {LIGNES_TEXTE.map((ligne, i) => (
               <div key={i} className="flex justify-center gap-1">
-                {i === 2 && (
+                {i === 3 && (
                   <Touche
                     onClick={() => setMajuscule((m) => !m)}
                     label={<ArrowBigUp aria-hidden className="h-4 w-4" />}
@@ -185,7 +207,7 @@ export function ClavierInterne() {
                     petite
                   />
                 ))}
-                {i === 2 && (
+                {i === 3 && (
                   <Touche
                     onClick={effacer}
                     label={<Delete aria-hidden className="h-4 w-4" />}
