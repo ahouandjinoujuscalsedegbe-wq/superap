@@ -56,13 +56,13 @@ export function ClavierInterne() {
     const onFocus = (ev: FocusEvent) => {
       const cible = ev.target as Element | null;
       if (!estChampTexte(cible)) return;
-      if (cible.dataset.clavier === "off" || cible.readOnly || cible.disabled) return;
+      if (cible.dataset["clavier"] === "off" || cible.readOnly || cible.disabled) return;
 
       champRef.current = cible;
       cible.setAttribute("inputmode", "none");
       const numerique =
         (cible as HTMLInputElement).type === "number" ||
-        cible.dataset.clavier === "numerique" ||
+        cible.dataset["clavier"] === "numerique" ||
         cible.getAttribute("data-inputmode-origine") === "numeric";
       setMode(numerique ? "numerique" : "texte");
       setMajuscule(false);
