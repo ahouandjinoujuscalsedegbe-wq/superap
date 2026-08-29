@@ -10,6 +10,7 @@ import {
   HelpCircle,
   HandCoins,
   ScanText,
+  Stethoscope,
 } from "lucide-react";
 
 const ENTREES = [
@@ -19,8 +20,10 @@ const ENTREES = [
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/outils", label: "Outils et Simulation", icone: Calculator },
   { to: "/parametres", label: "Paramètres", icone: Settings },
+  { to: "/journal", label: "Journal de diagnostic", icone: Stethoscope },
   { to: "/aide", label: "Aide", icone: HelpCircle },
 ] as const;
+
 
 export function MenuPrincipal() {
   const [ouvert, setOuvert] = useState(false);
