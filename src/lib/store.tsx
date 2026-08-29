@@ -37,6 +37,10 @@ export type Transaction = {
   categorie: string;
   compte: string;
   date: string;
+  /** Budget planifié à l'origine de cette opération, si elle vient de la Budgétisation. */
+  budgetId?: string | undefined;
+  /** Dette ou créance à l'origine de cette opération, si elle vient du module Dettes. */
+  detteId?: string | undefined;
 };
 
 export type Transfert = {
