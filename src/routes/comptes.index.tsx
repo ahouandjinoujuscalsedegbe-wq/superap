@@ -405,7 +405,13 @@ function Comptes() {
                   <span className="text-sm font-semibold">{formatFCFA(t.montant)}</span>
                   <button
                     type="button"
-                    onClick={() => supprimerTransfert(t.id)}
+                    onClick={() =>
+                      setDemande({
+                        type: "suppression-transfert",
+                        id: t.id,
+                        libelle: `${t.source} → ${t.destination} (${formatFCFA(t.montant)})`,
+                      })
+                    }
                     aria-label="Supprimer le transfert"
                     className="rounded-lg border border-input px-2 py-1 text-xs text-destructive"
                   >
