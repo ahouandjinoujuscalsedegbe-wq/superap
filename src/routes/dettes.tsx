@@ -153,6 +153,16 @@ function PageDettes() {
           avant: dialogue?.type === "modifier" ? (dialogue.dette.dateLimite ? formatDateFr(dialogue.dette.dateLimite) : "Aucune") : undefined,
           apres: form.dateLimite ? formatDateFr(form.dateLimite) : "Aucune",
         },
+        ...(dialogue?.type === "creer"
+          ? [
+              {
+                label: "Mouvement d'argent",
+                apres: compteMouvement
+                  ? `${form.sens === "dette" ? "Entrée" : "Sortie"} de ${formatFCFA(montant)} sur « ${compteMouvement} »`
+                  : "Aucun mouvement de compte",
+              },
+            ]
+          : []),
         { label: "Résumé", apres: `${label} ${form.personne.trim()} : ${formatFCFA(montant)}` },
       ],
       action: () => {
@@ -164,7 +174,7 @@ function PageDettes() {
           dateLimite: form.dateLimite || undefined,
         };
         if (dialogue?.type === "modifier") modifierDette(dialogue.dette.id, base);
-        else ajouterDette(base);
+        else ajouterDette(base, compteMouvement || undefined);
         setDialogue(null);
       },
     });
