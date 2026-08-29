@@ -24,6 +24,7 @@ import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action
 import { Route as EnveloppesBudgetisationRouteImport } from './routes/enveloppes.budgetisation'
 import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.chronologie'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
+import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const EnveloppesDetailsRoute = EnveloppesDetailsRouteImport.update({
   path: '/details',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
+  id: '/modifier',
+  path: '/modifier',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
 }
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
 }
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
 }
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/enveloppes/budgetisation'
     | '/enveloppes/chronologie'
     | '/enveloppes/details'
+    | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
   fileRoutesByTo: FileRoutesByTo
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/enveloppes/budgetisation'
     | '/enveloppes/chronologie'
     | '/enveloppes/details'
+    | '/enveloppes/modifier'
     | '/comptes'
     | '/enveloppes'
   id:
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/enveloppes/budgetisation'
     | '/enveloppes/chronologie'
     | '/enveloppes/details'
+    | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
   fileRoutesById: FileRoutesById
@@ -325,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesDetailsRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/enveloppes/modifier': {
+      id: '/enveloppes/modifier'
+      path: '/modifier'
+      fullPath: '/enveloppes/modifier'
+      preLoaderRoute: typeof EnveloppesModifierRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
   }
 }
 
@@ -333,6 +352,7 @@ interface EnveloppesRouteChildren {
   EnveloppesBudgetisationRoute: typeof EnveloppesBudgetisationRoute
   EnveloppesChronologieRoute: typeof EnveloppesChronologieRoute
   EnveloppesDetailsRoute: typeof EnveloppesDetailsRoute
+  EnveloppesModifierRoute: typeof EnveloppesModifierRoute
   EnveloppesIndexRoute: typeof EnveloppesIndexRoute
 }
 
@@ -341,6 +361,7 @@ const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesBudgetisationRoute: EnveloppesBudgetisationRoute,
   EnveloppesChronologieRoute: EnveloppesChronologieRoute,
   EnveloppesDetailsRoute: EnveloppesDetailsRoute,
+  EnveloppesModifierRoute: EnveloppesModifierRoute,
   EnveloppesIndexRoute: EnveloppesIndexRoute,
 }
 
