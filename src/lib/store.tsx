@@ -573,7 +573,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   );
 
   const supprimerDette = useCallback((id: string) => {
-    setEtat((e) => ({ ...e, dettes: e.dettes.filter((x) => x.id !== id) }));
+    setEtat((e) => ({
+      ...e,
+      dettes: e.dettes.filter((x) => x.id !== id),
+      // Les mouvements de trésorerie liés à la fiche disparaissent avec elle.
+      transactions: e.transactions.filter((t) => t.detteId !== id),
+    }));
   }, []);
 
   const ajouterRemboursement = useCallback(
