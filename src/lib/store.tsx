@@ -135,6 +135,8 @@ type Contexte = Etat & {
   ajouterSousCategorie: (id: string, nom: string) => void;
   renommerSousCategorie: (id: string, ancien: string, nom: string) => void;
   supprimerSousCategorie: (id: string, nom: string) => void;
+  reordonnerCategories: (depuis: number, vers: number) => void;
+  reordonnerSousCategories: (id: string, depuis: number, vers: number) => void;
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
@@ -339,6 +341,31 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const reordonnerCategories = useCallback((depuis: number, vers: number) => {
+    setEtat((e) => {
+      if (depuis === vers) return e;
+      const liste = [...e.categories];
+      if (depuis < 0 || depuis >= liste.length || vers < 0 || vers >= liste.length) return e;
+      const [item] = liste.splice(depuis, 1);
+      liste.splice(vers, 0, item!);
+      return { ...e, categories: liste };
+    });
+  }, []);
+
+  const reordonnerSousCategories = useCallback((id: string, depuis: number, vers: number) => {
+    setEtat((e) => ({
+      ...e,
+      categories: e.categories.map((c) => {
+        if (c.id !== id || depuis === vers) return c;
+        const liste = [...c.sousCategories];
+        if (depuis < 0 || depuis >= liste.length || vers < 0 || vers >= liste.length) return c;
+        const [item] = liste.splice(depuis, 1);
+        liste.splice(vers, 0, item!);
+        return { ...c, sousCategories: liste };
+      }),
+    }));
+  }, []);
+
   const supprimerSousCategorie = useCallback((id: string, nom: string) => {
     setEtat((e) => {
       const cible = e.categories.find((c) => c.id === id);
@@ -452,6 +479,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie,
       supprimerSousCategorie,
+      reordonnerCategories,
+      reordonnerSousCategories,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
@@ -478,6 +507,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie,
       supprimerSousCategorie,
+      reordonnerCategories,
+      reordonnerSousCategories,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
