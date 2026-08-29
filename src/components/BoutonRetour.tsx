@@ -3,16 +3,14 @@ import { ArrowLeft } from "lucide-react";
 
 type Props = { to: string; label: string; compact?: boolean };
 
-export function BoutonRetour({ to, label, compact = false }: Props) {
+/** Bouton de retour : taille unique (identique à « Retour à Action »). */
+export function BoutonRetour({ to, label }: Props) {
   return (
     <Link
       to={to}
-      className={
-        "inline-flex items-center rounded-xl border border-input bg-card font-medium transition-colors hover:bg-accent/40 " +
-        (compact ? "gap-1 px-2 py-1.5 text-xs" : "gap-2 px-3 py-2 text-sm")
-      }
+      className="inline-flex items-center gap-1 rounded-xl border border-input bg-card px-2 py-1.5 text-xs font-medium transition-colors hover:bg-accent/40"
     >
-      <ArrowLeft aria-hidden className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+      <ArrowLeft aria-hidden className="h-3.5 w-3.5" />
       {label}
     </Link>
   );
