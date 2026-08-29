@@ -428,7 +428,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           compte: b.compte,
           date,
         });
-        date = avancerDate(date, b.periode);
+        date = avancerDate(date, b.periode, b.intervalle);
       }
       return {
         ...e,
@@ -456,7 +456,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             compte: b.compte,
             date,
           });
-          date = avancerDate(date, b.periode);
+          date = avancerDate(date, b.periode, b.intervalle);
           garde += 1;
         }
         return garde > 0 ? { ...b, prochaine: date } : b;
