@@ -50,13 +50,15 @@ function PageCategories() {
     supprimerSousCategorie,
   } = useSuperApp();
 
-  const [nouvelle, setNouvelle] = useState("");
   const [nouvelleSous, setNouvelleSous] = useState<Record<string, string>>({});
   const [editionCat, setEditionCat] = useState<string | null>(null);
   const [valeurCat, setValeurCat] = useState("");
   const [editionSous, setEditionSous] = useState<string | null>(null);
   const [valeurSous, setValeurSous] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
+  const [popupCreation, setPopupCreation] = useState(false);
+  const [nomCreation, setNomCreation] = useState("");
+  const [erreurPopup, setErreurPopup] = useState<string | null>(null);
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
