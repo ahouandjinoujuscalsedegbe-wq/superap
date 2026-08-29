@@ -133,7 +133,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Capture des erreurs non gérées dans le journal de diagnostic.
+  useEffect(() => installerCaptureGlobale(), []);
+
   return (
+
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
         <SuperAppProvider>
