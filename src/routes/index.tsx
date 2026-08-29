@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownRight, ArrowUpRight, Settings, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 
@@ -28,18 +28,9 @@ function Accueil() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">Bonjour 👋</p>
-          <h1 className="text-2xl font-bold tracking-tight">Budget du foyer</h1>
-        </div>
-        <Link
-          to="/parametres"
-          aria-label="Paramètres"
-          className="surface rounded-full border border-border p-2.5 text-muted-foreground"
-        >
-          <Settings className="h-5 w-5" aria-hidden />
-        </Link>
+      <header className="pr-12">
+        <p className="text-sm text-muted-foreground">Bonjour 👋</p>
+        <h1 className="text-2xl font-bold tracking-tight">Budget du foyer</h1>
       </header>
 
       <section className="carte p-5">

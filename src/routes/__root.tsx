@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SuperAppProvider } from "../lib/store";
 import { BottomNav } from "../components/BottomNav";
+import { MenuPrincipal } from "../components/MenuPrincipal";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -134,6 +135,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </div>
+        <MenuPrincipal />
         <BottomNav />
         <Toaster position="top-center" richColors />
       </SuperAppProvider>
