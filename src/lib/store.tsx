@@ -137,6 +137,7 @@ type Contexte = Etat & {
   supprimerSousCategorie: (id: string, nom: string) => void;
   reordonnerCategories: (depuis: number, vers: number) => void;
   reordonnerSousCategories: (id: string, depuis: number, vers: number) => void;
+  restaurerCategories: (liste: CategorieEnveloppe[]) => void;
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
@@ -366,6 +367,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const restaurerCategories = useCallback((liste: CategorieEnveloppe[]) => {
+    setEtat((e) => ({ ...e, categories: liste }));
+  }, []);
+
   const supprimerSousCategorie = useCallback((id: string, nom: string) => {
     setEtat((e) => {
       const cible = e.categories.find((c) => c.id === id);
@@ -481,6 +486,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerSousCategorie,
       reordonnerCategories,
       reordonnerSousCategories,
+      restaurerCategories,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
@@ -509,6 +515,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerSousCategorie,
       reordonnerCategories,
       reordonnerSousCategories,
+      restaurerCategories,
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
