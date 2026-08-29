@@ -277,7 +277,15 @@ function ActionEnveloppes() {
                   id="e-categorie"
                   value={categorie}
                   onChange={(ev) => {
-                    setCategorie(ev.target.value);
+                    const valeur = ev.target.value;
+                    if (valeur && !listeCategories.some((c) => c.nom === valeur)) {
+                      setErreur(
+                        `La catégorie « ${valeur} » n'existe pas dans la liste. Choisissez une catégorie proposée ou créez-la depuis « Gérer les catégories et sous-catégories ».`
+                      );
+                      ev.target.value = categorie;
+                      return;
+                    }
+                    setCategorie(valeur);
                     setSousCategorie("");
                   }}
                   className={champ}
