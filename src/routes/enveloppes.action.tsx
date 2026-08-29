@@ -54,8 +54,6 @@ function ActionEnveloppes() {
   const listeCategories = useSuperApp().categories;
   const categorieChoisie = listeCategories.find((c) => c.nom === categorie.trim());
   const sousCategories = categorieChoisie?.sousCategories ?? [];
-  const groupes = grouperParCategorie(enveloppes);
-
 
   function ouvrirCreer() {
     setNom("");
