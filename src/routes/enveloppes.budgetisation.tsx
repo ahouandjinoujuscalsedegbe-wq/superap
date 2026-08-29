@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronDown, Plus } from "lucide-react";
+import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
-import { nombreEcheancesDues, equivalentMensuel, libellePlage } from "@/lib/periodes";
+import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
@@ -70,6 +70,33 @@ function finDepuis(debut: string, dureeId: string): string {
   return jourISO(date);
 }
 
+/** Nombre d'échéances produites entre le premier versement et la fin de l'étendue. */
+function nombreOccurrences(
+  debut: string,
+  fin: string,
+  periode: Periode,
+  intervalle: number,
+): number {
+  let n = 0;
+  let courant = new Date(`${debut}T12:00:00`).toISOString();
+  while (jourISO(new Date(courant)) <= fin && n < 500) {
+    n += 1;
+    courant = avancerDate(courant, periode, intervalle);
+  }
+  return n;
+}
+
+const FMT_LONG = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
+function jourLong(iso: string): string {
+  return FMT_LONG.format(new Date(`${iso}T12:00:00`));
+}
+
 function Budgetisation() {
   const {
     enveloppes,
@@ -97,6 +124,7 @@ function Budgetisation() {
         intervalle: number;
         frequenceLabel: string;
         dureeLabel: string;
+        occurrences: number;
       }
     | { type: "conversion-tout"; nb: number; montant: number }
     | { type: "conversion-un"; id: string; libelle: string; montant: number }
@@ -106,6 +134,7 @@ function Budgetisation() {
 
   const [popupOuvert, setPopupOuvert] = useState(false);
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [calendrierOuvert, setCalendrierOuvert] = useState(false);
 
   // Réponses du questionnaire
   const [sujet, setSujet] = useState("");
@@ -120,6 +149,11 @@ function Budgetisation() {
   const frequence = FREQUENCES.find((f) => f.id === frequenceId);
   const duree = DUREES.find((d) => d.id === dureeId);
   const fin = periodique && duree ? finDepuis(debut, duree.id) : debut;
+  const occurrencesPrevues =
+    periodique && frequence && duree
+      ? nombreOccurrences(debut, fin, frequence.periode, frequence.intervalle)
+      : 1;
+
 
   /** Dépenses déjà existantes dans l'application, proposées comme sujets. */
   const sujets = useMemo(() => {
@@ -194,6 +228,26 @@ function Budgetisation() {
       toast.error("Précisez sur quel temps s'étend la périodicité.");
       return;
     }
+    if (!debut) {
+      toast.error(
+        periodique ? "Choisissez le jour de la première dépense." : "Choisissez le jour de la dépense.",
+      );
+      return;
+    }
+    if (debut < jourISO(new Date())) {
+      toast.error(
+        periodique
+          ? "Le jour de la première dépense ne peut pas être dans le passé."
+          : "Le jour de la dépense ne peut pas être dans le passé.",
+      );
+      return;
+    }
+    if (periodique && frequence && duree && occurrencesPrevues < 2) {
+      toast.error(
+        `Incohérence : « ${frequence.label} » sur ${duree.label} à partir du ${jourLong(debut)} ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée.`,
+      );
+      return;
+    }
     setDemande({
       type: "creation",
       libelle: sujet.trim(),
@@ -208,6 +262,7 @@ function Budgetisation() {
       intervalle: frequence?.intervalle ?? 1,
       frequenceLabel: periodique ? (frequence?.label ?? "—") : "Aucune (dépense unique)",
       dureeLabel: periodique ? (duree?.label ?? "—") : "Une seule échéance",
+      occurrences: periodique ? occurrencesPrevues : 1,
     });
   }
 
@@ -548,13 +603,53 @@ function Budgetisation() {
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  {periodique === true ? "Quel est le jour de la première dépense ?" : "Quel jour ?"}
+                  {periodique === true
+                    ? "Quel est le jour de la première dépense ?"
+                    : "Quel jour aura lieu cette dépense ?"}
                 </p>
-                <Calendrier valeur={debut} onSelection={setDebut} plage={{ debut, fin }} />
+                <button
+                  type="button"
+                  onClick={() => setCalendrierOuvert((v) => !v)}
+                  aria-expanded={calendrierOuvert}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-background/60 px-3 py-2.5 text-left text-sm"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CalendarDays aria-hidden className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{jourLong(debut)}</span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${calendrierOuvert ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {calendrierOuvert && (
+                  <Calendrier
+                    valeur={debut}
+                    onSelection={(j) => {
+                      setDebut(j);
+                      setCalendrierOuvert(false);
+                    }}
+                    plage={{ debut, fin }}
+                  />
+                )}
+                {periodique === true && (
+                  <p className="text-xs text-muted-foreground">
+                    Les échéances suivantes seront calculées à partir de ce premier versement.
+                  </p>
+                )}
                 <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
                   Période couverte : <span className="font-semibold">{libellePlage({ debut, fin })}</span>
+                  {periodique === true && frequence && duree && (
+                    <>
+                      {" · "}
+                      <span className="font-semibold">
+                        {occurrencesPrevues} échéance{occurrencesPrevues > 1 ? "s" : ""}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
+
 
               <div className="flex gap-2">
                 <button
@@ -589,7 +684,9 @@ function Budgetisation() {
           demande?.type === "suppression"
             ? `La dépense prévue « ${demande.libelle} » sera supprimée définitivement.`
             : demande?.type === "creation"
-              ? `Prévoir « ${demande.libelle} » sur la période ${libellePlage({ debut: demande.debut, fin: demande.fin })} ?`
+              ? demande.ponctuel
+                ? `Prévoir « ${demande.libelle} » le ${jourLong(demande.debut)} ?`
+                : `Premier versement le ${jourLong(demande.debut)}, puis ${demande.frequenceLabel.toLowerCase()} pendant ${demande.dureeLabel} : ${demande.occurrences} échéances de ${formatFCFA(demande.montant)}.`
               : demande?.type === "conversion-un"
                 ? `Créer une dépense réelle de ${formatFCFA(demande.montant)} pour « ${demande.libelle} » ?`
                 : demande
@@ -600,16 +697,35 @@ function Budgetisation() {
           demande?.type === "creation"
             ? [
                 { label: "Sujet de la dépense", avant: "—", apres: demande.libelle },
+                {
+                  label: demande.ponctuel ? "Jour de la dépense" : "1er versement",
+                  avant: "—",
+                  apres: jourLong(demande.debut),
+                },
+                { label: "Montant par échéance", avant: "—", apres: formatFCFA(demande.montant) },
                 { label: "Périodique", avant: "—", apres: demande.ponctuel ? "Non" : "Oui" },
-                { label: "Périodicité", avant: "—", apres: demande.frequenceLabel },
-                { label: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
+                ...(demande.ponctuel
+                  ? []
+                  : [
+                      { label: "Fréquence", avant: "—", apres: demande.frequenceLabel },
+                      { label: "Étendue", avant: "—", apres: demande.dureeLabel },
+                      {
+                        label: "Nombre d'échéances",
+                        avant: "—",
+                        apres: String(demande.occurrences),
+                      },
+                      {
+                        label: "Total de la série",
+                        avant: "—",
+                        apres: formatFCFA(demande.montant * demande.occurrences),
+                      },
+                    ]),
                 {
                   label: "Enveloppe",
                   avant: "—",
                   apres: enveloppes.find((e) => e.id === demande.enveloppeId)?.nom ?? "—",
                 },
                 { label: "Compte débité", avant: "—", apres: demande.compte },
-                { label: "Étendue", avant: "—", apres: demande.dureeLabel },
                 {
                   label: "Période couverte",
                   avant: "—",
