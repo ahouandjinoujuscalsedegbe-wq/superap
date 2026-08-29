@@ -72,8 +72,9 @@ export function ClavierInterne() {
         (cible as HTMLInputElement).type === "number" ||
         cible.dataset["clavier"] === "numerique" ||
         ["numeric", "decimal", "tel"].includes(modeOrigine);
-      decimalRef.current =
-        (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal";
+      setDecimale(
+        (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal",
+      );
       setMode(numerique ? "numerique" : "texte");
       setMajuscule(false);
       setOuvert(true);
@@ -105,7 +106,7 @@ export function ClavierInterne() {
     if (mode === "numerique") {
       // Champ numérique : chiffres uniquement, point décimal seulement si autorisé.
       if (ajout === ".") {
-        if (!decimalRef.current || valeur.includes(".")) return;
+        if (!decimale || valeur.includes(".")) return;
       } else if (!/^\d$/.test(ajout)) {
         return;
       }
