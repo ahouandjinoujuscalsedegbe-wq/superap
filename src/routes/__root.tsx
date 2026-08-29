@@ -134,17 +134,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SuperAppProvider>
-        <div className="mx-auto min-h-screen w-full max-w-md px-3 pt-6 pb-28 sm:px-4">
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </div>
-        <MenuPrincipal />
-        <BottomNav />
-        <ClavierInterne />
-        <MajusculesPartout />
-        <Toaster position="top-center" richColors />
-      </SuperAppProvider>
+      <SecuriteProvider>
+        <SuperAppProvider>
+          <div className="mx-auto min-h-screen w-full max-w-md px-3 pt-6 pb-28 sm:px-4">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </div>
+          <MenuPrincipal />
+          <BottomNav />
+          <ClavierInterne />
+          <MajusculesPartout />
+          <Toaster position="top-center" richColors />
+          <EcranVerrou />
+        </SuperAppProvider>
+      </SecuriteProvider>
     </QueryClientProvider>
   );
 }
