@@ -26,7 +26,7 @@ export const Route = createFileRoute("/depense")({
 const MONTANTS_RAPIDES = [500, 1000, 2000, 5000, 10000];
 
 function AjouterDepense() {
-  const { ajouterTransaction, enveloppes } = useSuperApp();
+  const { ajouterTransaction, enveloppes, comptes } = useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
@@ -127,7 +127,7 @@ function AjouterDepense() {
               onChange={(ev) => setCompte(ev.target.value)}
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             >
-              {COMPTES.map((c) => (
+              {comptes.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
