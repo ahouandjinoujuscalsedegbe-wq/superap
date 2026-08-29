@@ -100,12 +100,14 @@ function PageDettes() {
       dateLimite: d.dateLimite ?? "",
       note: d.note ?? "",
     });
+    setCompteMouvement("");
     setDialogue({ type: "modifier", dette: d });
   };
 
   const ouvrirRemboursement = (d: Dette) => {
     setMontantRemb("");
     setDateRemb(new Date().toISOString().slice(0, 10));
+    setCompteRemb("");
     setDialogue({ type: "rembourser", dette: d });
   };
 
