@@ -206,9 +206,19 @@ function PageDettes() {
         { label: "Montant", apres: formatFCFA(montant) },
         { label: "Date", apres: formatDateFr(dateRemb) },
         { label: "Reste après opération", avant: formatFCFA(reste), apres: formatFCFA(reste - montant) },
+        {
+          label: "Mouvement d'argent",
+          apres: compteRemb
+            ? `${dialogue.dette.sens === "dette" ? "Sortie" : "Entrée"} de ${formatFCFA(montant)} sur « ${compteRemb} »`
+            : "Aucun mouvement de compte",
+        },
       ],
       action: () => {
-        ajouterRemboursement(dialogue.dette.id, { montant, date: dateRemb });
+        ajouterRemboursement(
+          dialogue.dette.id,
+          { montant, date: dateRemb },
+          compteRemb || undefined,
+        );
         setDialogue(null);
       },
     });
