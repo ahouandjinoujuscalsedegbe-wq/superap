@@ -62,10 +62,10 @@ const DUREES: { id: string; label: string; jours?: number; mois?: number }[] = [
 ];
 
 function finDepuis(debut: string, dureeId: string): string {
-  const d = DUREES.find((x) => x.id === dureeId) ?? DUREES[0];
+  const d = DUREES.find((x) => x.id === dureeId);
   const date = new Date(`${debut}T12:00:00`);
-  if (d.jours) date.setDate(date.getDate() + d.jours);
-  if (d.mois) date.setMonth(date.getMonth() + d.mois);
+  if (d?.jours) date.setDate(date.getDate() + d.jours);
+  if (d?.mois) date.setMonth(date.getMonth() + d.mois);
   date.setDate(date.getDate() - 1);
   return jourISO(date);
 }
