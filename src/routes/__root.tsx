@@ -80,11 +80,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SUPER APP — Budget du foyer en FCFA" },
+      {
+        name: "description",
+        content:
+          "Application de gestion budgétaire du foyer en francs CFA : enveloppes, revenus et dépenses, 100% en local.",
+      },
+      { property: "og:title", content: "SUPER APP — Budget du foyer en FCFA" },
+      {
+        property: "og:description",
+        content: "Enveloppes, revenus et dépenses du foyer en francs CFA, hors ligne.",
+      },
+      { name: "theme-color", content: "#f8dbe6" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
