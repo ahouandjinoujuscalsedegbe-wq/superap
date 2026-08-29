@@ -319,3 +319,223 @@ export function tendanceMensuelle(
   }
   return series;
 }
+
+/* ------------------------------------------------------------------ */
+/* Compléments : comparaison par catégorie, prévu vs réel, anomalies,   */
+/* alertes d'épuisement d'enveloppe et résumé partageable.              */
+/* ------------------------------------------------------------------ */
+
+export type EvolutionCategorie = {
+  nom: string;
+  actuel: number;
+  precedent: number;
+  ecart: number;
+  pourcentage: number | null;
+};
+
+/** Compare les dépenses par catégorie entre la période et la précédente. */
+export function comparerCategories(
+  periode: Transaction[],
+  precedente: Transaction[],
+  enveloppes: Enveloppe[],
+): EvolutionCategorie[] {
+  const cle = (t: Transaction) => {
+    const env = enveloppes.find((e) => e.id === t.categorie);
+    return env?.categorie?.trim() || "Sans catégorie";
+  };
+  const cumuler = (liste: Transaction[]) => {
+    const m = new Map<string, number>();
+    for (const t of liste) {
+      if (t.type !== "depense") continue;
+      m.set(cle(t), (m.get(cle(t)) ?? 0) + t.montant);
+    }
+    return m;
+  };
+  const a = cumuler(periode);
+  const b = cumuler(precedente);
+  const noms = new Set([...a.keys(), ...b.keys()]);
+  return [...noms]
+    .map((nom) => {
+      const actuel = a.get(nom) ?? 0;
+      const precedent = b.get(nom) ?? 0;
+      return {
+        nom,
+        actuel,
+        precedent,
+        ecart: actuel - precedent,
+        pourcentage: variation(actuel, precedent),
+      };
+    })
+    .filter((e) => e.actuel > 0 || e.precedent > 0)
+    .sort((x, y) => Math.abs(y.ecart) - Math.abs(x.ecart));
+}
+
+export type LignePrevuReel = {
+  enveloppeId: string;
+  nom: string;
+  emoji: string;
+  prevu: number;
+  reel: number;
+  ecart: number;
+  respect: number;
+};
+
+/** Confronte les montants planifiés (Budgétisation) aux dépenses réelles du mois. */
+export function prevuContreReel(
+  budgets: Budget[],
+  transactions: Transaction[],
+  enveloppes: Enveloppe[],
+): { lignes: LignePrevuReel[]; totalPrevu: number; totalReel: number } {
+  const maintenant = new Date();
+  const debutMois = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
+  const parMois: Record<string, number> = {
+    jour: 30,
+    semaine: 4.345,
+    mois: 1,
+    trimestre: 1 / 3,
+    semestre: 1 / 6,
+    annee: 1 / 12,
+  };
+
+  const prevus = new Map<string, number>();
+  for (const b of budgets) {
+    if (!b.actif) continue;
+    const intervalle = Math.max(1, Math.round(b.intervalle ?? 1));
+    const mensuel = b.ponctuel
+      ? b.montant
+      : Math.round((b.montant * (parMois[b.periode] ?? 1)) / intervalle);
+    prevus.set(b.enveloppeId, (prevus.get(b.enveloppeId) ?? 0) + mensuel);
+  }
+
+  const reels = new Map<string, number>();
+  for (const t of transactions) {
+    if (t.type !== "depense" || jour(t.date) < debutMois) continue;
+    reels.set(t.categorie, (reels.get(t.categorie) ?? 0) + t.montant);
+  }
+
+  const ids = new Set([...prevus.keys(), ...reels.keys()]);
+  const lignes = [...ids].map((id) => {
+    const env = enveloppes.find((e) => e.id === id);
+    const prevu = prevus.get(id) ?? 0;
+    const reel = reels.get(id) ?? 0;
+    return {
+      enveloppeId: id,
+      nom: env?.nom ?? id,
+      emoji: env?.emoji ?? "💸",
+      prevu,
+      reel,
+      ecart: reel - prevu,
+      respect: prevu > 0 ? Math.round((reel / prevu) * 100) : reel > 0 ? 100 : 0,
+    };
+  });
+  lignes.sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart));
+  return {
+    lignes,
+    totalPrevu: lignes.reduce((s, l) => s + l.prevu, 0),
+    totalReel: lignes.reduce((s, l) => s + l.reel, 0),
+  };
+}
+
+export type Anomalie = {
+  transaction: Transaction;
+  enveloppe: string;
+  moyenne: number;
+  facteur: number;
+};
+
+/**
+ * Détecte les dépenses inhabituelles : montant au moins deux fois supérieur
+ * à la moyenne des autres dépenses de la même enveloppe.
+ */
+export function detecterAnomalies(
+  transactions: Transaction[],
+  enveloppes: Enveloppe[],
+  seuil = 2,
+): Anomalie[] {
+  const depenses = transactions.filter((t) => t.type === "depense");
+  const anomalies: Anomalie[] = [];
+  for (const t of depenses) {
+    const autres = depenses.filter((o) => o.categorie === t.categorie && o.id !== t.id);
+    if (autres.length < 2) continue;
+    const moyenne = autres.reduce((s, o) => s + o.montant, 0) / autres.length;
+    if (moyenne <= 0) continue;
+    const facteur = t.montant / moyenne;
+    if (facteur >= seuil) {
+      const env = enveloppes.find((e) => e.id === t.categorie);
+      anomalies.push({
+        transaction: t,
+        enveloppe: env ? `${env.emoji} ${env.nom}` : t.categorie,
+        moyenne: Math.round(moyenne),
+        facteur: Math.round(facteur * 10) / 10,
+      });
+    }
+  }
+  return anomalies.sort((a, b) => b.facteur - a.facteur).slice(0, 5);
+}
+
+export type AlerteEnveloppe = {
+  id: string;
+  nom: string;
+  emoji: string;
+  restant: number;
+  pourcentage: number;
+  plafondAtteint: boolean;
+  joursRestants: number | null;
+};
+
+/**
+ * Enveloppes à surveiller : estime en combien de jours la dotation sera
+ * épuisée au rythme de consommation observé sur les 30 derniers jours.
+ */
+export function alertesEnveloppes(
+  enveloppes: Enveloppe[],
+  depensesParEnveloppe: Record<string, number>,
+  transactions: Transaction[],
+): AlerteEnveloppe[] {
+  const limite = jour(new Date(Date.now() - 29 * JOUR).toISOString());
+  return enveloppes
+    .map((e) => {
+      const etat = etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0);
+      const recentes = transactions
+        .filter((t) => t.type === "depense" && t.categorie === e.id && jour(t.date) >= limite)
+        .reduce((s, t) => s + t.montant, 0);
+      const parJour = recentes / 30;
+      return {
+        id: e.id,
+        nom: e.nom,
+        emoji: e.emoji,
+        restant: etat.restant,
+        pourcentage: Math.round(etat.pourcentage),
+        plafondAtteint: etat.plafondAtteint,
+        joursRestants: parJour > 0 ? Math.floor(etat.restant / parJour) : null,
+      };
+    })
+    .filter((a) => a.plafondAtteint || a.pourcentage >= 70 || (a.joursRestants !== null && a.joursRestants <= 15))
+    .sort((a, b) => b.pourcentage - a.pourcentage);
+}
+
+/** Résumé texte du rapport, prêt à être copié ou partagé. */
+export function resumeTexte(args: {
+  fenetre: string;
+  diagnostic: Diagnostic;
+  totaux: Totaux;
+  projection: number;
+  repartition: PartCategorie[];
+}): string {
+  const f = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+  const lignes = [
+    `RAPPORT FINANCIER — ${args.fenetre}`,
+    `Score de santé : ${args.diagnostic.score}/100 (${args.diagnostic.mention})`,
+    `Revenus : ${f(args.totaux.revenus)} · Dépenses : ${f(args.totaux.depenses)} · Solde : ${f(args.totaux.net)}`,
+    `Projection de fin de mois : ${f(args.projection)}`,
+    "",
+    "Répartition des dépenses :",
+    ...args.repartition.map((c) => `- ${c.nom} : ${f(c.montant)} (${c.part} %)`),
+    "",
+    "Conseils :",
+    ...args.diagnostic.conseils.map((c) => `- [${c.niveau}] ${c.titre} : ${c.texte}`),
+  ];
+  return lignes.join("\n");
+}
