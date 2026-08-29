@@ -140,8 +140,17 @@ function ModifierEnveloppe() {
       {enveloppes.length === 0 ? (
         <p className="carte p-4 text-sm text-muted-foreground">Aucune enveloppe à modifier.</p>
       ) : (
-        <ul className="space-y-3">
-          {enveloppes.map((e) => (
+        <div className="space-y-5">
+          {groupes.map((g) => (
+            <section key={g.categorie} className="space-y-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-primary">{g.categorie}</h2>
+              {g.sousCategories.map((s) => (
+                <div key={s.sousCategorie} className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {s.sousCategorie}
+                  </p>
+                  <ul className="space-y-3">
+                    {s.enveloppes.map((e) => (
             <li key={e.id} className="carte p-4">
               {edition === e.id ? (
                 <div className="space-y-3">
@@ -178,6 +187,35 @@ function ModifierEnveloppe() {
                       inputMode="numeric"
                       value={ePlafond}
                       onChange={(ev) => setEPlafond(ev.target.value.replace(/[^\d]/g, ""))}
+                      className={champ}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor={`categorie-${e.id}`} className="text-sm font-medium">
+                      Catégorie
+                    </label>
+                    <input
+                      id={`categorie-${e.id}`}
+                      list="liste-categories-mod"
+                      value={eCategorie}
+                      onChange={(ev) => {
+                        setECategorie(ev.target.value);
+                        setESousCategorie("");
+                      }}
+                      placeholder="Transport, Factures…"
+                      className={champ}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor={`sous-categorie-${e.id}`} className="text-sm font-medium">
+                      Sous-catégorie
+                    </label>
+                    <input
+                      id={`sous-categorie-${e.id}`}
+                      list="liste-sous-categories-mod"
+                      value={eSousCategorie}
+                      onChange={(ev) => setESousCategorie(ev.target.value)}
+                      placeholder="Carburant, Facture SBEE…"
                       className={champ}
                     />
                   </div>
@@ -227,9 +265,25 @@ function ModifierEnveloppe() {
                 </div>
               )}
             </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
           ))}
-        </ul>
+        </div>
       )}
+
+      <datalist id="liste-categories-mod">
+        {categories.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+      <datalist id="liste-sous-categories-mod">
+        {sousCategories.map((s) => (
+          <option key={s} value={s} />
+        ))}
+      </datalist>
 
       <Confirmation
         ouvert={demande !== null}
