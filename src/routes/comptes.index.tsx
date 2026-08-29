@@ -3,6 +3,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
+import { Confirmation } from "@/components/Confirmation";
+
+type DemandeCompte =
+  | { type: "creation"; nom: string }
+  | { type: "renommage"; ancien: string; nom: string }
+  | { type: "suppression"; nom: string }
+  | { type: "transfert"; source: string; destination: string; montant: number; note: string }
+  | { type: "suppression-transfert"; id: string; libelle: string }
+  | null;
 
 export const Route = createFileRoute("/comptes/")({
   head: () => ({
