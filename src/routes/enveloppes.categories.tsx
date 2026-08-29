@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, ChevronDown } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -59,6 +59,7 @@ function PageCategories() {
   const [popupCreation, setPopupCreation] = useState(false);
   const [nomCreation, setNomCreation] = useState("");
   const [erreurPopup, setErreurPopup] = useState<string | null>(null);
+  const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
@@ -166,16 +167,17 @@ function PageCategories() {
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <div className="flex-1">
-          <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
+          <BoutonRetour to="/enveloppes/action" label="Retour à Action" compact />
         </div>
         <button
           type="button"
           onClick={ouvrirCreation}
-          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground"
         >
-          <Plus aria-hidden className="h-4 w-4" /> Ajouter une nouvelle catégorie
+          <Plus aria-hidden className="h-3.5 w-3.5" /> Ajouter une nouvelle catégorie
         </button>
       </div>
+
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégories et sous-catégories</h1>
@@ -224,10 +226,12 @@ function PageCategories() {
       )}
 
       <ul className="space-y-3">
-        {categories.map((c) => (
-          <li key={c.id} className="carte space-y-3 p-4">
+        {categories.map((c) => {
+          const ouverte = categorieOuverte === c.id;
+          return (
+          <li key={c.id} className="carte overflow-hidden">
             {editionCat === c.id ? (
-              <div className="flex gap-2">
+              <div className="flex gap-2 p-4">
                 <input
                   aria-label={`Nouveau nom pour ${c.nom}`}
                   value={valeurCat}
@@ -256,13 +260,24 @@ function PageCategories() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{c.nom}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {compter(c.nom)} enveloppe(s) · {c.sousCategories.length} sous-catégorie(s)
-                  </p>
-                </div>
+              <div className="flex items-center gap-2 p-4">
+                <button
+                  type="button"
+                  onClick={() => setCategorieOuverte(ouverte ? null : c.id)}
+                  aria-expanded={ouverte}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${ouverte ? "rotate-180" : ""}`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{c.nom}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {compter(c.nom)} enveloppe(s) · {c.sousCategories.length} sous-catégorie(s)
+                    </span>
+                  </span>
+                </button>
                 <div className="flex shrink-0 gap-1">
                   <button
                     type="button"
@@ -294,7 +309,12 @@ function PageCategories() {
               </div>
             )}
 
+            {ouverte && (
+            <div className="space-y-3 border-t border-border/70 p-4">
             <ul className="space-y-2">
+              {c.sousCategories.length === 0 && (
+                <li className="text-xs text-muted-foreground">Aucune sous-catégorie pour l’instant.</li>
+              )}
               {c.sousCategories.map((s) => (
                 <li key={s} className="flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2">
                   {editionSous === `${c.id}:${s}` ? (
@@ -391,9 +411,13 @@ function PageCategories() {
                 Ajouter
               </button>
             </div>
+            </div>
+            )}
           </li>
-        ))}
+          );
+        })}
       </ul>
+
 
       <Confirmation
         ouvert={demande !== null}
