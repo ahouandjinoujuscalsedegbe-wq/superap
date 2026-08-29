@@ -8,10 +8,12 @@ import {
   Calculator,
   Settings,
   HelpCircle,
+  HandCoins,
 } from "lucide-react";
 
 const ENTREES = [
   { to: "/comptes", label: "Comptes", icone: Landmark },
+  { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/outils", label: "Outils et Simulation", icone: Calculator },
   { to: "/parametres", label: "Paramètres", icone: Settings },
