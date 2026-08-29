@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
 export const Route = createFileRoute("/depense")({
   head: () => ({
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/depense")({
 const MONTANTS_RAPIDES = [500, 1000, 2000, 5000, 10000];
 
 function AjouterDepense() {
-  const { ajouterTransaction, enveloppes, comptes } = useSuperApp();
+  const { ajouterTransaction, enveloppes, comptes, depensesParEnveloppe } = useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
@@ -52,6 +53,18 @@ function AjouterDepense() {
       date: new Date(date).toISOString(),
     });
     toast.success(`Dépense de ${formatFCFA(valeur)} enregistrée.`);
+    if (env) {
+      const apres = etatEnveloppe(env, (depensesParEnveloppe[env.id] ?? 0) + valeur);
+      if (apres.epuisee) {
+        toast.error(
+          `Enveloppe « ${env.nom} » épuisée : la somme attribuée et la réserve sont entièrement consommées.`,
+        );
+      } else if (apres.plafondAtteint) {
+        toast.warning(
+          `Zone rouge : le plafond de ${formatFCFA(env.plafond)} de « ${env.nom} » est atteint. Vous puisez maintenant dans la réserve (${formatFCFA(apres.reserveDisponible)} disponibles).`,
+        );
+      }
+    }
     navigate({ to: "/" });
   }
 

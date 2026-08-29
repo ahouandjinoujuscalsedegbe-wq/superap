@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
 const libellePeriode = (p: Periode) => PERIODES.find((x) => x.id === p)?.label ?? p;
 
@@ -55,7 +56,7 @@ function DetailsActuels() {
                 (somme, sous) =>
                   somme +
                   sous.enveloppes.reduce(
-                    (s, e) => s + Math.max(0, e.plafond - (depensesParEnveloppe[e.id] ?? 0)),
+                    (s, e) => s + etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
                     0,
                   ),
                 0,
@@ -146,8 +147,9 @@ export function CarteEnveloppe({
 }) {
   const { depensesParEnveloppe, budgets, transactions } = useSuperApp();
   const utilise = depensesParEnveloppe[e.id] ?? 0;
-  const pourcentage = e.plafond > 0 ? Math.min(100, (utilise / e.plafond) * 100) : 0;
-  const depasse = utilise > e.plafond;
+  const etat = etatEnveloppe(e, utilise);
+  const pourcentage = etat.pourcentage;
+  const depasse = etat.plafondAtteint;
   const planifie = budgets.filter((b) => b.enveloppeId === e.id);
   const prevuMensuel = planifie.reduce((s, b) => s + equivalentMensuel(b), 0);
   const operations = transactions.filter((t) => t.categorie === e.id);
@@ -164,10 +166,10 @@ export function CarteEnveloppe({
         </span>
         <span
           className={`text-sm font-semibold ${
-            depasse ? "text-destructive" : "text-muted-foreground"
+            etat.epuisee || depasse ? "text-destructive" : "text-muted-foreground"
           }`}
         >
-          {formatFCFA(Math.max(0, e.plafond - utilise))} restants
+          {formatFCFA(etat.restant)} restants
         </span>
       </div>
       <div
@@ -185,7 +187,27 @@ export function CarteEnveloppe({
           style={{ width: `${pourcentage}%` }}
         />
       </div>
+
+      {depasse && (
+        <p
+          role="status"
+          className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive"
+        >
+          <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            Zone rouge : le plafond de {formatFCFA(e.plafond)} est atteint.{" "}
+            {etat.reserveDisponible > 0
+              ? `Vous puisez désormais dans la réserve : ${formatFCFA(etat.reserveDisponible)} disponibles.`
+              : "La réserve de cette enveloppe est épuisée."}
+          </span>
+        </p>
+      )}
+
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <div>
+          <dt className="inline">Somme attribuée : </dt>
+          <dd className="inline font-medium text-foreground">{formatFCFA(etat.dotation)}</dd>
+        </div>
         <div>
           <dt className="inline">Plafond : </dt>
           <dd className="inline font-medium text-foreground">{formatFCFA(e.plafond)}</dd>
@@ -193,6 +215,16 @@ export function CarteEnveloppe({
         <div>
           <dt className="inline">Dépensé : </dt>
           <dd className="inline font-medium text-foreground">{formatFCFA(utilise)}</dd>
+        </div>
+        <div>
+          <dt className="inline">Avant plafond : </dt>
+          <dd className="inline font-medium text-foreground">{formatFCFA(etat.avantPlafond)}</dd>
+        </div>
+        <div>
+          <dt className="inline">Réserve : </dt>
+          <dd className="inline font-medium text-foreground">
+            {formatFCFA(etat.reserveDisponible)}
+          </dd>
         </div>
         <div>
           <dt className="inline">Dépenses planifiées : </dt>
@@ -205,6 +237,7 @@ export function CarteEnveloppe({
           <dd className="inline font-medium text-foreground">{nbOperations}</dd>
         </div>
       </dl>
+
 
       <button
         type="button"

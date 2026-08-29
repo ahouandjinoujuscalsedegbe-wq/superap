@@ -38,6 +38,7 @@ function ActionEnveloppes() {
   const [nom, setNom] = useState("");
   const [emoji, setEmoji] = useState("💡");
   const [plafond, setPlafond] = useState("");
+  const [dotation, setDotation] = useState("");
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
 
@@ -45,6 +46,7 @@ function ActionEnveloppes() {
     nom: string;
     emoji: string;
     plafond: number;
+    dotation: number;
     categorie: string;
     sousCategorie: string;
   } | null>(null);
@@ -59,6 +61,7 @@ function ActionEnveloppes() {
     setNom("");
     setEmoji("💡");
     setPlafond("");
+    setDotation("");
     setCategorie("");
     setSousCategorie("");
     setModal("creer");
@@ -77,6 +80,17 @@ function ActionEnveloppes() {
     }
     if (!Number.isFinite(valeur) || valeur < 0) {
       toast.error("Plafond invalide.");
+      return;
+    }
+    const somme = Number(dotation);
+    if (!Number.isFinite(somme) || somme <= 0) {
+      setErreur("Indiquez la somme attribuée à cette enveloppe (montant placé dedans).");
+      return;
+    }
+    if (somme < valeur) {
+      setErreur(
+        "Le plafond ne peut pas dépasser la somme attribuée : le plafond est le montant de dépenses à ne pas dépasser.",
+      );
       return;
     }
     if (!categorie.trim()) {
@@ -99,6 +113,7 @@ function ActionEnveloppes() {
       nom: nom.trim(),
       emoji: emoji.trim() || "💡",
       plafond: valeur,
+      dotation: somme,
       categorie: categorie.trim(),
       sousCategorie: sousCategorie.trim(),
     });
@@ -230,6 +245,24 @@ function ActionEnveloppes() {
               </div>
 
               <div>
+                <label htmlFor="e-dotation" className="text-sm font-medium">
+                  Somme attribuée (FCFA)
+                </label>
+                <input
+                  id="e-dotation"
+                  inputMode="numeric"
+                  value={dotation}
+                  onChange={(ev) => setDotation(ev.target.value.replace(/[^\d]/g, ""))}
+                  placeholder="30000"
+                  className={champ}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Montant réellement placé dans l'enveloppe. Il diminue à chaque dépense ; au-delà du
+                  plafond, vous entrez en réserve.
+                </p>
+              </div>
+
+              <div>
                 <label htmlFor="e-categorie" className="text-sm font-medium">
                   Catégorie (obligatoire)
                 </label>
@@ -326,6 +359,7 @@ function ActionEnveloppes() {
                 { label: "Emoji", apres: confirmation.emoji },
                 { label: "Nom", apres: confirmation.nom },
                 { label: "Plafond", apres: formatFCFA(confirmation.plafond) },
+                { label: "Somme attribuée", apres: formatFCFA(confirmation.dotation) },
                 { label: "Catégorie", apres: confirmation.categorie || "Sans catégorie" },
                 { label: "Sous-catégorie", apres: confirmation.sousCategorie || "Général" },
               ]

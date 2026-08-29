@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
 export const Route = createFileRoute("/enveloppes/")({
   head: () => ({
@@ -46,7 +47,7 @@ function EnveloppesAccueil() {
             {groupes.map((groupe) => {
               const enveloppesCat = groupe.sousCategories.flatMap((s) => s.enveloppes);
               const restant = enveloppesCat.reduce(
-                (s, e) => s + Math.max(0, e.plafond - (depensesParEnveloppe[e.id] ?? 0)),
+                (s, e) => s + etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
                 0,
               );
               return (

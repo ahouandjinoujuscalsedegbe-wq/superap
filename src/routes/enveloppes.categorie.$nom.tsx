@@ -4,6 +4,7 @@ import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { CarteEnveloppe } from "./enveloppes.details";
 
 export const Route = createFileRoute("/enveloppes/categorie/$nom")({
@@ -43,7 +44,7 @@ function PageCategorie() {
       (somme, sous) =>
         somme +
         sous.enveloppes.reduce(
-          (s, e) => s + Math.max(0, e.plafond - (depensesParEnveloppe[e.id] ?? 0)),
+          (s, e) => s + etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
           0,
         ),
       0,

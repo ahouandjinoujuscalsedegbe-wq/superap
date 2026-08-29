@@ -15,6 +15,8 @@ export type Enveloppe = {
   nom: string;
   emoji: string;
   plafond: number;
+  /** Somme attribuée à l'enveloppe ; elle diminue à chaque dépense. */
+  dotation?: number;
   /** Catégorie de classement, ex. « Transport », « Factures ». */
   categorie?: string;
   /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
@@ -86,12 +88,12 @@ export const COMPTES = [
 ] as const;
 
 export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
-  { id: "vitaux", nom: "Besoins vitaux", emoji: "🍚", plafond: 150000, categorie: "Alimentation", sousCategorie: "Marché" },
-  { id: "transport", nom: "Transport", emoji: "🛵", plafond: 40000, categorie: "Transport", sousCategorie: "Carburant" },
-  { id: "maison", nom: "Maison & Factures", emoji: "🏠", plafond: 60000, categorie: "Factures", sousCategorie: "Facture SBEE" },
-  { id: "epargne", nom: "Épargne", emoji: "🐖", plafond: 50000, categorie: "Épargne", sousCategorie: "Tontine" },
-  { id: "envies", nom: "Projets & Envies", emoji: "✨", plafond: 30000, categorie: "Famille", sousCategorie: "Cadeaux" },
-  { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, categorie: "Santé", sousCategorie: "Pharmacie" },
+  { id: "vitaux", nom: "Besoins vitaux", emoji: "🍚", plafond: 150000, dotation: 180000, categorie: "Alimentation", sousCategorie: "Marché" },
+  { id: "transport", nom: "Transport", emoji: "🛵", plafond: 40000, dotation: 50000, categorie: "Transport", sousCategorie: "Carburant" },
+  { id: "maison", nom: "Maison & Factures", emoji: "🏠", plafond: 60000, dotation: 70000, categorie: "Factures", sousCategorie: "Facture SBEE" },
+  { id: "epargne", nom: "Épargne", emoji: "🐖", plafond: 50000, dotation: 55000, categorie: "Épargne", sousCategorie: "Tontine" },
+  { id: "envies", nom: "Projets & Envies", emoji: "✨", plafond: 30000, dotation: 35000, categorie: "Famille", sousCategorie: "Cadeaux" },
+  { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, dotation: 25000, categorie: "Santé", sousCategorie: "Pharmacie" },
 ];
 
 export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
@@ -179,7 +181,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const brut = window.localStorage.getItem(CLE);
-      if (brut) setEtat({ ...ETAT_INITIAL, ...(JSON.parse(brut) as Partial<Etat>) });
+      if (brut) {
+        const charge = { ...ETAT_INITIAL, ...(JSON.parse(brut) as Partial<Etat>) };
+        // Migration : les anciennes enveloppes reçoivent une dotation égale au plafond.
+        charge.enveloppes = charge.enveloppes.map((x) => ({
+          ...x,
+          dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
+        }));
+        setEtat(charge);
+      }
     } catch {
       /* stockage indisponible */
     }
