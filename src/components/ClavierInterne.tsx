@@ -47,6 +47,7 @@ export function ClavierInterne() {
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
   const [decimale, setDecimale] = useState(false);
+  const [numeriqueForce, setNumeriqueForce] = useState(false);
   const champRef = useRef<Champ | null>(null);
 
   const fermer = useCallback(() => {
@@ -76,6 +77,7 @@ export function ClavierInterne() {
         (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal",
       );
       setMode(numerique ? "numerique" : "texte");
+      setNumeriqueForce(numerique);
       setMajuscule(false);
       setOuvert(true);
       window.setTimeout(
