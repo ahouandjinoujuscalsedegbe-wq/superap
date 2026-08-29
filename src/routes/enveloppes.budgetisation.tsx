@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel } from "@/lib/periodes";
+import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/enveloppes/budgetisation")({
   head: () => ({
@@ -94,6 +95,7 @@ function Budgetisation() {
 
   return (
     <div className="space-y-5">
+      <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
       <section className="carte space-y-4 p-4">
         <div>
           <h2 className="text-lg font-semibold">Budgétisation</h2>

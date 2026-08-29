@@ -5,6 +5,7 @@ import { useSuperApp, type Budget, type Periode } from "@/lib/store";
 import { PERIODES } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { prochainesEcheances, equivalentMensuel } from "@/lib/periodes";
+import { BoutonRetour } from "@/components/BoutonRetour";
 
 function reculerDate(iso: string, periode: Periode): string {
   const d = new Date(iso);
@@ -59,6 +60,7 @@ function ChronologieSuivi() {
 
   return (
     <div className="space-y-5">
+      <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
       <section className="carte space-y-4 p-4">
         <div>
           <h2 className="text-lg font-semibold">Chronologie & suivi</h2>
