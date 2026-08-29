@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
+import { ErreurPopup } from "@/components/ErreurPopup";
 
 export const Route = createFileRoute("/enveloppes/categories")({
   head: () => ({
@@ -49,13 +50,15 @@ function PageCategories() {
     supprimerSousCategorie,
   } = useSuperApp();
 
-  const [nouvelle, setNouvelle] = useState("");
   const [nouvelleSous, setNouvelleSous] = useState<Record<string, string>>({});
   const [editionCat, setEditionCat] = useState<string | null>(null);
   const [valeurCat, setValeurCat] = useState("");
   const [editionSous, setEditionSous] = useState<string | null>(null);
   const [valeurSous, setValeurSous] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
+  const [popupCreation, setPopupCreation] = useState(false);
+  const [nomCreation, setNomCreation] = useState("");
+  const [erreurPopup, setErreurPopup] = useState<string | null>(null);
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
@@ -63,11 +66,24 @@ function PageCategories() {
         (e.categorie ?? "") === cat && (sous === undefined || (e.sousCategorie ?? "") === sous),
     ).length;
 
-  function creerCategorie(ev: React.FormEvent) {
-    ev.preventDefault();
-    const nom = nouvelle.trim();
-    if (!nom) { toast.error("Donnez un nom à la catégorie."); return; }
-    if (categories.some((c) => c.nom === nom)) { toast.error("Cette catégorie existe déjà."); return; }
+  function ouvrirCreation() {
+    setNomCreation("");
+    setErreurPopup(null);
+    setPopupCreation(true);
+  }
+
+  function validerCreation() {
+    const nom = nomCreation.trim();
+    if (!nom) {
+      setErreurPopup("Donnez un nom à la catégorie.");
+      return;
+    }
+    if (categories.some((c) => c.nom === nom)) {
+      setErreurPopup("Cette catégorie existe déjà.");
+      return;
+    }
+    setErreurPopup(null);
+    setPopupCreation(false);
     setDemande({ type: "creation-categorie", nom });
   }
 
@@ -76,7 +92,7 @@ function PageCategories() {
     switch (demande.type) {
       case "creation-categorie":
         ajouterCategorie(demande.nom);
-        setNouvelle("");
+        setNomCreation("");
         toast.success("Catégorie créée.");
         break;
       case "renommage-categorie":
@@ -148,7 +164,18 @@ function PageCategories() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
+        </div>
+        <button
+          type="button"
+          onClick={ouvrirCreation}
+          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          <Plus aria-hidden className="h-4 w-4" /> Ajouter une nouvelle catégorie
+        </button>
+      </div>
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégories et sous-catégories</h1>
@@ -157,24 +184,44 @@ function PageCategories() {
         </p>
       </header>
 
-      <form onSubmit={creerCategorie} className="carte space-y-3 p-4">
-        <label htmlFor="nouvelle-categorie" className="text-sm font-medium">
-          Nouvelle catégorie
-        </label>
-        <input
-          id="nouvelle-categorie"
-          value={nouvelle}
-          onChange={(e) => setNouvelle(e.target.value)}
-          placeholder="Transport, Factures…"
-          className={champ}
-        />
-        <button
-          type="submit"
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
-        >
-          <Plus aria-hidden className="h-4 w-4" /> Ajouter la catégorie
-        </button>
-      </form>
+      {popupCreation && (
+        <div className="carte space-y-3 p-4">
+          <label htmlFor="nouvelle-categorie" className="text-sm font-medium">
+            Nouvelle catégorie
+          </label>
+          <input
+            id="nouvelle-categorie"
+            autoFocus
+            value={nomCreation}
+            onChange={(e) => {
+              setNomCreation(e.target.value);
+              setErreurPopup(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") validerCreation();
+              if (e.key === "Escape") setPopupCreation(false);
+            }}
+            placeholder="Transport, Factures…"
+            className={champ}
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPopupCreation(false)}
+              className="flex-1 rounded-xl border border-input py-2.5 text-sm font-medium"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={validerCreation}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              <Plus aria-hidden className="h-4 w-4" /> Ajouter
+            </button>
+          </div>
+        </div>
+      )}
 
       <ul className="space-y-3">
         {categories.map((c) => (
@@ -357,6 +404,12 @@ function PageCategories() {
         confirmerLabel={demande?.type.startsWith("suppression") ? "Supprimer" : "Confirmer"}
         onConfirmer={confirmer}
         onAnnuler={() => setDemande(null)}
+      />
+
+      <ErreurPopup
+        ouvert={erreurPopup !== null}
+        message={erreurPopup ?? ""}
+        onFermer={() => setErreurPopup(null)}
       />
     </div>
   );
