@@ -441,7 +441,7 @@ function Budgetisation() {
                   apres: demande.ponctuel ? "Une seule fois" : `À chaque ${libellePeriode(periode).toLowerCase()}`,
                 },
               ]
-            : undefined
+            : []
         }
         confirmerLabel={demande?.type === "suppression" ? "Supprimer" : "Confirmer"}
         danger={demande?.type === "suppression"}
