@@ -224,6 +224,112 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  /** Déplace une enveloppe d'un cran vers le haut ou le bas dans sa catégorie. */
+  const deplacerEnveloppe = useCallback((id: string, sens: "haut" | "bas") => {
+    setEtat((e) => {
+      const liste = [...e.enveloppes];
+      const index = liste.findIndex((x) => x.id === id);
+      if (index < 0) return e;
+      const cat = (liste[index].categorie ?? "").trim();
+      const memeCat = (x: Enveloppe) => (x.categorie ?? "").trim() === cat;
+      let voisin = -1;
+      if (sens === "haut") {
+        for (let i = index - 1; i >= 0; i -= 1) if (memeCat(liste[i])) { voisin = i; break; }
+      } else {
+        for (let i = index + 1; i < liste.length; i += 1) if (memeCat(liste[i])) { voisin = i; break; }
+      }
+      if (voisin < 0) return e;
+      [liste[index], liste[voisin]] = [liste[voisin], liste[index]];
+      return { ...e, enveloppes: liste };
+    });
+  }, []);
+
+  const ajouterCategorie = useCallback((nom: string) => {
+    setEtat((e) =>
+      e.categories.some((c) => c.nom === nom)
+        ? e
+        : { ...e, categories: [...e.categories, { id: crypto.randomUUID(), nom, sousCategories: [] }] },
+    );
+  }, []);
+
+  const renommerCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) => (c.id === id ? { ...c, nom } : c)),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom ? { ...x, categorie: nom } : x,
+        ),
+      };
+    });
+  }, []);
+
+  const supprimerCategorie = useCallback((id: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.filter((c) => c.id !== id),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom ? { ...x, categorie: "", sousCategorie: "" } : x,
+        ),
+      };
+    });
+  }, []);
+
+  const ajouterSousCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => ({
+      ...e,
+      categories: e.categories.map((c) =>
+        c.id === id && !c.sousCategories.includes(nom)
+          ? { ...c, sousCategories: [...c.sousCategories, nom] }
+          : c,
+      ),
+    }));
+  }, []);
+
+  const renommerSousCategorie = useCallback((id: string, ancien: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) =>
+          c.id === id
+            ? { ...c, sousCategories: c.sousCategories.map((s) => (s === ancien ? nom : s)) }
+            : c,
+        ),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom && (x.sousCategorie ?? "") === ancien
+            ? { ...x, sousCategorie: nom }
+            : x,
+        ),
+      };
+    });
+  }, []);
+
+  const supprimerSousCategorie = useCallback((id: string, nom: string) => {
+    setEtat((e) => {
+      const cible = e.categories.find((c) => c.id === id);
+      if (!cible) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) =>
+          c.id === id ? { ...c, sousCategories: c.sousCategories.filter((s) => s !== nom) } : c,
+        ),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === cible.nom && (x.sousCategorie ?? "") === nom
+            ? { ...x, sousCategorie: "" }
+            : x,
+        ),
+      };
+    });
+  }, []);
+
+
   const ajouterBudget = useCallback((b: Omit<Budget, "id">) => {
     setEtat((e) => ({ ...e, budgets: [{ ...b, id: crypto.randomUUID() }, ...e.budgets] }));
   }, []);
