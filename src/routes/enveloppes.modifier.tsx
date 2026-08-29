@@ -209,7 +209,15 @@ function ModifierEnveloppe() {
                       id={`categorie-${e.id}`}
                       value={eCategorie}
                       onChange={(ev) => {
-                        setECategorie(ev.target.value);
+                        const valeur = ev.target.value;
+                        if (valeur && !listeCategories.some((c) => c.nom === valeur)) {
+                          setErreur(
+                            `La catégorie « ${valeur} » n'existe pas dans la liste. Choisissez une catégorie proposée ou créez-la depuis « Gérer les catégories et sous-catégories ».`
+                          );
+                          ev.target.value = eCategorie;
+                          return;
+                        }
+                        setECategorie(valeur);
                         setESousCategorie("");
                       }}
                       className={champ}
@@ -229,7 +237,17 @@ function ModifierEnveloppe() {
                     <select
                       id={`sous-categorie-${e.id}`}
                       value={eSousCategorie}
-                      onChange={(ev) => setESousCategorie(ev.target.value)}
+                      onChange={(ev) => {
+                        const valeur = ev.target.value;
+                        if (valeur && !sousCategories.includes(valeur)) {
+                          setErreur(
+                            `La sous-catégorie « ${valeur} » n'existe pas dans la catégorie « ${eCategorie.trim()} ». Choisissez une sous-catégorie proposée dans la liste.`
+                          );
+                          ev.target.value = eSousCategorie;
+                          return;
+                        }
+                        setESousCategorie(valeur);
+                      }}
                       disabled={!categorieChoisie || sousCategories.length === 0}
                       className={champ}
                     >
