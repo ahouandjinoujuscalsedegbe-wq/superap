@@ -6,9 +6,9 @@ export interface ConfirmationProps {
   titre: string;
   message: string;
   /** Aperçu détaillé des champs concernés, affiché avant validation. */
-  details?: { label: string; avant?: string; apres: string }[];
+  details?: { label: string; avant?: string | undefined; apres: string }[] | undefined;
   confirmerLabel?: string;
-  danger?: boolean;
+  danger?: boolean | undefined;
   onConfirmer: () => void;
   onAnnuler: () => void;
 }
@@ -43,7 +43,7 @@ export function Confirmation({
       role="alertdialog"
       aria-modal="true"
       aria-label={titre}
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
       onClick={onAnnuler}
     >
       <div

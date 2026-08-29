@@ -78,6 +78,33 @@ export type Budget = {
   actif: boolean;
 };
 
+export type Remboursement = {
+  id: string;
+  montant: number;
+  date: string;
+  note?: string | undefined;
+};
+
+export type Dette = {
+  id: string;
+  /** Personne concernée (prêteur ou emprunteur). */
+  personne: string;
+  /** "dette" = je dois ; "creance" = on me doit. */
+  sens: "dette" | "creance";
+  montantInitial: number;
+  note?: string | undefined;
+  /** Date limite de remboursement (YYYY-MM-DD), optionnelle. */
+  dateLimite?: string | undefined;
+  creeLe: string;
+  remboursements: Remboursement[];
+};
+
+/** Montant restant dû sur une dette ou créance. */
+export function resteDu(d: Dette): number {
+  const rembourse = d.remboursements.reduce((s, r) => s + r.montant, 0);
+  return Math.max(0, d.montantInitial - rembourse);
+}
+
 export const COMPTES = [
   "Espèces",
   "Banque",
@@ -114,6 +141,7 @@ type Etat = {
   comptes: string[];
   transferts: Transfert[];
   budgets: Budget[];
+  dettes: Dette[];
   transparence: number;
 };
 
@@ -124,6 +152,7 @@ const ETAT_INITIAL: Etat = {
   comptes: [...COMPTES],
   transferts: [],
   budgets: [],
+  dettes: [],
   transparence: 85,
 };
 
@@ -154,6 +183,11 @@ type Contexte = Etat & {
   genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
+  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">) => void;
+  modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
+  supprimerDette: (id: string) => void;
+  ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">) => void;
+  supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
   reinitialiser: () => void;
   totalRevenus: number;
@@ -487,6 +521,66 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, budgets: e.budgets.filter((b) => b.id !== id) }));
   }, []);
 
+  const ajouterDette = useCallback((d: Omit<Dette, "id" | "creeLe" | "remboursements">) => {
+    setEtat((e) => ({
+      ...e,
+      dettes: [
+        {
+          ...d,
+          id: crypto.randomUUID(),
+          creeLe: new Date().toISOString().slice(0, 10),
+          remboursements: [],
+        },
+        ...e.dettes,
+      ],
+    }));
+  }, []);
+
+  const modifierDette = useCallback(
+    (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
+      setEtat((e) => ({
+        ...e,
+        dettes: e.dettes.map((x) => (x.id === id ? { ...x, ...d } : x)),
+      }));
+    },
+    [],
+  );
+
+  const supprimerDette = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, dettes: e.dettes.filter((x) => x.id !== id) }));
+  }, []);
+
+  const ajouterRemboursement = useCallback(
+    (detteId: string, r: Omit<Remboursement, "id">) => {
+      setEtat((e) => ({
+        ...e,
+        dettes: e.dettes.map((x) =>
+          x.id === detteId
+            ? {
+                ...x,
+                remboursements: [
+                  ...x.remboursements,
+                  { ...r, id: crypto.randomUUID() },
+                ].sort((a, b) => a.date.localeCompare(b.date)),
+              }
+            : x,
+        ),
+      }));
+    },
+    [],
+  );
+
+  const supprimerRemboursement = useCallback((detteId: string, remboursementId: string) => {
+    setEtat((e) => ({
+      ...e,
+      dettes: e.dettes.map((x) =>
+        x.id === detteId
+          ? { ...x, remboursements: x.remboursements.filter((r) => r.id !== remboursementId) }
+          : x,
+      ),
+    }));
+  }, []);
+
   const definirTransparence = useCallback((v: number) => {
     setEtat((e) => ({ ...e, transparence: v }));
   }, []);
@@ -520,6 +614,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       genererEcheancesDues,
       modifierBudget,
       supprimerBudget,
+      ajouterDette,
+      modifierDette,
+      supprimerDette,
+      ajouterRemboursement,
+      supprimerRemboursement,
       definirTransparence,
       reinitialiser,
     }),
@@ -549,6 +648,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       genererEcheancesDues,
       modifierBudget,
       supprimerBudget,
+      ajouterDette,
+      modifierDette,
+      supprimerDette,
+      ajouterRemboursement,
+      supprimerRemboursement,
       definirTransparence,
       reinitialiser,
     ],
