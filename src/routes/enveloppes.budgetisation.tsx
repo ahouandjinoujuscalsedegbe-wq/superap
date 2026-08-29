@@ -424,19 +424,19 @@ function Budgetisation() {
             ? [
                 { label: "Dépense", avant: "—", apres: demande.libelle },
                 {
-                  champ: "Période",
+                  label: "Période",
                   avant: libellePeriode(periode),
                   apres: libellePlage({ debut: demande.debut, fin: demande.fin }),
                 },
                 { label: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
                 {
-                  champ: "Enveloppe",
+                  label: "Enveloppe",
                   avant: "—",
                   apres: enveloppes.find((e) => e.id === demande.enveloppeId)?.nom ?? "—",
                 },
                 { label: "Compte débité", avant: "—", apres: demande.compte },
                 {
-                  champ: "Répétition",
+                  label: "Répétition",
                   avant: "—",
                   apres: demande.ponctuel ? "Une seule fois" : `À chaque ${libellePeriode(periode).toLowerCase()}`,
                 },
