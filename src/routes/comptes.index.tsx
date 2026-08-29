@@ -51,6 +51,7 @@ function Comptes() {
   const [nouveauCompte, setNouveauCompte] = useState("");
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [nomEdite, setNomEdite] = useState("");
+  const [demande, setDemande] = useState<DemandeCompte>(null);
 
   const [source, setSource] = useState(comptes[0] ?? "");
   const [destination, setDestination] = useState(comptes[1] ?? "");
