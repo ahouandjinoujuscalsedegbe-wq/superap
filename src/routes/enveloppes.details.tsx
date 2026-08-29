@@ -165,20 +165,34 @@ export function CarteEnveloppe({
           {e.nom}
         </span>
         <span
-          className={`text-sm font-semibold ${
-            etat.epuisee || depasse ? "text-destructive" : "text-muted-foreground"
+          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+            depasse
+              ? "bg-destructive/15 text-destructive"
+              : pourcentage >= 80
+                ? "bg-amber-500/15 text-amber-600"
+                : "bg-primary/15 text-primary"
           }`}
         >
-          {formatFCFA(etat.restant)} restants
+          {Math.round(pourcentage)} % du plafond
+        </span>
+      </div>
+      <div className="mt-2 flex items-baseline justify-between gap-2">
+        <span className="text-xs text-muted-foreground">Solde restant</span>
+        <span
+          className={`text-base font-bold ${
+            etat.epuisee || depasse ? "text-destructive" : "text-foreground"
+          }`}
+        >
+          {formatFCFA(etat.restant)}
         </span>
       </div>
       <div
-        className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-secondary"
+        className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary"
         role="progressbar"
         aria-valuenow={Math.round(pourcentage)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Consommation de l'enveloppe ${e.nom}`}
+        aria-label={`Consommation du plafond de l'enveloppe ${e.nom} : ${Math.round(pourcentage)} %`}
       >
         <div
           className={`h-full rounded-full transition-all duration-500 ${
@@ -187,6 +201,10 @@ export function CarteEnveloppe({
           style={{ width: `${pourcentage}%` }}
         />
       </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        {formatFCFA(utilise)} dépensés sur un plafond de {formatFCFA(e.plafond)} ·{" "}
+        {formatFCFA(etat.avantPlafond)} avant la zone rouge
+      </p>
 
       {depasse && (
         <p
