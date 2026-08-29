@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
+import { Route as RevenuRouteImport } from './routes/revenu'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const EnveloppesRoute = EnveloppesRouteImport.update({
   path: '/enveloppes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RevenuRoute = RevenuRouteImport.update({
+  id: '/revenu',
+  path: '/revenu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/revenu': typeof RevenuRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/enveloppes'
+  fullPaths: '/' | '/enveloppes' | '/revenu'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/enveloppes'
-  id: '__root__' | '/' | '/enveloppes'
+  to: '/' | '/enveloppes' | '/revenu'
+  id: '__root__' | '/' | '/enveloppes' | '/revenu'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EnveloppesRoute: typeof EnveloppesRoute
+  RevenuRoute: typeof RevenuRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/revenu': {
+      id: '/revenu'
+      path: '/revenu'
+      fullPath: '/revenu'
+      preLoaderRoute: typeof RevenuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EnveloppesRoute: EnveloppesRoute,
+  RevenuRoute: RevenuRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

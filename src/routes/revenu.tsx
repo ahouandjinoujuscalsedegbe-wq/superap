@@ -30,7 +30,7 @@ function AjouterRevenu() {
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
-  const [source, setSource] = useState(sourcesRevenu[0]);
+  const [source, setSource] = useState<string>(sourcesRevenu[0] ?? "Autre");
   const [compte, setCompte] = useState<string>(COMPTES[0]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
