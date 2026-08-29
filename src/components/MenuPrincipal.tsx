@@ -11,12 +11,14 @@ import {
   HandCoins,
   ScanText,
   Stethoscope,
+  CalendarRange,
 } from "lucide-react";
 
 const ENTREES = [
   { to: "/saisie", label: "Saisie intelligente", icone: ScanText },
   { to: "/comptes", label: "Comptes", icone: Landmark },
   { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
+  { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/outils", label: "Outils et Simulation", icone: Calculator },
   { to: "/parametres", label: "Paramètres", icone: Settings },
