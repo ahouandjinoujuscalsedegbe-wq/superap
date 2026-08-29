@@ -193,7 +193,11 @@ type Contexte = Etat & {
   ) => void;
   modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
   supprimerDette: (id: string) => void;
-  ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">) => void;
+  ajouterRemboursement: (
+    detteId: string,
+    r: Omit<Remboursement, "id">,
+    compte?: string,
+  ) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
   reinitialiser: () => void;
