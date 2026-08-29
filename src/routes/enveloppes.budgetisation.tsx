@@ -5,6 +5,7 @@ import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
+import { Confirmation } from "@/components/Confirmation";
 
 export const Route = createFileRoute("/enveloppes/budgetisation")({
   head: () => ({
@@ -40,6 +41,14 @@ function Budgetisation() {
     genererEcheancesDues,
     supprimerBudget,
   } = useSuperApp();
+
+  type Demande =
+    | { type: "creation"; libelle: string; enveloppeId: string; montant: number; compte: string; prochaine: string }
+    | { type: "conversion-tout"; nb: number; montant: number }
+    | { type: "conversion-un"; id: string; libelle: string; montant: number }
+    | { type: "suppression"; id: string; libelle: string }
+    | null;
+  const [demande, setDemande] = useState<Demande>(null);
 
   const [periode, setPeriode] = useState<Periode>("mois");
   const [bLibelle, setBLibelle] = useState("");
