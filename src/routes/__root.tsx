@@ -137,6 +137,7 @@ function RootComponent() {
         </div>
         <MenuPrincipal />
         <BottomNav />
+        <ClavierInterne />
         <Toaster position="top-center" richColors />
       </SuperAppProvider>
     </QueryClientProvider>
