@@ -603,13 +603,53 @@ function Budgetisation() {
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  {periodique === true ? "Quel est le jour de la première dépense ?" : "Quel jour ?"}
+                  {periodique === true
+                    ? "Quel est le jour de la première dépense ?"
+                    : "Quel jour aura lieu cette dépense ?"}
                 </p>
-                <Calendrier valeur={debut} onSelection={setDebut} plage={{ debut, fin }} />
+                <button
+                  type="button"
+                  onClick={() => setCalendrierOuvert((v) => !v)}
+                  aria-expanded={calendrierOuvert}
+                  className="flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-background/60 px-3 py-2.5 text-left text-sm"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CalendarDays aria-hidden className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{jourLong(debut)}</span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${calendrierOuvert ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {calendrierOuvert && (
+                  <Calendrier
+                    valeur={debut}
+                    onSelection={(j) => {
+                      setDebut(j);
+                      setCalendrierOuvert(false);
+                    }}
+                    plage={{ debut, fin }}
+                  />
+                )}
+                {periodique === true && (
+                  <p className="text-xs text-muted-foreground">
+                    Les échéances suivantes seront calculées à partir de ce premier versement.
+                  </p>
+                )}
                 <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
                   Période couverte : <span className="font-semibold">{libellePlage({ debut, fin })}</span>
+                  {periodique === true && frequence && duree && (
+                    <>
+                      {" · "}
+                      <span className="font-semibold">
+                        {occurrencesPrevues} échéance{occurrencesPrevues > 1 ? "s" : ""}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
+
 
               <div className="flex gap-2">
                 <button
