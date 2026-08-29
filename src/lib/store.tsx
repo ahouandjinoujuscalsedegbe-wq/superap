@@ -82,7 +82,7 @@ export type Remboursement = {
   id: string;
   montant: number;
   date: string;
-  note?: string;
+  note?: string | undefined;
 };
 
 export type Dette = {
@@ -92,9 +92,9 @@ export type Dette = {
   /** "dette" = je dois ; "creance" = on me doit. */
   sens: "dette" | "creance";
   montantInitial: number;
-  note?: string;
+  note?: string | undefined;
   /** Date limite de remboursement (YYYY-MM-DD), optionnelle. */
-  dateLimite?: string;
+  dateLimite?: string | undefined;
   creeLe: string;
   remboursements: Remboursement[];
 };

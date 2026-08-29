@@ -71,8 +71,8 @@ function PageDettes() {
   const [confirmation, setConfirmation] = useState<{
     titre: string;
     message: string;
-    details?: { label: string; avant?: string; apres: string }[];
-    danger?: boolean;
+    details?: { label: string; avant?: string | undefined; apres: string }[] | undefined;
+    danger?: boolean | undefined;
     action: () => void;
   } | null>(null);
   const [erreur, setErreur] = useState("");
