@@ -170,7 +170,7 @@ export function ClavierInterne() {
 
         {mode === "numerique" ? (
           <div className="grid grid-cols-3 gap-1.5">
-            {TOUCHES_NUM.map((t) => (
+            {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
               <Touche key={t} onClick={() => taper(t)} label={t} />
             ))}
             <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
