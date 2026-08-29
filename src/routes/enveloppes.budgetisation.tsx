@@ -257,10 +257,7 @@ function Budgetisation() {
             </p>
             <button
               type="button"
-              onClick={() => {
-                genererEcheancesDues();
-                toast.success("Dépenses réelles générées.");
-              }}
+              onClick={() => setDemande({ type: "conversion-tout", nb: nbDues, montant: montantDu })}
               className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
             >
               Convertir en dépenses réelles

@@ -14,6 +14,10 @@ export type Enveloppe = {
   nom: string;
   emoji: string;
   plafond: number;
+  /** Catégorie de classement, ex. « Transport », « Factures ». */
+  categorie?: string;
+  /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
+  sousCategorie?: string;
 };
 
 export type Transaction = {
