@@ -128,7 +128,6 @@ function ModifierEnveloppe() {
   return (
     <div className="space-y-5">
       <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
-      <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Modifier une enveloppe existante</h1>
