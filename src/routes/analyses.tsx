@@ -515,6 +515,249 @@ function Analyses() {
         </section>
       )}
 
+      <section className="carte space-y-3 p-4">
+        <h2 className="font-semibold">Comparaison des 12 derniers mois</h2>
+        <div className="flex items-end justify-between gap-1">
+          {douzeMois.map((m) => (
+            <div key={m.mois} className="flex flex-1 flex-col items-center gap-1">
+              <div className="flex h-20 w-full items-end justify-center gap-[2px]">
+                <div
+                  className="w-1.5 rounded-t bg-success"
+                  style={{ height: `${(m.revenus / maxMois) * 100}%` }}
+                  title={`Revenus : ${formatFCFA(m.revenus)}`}
+                />
+                <div
+                  className="w-1.5 rounded-t bg-destructive"
+                  style={{ height: `${(m.depenses / maxMois) * 100}%` }}
+                  title={`Dépenses : ${formatFCFA(m.depenses)}`}
+                />
+              </div>
+              <span className="text-[8px] text-muted-foreground">{m.label}</span>
+            </div>
+          ))}
+        </div>
+        <ul className="divide-y divide-border text-xs">
+          {douzeMois
+            .filter((m) => m.revenus > 0 || m.depenses > 0)
+            .slice(-4)
+            .reverse()
+            .map((m) => (
+              <li key={m.mois} className="flex items-center justify-between gap-2 py-1.5">
+                <span className="font-medium">{m.label}</span>
+                <span className="text-muted-foreground">
+                  {formatFCFA(m.revenus)} / {formatFCFA(m.depenses)}
+                </span>
+                <span
+                  className={`font-semibold ${m.net >= 0 ? "text-success" : "text-destructive"}`}
+                >
+                  {m.net >= 0 ? "+" : ""}
+                  {formatFCFA(m.net)}
+                </span>
+              </li>
+            ))}
+        </ul>
+      </section>
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Vos jours de dépense</h2>
+        {joursSemaine.every((j) => j.montant === 0) ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune dépense sur cette période pour analyser les jours de la semaine.
+          </p>
+        ) : (
+          <>
+            <ul className="space-y-1.5 text-sm">
+              {joursSemaine.map((j) => (
+                <li key={j.index} className="flex items-center gap-2">
+                  <span className="w-20 shrink-0 text-xs">{j.nom}</span>
+                  <span className="h-2 flex-1 rounded-full bg-muted">
+                    <span
+                      className="block h-2 rounded-full bg-primary"
+                      style={{ width: `${(j.montant / maxJour) * 100}%` }}
+                    />
+                  </span>
+                  <span className="w-12 shrink-0 text-right text-xs font-semibold">{j.part} %</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              Jour le plus dépensier :{" "}
+              <strong>
+                {[...joursSemaine].sort((a, b) => b.montant - a.montant)[0]?.nom ?? "—"}
+              </strong>
+              .
+            </p>
+          </>
+        )}
+      </section>
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Réalisation des budgets planifiés</h2>
+        {realisation.lignes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucun budget planifié. Rendez-vous dans Enveloppes → Budgétisation.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Taux global de réalisation : <strong>{realisation.tauxGlobal} %</strong>
+            </p>
+            <ul className="space-y-2 text-sm">
+              {realisation.lignes.slice(0, 8).map((l) => (
+                <li key={l.id} className="rounded-xl border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium">{l.libelle}</span>
+                    <span
+                      className={`shrink-0 text-xs font-semibold ${
+                        l.taux > 100 ? "text-destructive" : "text-primary"
+                      }`}
+                    >
+                      {l.taux} %
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-muted">
+                    <div
+                      className={`h-2 rounded-full ${l.taux > 100 ? "bg-destructive" : "bg-primary"}`}
+                      style={{ width: `${Math.min(100, l.taux)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {l.enveloppe} · prévu {formatFCFA(l.prevu)} · réalisé {formatFCFA(l.realise)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Vos sources de revenus</h2>
+        {sources.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun revenu sur cette période.</p>
+        ) : (
+          <ul className="space-y-1.5 text-sm">
+            {sources.map((s) => (
+              <li key={s.nom} className="flex items-center justify-between gap-2">
+                <span className="truncate">
+                  {s.nom} <span className="text-xs text-muted-foreground">({s.operations})</span>
+                </span>
+                <span className="shrink-0 font-semibold text-success">
+                  {formatFCFA(s.montant)} · {s.part} %
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {recurrentes.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <h2 className="font-semibold">Dépenses récurrentes détectées</h2>
+          <ul className="divide-y divide-border text-sm">
+            {recurrentes.slice(0, 6).map((r) => (
+              <li key={r.libelle} className="flex items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{r.libelle}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.occurrences} fois · moyenne {formatFCFA(r.montantMoyen)} · dernière le{" "}
+                    {formatDateFr(r.derniere)}
+                  </p>
+                </div>
+                <span className="shrink-0 font-semibold text-destructive">
+                  {formatFCFA(r.total)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="carte space-y-2 p-4">
+        <h2 className="font-semibold">Comparaison à votre moyenne</h2>
+        {moyenne.moisComptes === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Pas encore assez d'historique pour calculer une moyenne mensuelle.
+          </p>
+        ) : (
+          <p className="text-sm">
+            Ce mois-ci : <strong>{formatFCFA(moyenne.moisCourant)}</strong> · moyenne des{" "}
+            {moyenne.moisComptes} derniers mois : <strong>{formatFCFA(moyenne.moyenne)}</strong>.
+            <br />
+            <span
+              className={`font-semibold ${
+                moyenne.ecart > 0 ? "text-destructive" : "text-success"
+              }`}
+            >
+              {moyenne.ecart > 0 ? "+" : ""}
+              {formatFCFA(moyenne.ecart)}
+              {moyenne.pourcentage !== null
+                ? ` (${moyenne.pourcentage > 0 ? "+" : ""}${moyenne.pourcentage} %)`
+                : ""}
+            </span>{" "}
+            par rapport à votre habitude.
+          </p>
+        )}
+      </section>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="font-semibold">Objectif d'épargne du mois</h2>
+        <label className="block text-xs text-muted-foreground" htmlFor="objectif-epargne">
+          Montant que vous souhaitez épargner ce mois-ci (FCFA)
+        </label>
+        <input
+          id="objectif-epargne"
+          inputMode="numeric"
+          value={objectif === 0 ? "" : String(objectif)}
+          onChange={(e) => enregistrerObjectif(Number(e.target.value.replace(/\D/g, "")) || 0)}
+          placeholder="Ex. 50000"
+          className="w-full rounded-xl border border-border bg-background p-3 text-sm"
+        />
+        {objectif > 0 && (
+          <>
+            <div className="h-2 rounded-full bg-muted">
+              <div
+                className={`h-2 rounded-full ${
+                  objectifSuivi.atteint ? "bg-success" : "bg-primary"
+                }`}
+                style={{ width: `${Math.min(100, objectifSuivi.progression)}%` }}
+              />
+            </div>
+            <p className="text-sm">
+              Épargne réelle : <strong>{formatFCFA(objectifSuivi.epargneReelle)}</strong> ·{" "}
+              {objectifSuivi.progression} % de l'objectif.{" "}
+              {objectifSuivi.atteint
+                ? "🎉 Objectif atteint, bravo !"
+                : `Il reste ${formatFCFA(objectifSuivi.manque)} à épargner.`}
+            </p>
+          </>
+        )}
+      </section>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="font-semibold">Historique du score de santé</h2>
+        <div className="flex items-end justify-between gap-2">
+          {scores.map((s) => (
+            <div key={s.mois} className="flex flex-1 flex-col items-center gap-1">
+              <span className="text-[10px] font-semibold">{s.score}</span>
+              <div className="flex h-20 w-full items-end justify-center">
+                <div
+                  className={`w-3 rounded-t ${
+                    s.score >= 60 ? "bg-success" : s.score >= 40 ? "bg-primary" : "bg-destructive"
+                  }`}
+                  style={{ height: `${s.score}%` }}
+                  title={`${s.label} : ${s.score}/100`}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{s.label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Score mensuel calculé à partir de votre taux d'épargne du mois.
+        </p>
+      </section>
+
       <section className="space-y-2">
         <h2 className="px-1 font-semibold">Conseils personnalisés</h2>
         {diagnostic.conseils.map((c) => (
