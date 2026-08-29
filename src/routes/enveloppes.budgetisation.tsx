@@ -257,10 +257,7 @@ function Budgetisation() {
             </p>
             <button
               type="button"
-              onClick={() => {
-                genererEcheancesDues();
-                toast.success("Dépenses réelles générées.");
-              }}
+              onClick={() => setDemande({ type: "conversion-tout", nb: nbDues, montant: montantDu })}
               className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
             >
               Convertir en dépenses réelles
@@ -292,10 +289,14 @@ function Budgetisation() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => {
-                        convertirBudget(b.id);
-                        toast.success("Dépense réelle créée.");
-                      }}
+                      onClick={() =>
+                        setDemande({
+                          type: "conversion-un",
+                          id: b.id,
+                          libelle: b.libelle,
+                          montant: b.montant,
+                        })
+                      }
                       className="mt-1.5 rounded-lg border border-input px-2.5 py-1 text-xs font-medium"
                     >
                       Convertir maintenant
@@ -305,7 +306,7 @@ function Budgetisation() {
                     <span className="text-sm font-semibold">{formatFCFA(b.montant)}</span>
                     <button
                       type="button"
-                      onClick={() => supprimerBudget(b.id)}
+                      onClick={() => setDemande({ type: "suppression", id: b.id, libelle: b.libelle })}
                       aria-label={`Supprimer ${b.libelle}`}
                       className="rounded-lg border border-input px-2 py-1 text-xs text-destructive"
                     >
@@ -318,6 +319,32 @@ function Budgetisation() {
           </ul>
         )}
       </section>
+
+      <Confirmation
+        ouvert={demande !== null}
+        titre={
+          demande?.type === "suppression"
+            ? "Supprimer cette dépense planifiée ?"
+            : demande?.type === "creation"
+              ? "Confirmer la planification"
+              : "Confirmer la conversion"
+        }
+        message={
+          demande?.type === "suppression"
+            ? `La dépense planifiée « ${demande.libelle} » sera supprimée définitivement.`
+            : demande?.type === "creation"
+              ? `Planifier « ${demande.libelle} » de ${formatFCFA(demande.montant)} (${libellePeriode(periode).toLowerCase()}) sur le compte ${demande.compte} ?`
+              : demande?.type === "conversion-un"
+                ? `Créer une dépense réelle de ${formatFCFA(demande.montant)} pour « ${demande.libelle} » ?`
+                : demande
+                  ? `${demande.nb} échéance${demande.nb > 1 ? "s" : ""} seront converties en dépenses réelles pour un total de ${formatFCFA(demande.montant)}.`
+                  : ""
+        }
+        confirmerLabel={demande?.type === "suppression" ? "Supprimer" : "Confirmer"}
+        danger={demande?.type === "suppression"}
+        onConfirmer={confirmer}
+        onAnnuler={() => setDemande(null)}
+      />
     </div>
   );
 }

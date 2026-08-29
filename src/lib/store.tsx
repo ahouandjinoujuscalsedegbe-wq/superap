@@ -14,6 +14,10 @@ export type Enveloppe = {
   nom: string;
   emoji: string;
   plafond: number;
+  /** Catégorie de classement, ex. « Transport », « Factures ». */
+  categorie?: string;
+  /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
+  sousCategorie?: string;
 };
 
 export type Transaction = {
@@ -67,12 +71,12 @@ export const COMPTES = [
 ] as const;
 
 export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
-  { id: "vitaux", nom: "Besoins vitaux", emoji: "🍚", plafond: 150000 },
-  { id: "transport", nom: "Transport", emoji: "🛵", plafond: 40000 },
-  { id: "maison", nom: "Maison & Factures", emoji: "🏠", plafond: 60000 },
-  { id: "epargne", nom: "Épargne", emoji: "🐖", plafond: 50000 },
-  { id: "envies", nom: "Projets & Envies", emoji: "✨", plafond: 30000 },
-  { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000 },
+  { id: "vitaux", nom: "Besoins vitaux", emoji: "🍚", plafond: 150000, categorie: "Alimentation", sousCategorie: "Marché" },
+  { id: "transport", nom: "Transport", emoji: "🛵", plafond: 40000, categorie: "Transport", sousCategorie: "Carburant" },
+  { id: "maison", nom: "Maison & Factures", emoji: "🏠", plafond: 60000, categorie: "Factures", sousCategorie: "Facture SBEE" },
+  { id: "epargne", nom: "Épargne", emoji: "🐖", plafond: 50000, categorie: "Épargne", sousCategorie: "Tontine" },
+  { id: "envies", nom: "Projets & Envies", emoji: "✨", plafond: 30000, categorie: "Famille", sousCategorie: "Cadeaux" },
+  { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, categorie: "Santé", sousCategorie: "Pharmacie" },
 ];
 
 const SOURCES_REVENU = ["Salaire", "Activité", "Aide famille", "Prime", "Autre"];

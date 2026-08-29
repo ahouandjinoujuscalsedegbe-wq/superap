@@ -3,6 +3,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
+import { Confirmation } from "@/components/Confirmation";
+
+type DemandeCompte =
+  | { type: "creation"; nom: string }
+  | { type: "renommage"; ancien: string; nom: string }
+  | { type: "suppression"; nom: string }
+  | { type: "transfert"; source: string; destination: string; montant: number; note: string }
+  | { type: "suppression-transfert"; id: string; libelle: string }
+  | null;
 
 export const Route = createFileRoute("/comptes/")({
   head: () => ({
@@ -42,6 +51,7 @@ function Comptes() {
   const [nouveauCompte, setNouveauCompte] = useState("");
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [nomEdite, setNomEdite] = useState("");
+  const [demande, setDemande] = useState<DemandeCompte>(null);
 
   const [source, setSource] = useState(comptes[0] ?? "");
   const [destination, setDestination] = useState(comptes[1] ?? "");
@@ -75,18 +85,14 @@ function Comptes() {
     if (!nom) { toast.error("Donnez un nom au compte."); return; }
     if (comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
     if (nom.length > 30) { toast.error("Nom trop long (30 caractères maximum)."); return; }
-    ajouterCompte(nom);
-    setNouveauCompte("");
-    toast.success(`Compte « ${nom} » ajouté.`);
+    setDemande({ type: "creation", nom });
   }
 
   function validerEdition(ancien: string) {
     const nom = nomEdite.trim();
     if (!nom) { toast.error("Le nom ne peut pas être vide."); return; }
     if (nom !== ancien && comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
-    renommerCompte(ancien, nom);
-    setEnEdition(null);
-    toast.success("Compte modifié.");
+    setDemande({ type: "renommage", ancien, nom });
   }
 
   function retirerCompte(nom: string) {
@@ -100,8 +106,7 @@ function Comptes() {
       toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
       return;
     }
-    supprimerCompte(nom);
-    toast.success("Compte supprimé.");
+    setDemande({ type: "suppression", nom });
   }
 
   function faireTransfert(ev: React.FormEvent) {
@@ -118,17 +123,76 @@ function Comptes() {
       );
       return;
     }
-    ajouterTransfert({
-      source,
-      destination,
-      montant: valeur,
-      note: note.trim(),
-      date: new Date().toISOString(),
-    });
-    setMontant("");
-    setNote("");
-    toast.success("Transfert enregistré.");
+    setDemande({ type: "transfert", source, destination, montant: valeur, note: note.trim() });
   }
+
+  function confirmerDemande() {
+    if (!demande) return;
+    if (demande.type === "creation") {
+      ajouterCompte(demande.nom);
+      setNouveauCompte("");
+      toast.success(`Compte « ${demande.nom} » ajouté.`);
+    } else if (demande.type === "renommage") {
+      renommerCompte(demande.ancien, demande.nom);
+      setEnEdition(null);
+      toast.success("Compte modifié.");
+    } else if (demande.type === "suppression") {
+      supprimerCompte(demande.nom);
+      toast.success("Compte supprimé.");
+    } else if (demande.type === "transfert") {
+      ajouterTransfert({
+        source: demande.source,
+        destination: demande.destination,
+        montant: demande.montant,
+        note: demande.note,
+        date: new Date().toISOString(),
+      });
+      setMontant("");
+      setNote("");
+      toast.success("Transfert enregistré.");
+    } else {
+      supprimerTransfert(demande.id);
+      toast.success("Transfert supprimé.");
+    }
+    setDemande(null);
+  }
+
+  function titreDemande() {
+    switch (demande?.type) {
+      case "creation":
+        return "Confirmer la création du compte";
+      case "renommage":
+        return "Confirmer la modification";
+      case "suppression":
+        return "Supprimer ce compte ?";
+      case "transfert":
+        return "Confirmer le transfert";
+      case "suppression-transfert":
+        return "Supprimer ce transfert ?";
+      default:
+        return "";
+    }
+  }
+
+  function messageDemande() {
+    switch (demande?.type) {
+      case "creation":
+        return `Le compte « ${demande.nom} » sera ajouté à votre liste.`;
+      case "renommage":
+        return `Le compte « ${demande.ancien} » sera renommé « ${demande.nom} ».`;
+      case "suppression":
+        return `Le compte « ${demande.nom} » sera définitivement supprimé. Cette action est irréversible.`;
+      case "transfert":
+        return `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} ?`;
+      case "suppression-transfert":
+        return `Le transfert ${demande.libelle} sera supprimé et les soldes recalculés.`;
+      default:
+        return "";
+    }
+  }
+
+  const dangerDemande =
+    demande?.type === "suppression" || demande?.type === "suppression-transfert";
 
   return (
     <div className="space-y-5">
@@ -341,7 +405,13 @@ function Comptes() {
                   <span className="text-sm font-semibold">{formatFCFA(t.montant)}</span>
                   <button
                     type="button"
-                    onClick={() => supprimerTransfert(t.id)}
+                    onClick={() =>
+                      setDemande({
+                        type: "suppression-transfert",
+                        id: t.id,
+                        libelle: `${t.source} → ${t.destination} (${formatFCFA(t.montant)})`,
+                      })
+                    }
                     aria-label="Supprimer le transfert"
                     className="rounded-lg border border-input px-2 py-1 text-xs text-destructive"
                   >
@@ -353,6 +423,16 @@ function Comptes() {
           </ul>
         )}
       </section>
+
+      <Confirmation
+        ouvert={demande !== null}
+        titre={titreDemande()}
+        message={messageDemande()}
+        confirmerLabel={dangerDemande ? "Supprimer" : "Confirmer"}
+        danger={dangerDemande}
+        onConfirmer={confirmerDemande}
+        onAnnuler={() => setDemande(null)}
+      />
     </div>
   );
 }
