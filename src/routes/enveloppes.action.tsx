@@ -6,6 +6,7 @@ import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
+import { ErreurPopup } from "@/components/ErreurPopup";
 import { grouperParCategorie } from "@/lib/categories";
 
 export const Route = createFileRoute("/enveloppes/action")({
@@ -334,6 +335,8 @@ function ActionEnveloppes() {
           </div>
         </div>
       )}
+
+      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
 
       <Confirmation
         ouvert={confirmation !== null}
