@@ -15,6 +15,8 @@ export type Enveloppe = {
   nom: string;
   emoji: string;
   plafond: number;
+  /** Somme attribuée à l'enveloppe ; elle diminue à chaque dépense. */
+  dotation?: number;
   /** Catégorie de classement, ex. « Transport », « Factures ». */
   categorie?: string;
   /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
