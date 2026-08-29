@@ -113,10 +113,6 @@ export function ClavierInterne() {
       setNumeriqueForce(numerique);
       setMajuscule(false);
       setOuvert(true);
-      window.setTimeout(
-        () => cible.scrollIntoView({ block: "center", behavior: "smooth" }),
-        120,
-      );
     };
     const onFocusOut = (ev: FocusEvent) => {
       const suivant = ev.relatedTarget as Element | null;
@@ -168,6 +164,7 @@ export function ClavierInterne() {
 
   return (
     <div
+      ref={clavierRef}
       data-clavier-interne
       onMouseDown={(e) => e.preventDefault()}
       className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/98 p-2 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] backdrop-blur"
