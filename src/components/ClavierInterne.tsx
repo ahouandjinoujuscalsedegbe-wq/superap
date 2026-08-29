@@ -47,10 +47,12 @@ export function ClavierInterne() {
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
   const champRef = useRef<Champ | null>(null);
+  const decimalRef = useRef(false);
 
   const fermer = useCallback(() => {
     setOuvert(false);
     champRef.current = null;
+    decimalRef.current = false;
   }, []);
 
   useEffect(() => {
