@@ -742,6 +742,7 @@ function PageSynchronisation() {
               value={colisGenere.texte}
               rows={5}
               aria-label="Colis chiffré généré"
+              data-majuscules="non"
               className="w-full rounded-xl border border-input bg-card px-3 py-2 font-mono text-[10px]"
             />
             <div className="grid grid-cols-3 gap-2">
@@ -792,6 +793,7 @@ function PageSynchronisation() {
           onChange={(e) => setColisRecu(e.target.value)}
           className="w-full rounded-xl border border-input bg-card px-3 py-2 font-mono text-[10px]"
           placeholder="Collez ici le bloc reçu"
+          data-majuscules="non"
         />
         <label className="block text-sm font-medium" htmlFor="phrase-recu">
           Phrase secrète de l'autre appareil

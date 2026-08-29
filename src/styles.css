@@ -176,7 +176,7 @@
 }
 
 /* Toutes les saisies de l'application s'affichent en MAJUSCULES */
-input:not([type="date"]):not([type="time"]),
-textarea {
+input:not([type="date"]):not([type="time"]):not([data-majuscules="non"]),
+textarea:not([data-majuscules="non"]) {
   text-transform: uppercase;
 }

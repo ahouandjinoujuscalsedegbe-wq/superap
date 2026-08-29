@@ -31,6 +31,8 @@ export function MajusculesPartout() {
     const surSaisie = (ev: Event) => {
       const champ = ev.target;
       if (!estChampTexte(champ)) return;
+      // Champs techniques (colis chiffré, sauvegardes) : contenu sensible à la casse.
+      if (champ.dataset["majuscules"] === "non") return;
       const valeur = champ.value ?? "";
       const majuscules = valeur.toLocaleUpperCase("fr-FR");
       if (valeur === majuscules) return;
