@@ -70,6 +70,33 @@ function finDepuis(debut: string, dureeId: string): string {
   return jourISO(date);
 }
 
+/** Nombre d'échéances produites entre le premier versement et la fin de l'étendue. */
+function nombreOccurrences(
+  debut: string,
+  fin: string,
+  periode: Periode,
+  intervalle: number,
+): number {
+  let n = 0;
+  let courant = new Date(`${debut}T12:00:00`).toISOString();
+  while (jourISO(new Date(courant)) <= fin && n < 500) {
+    n += 1;
+    courant = avancerDate(courant, periode, intervalle);
+  }
+  return n;
+}
+
+const FMT_LONG = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
+function jourLong(iso: string): string {
+  return FMT_LONG.format(new Date(`${iso}T12:00:00`));
+}
+
 function Budgetisation() {
   const {
     enveloppes,
