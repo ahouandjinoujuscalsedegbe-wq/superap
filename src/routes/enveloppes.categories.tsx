@@ -267,9 +267,24 @@ function PageCategories() {
       </header>
 
       <p className="text-xs text-muted-foreground">
-        Astuce : faites glisser une bande (ou une sous-catégorie) pour la réorganiser. L’ordre est
-        enregistré automatiquement.
+        Astuce : faites glisser une bande par sa poignée <GripVertical aria-hidden className="inline h-3.5 w-3.5 align-text-bottom" />{" "}
+        (ou une sous-catégorie) pour la réorganiser. L’ordre est enregistré automatiquement.
       </p>
+
+      {ordrePrecedent && (
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-primary/30 bg-primary/10 p-3">
+          <p className="text-xs text-muted-foreground">
+            Une réorganisation vient d’être appliquée.
+          </p>
+          <button
+            type="button"
+            onClick={annulerReorganisation}
+            className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground"
+          >
+            <Undo2 aria-hidden className="h-3.5 w-3.5" /> Annuler la réorganisation
+          </button>
+        </div>
+      )}
 
       <ul className="space-y-3">
         {categories.map((c, index) => {
@@ -283,20 +298,26 @@ function PageCategories() {
               onDrop={(ev) => {
                 ev.preventDefault();
                 if (dragCat !== null && dragCat !== index) {
+                  sauvegarderOrdre();
                   reordonnerCategories(dragCat, index);
                   toast.success("Ordre des catégories enregistré.");
                 }
                 setDragCat(null);
               }}
               onDragEnd={() => setDragCat(null)}
-              className={`carte overflow-hidden ${dragCat === index ? "opacity-60" : ""}`}
+              className={`carte overflow-hidden transition-colors transition-shadow hover:border-primary/50 hover:bg-secondary/40 hover:shadow-md ${
+                dragCat === index ? "opacity-60" : ""
+              }`}
             >
               <div className="flex items-center gap-2 p-4">
                 <span
-                  aria-hidden
-                  className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                  role="button"
+                  tabIndex={-1}
+                  aria-label={`Glisser-déposer pour réorganiser ${c.nom}`}
+                  title="Glisser pour réorganiser"
+                  className="flex h-8 w-6 shrink-0 cursor-grab items-center justify-center rounded-md border border-border/70 bg-secondary/60 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:cursor-grabbing"
                 >
-                  <GripVertical className="h-4 w-4" />
+                  <GripVertical aria-hidden className="h-4 w-4" />
                 </span>
                 <button
                   type="button"
@@ -371,21 +392,27 @@ function PageCategories() {
                           ev.preventDefault();
                           ev.stopPropagation();
                           if (dragSous && dragSous.id === c.id && dragSous.index !== iSous) {
+                            sauvegarderOrdre();
                             reordonnerSousCategories(c.id, dragSous.index, iSous);
                             toast.success("Ordre des sous-catégories enregistré.");
                           }
                           setDragSous(null);
                         }}
                         onDragEnd={() => setDragSous(null)}
-                        className={`flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2 ${
+                        className={`flex items-center justify-between gap-2 rounded-xl border border-border/70 p-2 transition-colors transition-shadow hover:border-primary/50 hover:bg-secondary/50 hover:shadow-sm ${
                           dragSous?.id === c.id && dragSous.index === iSous ? "opacity-60" : ""
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-2">
-                          <GripVertical
-                            aria-hidden
-                            className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-                          />
+                          <span
+                            role="button"
+                            tabIndex={-1}
+                            aria-label={`Glisser-déposer pour réorganiser ${s}`}
+                            title="Glisser pour réorganiser"
+                            className="flex h-7 w-5 shrink-0 cursor-grab items-center justify-center rounded-md border border-border/70 bg-secondary/60 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:cursor-grabbing"
+                          >
+                            <GripVertical aria-hidden className="h-3.5 w-3.5" />
+                          </span>
                           <span className="min-w-0 truncate text-sm">{s}</span>
                         </span>
                         <span className="flex shrink-0 items-center gap-1">
