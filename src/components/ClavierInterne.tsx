@@ -46,8 +46,8 @@ export function ClavierInterne() {
   const [ouvert, setOuvert] = useState(false);
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
+  const [decimale, setDecimale] = useState(false);
   const champRef = useRef<Champ | null>(null);
-  const decimalRef = useRef(false);
 
   const fermer = useCallback(() => {
     setOuvert(false);
