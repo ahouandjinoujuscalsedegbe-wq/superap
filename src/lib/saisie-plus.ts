@@ -39,7 +39,12 @@ export async function preparerImage(fichier: File, largeurMax = 1400): Promise<I
     canvas.width = largeur;
     canvas.height = hauteur;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return { blob: fichier, apercu: await enDataUrl(fichier) };
+    if (!ctx) {
+      journalAvertissement("pretraitement", "Canvas indisponible : image envoyée telle quelle", {
+        fichier: fichier.name,
+      });
+      return { blob: fichier, apercu: await enDataUrl(fichier), degrade: true };
+    }
     ctx.drawImage(img, 0, 0, largeur, hauteur);
 
     const data = ctx.getImageData(0, 0, largeur, hauteur);
@@ -64,13 +69,24 @@ export async function preparerImage(fichier: File, largeurMax = 1400): Promise<I
       canvas.toBlob((b) => resolve(b), "image/png"),
     );
     const apercu = miniature(canvas);
+    journalInfo("pretraitement", "Image préparée pour la lecture", {
+      fichier: fichier.name,
+      taille: `${largeur}x${hauteur}`,
+      luminanceMoyenne: Math.round(moyenne),
+      octets: blob?.size ?? fichier.size,
+    });
     return { blob: blob ?? fichier, apercu };
-  } catch {
-    return { blob: fichier, apercu: await enDataUrl(fichier) };
+  } catch (erreur) {
+    journalErreur("pretraitement", "Échec du prétraitement de l'image", {
+      fichier: fichier.name,
+      detail: String((erreur as Error)?.message ?? erreur),
+    });
+    return { blob: fichier, apercu: await enDataUrl(fichier), degrade: true };
   } finally {
     URL.revokeObjectURL(url);
   }
 }
+
 
 function miniature(canvas: HTMLCanvasElement, largeur = 160): string {
   const petit = document.createElement("canvas");
