@@ -174,3 +174,9 @@
   border-radius: var(--radius-2xl);
   box-shadow: 0 10px 30px -18px color-mix(in oklab, var(--primary) 55%, transparent);
 }
+
+/* Toutes les saisies de l'application s'affichent en MAJUSCULES */
+input:not([type="date"]):not([type="time"]),
+textarea {
+  text-transform: uppercase;
+}
