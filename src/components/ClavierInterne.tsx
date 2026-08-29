@@ -100,8 +100,19 @@ export function ClavierInterne() {
   const taper = (touche: string) => {
     const champ = champRef.current;
     if (!champ) return;
-    const valeur = champ.value ?? "";
-    ecrire(champ, valeur + (majuscule ? touche.toUpperCase() : touche));
+    let valeur = champ.value ?? "";
+    let ajout = touche;
+    if (mode === "numerique") {
+      // Champ numérique : chiffres uniquement, point décimal seulement si autorisé.
+      if (ajout === ".") {
+        if (!decimalRef.current || valeur.includes(".")) return;
+      } else if (!/^\d$/.test(ajout)) {
+        return;
+      }
+    } else if (majuscule) {
+      ajout = ajout.toUpperCase();
+    }
+    ecrire(champ, valeur + ajout);
     if (majuscule) setMajuscule(false);
   };
 
