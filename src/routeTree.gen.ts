@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
+import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as RevenuRouteImport } from './routes/revenu'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const EnveloppesRoute = EnveloppesRouteImport.update({
   path: '/enveloppes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RevenuRoute = RevenuRouteImport.update({
   id: '/revenu',
   path: '/revenu',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
+  '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/depense' | '/enveloppes' | '/revenu'
+  fullPaths: '/' | '/depense' | '/enveloppes' | '/parametres' | '/revenu'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/depense' | '/enveloppes' | '/revenu'
-  id: '__root__' | '/' | '/depense' | '/enveloppes' | '/revenu'
+  to: '/' | '/depense' | '/enveloppes' | '/parametres' | '/revenu'
+  id: '__root__' | '/' | '/depense' | '/enveloppes' | '/parametres' | '/revenu'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DepenseRoute: typeof DepenseRoute
   EnveloppesRoute: typeof EnveloppesRoute
+  ParametresRoute: typeof ParametresRoute
   RevenuRoute: typeof RevenuRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/revenu': {
       id: '/revenu'
       path: '/revenu'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DepenseRoute: DepenseRoute,
   EnveloppesRoute: EnveloppesRoute,
+  ParametresRoute: ParametresRoute,
   RevenuRoute: RevenuRoute,
 }
 export const routeTree = rootRouteImport
