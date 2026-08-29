@@ -338,10 +338,17 @@ function ActionEnveloppes() {
       <Confirmation
         ouvert={confirmation !== null}
         titre="Confirmer la création"
-        message={
+        message="Vérifiez les champs de la nouvelle enveloppe avant de valider."
+        details={
           confirmation
-            ? `Créer l'enveloppe « ${confirmation.nom} » (${confirmation.categorie || "sans catégorie"}${confirmation.sousCategorie ? ` › ${confirmation.sousCategorie}` : ""}) avec un plafond de ${formatFCFA(confirmation.plafond)} ?`
-            : ""
+            ? [
+                { label: "Emoji", apres: confirmation.emoji },
+                { label: "Nom", apres: confirmation.nom },
+                { label: "Plafond", apres: formatFCFA(confirmation.plafond) },
+                { label: "Catégorie", apres: confirmation.categorie || "Sans catégorie" },
+                { label: "Sous-catégorie", apres: confirmation.sousCategorie || "Général" },
+              ]
+            : []
         }
         confirmerLabel="Créer"
         onConfirmer={confirmerCreation}

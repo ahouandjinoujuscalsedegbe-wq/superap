@@ -59,8 +59,9 @@ function ModifierEnveloppe() {
 
   const [demande, setDemande] = useState<Demande>(null);
 
-  const categories = categoriesDisponibles(enveloppes);
-  const sousCategories = sousCategoriesDisponibles(enveloppes, eCategorie.trim());
+  const listeCategories = useSuperApp().categories;
+  const categories = categoriesDisponibles(enveloppes, listeCategories);
+  const sousCategories = sousCategoriesDisponibles(enveloppes, eCategorie.trim(), listeCategories);
   const groupes = grouperParCategorie(enveloppes);
 
   function commencerEdition(id: string) {
