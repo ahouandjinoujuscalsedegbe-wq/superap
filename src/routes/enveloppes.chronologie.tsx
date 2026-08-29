@@ -1,8 +1,35 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuperApp, type Periode } from "@/lib/store";
+import { X } from "lucide-react";
+import { useSuperApp, type Budget, type Periode } from "@/lib/store";
 import { PERIODES } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { prochainesEcheances, equivalentMensuel } from "@/lib/periodes";
+
+function reculerDate(iso: string, periode: Periode): string {
+  const d = new Date(iso);
+  switch (periode) {
+    case "jour":
+      d.setDate(d.getDate() - 1);
+      break;
+    case "semaine":
+      d.setDate(d.getDate() - 7);
+      break;
+    case "mois":
+      d.setMonth(d.getMonth() - 1);
+      break;
+    case "trimestre":
+      d.setMonth(d.getMonth() - 3);
+      break;
+    case "semestre":
+      d.setMonth(d.getMonth() - 6);
+      break;
+    case "annee":
+      d.setFullYear(d.getFullYear() - 1);
+      break;
+  }
+  return d.toISOString();
+}
 
 export const Route = createFileRoute("/enveloppes/chronologie")({
   head: () => ({
