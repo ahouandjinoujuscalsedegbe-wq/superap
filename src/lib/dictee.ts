@@ -1,5 +1,7 @@
 /** Accès à la reconnaissance vocale du navigateur (Web Speech API). */
 
+import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
+
 type Recognition = {
   lang: string;
   continuous: boolean;
@@ -36,7 +38,14 @@ export function creerDictee(
       texte += e.results[i][0].transcript;
       if (e.results[i].isFinal) definitif = true;
     }
-    onTexte(texte.trim(), definitif);
+    const propre = texte.trim();
+    if (definitif) {
+      journalInfo("dictee", "Dictée transcrite", {
+        caracteres: propre.length,
+        confiance: Math.round(((e?.results?.[0]?.[0]?.confidence ?? 0) as number) * 100),
+      });
+    }
+    onTexte(propre, definitif);
   };
   reco.onerror = (e: any) => {
     const code = String(e?.error ?? "");
@@ -46,7 +55,13 @@ export function creerDictee(
       "audio-capture": "Aucun micro détecté sur cet appareil.",
       network: "Reconnaissance vocale indisponible : vérifiez votre connexion.",
     };
-    onErreur(messages[code] ?? "La dictée a échoué. Réessayez.");
+    const message = messages[code] ?? "La dictée a échoué. Réessayez.";
+    if (code === "no-speech" || code === "aborted") {
+      journalAvertissement("dictee", message, { code });
+    } else {
+      journalErreur("dictee", message, { code });
+    }
+    onErreur(message);
   };
   reco.onend = onFin;
   return reco;

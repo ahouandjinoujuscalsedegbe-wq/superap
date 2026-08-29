@@ -17,6 +17,8 @@ import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
+import { installerCaptureGlobale } from "@/lib/journal";
+
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { Toaster } from "sonner";
@@ -133,7 +135,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Capture des erreurs non gérées dans le journal de diagnostic.
+  useEffect(() => installerCaptureGlobale(), []);
+
   return (
+
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
         <SuperAppProvider>

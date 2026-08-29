@@ -39,6 +39,7 @@ import {
   type SaisieHistorique,
 } from "@/lib/saisie-plus";
 import { Confirmation } from "@/components/Confirmation";
+import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
 
 export const Route = createFileRoute("/saisie")({
   head: () => ({
@@ -198,14 +199,39 @@ function SaisieIntelligente() {
           },
         });
         const lu = resultat.data.text ?? "";
+        const confiance = Math.round(Number(resultat.data.confidence ?? 0));
         if (!lu.trim()) {
+          journalAvertissement("ocr", "Aucun texte lisible sur le ticket", {
+            fichier: f.name,
+            confiance,
+          });
           toast.error(`Ticket ${i + 1} : aucun texte lisible. Reprenez la photo bien éclairée.`);
           continue;
+        }
+        if (confiance > 0 && confiance < 60) {
+          journalAvertissement("ocr", "Lecture peu fiable : vérifiez les montants", {
+            fichier: f.name,
+            confiance,
+            caracteres: lu.length,
+          });
+          toast.warning(
+            `Ticket ${i + 1} : lecture peu fiable (${confiance} %). Vérifiez bien le montant.`,
+          );
+        } else {
+          journalInfo("ocr", "Ticket lu", {
+            fichier: f.name,
+            confiance,
+            caracteres: lu.length,
+          });
         }
         setTexte(lu);
         const extrait = analyserTexte(lu, enveloppes);
         setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu)]);
-      } catch {
+      } catch (erreur) {
+        journalErreur("ocr", "Échec de la lecture du ticket", {
+          fichier: f.name,
+          detail: String((erreur as Error)?.message ?? erreur),
+        });
         toast.error(`Ticket ${i + 1} : la lecture a échoué. Réessayez avec une photo plus nette.`);
       }
     }

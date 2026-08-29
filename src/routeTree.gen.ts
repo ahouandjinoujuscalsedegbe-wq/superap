@@ -15,6 +15,7 @@ import { Route as AnalysesRouteImport } from './routes/analyses'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
+import { Route as JournalRouteImport } from './routes/journal'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as RevenuRouteImport } from './routes/revenu'
@@ -59,6 +60,11 @@ const DettesRoute = DettesRouteImport.update({
 const EnveloppesRoute = EnveloppesRouteImport.update({
   id: '/enveloppes',
   path: '/enveloppes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JournalRoute = JournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OutilsRoute = OutilsRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
+  '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/analyses': typeof AnalysesRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
+  '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
+  '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/depense'
     | '/dettes'
     | '/enveloppes'
+    | '/journal'
     | '/outils'
     | '/parametres'
     | '/revenu'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/analyses'
     | '/depense'
     | '/dettes'
+    | '/journal'
     | '/outils'
     | '/parametres'
     | '/revenu'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/depense'
     | '/dettes'
     | '/enveloppes'
+    | '/journal'
     | '/outils'
     | '/parametres'
     | '/revenu'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
+  JournalRoute: typeof JournalRoute
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRoute
   RevenuRoute: typeof RevenuRoute
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/enveloppes'
       fullPath: '/enveloppes'
       preLoaderRoute: typeof EnveloppesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journal': {
+      id: '/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof JournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/outils': {
@@ -479,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
   EnveloppesRoute: EnveloppesRouteWithChildren,
+  JournalRoute: JournalRoute,
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRoute,
   RevenuRoute: RevenuRoute,
