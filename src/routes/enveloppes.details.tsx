@@ -109,6 +109,88 @@ function DetailsActuels() {
                       <dd className="inline font-medium text-foreground">{nbOperations}</dd>
                     </div>
                   </dl>
+
+                  <button
+                    type="button"
+                    onClick={() => setOuverte(estOuverte ? null : e.id)}
+                    aria-expanded={estOuverte}
+                    className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+                  >
+                    Détails des opérations
+                    <ChevronDown
+                      aria-hidden
+                      className={`h-4 w-4 transition-transform duration-300 ${estOuverte ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {estOuverte && (
+                    <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Opérations réelles
+                        </h3>
+                        {operations.length === 0 ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Aucune opération réelle pour cette enveloppe.
+                          </p>
+                        ) : (
+                          <ul className="mt-1 space-y-1.5">
+                            {operations.map((t) => (
+                              <li
+                                key={t.id}
+                                className="flex items-center justify-between gap-2 text-xs"
+                              >
+                                <span className="truncate">
+                                  {formatDateFr(t.date)} · {t.libelle}
+                                  <span className="text-muted-foreground"> · {t.compte}</span>
+                                </span>
+                                <span
+                                  className={`shrink-0 font-medium ${
+                                    t.type === "revenu" ? "text-primary" : "text-foreground"
+                                  }`}
+                                >
+                                  {t.type === "revenu" ? "+" : "−"}
+                                  {formatFCFA(t.montant)}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Dépenses planifiées
+                        </h3>
+                        {planifie.length === 0 ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Aucune dépense planifiée dans Budgétisation.
+                          </p>
+                        ) : (
+                          <ul className="mt-1 space-y-1.5">
+                            {planifie.map((b) => (
+                              <li
+                                key={b.id}
+                                className="flex items-center justify-between gap-2 text-xs"
+                              >
+                                <span className="truncate">
+                                  {b.libelle}
+                                  <span className="text-muted-foreground">
+                                    {" "}
+                                    · {libellePeriode(b.periode)} · prochaine :{" "}
+                                    {formatDateFr(b.prochaine)}
+                                  </span>
+                                </span>
+                                <span className="shrink-0 font-medium">
+                                  {formatFCFA(b.montant)}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </li>
               );
             })}
