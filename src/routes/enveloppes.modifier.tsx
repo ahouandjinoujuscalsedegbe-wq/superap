@@ -449,6 +449,11 @@ function ModifierEnveloppe() {
               apres: formatFCFA(demande.plafond),
             },
             {
+              label: "Somme attribuée",
+              avant: formatFCFA(avant?.dotation ?? avant?.plafond ?? 0),
+              apres: formatFCFA(demande.dotation),
+            },
+            {
               label: "Catégorie",
               avant: avant?.categorie || "Sans catégorie",
               apres: demande.categorie || "Sans catégorie",
