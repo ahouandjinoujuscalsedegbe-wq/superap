@@ -684,7 +684,9 @@ function Budgetisation() {
           demande?.type === "suppression"
             ? `La dépense prévue « ${demande.libelle} » sera supprimée définitivement.`
             : demande?.type === "creation"
-              ? `Prévoir « ${demande.libelle} » sur la période ${libellePlage({ debut: demande.debut, fin: demande.fin })} ?`
+              ? demande.ponctuel
+                ? `Prévoir « ${demande.libelle} » le ${jourLong(demande.debut)} ?`
+                : `Premier versement le ${jourLong(demande.debut)}, puis ${demande.frequenceLabel.toLowerCase()} pendant ${demande.dureeLabel} : ${demande.occurrences} échéances de ${formatFCFA(demande.montant)}.`
               : demande?.type === "conversion-un"
                 ? `Créer une dépense réelle de ${formatFCFA(demande.montant)} pour « ${demande.libelle} » ?`
                 : demande
@@ -695,16 +697,35 @@ function Budgetisation() {
           demande?.type === "creation"
             ? [
                 { label: "Sujet de la dépense", avant: "—", apres: demande.libelle },
+                {
+                  label: demande.ponctuel ? "Jour de la dépense" : "1er versement",
+                  avant: "—",
+                  apres: jourLong(demande.debut),
+                },
+                { label: "Montant par échéance", avant: "—", apres: formatFCFA(demande.montant) },
                 { label: "Périodique", avant: "—", apres: demande.ponctuel ? "Non" : "Oui" },
-                { label: "Périodicité", avant: "—", apres: demande.frequenceLabel },
-                { label: "Montant", avant: "—", apres: formatFCFA(demande.montant) },
+                ...(demande.ponctuel
+                  ? []
+                  : [
+                      { label: "Fréquence", avant: "—", apres: demande.frequenceLabel },
+                      { label: "Étendue", avant: "—", apres: demande.dureeLabel },
+                      {
+                        label: "Nombre d'échéances",
+                        avant: "—",
+                        apres: String(demande.occurrences),
+                      },
+                      {
+                        label: "Total de la série",
+                        avant: "—",
+                        apres: formatFCFA(demande.montant * demande.occurrences),
+                      },
+                    ]),
                 {
                   label: "Enveloppe",
                   avant: "—",
                   apres: enveloppes.find((e) => e.id === demande.enveloppeId)?.nom ?? "—",
                 },
                 { label: "Compte débité", avant: "—", apres: demande.compte },
-                { label: "Étendue", avant: "—", apres: demande.dureeLabel },
                 {
                   label: "Période couverte",
                   avant: "—",
