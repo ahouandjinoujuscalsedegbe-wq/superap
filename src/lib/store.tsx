@@ -534,20 +534,33 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, budgets: e.budgets.filter((b) => b.id !== id) }));
   }, []);
 
-  const ajouterDette = useCallback((d: Omit<Dette, "id" | "creeLe" | "remboursements">) => {
-    setEtat((e) => ({
-      ...e,
-      dettes: [
-        {
-          ...d,
+  const ajouterDette = useCallback(
+    (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => {
+      setEtat((e) => {
+        const id = crypto.randomUUID();
+        const creeLe = new Date().toISOString().slice(0, 10);
+        const fiche: Dette = { ...d, id, creeLe, remboursements: [] };
+        const etatSuivant: Etat = { ...e, dettes: [fiche, ...e.dettes] };
+        if (!compte) return etatSuivant;
+        // Une dette contractée fait entrer de l'argent ; une créance accordée en fait sortir.
+        const mouvement: Transaction = {
           id: crypto.randomUUID(),
-          creeLe: new Date().toISOString().slice(0, 10),
-          remboursements: [],
-        },
-        ...e.dettes,
-      ],
-    }));
-  }, []);
+          type: d.sens === "dette" ? "revenu" : "depense",
+          montant: d.montantInitial,
+          libelle:
+            d.sens === "dette"
+              ? `Emprunt auprès de ${d.personne}`
+              : `Prêt accordé à ${d.personne}`,
+          categorie: "dettes",
+          compte,
+          date: new Date(creeLe).toISOString(),
+          detteId: id,
+        };
+        return { ...etatSuivant, transactions: [mouvement, ...e.transactions] };
+      });
+    },
+    [],
+  );
 
   const modifierDette = useCallback(
     (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
