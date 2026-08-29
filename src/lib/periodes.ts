@@ -72,3 +72,55 @@ export function prochainesEcheances(
 export function equivalentMensuel(b: Budget): number {
   return (b.montant * PAR_AN[b.periode]) / 12;
 }
+
+/** Bornes (YYYY-MM-DD) de la période contenant le jour donné. */
+export function bornesPeriode(jour: string, periode: Periode): { debut: string; fin: string } {
+  const d = new Date(`${jour}T12:00:00`);
+  const iso = (x: Date) => {
+    const y = new Date(x.getTime() - x.getTimezoneOffset() * 60000);
+    return y.toISOString().slice(0, 10);
+  };
+  let debut = new Date(d);
+  let fin = new Date(d);
+  switch (periode) {
+    case "jour":
+      break;
+    case "semaine": {
+      const dec = (d.getDay() + 6) % 7;
+      debut = new Date(d);
+      debut.setDate(d.getDate() - dec);
+      fin = new Date(debut);
+      fin.setDate(debut.getDate() + 6);
+      break;
+    }
+    case "mois":
+      debut = new Date(d.getFullYear(), d.getMonth(), 1, 12);
+      fin = new Date(d.getFullYear(), d.getMonth() + 1, 0, 12);
+      break;
+    case "trimestre": {
+      const t = Math.floor(d.getMonth() / 3) * 3;
+      debut = new Date(d.getFullYear(), t, 1, 12);
+      fin = new Date(d.getFullYear(), t + 3, 0, 12);
+      break;
+    }
+    case "semestre": {
+      const s = d.getMonth() < 6 ? 0 : 6;
+      debut = new Date(d.getFullYear(), s, 1, 12);
+      fin = new Date(d.getFullYear(), s + 6, 0, 12);
+      break;
+    }
+    case "annee":
+      debut = new Date(d.getFullYear(), 0, 1, 12);
+      fin = new Date(d.getFullYear(), 11, 31, 12);
+      break;
+  }
+  return { debut: iso(debut), fin: iso(fin) };
+}
+
+const FMT = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+
+/** Libellé lisible d'une plage de période. */
+export function libellePlage(plage: { debut: string; fin: string }): string {
+  if (plage.debut === plage.fin) return FMT.format(new Date(`${plage.debut}T12:00:00`));
+  return `${FMT.format(new Date(`${plage.debut}T12:00:00`))} → ${FMT.format(new Date(`${plage.fin}T12:00:00`))}`;
+}
