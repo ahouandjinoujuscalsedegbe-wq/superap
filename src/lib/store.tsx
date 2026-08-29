@@ -187,7 +187,10 @@ type Contexte = Etat & {
   genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
-  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">) => void;
+  ajouterDette: (
+    d: Omit<Dette, "id" | "creeLe" | "remboursements">,
+    compte?: string,
+  ) => void;
   modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
   supprimerDette: (id: string) => void;
   ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">) => void;
