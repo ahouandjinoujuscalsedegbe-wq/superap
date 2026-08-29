@@ -511,6 +511,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             categorie: b.enveloppeId,
             compte: b.compte,
             date,
+            budgetId: b.id,
           });
           date = avancerDate(date, b.periode, b.intervalle);
           garde += 1;
