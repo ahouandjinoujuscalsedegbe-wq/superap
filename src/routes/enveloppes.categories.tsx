@@ -66,11 +66,24 @@ function PageCategories() {
         (e.categorie ?? "") === cat && (sous === undefined || (e.sousCategorie ?? "") === sous),
     ).length;
 
-  function creerCategorie(ev: React.FormEvent) {
-    ev.preventDefault();
-    const nom = nouvelle.trim();
-    if (!nom) { toast.error("Donnez un nom à la catégorie."); return; }
-    if (categories.some((c) => c.nom === nom)) { toast.error("Cette catégorie existe déjà."); return; }
+  function ouvrirCreation() {
+    setNomCreation("");
+    setErreurPopup(null);
+    setPopupCreation(true);
+  }
+
+  function validerCreation() {
+    const nom = nomCreation.trim();
+    if (!nom) {
+      setErreurPopup("Donnez un nom à la catégorie.");
+      return;
+    }
+    if (categories.some((c) => c.nom === nom)) {
+      setErreurPopup("Cette catégorie existe déjà.");
+      return;
+    }
+    setErreurPopup(null);
+    setPopupCreation(false);
     setDemande({ type: "creation-categorie", nom });
   }
 
@@ -79,7 +92,7 @@ function PageCategories() {
     switch (demande.type) {
       case "creation-categorie":
         ajouterCategorie(demande.nom);
-        setNouvelle("");
+        setNomCreation("");
         toast.success("Catégorie créée.");
         break;
       case "renommage-categorie":
