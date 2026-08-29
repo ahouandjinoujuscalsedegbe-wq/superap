@@ -206,6 +206,50 @@ function ActionEnveloppes() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="e-categorie" className="text-sm font-medium">
+                  Catégorie
+                </label>
+                <input
+                  id="e-categorie"
+                  list="liste-categories"
+                  value={categorie}
+                  onChange={(ev) => {
+                    setCategorie(ev.target.value);
+                    setSousCategorie("");
+                  }}
+                  placeholder="Transport, Factures…"
+                  className={champ}
+                />
+                <datalist id="liste-categories">
+                  {categories.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div>
+                <label htmlFor="e-sous-categorie" className="text-sm font-medium">
+                  Sous-catégorie
+                </label>
+                <input
+                  id="e-sous-categorie"
+                  list="liste-sous-categories"
+                  value={sousCategorie}
+                  onChange={(ev) => setSousCategorie(ev.target.value)}
+                  placeholder="Carburant, Facture SBEE…"
+                  className={champ}
+                />
+                <datalist id="liste-sous-categories">
+                  {sousCategories.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Exemple : Transport › Carburant, Factures › Facture SONEB.
+                </p>
+              </div>
+
               <div className="flex gap-2">
                 <button
                   type="submit"
