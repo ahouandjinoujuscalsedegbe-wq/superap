@@ -52,7 +52,7 @@ export function ClavierInterne() {
   const fermer = useCallback(() => {
     setOuvert(false);
     champRef.current = null;
-    decimalRef.current = false;
+    setDecimale(false);
   }, []);
 
   useEffect(() => {
