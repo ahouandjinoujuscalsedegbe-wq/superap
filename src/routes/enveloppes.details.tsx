@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
+import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
 const libellePeriode = (p: Periode) => PERIODES.find((x) => x.id === p)?.label ?? p;
 
