@@ -47,7 +47,7 @@ export const Route = createFileRoute("/synchronisation")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: PageSynchronisation;
+  component: PageSynchronisation,
 });
 
 type Attente =
