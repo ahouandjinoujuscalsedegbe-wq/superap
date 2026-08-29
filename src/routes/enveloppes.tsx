@@ -31,11 +31,13 @@ function EnveloppesLayout() {
   const onglets = [
     { to: "/enveloppes/budgetisation", label: "Budgétisation" },
     { to: "/enveloppes/action", label: "Action" },
+    { to: "/enveloppes/details", label: "Détails actuels" },
+    { to: "/enveloppes/chronologie", label: "Chronologie et suivi" },
   ] as const;
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
         {onglets.map((o) => {
           const actif = pathname === o.to;
           return (
@@ -43,7 +45,7 @@ function EnveloppesLayout() {
               key={o.to}
               to={o.to}
               aria-current={actif ? "page" : undefined}
-              className={`rounded-xl py-3 text-center text-sm font-semibold transition-colors ${
+              className={`flex items-center justify-center rounded-xl px-1 py-2.5 text-center text-[11px] font-semibold leading-tight transition-colors sm:text-xs ${
                 actif
                   ? "bg-primary text-primary-foreground shadow"
                   : "border border-input bg-card text-foreground"

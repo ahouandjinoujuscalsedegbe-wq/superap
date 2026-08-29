@@ -22,6 +22,8 @@ import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
 import { Route as EnveloppesBudgetisationRouteImport } from './routes/enveloppes.budgetisation'
+import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.chronologie'
+import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +90,16 @@ const EnveloppesBudgetisationRoute = EnveloppesBudgetisationRouteImport.update({
   path: '/budgetisation',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const EnveloppesChronologieRoute = EnveloppesChronologieRouteImport.update({
+  id: '/chronologie',
+  path: '/chronologie',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
+const EnveloppesDetailsRoute = EnveloppesDetailsRouteImport.update({
+  id: '/details',
+  path: '/details',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +113,8 @@ export interface FileRoutesByFullPath {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
+  '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
+  '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
 }
@@ -115,6 +129,8 @@ export interface FileRoutesByTo {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
+  '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
+  '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
 }
@@ -131,6 +147,8 @@ export interface FileRoutesById {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
+  '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
+  '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
 }
@@ -148,6 +166,8 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
+    | '/enveloppes/chronologie'
+    | '/enveloppes/details'
     | '/comptes/'
     | '/enveloppes/'
   fileRoutesByTo: FileRoutesByTo
@@ -162,6 +182,8 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
+    | '/enveloppes/chronologie'
+    | '/enveloppes/details'
     | '/comptes'
     | '/enveloppes'
   id:
@@ -177,6 +199,8 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
+    | '/enveloppes/chronologie'
+    | '/enveloppes/details'
     | '/comptes/'
     | '/enveloppes/'
   fileRoutesById: FileRoutesById
@@ -287,18 +311,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesBudgetisationRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/enveloppes/chronologie': {
+      id: '/enveloppes/chronologie'
+      path: '/chronologie'
+      fullPath: '/enveloppes/chronologie'
+      preLoaderRoute: typeof EnveloppesChronologieRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
+    '/enveloppes/details': {
+      id: '/enveloppes/details'
+      path: '/details'
+      fullPath: '/enveloppes/details'
+      preLoaderRoute: typeof EnveloppesDetailsRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
   }
 }
 
 interface EnveloppesRouteChildren {
   EnveloppesActionRoute: typeof EnveloppesActionRoute
   EnveloppesBudgetisationRoute: typeof EnveloppesBudgetisationRoute
+  EnveloppesChronologieRoute: typeof EnveloppesChronologieRoute
+  EnveloppesDetailsRoute: typeof EnveloppesDetailsRoute
   EnveloppesIndexRoute: typeof EnveloppesIndexRoute
 }
 
 const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesActionRoute: EnveloppesActionRoute,
   EnveloppesBudgetisationRoute: EnveloppesBudgetisationRoute,
+  EnveloppesChronologieRoute: EnveloppesChronologieRoute,
+  EnveloppesDetailsRoute: EnveloppesDetailsRoute,
   EnveloppesIndexRoute: EnveloppesIndexRoute,
 }
 
