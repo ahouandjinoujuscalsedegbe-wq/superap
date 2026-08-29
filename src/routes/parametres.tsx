@@ -38,6 +38,21 @@ function Parametres() {
         <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
       </header>
 
+      <Link
+        to="/journal"
+        className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
+      >
+        <span>
+          Journal de diagnostic
+          <span className="block text-xs font-normal text-muted-foreground">
+            Erreurs OCR, dictée vocale et prétraitement, avec export JSON ou CSV.
+          </span>
+        </span>
+        <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground" aria-hidden />
+      </Link>
+
+
+
       <section className="carte p-4">
         <div className="flex items-center justify-between">
           <label htmlFor="transparence" className="font-semibold">
