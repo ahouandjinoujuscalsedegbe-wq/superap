@@ -88,18 +88,42 @@ function Budgetisation() {
       toast.error("Date de première échéance invalide.");
       return;
     }
-    ajouterBudget({
+    setDemande({
+      type: "creation",
       libelle: bLibelle.trim(),
       enveloppeId: bEnveloppe,
       montant: valeur,
-      periode,
       compte: bCompte,
       prochaine: debut.toISOString(),
-      actif: true,
     });
-    setBLibelle("");
-    setBMontant("");
-    toast.success("Dépense planifiée.");
+  }
+
+  function confirmer() {
+    if (!demande) return;
+    if (demande.type === "creation") {
+      ajouterBudget({
+        libelle: demande.libelle,
+        enveloppeId: demande.enveloppeId,
+        montant: demande.montant,
+        periode,
+        compte: demande.compte,
+        prochaine: demande.prochaine,
+        actif: true,
+      });
+      setBLibelle("");
+      setBMontant("");
+      toast.success("Dépense planifiée.");
+    } else if (demande.type === "conversion-tout") {
+      genererEcheancesDues();
+      toast.success("Dépenses réelles générées.");
+    } else if (demande.type === "conversion-un") {
+      convertirBudget(demande.id);
+      toast.success("Dépense réelle créée.");
+    } else {
+      supprimerBudget(demande.id);
+      toast.success("Dépense planifiée supprimée.");
+    }
+    setDemande(null);
   }
 
   return (
