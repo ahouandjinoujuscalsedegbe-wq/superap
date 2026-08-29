@@ -174,7 +174,8 @@ export function comparerScenarios(args: {
     const soldeFinal = args.solde + (args.capaciteMensuelle - coutMensuel) * duree;
     return { ...o, dureeMois: duree, coutMensuel: Math.round(coutMensuel), soldeFinal: Math.round(soldeFinal) };
   });
-  const meilleur = calcules.reduce<ComparaisonScenario["soldeFinal"] extends never ? never : (typeof calcules)[number] | undefined>(
+  type Calcule = (typeof calcules)[number];
+  const meilleur = calcules.reduce<Calcule | undefined>(
     (best, c) => (best === undefined || c.soldeFinal > best.soldeFinal ? c : best),
     undefined,
   );
