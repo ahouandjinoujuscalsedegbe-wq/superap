@@ -229,17 +229,21 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => {
       const liste = [...e.enveloppes];
       const index = liste.findIndex((x) => x.id === id);
-      if (index < 0) return e;
-      const cat = (liste[index].categorie ?? "").trim();
-      const memeCat = (x: Enveloppe) => (x.categorie ?? "").trim() === cat;
+      const courante = liste[index];
+      if (!courante) return e;
+      const cat = (courante.categorie ?? "").trim();
+      const memeCat = (x: Enveloppe | undefined) => (x?.categorie ?? "").trim() === cat;
       let voisin = -1;
       if (sens === "haut") {
         for (let i = index - 1; i >= 0; i -= 1) if (memeCat(liste[i])) { voisin = i; break; }
       } else {
         for (let i = index + 1; i < liste.length; i += 1) if (memeCat(liste[i])) { voisin = i; break; }
       }
-      if (voisin < 0) return e;
-      [liste[index], liste[voisin]] = [liste[voisin], liste[index]];
+      const autre = voisin < 0 ? undefined : liste[voisin];
+      if (!autre) return e;
+      liste[index] = autre;
+      liste[voisin] = courante;
+
       return { ...e, enveloppes: liste };
     });
   }, []);
