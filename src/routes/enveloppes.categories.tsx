@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronDown, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, GripVertical, Undo2 } from "lucide-react";
+import type { CategorieEnveloppe } from "@/lib/store";
 import { useSuperApp } from "@/lib/store";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -57,6 +58,7 @@ function PageCategories() {
     supprimerSousCategorie,
     reordonnerCategories,
     reordonnerSousCategories,
+    restaurerCategories,
   } = useSuperApp();
 
   const [saisie, setSaisie] = useState<Saisie>(null);
@@ -66,6 +68,20 @@ function PageCategories() {
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [dragCat, setDragCat] = useState<number | null>(null);
   const [dragSous, setDragSous] = useState<{ id: string; index: number } | null>(null);
+  /** Ordre enregistré avant la dernière réorganisation — permet de l’annuler. */
+  const [ordrePrecedent, setOrdrePrecedent] = useState<CategorieEnveloppe[] | null>(null);
+
+  /** Mémorise l’ordre actuel avant d’appliquer une réorganisation. */
+  function sauvegarderOrdre() {
+    setOrdrePrecedent(categories.map((c) => ({ ...c, sousCategories: [...c.sousCategories] })));
+  }
+
+  function annulerReorganisation() {
+    if (!ordrePrecedent) return;
+    restaurerCategories(ordrePrecedent);
+    setOrdrePrecedent(null);
+    toast.success("Réorganisation annulée : l’ordre précédent est restauré.");
+  }
 
   const compter = (cat: string, sous?: string) =>
     enveloppes.filter(
