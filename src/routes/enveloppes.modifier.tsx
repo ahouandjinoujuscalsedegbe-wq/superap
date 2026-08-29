@@ -298,16 +298,8 @@ function ModifierEnveloppe() {
         </div>
       )}
 
-      <datalist id="liste-categories-mod">
-        {categories.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
-      <datalist id="liste-sous-categories-mod">
-        {sousCategories.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
+      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
+
 
       <Confirmation
         ouvert={demande !== null}
