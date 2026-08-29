@@ -15,6 +15,7 @@ import { SuperAppProvider } from "@/lib/store";
 import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
+import { MajusculesPartout } from "../components/MajusculesPartout";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -139,6 +140,7 @@ function RootComponent() {
         <MenuPrincipal />
         <BottomNav />
         <ClavierInterne />
+        <MajusculesPartout />
         <Toaster position="top-center" richColors />
       </SuperAppProvider>
     </QueryClientProvider>

@@ -141,8 +141,8 @@ export function ClavierInterne() {
       } else if (!/^\d$/.test(ajout)) {
         return;
       }
-    } else if (majuscule) {
-      ajout = ajout.toUpperCase();
+    } else {
+      ajout = ajout.toLocaleUpperCase("fr-FR");
     }
     ecrire(champ, valeur + ajout);
     if (majuscule) setMajuscule(false);
