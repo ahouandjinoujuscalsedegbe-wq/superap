@@ -27,6 +27,7 @@ import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.c
 import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.classer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
+import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -118,6 +119,11 @@ const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
   path: '/modifier',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const EnveloppesCategorieNomRoute = EnveloppesCategorieNomRouteImport.update({
+  id: '/categorie/$nom',
+  path: '/categorie/$nom',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
+  '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/enveloppes/categorie/$nom'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes'
     | '/enveloppes'
+    | '/enveloppes/categorie/$nom'
   id:
     | '__root__'
     | '/'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/enveloppes/categorie/$nom'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -382,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/enveloppes/categorie/$nom': {
+      id: '/enveloppes/categorie/$nom'
+      path: '/categorie/$nom'
+      fullPath: '/enveloppes/categorie/$nom'
+      preLoaderRoute: typeof EnveloppesCategorieNomRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
   }
 }
 
@@ -394,6 +413,7 @@ interface EnveloppesRouteChildren {
   EnveloppesDetailsRoute: typeof EnveloppesDetailsRoute
   EnveloppesModifierRoute: typeof EnveloppesModifierRoute
   EnveloppesIndexRoute: typeof EnveloppesIndexRoute
+  EnveloppesCategorieNomRoute: typeof EnveloppesCategorieNomRoute
 }
 
 const EnveloppesRouteChildren: EnveloppesRouteChildren = {
@@ -405,6 +425,7 @@ const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesDetailsRoute: EnveloppesDetailsRoute,
   EnveloppesModifierRoute: EnveloppesModifierRoute,
   EnveloppesIndexRoute: EnveloppesIndexRoute,
+  EnveloppesCategorieNomRoute: EnveloppesCategorieNomRoute,
 }
 
 const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
