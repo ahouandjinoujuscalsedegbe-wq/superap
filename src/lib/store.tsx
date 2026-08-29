@@ -71,6 +71,8 @@ export type Budget = {
   fin?: string;
   /** true = planification unique sur la période, false = récurrente */
   ponctuel?: boolean;
+  /** Nombre d'unités de période entre deux échéances (ex. 2 = tous les 2 jours) */
+  intervalle?: number;
   actif: boolean;
 };
 
