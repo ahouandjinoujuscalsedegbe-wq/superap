@@ -423,6 +423,16 @@ function Comptes() {
           </ul>
         )}
       </section>
+
+      <Confirmation
+        ouvert={demande !== null}
+        titre={titreDemande()}
+        message={messageDemande()}
+        confirmerLabel={dangerDemande ? "Supprimer" : "Confirmer"}
+        danger={dangerDemande}
+        onConfirmer={confirmerDemande}
+        onAnnuler={() => setDemande(null)}
+      />
     </div>
   );
 }
