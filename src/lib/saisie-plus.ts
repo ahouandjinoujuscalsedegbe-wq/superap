@@ -7,12 +7,14 @@
  */
 
 import { analyserTexte, sansAccents, type OperationExtraite } from "@/lib/extraction";
+import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
 
 /* ------------------------------------------------------------------ */
 /* 1. Prétraitement d'image (contraste, niveaux de gris, redimension)  */
 /* ------------------------------------------------------------------ */
 
-export type ImagePreparee = { blob: Blob; apercu: string };
+export type ImagePreparee = { blob: Blob; apercu: string; degrade?: boolean };
+
 
 function chargerImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
