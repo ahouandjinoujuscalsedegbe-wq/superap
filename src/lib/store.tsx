@@ -521,6 +521,66 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, budgets: e.budgets.filter((b) => b.id !== id) }));
   }, []);
 
+  const ajouterDette = useCallback((d: Omit<Dette, "id" | "creeLe" | "remboursements">) => {
+    setEtat((e) => ({
+      ...e,
+      dettes: [
+        {
+          ...d,
+          id: crypto.randomUUID(),
+          creeLe: new Date().toISOString().slice(0, 10),
+          remboursements: [],
+        },
+        ...e.dettes,
+      ],
+    }));
+  }, []);
+
+  const modifierDette = useCallback(
+    (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
+      setEtat((e) => ({
+        ...e,
+        dettes: e.dettes.map((x) => (x.id === id ? { ...x, ...d } : x)),
+      }));
+    },
+    [],
+  );
+
+  const supprimerDette = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, dettes: e.dettes.filter((x) => x.id !== id) }));
+  }, []);
+
+  const ajouterRemboursement = useCallback(
+    (detteId: string, r: Omit<Remboursement, "id">) => {
+      setEtat((e) => ({
+        ...e,
+        dettes: e.dettes.map((x) =>
+          x.id === detteId
+            ? {
+                ...x,
+                remboursements: [
+                  ...x.remboursements,
+                  { ...r, id: crypto.randomUUID() },
+                ].sort((a, b) => a.date.localeCompare(b.date)),
+              }
+            : x,
+        ),
+      }));
+    },
+    [],
+  );
+
+  const supprimerRemboursement = useCallback((detteId: string, remboursementId: string) => {
+    setEtat((e) => ({
+      ...e,
+      dettes: e.dettes.map((x) =>
+        x.id === detteId
+          ? { ...x, remboursements: x.remboursements.filter((r) => r.id !== remboursementId) }
+          : x,
+      ),
+    }));
+  }, []);
+
   const definirTransparence = useCallback((v: number) => {
     setEtat((e) => ({ ...e, transparence: v }));
   }, []);
