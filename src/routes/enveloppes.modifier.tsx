@@ -203,32 +203,45 @@ function ModifierEnveloppe() {
                   </div>
                   <div>
                     <label htmlFor={`categorie-${e.id}`} className="text-sm font-medium">
-                      Catégorie
+                      Catégorie (obligatoire)
                     </label>
-                    <input
+                    <select
                       id={`categorie-${e.id}`}
-                      list="liste-categories-mod"
                       value={eCategorie}
                       onChange={(ev) => {
                         setECategorie(ev.target.value);
                         setESousCategorie("");
                       }}
-                      placeholder="Transport, Factures…"
                       className={champ}
-                    />
+                    >
+                      <option value="">Choisir une catégorie…</option>
+                      {listeCategories.map((c) => (
+                        <option key={c.id} value={c.nom}>
+                          {c.nom}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label htmlFor={`sous-categorie-${e.id}`} className="text-sm font-medium">
-                      Sous-catégorie
+                      Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
                     </label>
-                    <input
+                    <select
                       id={`sous-categorie-${e.id}`}
-                      list="liste-sous-categories-mod"
                       value={eSousCategorie}
                       onChange={(ev) => setESousCategorie(ev.target.value)}
-                      placeholder="Carburant, Facture SBEE…"
+                      disabled={!categorieChoisie || sousCategories.length === 0}
                       className={champ}
-                    />
+                    >
+                      <option value="">
+                        {sousCategories.length === 0 ? "Général" : "Choisir une sous-catégorie…"}
+                      </option>
+                      {sousCategories.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex gap-2">
                     <button
