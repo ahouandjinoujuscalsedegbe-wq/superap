@@ -577,10 +577,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterRemboursement = useCallback(
-    (detteId: string, r: Omit<Remboursement, "id">) => {
-      setEtat((e) => ({
-        ...e,
-        dettes: e.dettes.map((x) =>
+    (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => {
+      setEtat((e) => {
+        const cible = e.dettes.find((x) => x.id === detteId);
+        if (!cible) return e;
+        const dettes = e.dettes.map((x) =>
           x.id === detteId
             ? {
                 ...x,
@@ -590,8 +591,24 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
                 ].sort((a, b) => a.date.localeCompare(b.date)),
               }
             : x,
-        ),
-      }));
+        );
+        if (!compte) return { ...e, dettes };
+        // Rembourser une dette sort de l'argent ; encaisser une créance en fait entrer.
+        const mouvement: Transaction = {
+          id: crypto.randomUUID(),
+          type: cible.sens === "dette" ? "depense" : "revenu",
+          montant: r.montant,
+          libelle:
+            cible.sens === "dette"
+              ? `Remboursement à ${cible.personne}`
+              : `Encaissement de ${cible.personne}`,
+          categorie: "dettes",
+          compte,
+          date: new Date(r.date).toISOString(),
+          detteId,
+        };
+        return { ...e, dettes, transactions: [mouvement, ...e.transactions] };
+      });
     },
     [],
   );
