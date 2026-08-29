@@ -12,12 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
 import { Route as AnalysesRouteImport } from './routes/analyses'
-import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as RevenuRouteImport } from './routes/revenu'
+import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
 
 const IndexRoute = IndexRouteImport.update({
@@ -33,11 +33,6 @@ const AideRoute = AideRouteImport.update({
 const AnalysesRoute = AnalysesRouteImport.update({
   id: '/analyses',
   path: '/analyses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComptesRoute = ComptesRouteImport.update({
-  id: '/comptes',
-  path: '/comptes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DepenseRoute = DepenseRouteImport.update({
@@ -65,48 +60,53 @@ const RevenuRoute = RevenuRouteImport.update({
   path: '/revenu',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComptesIndexRoute = ComptesIndexRouteImport.update({
+  id: '/comptes/',
+  path: '/comptes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComptesCompteRoute = ComptesCompteRouteImport.update({
-  id: '/$compte',
-  path: '/$compte',
-  getParentRoute: () => ComptesRoute,
+  id: '/comptes/$compte',
+  path: '/comptes/$compte',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
-  '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes/': typeof ComptesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
-  '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes': typeof ComptesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
-  '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/enveloppes': typeof EnveloppesRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRoute
   '/revenu': typeof RevenuRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes/': typeof ComptesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,49 +114,50 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
-    | '/comptes'
     | '/depense'
     | '/enveloppes'
     | '/outils'
     | '/parametres'
     | '/revenu'
     | '/comptes/$compte'
+    | '/comptes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/aide'
     | '/analyses'
-    | '/comptes'
     | '/depense'
     | '/enveloppes'
     | '/outils'
     | '/parametres'
     | '/revenu'
     | '/comptes/$compte'
+    | '/comptes'
   id:
     | '__root__'
     | '/'
     | '/aide'
     | '/analyses'
-    | '/comptes'
     | '/depense'
     | '/enveloppes'
     | '/outils'
     | '/parametres'
     | '/revenu'
     | '/comptes/$compte'
+    | '/comptes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AideRoute: typeof AideRoute
   AnalysesRoute: typeof AnalysesRoute
-  ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
   EnveloppesRoute: typeof EnveloppesRoute
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRoute
   RevenuRoute: typeof RevenuRoute
+  ComptesCompteRoute: typeof ComptesCompteRoute
+  ComptesIndexRoute: typeof ComptesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,13 +181,6 @@ declare module '@tanstack/react-router' {
       path: '/analyses'
       fullPath: '/analyses'
       preLoaderRoute: typeof AnalysesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comptes': {
-      id: '/comptes'
-      path: '/comptes'
-      fullPath: '/comptes'
-      preLoaderRoute: typeof ComptesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/depense': {
@@ -224,37 +218,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RevenuRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comptes/': {
+      id: '/comptes/'
+      path: '/comptes'
+      fullPath: '/comptes/'
+      preLoaderRoute: typeof ComptesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comptes/$compte': {
       id: '/comptes/$compte'
-      path: '/$compte'
+      path: '/comptes/$compte'
       fullPath: '/comptes/$compte'
       preLoaderRoute: typeof ComptesCompteRouteImport
-      parentRoute: typeof ComptesRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ComptesRouteChildren {
-  ComptesCompteRoute: typeof ComptesCompteRoute
-}
-
-const ComptesRouteChildren: ComptesRouteChildren = {
-  ComptesCompteRoute: ComptesCompteRoute,
-}
-
-const ComptesRouteWithChildren =
-  ComptesRoute._addFileChildren(ComptesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
   AnalysesRoute: AnalysesRoute,
-  ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
   EnveloppesRoute: EnveloppesRoute,
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRoute,
   RevenuRoute: RevenuRoute,
+  ComptesCompteRoute: ComptesCompteRoute,
+  ComptesIndexRoute: ComptesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

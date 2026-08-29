@@ -84,7 +84,11 @@ function Enveloppes() {
       return;
     }
     if (!Number.isFinite(valeur) || valeur <= 0) {
-      toast.error("Montant invalide.");
+      toast.error("Montant invalide : saisissez un montant positif en FCFA.");
+      return;
+    }
+    if (!enveloppes.some((e) => e.id === bEnveloppe)) {
+      toast.error("Enveloppe introuvable : choisissez une enveloppe existante.");
       return;
     }
     if (!bCompte) {
