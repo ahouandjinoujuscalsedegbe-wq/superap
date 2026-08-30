@@ -133,19 +133,19 @@ function Accueil() {
       <section className="grid grid-cols-2 gap-3">
         <Link
           to="/revenu"
-          className="carte flex flex-col gap-1 p-4 text-left transition-transform active:scale-[0.98]"
+          className="carte flex flex-col gap-1 bg-success/15 p-4 text-left text-success transition-transform active:scale-[0.98]"
         >
-          <ArrowUpRight className="h-5 w-5 text-success" aria-hidden />
+          <ArrowUpRight className="h-5 w-5" aria-hidden />
           <span className="font-semibold">Ajouter un revenu</span>
-          <span className="text-xs text-muted-foreground">Salaire, activité, aide…</span>
+          <span className="text-xs text-success/80">Salaire, activité, aide…</span>
         </Link>
         <Link
           to="/depense"
-          className="carte flex flex-col gap-1 p-4 text-left transition-transform active:scale-[0.98]"
+          className="carte flex flex-col gap-1 bg-destructive/15 p-4 text-left text-destructive transition-transform active:scale-[0.98]"
         >
-          <ArrowDownRight className="h-5 w-5 text-destructive" aria-hidden />
+          <ArrowDownRight className="h-5 w-5" aria-hidden />
           <span className="font-semibold">Ajouter une dépense</span>
-          <span className="text-xs text-muted-foreground">En 2 secondes</span>
+          <span className="text-xs text-destructive/80">En 2 secondes</span>
         </Link>
       </section>
 
