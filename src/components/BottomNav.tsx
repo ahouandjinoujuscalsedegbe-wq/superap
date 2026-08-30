@@ -25,12 +25,12 @@ export function BottomNav() {
 
           if (estMilieu) {
             return (
-              <li key={onglet.to} className="relative flex-1">
+              <li key={onglet.to} className="flex flex-1 justify-center">
                 <Link
                   to={onglet.to}
                   aria-current={actif ? "page" : undefined}
                   aria-label={onglet.label}
-                  className="group absolute -top-5 left-1/2 flex -translate-x-1/2 flex-col items-center"
+                  className="group -mt-6 flex flex-col items-center"
                 >
                   <span
                     className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-lg transition-all duration-300 ${
