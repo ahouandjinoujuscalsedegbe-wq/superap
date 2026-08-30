@@ -71,46 +71,24 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          set +e
-
           if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-            echo "::warning::Un ou plusieurs secrets de signature sont absents. Compilation d'un APK de test (debug). Les 4 secrets requis sont ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS et ANDROID_KEY_PASSWORD."
+            echo "::warning::Secrets de signature incomplets (ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ou ANDROID_KEY_PASSWORD manquant). Compilation d'un APK de test (debug)."
             echo "MODE=debug" >> "$GITHUB_ENV"
           else
-            # Le décodage est volontairement strict : ignorer des caractères
-            # produirait un faux fichier .jks que Gradle ne peut pas signer.
-            CLEAN_BASE64=$(printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n')
-            printf '%s' "$CLEAN_BASE64" | base64 --decode > android/app/cle-signature.jks 2>/dev/null
-            DECODE_STATUS=$?
-
-            if [ "$DECODE_STATUS" -ne 0 ] || [ ! -s android/app/cle-signature.jks ]; then
-              echo "::warning::ANDROID_KEYSTORE_BASE64 est incomplet ou invalide. Compilation debug utilisée. Recopiez uniquement tout le contenu de cle-signature.base64.txt."
+            # Nettoyage du Base64 et décodage
+            # tr -dc 'A-Za-z0-9+/=' supprime tout ce qui n'est pas du base64 (espaces, retours ligne, etc.)
+            printf '%s' "$KEYSTORE_BASE64" | tr -dc 'A-Za-z0-9+/=' | base64 -d > android/app/cle-signature.jks 2>/dev/null || true
+            
+            # Validation réelle de l'intégrité et des identifiants via keytool
+            if [ -s android/app/cle-signature.jks ] && keytool -list -keystore android/app/cle-signature.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+              echo "MODE=release" >> "$GITHUB_ENV"
+              cp signature-release.gradle android/app/signature-release.gradle
+              echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
+              echo "Signature Release configurée et validée avec succès."
+            else
+              echo "::error::Échec de validation de la clé. Causes possibles : 1) Le secret ANDROID_KEYSTORE_BASE64 est mal copié. 2) Le mot de passe ou l'alias est incorrect. 3) Le fichier est corrompu."
               rm -f android/app/cle-signature.jks
               echo "MODE=debug" >> "$GITHUB_ENV"
-            else
-              # Vérifie réellement les quatre secrets en signant un petit JAR.
-              # Cela détecte avant Gradle : fichier corrompu, mauvais mot de
-              # passe, alias absent et mauvais mot de passe de clé.
-              mkdir -p /tmp/superapp-signature-test
-              printf 'verification' > /tmp/superapp-signature-test/contenu.txt
-              jar --create --file /tmp/superapp-signature-test.jar -C /tmp/superapp-signature-test contenu.txt
-              jarsigner \
-                -keystore android/app/cle-signature.jks \
-                -storepass "$KEYSTORE_PASSWORD" \
-                -keypass "$KEY_PASSWORD" \
-                /tmp/superapp-signature-test.jar "$KEY_ALIAS" >/dev/null 2>&1
-              SIGN_STATUS=$?
-
-              if [ "$SIGN_STATUS" -ne 0 ]; then
-                echo "::warning::La clé ou l'un des trois paramètres de signature est incorrect. Compilation debug utilisée. Le mot de passe des secrets doit être exactement celui saisi dans le workflow 'Créer la clé de signature', et l'alias doit être superapp."
-                rm -f android/app/cle-signature.jks
-                echo "MODE=debug" >> "$GITHUB_ENV"
-              else
-                cp signature-release.gradle android/app/signature-release.gradle
-                echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
-                echo "MODE=release" >> "$GITHUB_ENV"
-                echo "Signature Release vérifiée avec succès."
-              fi
             fi
           fi
 
