@@ -1,11 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, PencilLine, Plus, Trash2 } from "lucide-react";
+import { PencilLine, Plus, Trash2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
+import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
-import { PopupSaisie } from "@/components/PopupSaisie";
+import { ErreurPopup } from "@/components/ErreurPopup";
 
 type Demande =
   | { type: "creation"; nom: string }
@@ -32,6 +33,9 @@ export const Route = createFileRoute("/comptes/action")({
   component: ActionComptes,
 });
 
+const champ =
+  "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
+
 function ActionComptes() {
   const {
     comptes,
@@ -43,114 +47,133 @@ function ActionComptes() {
     supprimerCompte,
   } = useSuperApp();
 
-  const [popupCreation, setPopupCreation] = useState(false);
-  const [nouveau, setNouveau] = useState("");
+  const [modal, setModal] = useState<"creer" | "modifier" | null>(null);
+  const [nom, setNom] = useState("");
   const [enEdition, setEnEdition] = useState<string | null>(null);
-  const [nomEdite, setNomEdite] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
+  const [erreur, setErreur] = useState<string | null>(null);
 
-  function validerCreation() {
-    const nom = nouveau.trim();
-    if (!nom) {
-      toast.error("Donnez un nom au compte.");
-      return;
-    }
-    if (nom.length > 30) {
-      toast.error("Nom trop long (30 caractères maximum).");
-      return;
-    }
-    if (comptes.includes(nom)) {
-      toast.error("Ce compte existe déjà.");
-      return;
-    }
-    setPopupCreation(false);
-    setDemande({ type: "creation", nom });
+  function ouvrirCreation() {
+    setNom("");
+    setEnEdition(null);
+    setModal("creer");
   }
 
-  function validerRenommage() {
+  function ouvrirModification(compte: string) {
+    setEnEdition(compte);
+    setNom(compte);
+    setModal("modifier");
+  }
+
+  function fermer() {
+    setModal(null);
+    setEnEdition(null);
+  }
+
+  function soumettre(ev: React.FormEvent) {
+    ev.preventDefault();
+    const valeur = nom.trim();
+    if (!valeur) {
+      setErreur("Donnez un nom au compte avant de valider.");
+      return;
+    }
+    if (valeur.length > 30) {
+      setErreur("Nom trop long : 30 caractères maximum.");
+      return;
+    }
+    if (modal === "creer") {
+      if (comptes.includes(valeur)) {
+        setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
+        return;
+      }
+      setDemande({ type: "creation", nom: valeur });
+      return;
+    }
     if (!enEdition) return;
-    const nom = nomEdite.trim();
-    if (!nom) {
-      toast.error("Le nom ne peut pas être vide.");
+    if (valeur !== enEdition && comptes.includes(valeur)) {
+      setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
       return;
     }
-    if (nom !== enEdition && comptes.includes(nom)) {
-      toast.error("Ce compte existe déjà.");
+    if (valeur === enEdition) {
+      setErreur("Le nom est identique : modifiez-le ou annulez.");
       return;
     }
-    setDemande({ type: "renommage", ancien: enEdition, nom });
+    setDemande({ type: "renommage", ancien: enEdition, nom: valeur });
   }
 
-  function retirer(nom: string) {
-    if (transactions.some((t) => t.compte === nom)) {
-      toast.error("Ce compte contient des opérations.");
+  function retirer(compte: string) {
+    if (transactions.some((t) => t.compte === compte)) {
+      setErreur("Ce compte contient des opérations : il ne peut pas être supprimé.");
       return;
     }
-    if (transferts.some((t) => t.source === nom || t.destination === nom)) {
-      toast.error("Ce compte est lié à des transferts.");
+    if (transferts.some((t) => t.source === compte || t.destination === compte)) {
+      setErreur("Ce compte est lié à des transferts : il ne peut pas être supprimé.");
       return;
     }
-    if ((soldesParCompte[nom] ?? 0) !== 0) {
-      toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
+    if ((soldesParCompte[compte] ?? 0) !== 0) {
+      setErreur("Videz d'abord ce compte : son solde n'est pas nul.");
       return;
     }
-    setDemande({ type: "suppression", nom });
+    setDemande({ type: "suppression", nom: compte });
   }
 
   function confirmer() {
     if (!demande) return;
     if (demande.type === "creation") {
       ajouterCompte(demande.nom);
-      setNouveau("");
       toast.success(`Compte « ${demande.nom} » ajouté.`);
     } else if (demande.type === "renommage") {
       renommerCompte(demande.ancien, demande.nom);
-      setEnEdition(null);
       toast.success("Compte modifié.");
     } else {
       supprimerCompte(demande.nom);
       toast.success("Compte supprimé.");
     }
     setDemande(null);
+    fermer();
   }
 
   const danger = demande?.type === "suppression";
   const titre =
     demande?.type === "creation"
-      ? "Confirmer la création du compte"
+      ? "Confirmer la création"
       : demande?.type === "renommage"
         ? "Confirmer la modification"
         : "Supprimer ce compte ?";
   const message =
     demande?.type === "creation"
-      ? `Le compte « ${demande.nom} » sera ajouté à votre liste.`
+      ? "Vérifiez le nom du nouveau compte avant de valider."
       : demande?.type === "renommage"
-        ? `Le compte « ${demande.ancien} » sera renommé « ${demande.nom} ».`
+        ? "Vérifiez le nouveau nom du compte avant de valider."
         : demande?.type === "suppression"
           ? `Le compte « ${demande.nom} » sera définitivement supprimé. Cette action est irréversible.`
           : "";
 
   return (
-    <div className="space-y-4">
-      <Link to="/comptes" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Comptes
-      </Link>
+    <div className="page-anim space-y-5">
+      <BoutonRetour to="/comptes/" label="Retour aux comptes" />
 
-      <button
-        type="button"
-        onClick={() => setPopupCreation(true)}
-        className="carte flex w-full items-center gap-3 p-4 text-left transition-transform active:scale-[0.99]"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Plus className="h-5 w-5" aria-hidden />
-        </span>
-        <span>
-          <span className="block font-semibold">Créer un nouveau compte</span>
-          <span className="block text-sm text-muted-foreground">
-            Banque, mobile money, espèces, tontine…
-          </span>
-        </span>
-      </button>
+      <section className="carte space-y-4 p-4">
+        <h2 className="text-lg font-semibold">Action</h2>
+
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={ouvrirCreation}
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-accent/40 active:scale-[0.99]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Plus aria-hidden className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-semibold">Créer un nouveau compte</p>
+              <p className="text-sm text-muted-foreground">
+                Banque, mobile money, espèces, tontine…
+              </p>
+            </div>
+          </button>
+        </div>
+      </section>
 
       <section className="carte space-y-3 p-4">
         <div>
@@ -166,23 +189,26 @@ function ActionComptes() {
         ) : (
           <ul className="space-y-2">
             {comptes.map((c) => (
-              <li key={c} className="rounded-xl border border-border/70 bg-secondary/40 p-3">
+              <li
+                key={c}
+                className="rounded-xl border border-border/70 bg-secondary/40 p-3 transition-colors hover:bg-secondary"
+              >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{c}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFCFA(soldesParCompte[c] ?? 0)}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Wallet aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{c}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFCFA(soldesParCompte[c] ?? 0)}
+                      </p>
+                    </div>
                   </div>
                   <span className="flex shrink-0 gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setEnEdition(c);
-                        setNomEdite(c);
-                      }}
+                      onClick={() => ouvrirModification(c)}
                       aria-label={`Modifier ${c}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium"
+                      className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/40"
                     >
                       <PencilLine className="h-3.5 w-3.5" aria-hidden /> Modifier
                     </button>
@@ -190,7 +216,7 @@ function ActionComptes() {
                       type="button"
                       onClick={() => retirer(c)}
                       aria-label={`Supprimer ${c}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-destructive"
+                      className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden /> Supprimer
                     </button>
@@ -202,34 +228,100 @@ function ActionComptes() {
         )}
       </section>
 
-      <PopupSaisie
-        ouvert={popupCreation}
-        titre="Nouveau compte"
-        label="Nom du compte"
-        valeur={nouveau}
-        placeholder="Ex. Tontine du quartier"
-        validerLabel="Créer"
-        onChanger={setNouveau}
-        onValider={validerCreation}
-        onAnnuler={() => setPopupCreation(false)}
-      />
+      {modal !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={modal === "creer" ? "Créer un nouveau compte" : "Modifier le compte"}
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          onClick={fermer}
+        >
+          <div
+            className="carte popup-anim w-full max-w-md space-y-4 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold">
+                  {modal === "creer" ? "Nouveau compte" : "Modifier le compte"}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {modal === "creer"
+                    ? "Créez un compte du foyer."
+                    : `Renommez le compte « ${enEdition} ».`}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fermer}
+                aria-label="Fermer"
+                className="rounded-full p-1.5 transition-colors hover:bg-secondary"
+              >
+                <X aria-hidden className="h-4 w-4" />
+              </button>
+            </div>
 
-      <PopupSaisie
-        ouvert={enEdition !== null}
-        titre="Modifier le compte"
-        label="Nouveau nom"
-        valeur={nomEdite}
-        validerLabel="Enregistrer"
-        onChanger={setNomEdite}
-        onValider={validerRenommage}
-        onAnnuler={() => setEnEdition(null)}
+            <form onSubmit={soumettre} className="space-y-3">
+              <div>
+                <label htmlFor="c-nom" className="text-sm font-medium">
+                  Nom du compte
+                </label>
+                <input
+                  id="c-nom"
+                  autoFocus
+                  value={nom}
+                  onChange={(ev) => setNom(ev.target.value)}
+                  placeholder="Tontine du quartier"
+                  className={champ}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
+                >
+                  {modal === "creer" ? "Ajouter" : "Enregistrer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={fermer}
+                  className="flex-1 rounded-xl border border-input py-3 font-medium transition-colors hover:bg-accent/40"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ErreurPopup
+        ouvert={erreur !== null}
+        message={erreur ?? ""}
+        onFermer={() => setErreur(null)}
       />
 
       <Confirmation
         ouvert={demande !== null}
         titre={titre}
         message={message}
-        confirmerLabel={danger ? "Supprimer" : "Confirmer"}
+        details={
+          demande?.type === "creation"
+            ? [{ label: "Nom", apres: demande.nom }]
+            : demande?.type === "renommage"
+              ? [{ label: "Nom", avant: demande.ancien, apres: demande.nom }]
+              : demande?.type === "suppression"
+                ? [
+                    { label: "Compte", apres: demande.nom },
+                    { label: "Solde", apres: formatFCFA(soldesParCompte[demande.nom] ?? 0) },
+                  ]
+                : []
+        }
+        confirmerLabel={
+          danger ? "Supprimer" : demande?.type === "creation" ? "Créer" : "Enregistrer"
+        }
         danger={danger}
         onConfirmer={confirmer}
         onAnnuler={() => setDemande(null)}
