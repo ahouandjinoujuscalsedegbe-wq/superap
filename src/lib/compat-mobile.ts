@@ -43,7 +43,8 @@ export function installerCompatibiliteMobile() {
 
   // structuredClone
   if (typeof g.structuredClone !== "function") {
-    g.structuredClone = (<T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T) as Global["structuredClone"];
+    g.structuredClone = (<T>(v: T): T =>
+      JSON.parse(JSON.stringify(v)) as T) as Global["structuredClone"];
   }
 
   // Array.prototype.at / String.prototype.at

@@ -46,5 +46,7 @@ try {
   const router = getRouter(createMemoryHistory({ initialEntries: ["/"] }));
   if (racine) createRoot(racine).render(<RouterProvider router={router} />);
 } catch (erreur) {
-  afficherPanne(erreur instanceof Error ? `${erreur.message}\n${erreur.stack ?? ""}` : String(erreur));
+  afficherPanne(
+    erreur instanceof Error ? `${erreur.message}\n${erreur.stack ?? ""}` : String(erreur),
+  );
 }
