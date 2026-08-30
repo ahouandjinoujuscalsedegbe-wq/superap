@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight, Wallet } from "lucide-reac
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
+import logoSuperApp from "@/assets/logo-super-app.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
