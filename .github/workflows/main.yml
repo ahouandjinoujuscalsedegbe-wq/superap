@@ -108,36 +108,6 @@ jobs:
           print("AndroidManifest.xml configuré pour l'auto-update.")
           PY
 
-      # 7c. Installer l'icône de l'application (logo rose SUPER APP)
-      - name: Installer l'icône de l'application
-        run: |
-          LOGO=src/assets/logo-super-app.png
-          RES=android/app/src/main/res
-          # Icônes carrées et rondes du lanceur
-          for taille in "mdpi 48" "hdpi 72" "xhdpi 96" "xxhdpi 144" "xxxhdpi 192"; do
-            set -- $taille
-            mkdir -p "$RES/mipmap-$1"
-            convert "$LOGO" -resize "$2x$2" "$RES/mipmap-$1/ic_launcher.png"
-            convert "$LOGO" -resize "$2x$2" \
-              \( +clone -threshold -1 -negate -fill white -draw "circle $(( $2/2 )),$(( $2/2 )) $(( $2/2 )),0" \) \
-              -alpha off -compose CopyOpacity -composite \
-              "$RES/mipmap-$1/ic_launcher_round.png"
-          done
-          # Icônes adaptatives (premier plan)
-          for taille in "mdpi 108" "hdpi 162" "xhdpi 216" "xxhdpi 324" "xxxhdpi 432"; do
-            set -- $taille
-            convert "$LOGO" -resize "$(( $2 * 66 / 100 ))x$(( $2 * 66 / 100 ))" \
-              -background "#FFD6E0" -gravity center -extent "$2x$2" \
-              "$RES/mipmap-$1/ic_launcher_foreground.png"
-          done
-          # Fond de l'icône adaptative
-          mkdir -p "$RES/values"
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#FFD6E0</color>\n</resources>\n' \
-            > "$RES/values/ic_launcher_background.xml"
-          # Icône Play Store
-          convert "$LOGO" -resize 512x512 "$RES/ic_launcher-playstore.png" 2>/dev/null || true
-          echo "Icône de l'application installée."
-
       # 8. Reprendre le numéro de version depuis src/lib/version.ts
       - name: Appliquer le numéro de version
         run: |
