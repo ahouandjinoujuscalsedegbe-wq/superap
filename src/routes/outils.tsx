@@ -322,6 +322,18 @@ function Outils() {
     setHistorique(enregistrerSimulation("Simulation complète", rapportSimulations()));
   };
 
+  /* ---------------- Conseiller intelligent ---------------- */
+  const sante = useMemo(
+    () => evaluerSante({ transactions, dettes, solde, enveloppes, depensesParEnveloppe }),
+    [transactions, dettes, solde, enveloppes, depensesParEnveloppe],
+  );
+  const recommandations = useMemo(
+    () => conseiller({ transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde }),
+    [transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde],
+  );
+  const plans = useMemo(() => planDAction(recommandations), [recommandations]);
+  const gainTotal = recommandations.reduce((s, r) => s + r.gainMensuel, 0);
+
   return (
     <div className="space-y-4">
       <header>
@@ -330,6 +342,97 @@ function Outils() {
           Testez vos décisions avant de les prendre et redressez votre budget.
         </p>
       </header>
+
+      <section className="carte space-y-3 p-4">
+        <div className="flex items-center gap-3">
+          <span className="text-primary" aria-hidden>
+            <Gauge className="h-5 w-5" />
+          </span>
+          <div className="flex-1">
+            <h2 className="font-semibold">Conseiller intelligent</h2>
+            <p className="text-xs text-muted-foreground">
+              Santé financière : {sante.score}/100 — {sante.niveau}
+            </p>
+          </div>
+          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+            {Math.round(sante.tauxEpargne * 100)} % épargné
+          </span>
+        </div>
+
+        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${sante.score}%` }}
+          />
+        </div>
+
+        <ul className="grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
+          {sante.piliers.map((p) => (
+            <li key={p.nom} className="rounded-lg bg-secondary/50 px-2.5 py-1.5">
+              <span className="font-medium">{p.nom}</span> — {p.score}/100
+              <span className="block text-muted-foreground">{p.commentaire}</span>
+            </li>
+          ))}
+        </ul>
+
+        <p className="text-xs text-muted-foreground">
+          Revenu moyen {formatFCFA(sante.revenuMensuel)} / mois · Dépenses{" "}
+          {formatFCFA(sante.depenseMensuelle)} / mois · Réserve{" "}
+          {sante.moisDeReserve.toFixed(1)} mois
+        </p>
+
+        {recommandations.length > 0 && (
+          <>
+            <p className="text-sm font-medium">
+              {recommandations.length} conseils prioritaires — potentiel estimé{" "}
+              {formatFCFA(gainTotal)} par mois
+            </p>
+            <ul className="space-y-2">
+              {recommandations.map((r) => (
+                <li
+                  key={r.id}
+                  className={`rounded-xl border p-3 text-sm ${
+                    r.priorite === "haute"
+                      ? "border-destructive/40 bg-destructive/5"
+                      : r.priorite === "moyenne"
+                        ? "border-amber-500/40 bg-amber-500/5"
+                        : "border-border bg-secondary/30"
+                  }`}
+                >
+                  <p className="font-semibold">{r.titre}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.explication}</p>
+                  <p className="mt-1 text-xs">👉 {r.action}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Priorité {r.priorite} · {r.horizon}
+                    {r.gainMensuel > 0 ? ` · impact ${formatFCFA(r.gainMensuel)} / mois` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        <div className="space-y-2">
+          {plans
+            .filter((p) => p.etapes.length > 0)
+            .map((p) => (
+              <div key={p.horizon} className="rounded-xl bg-secondary/40 p-3 text-xs">
+                <p className="font-semibold">Plan à {p.horizon}</p>
+                <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                  {p.etapes.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
+                </ol>
+                {p.gainCumule > 0 && (
+                  <p className="mt-1 font-medium">
+                    Gain cumulé estimé : {formatFCFA(p.gainCumule)} / mois
+                  </p>
+                )}
+              </div>
+            ))}
+        </div>
+      </section>
+
 
       {alertesRouges.length > 0 && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
