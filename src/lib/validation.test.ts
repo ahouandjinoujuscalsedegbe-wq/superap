@@ -94,10 +94,10 @@ describe("assainirDette", () => {
   it("ignore les remboursements invalides sans perdre la dette", () => {
     const d = assainirDette({
       id: "d1",
-      type: "dette",
+      sens: "dette",
       personne: "AMI",
-      montant: 10000,
-      date: "2026-08-01",
+      montantInitial: 10000,
+      creeLe: "2026-08-01",
       remboursements: [
         { id: "r1", montant: 2000, date: "2026-08-10" },
         { id: "r2", montant: -50, date: "2026-08-11" },

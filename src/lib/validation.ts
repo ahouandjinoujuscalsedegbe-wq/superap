@@ -60,6 +60,14 @@ export function idValide(v: unknown): v is string {
 /** Normalise une date en ISO ; renvoie null si la date est inexploitable. */
 export function dateSure(v: unknown): string | null {
   if (typeof v !== "string" || v.trim() === "") return null;
+  // Format strict : "AAAA-MM-JJ" éventuellement suivi d'une heure ISO.
+  // Sans ce contrôle, JavaScript « rattrape » des dates absurdes comme
+  // "0001-13-45" au lieu de les refuser.
+  if (!/^\d{4}-\d{2}-\d{2}([T ].*)?$/.test(v)) return null;
+  const [a, m, j] = v.slice(0, 10).split("-").map(Number);
+  if (m < 1 || m > 12 || j < 1 || j > 31) return null;
+  const controle = new Date(Date.UTC(a, m - 1, j));
+  if (controle.getUTCMonth() !== m - 1 || controle.getUTCDate() !== j) return null;
   const t = new Date(v).getTime();
   if (!Number.isFinite(t)) return null;
   // Bornes raisonnables : 1990 → 2100.
