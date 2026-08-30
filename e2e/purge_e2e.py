@@ -55,6 +55,7 @@ async def main() -> None:
         assert avant["local"] > 0 and avant["session"] > 0
         assert avant["bases"] >= 1 and avant["caches"] >= 1 and avant["cookies"]
 
+        await page.wait_for_timeout(1500)  # hydratation React
         await page.click('[data-test="ouvrir-purge"]')
         # On désactive l'export chiffré pour ce scénario.
         case = page.locator('[data-test="option-sauvegarde"]')
