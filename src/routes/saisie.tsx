@@ -16,10 +16,16 @@ import {
   CopyCheck,
   Repeat,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
+import {
+  empreinteTicket,
+  verifierAuthenticite,
+  type VerdictAuthenticite,
+} from "@/lib/authenticite";
 import { creerDictee, dicteeDisponible } from "@/lib/dictee";
 import {
   ajouterHistoriqueSaisie,
@@ -76,6 +82,10 @@ type Brouillon = {
   enveloppe: string;
   source: string;
   compte: string;
+  /** Contrôle d'authenticité du ticket photographié. */
+  verdict?: VerdictAuthenticite;
+  /** L'utilisateur certifie avoir vérifié un ticket jugé douteux. */
+  certifie?: boolean;
 };
 
 function SaisieIntelligente() {
@@ -95,10 +105,17 @@ function SaisieIntelligente() {
   const [viderDemande, setViderDemande] = useState(false);
   const fichier = useRef<HTMLInputElement>(null);
   const reco = useRef<ReturnType<typeof creerDictee>>(null);
+  /** Empreintes des tickets déjà lus ou déjà enregistrés. */
+  const empreintesConnues = useRef<string[]>([]);
 
   useEffect(() => {
-    setHistorique(lireHistoriqueSaisies());
+    const liste = lireHistoriqueSaisies();
+    setHistorique(liste);
+    empreintesConnues.current = liste
+      .filter((s) => s.source === "ocr" && s.texte)
+      .map((s) => empreinteTicket(s.texte));
   }, []);
+
 
   useEffect(() => {
     return () => {
@@ -125,6 +142,7 @@ function SaisieIntelligente() {
       origine: Brouillon["origine"],
       texteSource: string,
       vignette?: string,
+      verdict?: VerdictAuthenticite,
     ): Brouillon => {
       const apprise = suggererEnveloppe(resultat.libelle);
       const enveloppeChoisie =
@@ -132,23 +150,26 @@ function SaisieIntelligente() {
         resultat.indiceEnveloppe ??
         enveloppes[0]?.id ??
         "";
+      const montantRetenu = verdict?.montantRecoupe ?? resultat.montant;
       return {
         id: crypto.randomUUID(),
         origine,
         texte: texteSource,
         ...(vignette ? { vignette } : {}),
-        confiance: resultat.confiance,
+        confiance: verdict ? verdict.score / 100 : resultat.confiance,
         type: resultat.type,
-        montant: resultat.montant ? String(resultat.montant) : "",
+        montant: montantRetenu ? String(montantRetenu) : "",
         libelle: resultat.libelle,
         date: resultat.date,
         enveloppe: enveloppeChoisie,
         source: sourcesRevenu[0] ?? "Salaire",
         compte: comptes[0] ?? COMPTES[0] ?? "",
+        ...(verdict ? { verdict } : {}),
       };
     },
     [comptes, enveloppes, sourcesRevenu],
   );
+
 
   const majBrouillon = useCallback((id: string, champs: Partial<Brouillon>) => {
     setBrouillons((liste) => liste.map((b) => (b.id === id ? { ...b, ...champs } : b)));
@@ -226,7 +247,27 @@ function SaisieIntelligente() {
         }
         setTexte(lu);
         const extrait = analyserTexte(lu, enveloppes);
-        setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu)]);
+        const verdict = verifierAuthenticite(lu, {
+          confianceOcr: confiance,
+          dateOperation: extrait.date,
+          montant: extrait.montant,
+          empreintesConnues: empreintesConnues.current,
+          nomFichier: f.name,
+        });
+        empreintesConnues.current = [...empreintesConnues.current, verdict.empreinte];
+        journalInfo("ocr", "Contrôle d'authenticité du ticket", {
+          fichier: f.name,
+          score: verdict.score,
+          verdict: verdict.verdict,
+          alertes: verdict.indices.filter((x) => x.niveau === "alerte").length,
+        });
+        if (verdict.verdict === "suspect") {
+          toast.error(`Ticket ${i + 1} : document douteux (${verdict.score}/100). Vérifiez-le.`);
+        } else if (verdict.verdict === "a_verifier") {
+          toast.warning(`Ticket ${i + 1} : à contrôler (${verdict.score}/100).`);
+        }
+        setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu, verdict)]);
+
       } catch (erreur) {
         journalErreur("ocr", "Échec de la lecture du ticket", {
           fichier: f.name,
@@ -277,8 +318,11 @@ function SaisieIntelligente() {
     if (valeurDe(b) <= 0) return "Le montant doit être supérieur à zéro.";
     if (b.type === "depense" && !b.enveloppe) return "Choisissez une enveloppe pour cette dépense.";
     if (!b.compte) return "Choisissez un compte.";
+    if (b.verdict?.blocageRecommande && !b.certifie)
+      return "Ticket jugé douteux : contrôlez-le puis cochez « J'ai vérifié ce ticket ».";
     return null;
   }
+
 
   function demanderEnregistrement(mode: "un" | "tous", id?: string) {
     const cibles = mode === "tous" ? brouillons : brouillons.filter((b) => b.id === id);
@@ -504,6 +548,57 @@ function SaisieIntelligente() {
                     className="h-24 w-auto rounded-lg border border-border object-cover"
                   />
                 )}
+
+                {b.verdict && (
+                  <div
+                    className={`space-y-2 rounded-xl border px-3 py-2.5 text-xs ${
+                      b.verdict.verdict === "authentique"
+                        ? "border-primary/40 bg-accent/50 text-accent-foreground"
+                        : b.verdict.verdict === "a_verifier"
+                          ? "border-amber-500/50 bg-amber-500/10 text-foreground"
+                          : "border-destructive/50 bg-destructive/10 text-destructive"
+                    }`}
+                  >
+                    <p className="flex items-center gap-2 font-semibold">
+                      <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+                      {b.verdict.verdict === "authentique"
+                        ? "Ticket vérifié"
+                        : b.verdict.verdict === "a_verifier"
+                          ? "Ticket à contrôler"
+                          : "Ticket douteux"}{" "}
+                      — {b.verdict.score}/100
+                    </p>
+                    <p>{b.verdict.resume}</p>
+                    <ul className="space-y-1">
+                      {b.verdict.indices.slice(0, 5).map((ind) => (
+                        <li key={ind.code} className="flex items-start gap-1.5">
+                          <span aria-hidden>
+                            {ind.niveau === "alerte" ? "⛔" : ind.niveau === "attention" ? "⚠️" : "✅"}
+                          </span>
+                          <span>{ind.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {b.verdict.montantRecoupe !== null && (
+                      <p className="font-medium">
+                        Montant recoupé sur le total imprimé :{" "}
+                        {formatFCFA(b.verdict.montantRecoupe)}.
+                      </p>
+                    )}
+                    {b.verdict.blocageRecommande && (
+                      <label className="flex items-center gap-2 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(b.certifie)}
+                          onChange={(e) => majBrouillon(b.id, { certifie: e.target.checked })}
+                          className="h-4 w-4"
+                        />
+                        J'ai vérifié ce ticket, je l'enregistre quand même.
+                      </label>
+                    )}
+                  </div>
+                )}
+
 
                 {doublon && (
                   <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive">
