@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
 import { Route as AnalysesRouteImport } from './routes/analyses'
+import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
@@ -48,6 +49,11 @@ const AideRoute = AideRouteImport.update({
 const AnalysesRoute = AnalysesRouteImport.update({
   id: '/analyses',
   path: '/analyses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComptesRoute = ComptesRouteImport.update({
+  id: '/comptes',
+  path: '/comptes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DepenseRoute = DepenseRouteImport.update({
@@ -106,14 +112,14 @@ const SynchronisationRoute = SynchronisationRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComptesIndexRoute = ComptesIndexRouteImport.update({
-  id: '/comptes/',
-  path: '/comptes/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ComptesRoute,
 } as any)
 const ComptesCompteRoute = ComptesCompteRouteImport.update({
-  id: '/comptes/$compte',
-  path: '/comptes/$compte',
-  getParentRoute: () => rootRouteImport,
+  id: '/$compte',
+  path: '/$compte',
+  getParentRoute: () => ComptesRoute,
 } as any)
 const EnveloppesIndexRoute = EnveloppesIndexRouteImport.update({
   id: '/',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -219,6 +226,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -248,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/comptes'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/comptes'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -329,6 +339,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AideRoute: typeof AideRoute
   AnalysesRoute: typeof AnalysesRoute
+  ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
@@ -340,8 +351,6 @@ export interface RootRouteChildren {
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
   SynchronisationRoute: typeof SynchronisationRoute
-  ComptesCompteRoute: typeof ComptesCompteRoute
-  ComptesIndexRoute: typeof ComptesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/analyses'
       fullPath: '/analyses'
       preLoaderRoute: typeof AnalysesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comptes': {
+      id: '/comptes'
+      path: '/comptes'
+      fullPath: '/comptes'
+      preLoaderRoute: typeof ComptesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/depense': {
@@ -446,17 +462,17 @@ declare module '@tanstack/react-router' {
     }
     '/comptes/': {
       id: '/comptes/'
-      path: '/comptes'
+      path: '/'
       fullPath: '/comptes/'
       preLoaderRoute: typeof ComptesIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ComptesRoute
     }
     '/comptes/$compte': {
       id: '/comptes/$compte'
-      path: '/comptes/$compte'
+      path: '/$compte'
       fullPath: '/comptes/$compte'
       preLoaderRoute: typeof ComptesCompteRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ComptesRoute
     }
     '/enveloppes/': {
       id: '/enveloppes/'
@@ -524,6 +540,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ComptesRouteChildren {
+  ComptesCompteRoute: typeof ComptesCompteRoute
+  ComptesIndexRoute: typeof ComptesIndexRoute
+}
+
+const ComptesRouteChildren: ComptesRouteChildren = {
+  ComptesCompteRoute: ComptesCompteRoute,
+  ComptesIndexRoute: ComptesIndexRoute,
+}
+
+const ComptesRouteWithChildren =
+  ComptesRoute._addFileChildren(ComptesRouteChildren)
+
 interface EnveloppesRouteChildren {
   EnveloppesActionRoute: typeof EnveloppesActionRoute
   EnveloppesBudgetisationRoute: typeof EnveloppesBudgetisationRoute
@@ -556,6 +585,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
   AnalysesRoute: AnalysesRoute,
+  ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
   EnveloppesRoute: EnveloppesRouteWithChildren,
@@ -567,8 +597,6 @@ const rootRouteChildren: RootRouteChildren = {
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,
   SynchronisationRoute: SynchronisationRoute,
-  ComptesCompteRoute: ComptesCompteRoute,
-  ComptesIndexRoute: ComptesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
