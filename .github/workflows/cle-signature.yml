@@ -25,10 +25,15 @@ jobs:
         env:
           MDP: ${{ inputs.mot_de_passe }}
         run: |
-          # Création avec storetype explicite PKCS12 (standard moderne)
+          if [ "${#MDP}" -lt 8 ]; then
+            echo "::error::Le mot de passe doit contenir au moins 8 caractères."
+            exit 1
+          fi
+
+          # JKS est utilisé explicitement pour une compatibilité Android maximale.
           keytool -genkeypair -v \
             -keystore cle-signature.jks \
-            -storetype PKCS12 \
+            -storetype JKS \
             -alias superapp \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$MDP" -keypass "$MDP" \
@@ -40,6 +45,8 @@ jobs:
           
           # Encodage Base64 (sans retour à la ligne) pour faciliter le copier-coller
           base64 -w0 cle-signature.jks > cle-signature.base64.txt
+          OCTETS=$(wc -c < cle-signature.jks)
+          EMPREINTE=$(sha256sum cle-signature.jks | cut -d' ' -f1)
           
           echo "Génération du fichier d'instructions..."
           cat > INSTRUCTIONS.txt <<EOF
@@ -52,10 +59,17 @@ jobs:
           3. ANDROID_KEY_ALIAS : superapp
           4. ANDROID_KEY_PASSWORD : Le même mot de passe : $MDP
 
+          CONTRÔLE APRÈS COPIE :
+          - Taille attendue de la clé décodée : $OCTETS octets
+          - Empreinte SHA-256 attendue : $EMPREINTE
+          Si la compilation affiche une autre taille ou empreinte, le Base64 a été mal copié.
+
           CONSEIL : Téléchargez l'artefact 'cle-signature' de ce workflow et conservez le fichier 'cle-signature.jks' en lieu sûr (Cloud, clé USB). Si vous perdez cette clé, vous ne pourrez plus mettre à jour votre application sur le Play Store ou chez vos utilisateurs.
           EOF
           
           echo "Clé créée et vérifiée avec succès."
+          echo "Taille : $OCTETS octets"
+          echo "Empreinte SHA-256 : $EMPREINTE"
 
       - name: Publier la clé (à conserver en lieu sûr)
         uses: actions/upload-artifact@v4
