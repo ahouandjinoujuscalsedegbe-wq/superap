@@ -28,7 +28,7 @@ export const Route = createFileRoute("/parametres")({
 });
 
 function Parametres() {
-  const { transparence, definirTransparence, reinitialiser } = useSuperApp();
+  const { transparence, definirTransparence, reinitialiser, nomUtilisateur, definirNomUtilisateur } = useSuperApp();
 
   return (
     <div className="space-y-5">
@@ -81,6 +81,23 @@ function Parametres() {
         </span>
         <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground" aria-hidden />
       </Link>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="font-semibold">Profil</h2>
+        <div>
+          <label htmlFor="nom-utilisateur" className="text-sm text-muted-foreground">
+            Votre prénom ou nom d'affichage
+          </label>
+          <input
+            id="nom-utilisateur"
+            type="text"
+            value={nomUtilisateur ?? ""}
+            onChange={(e) => definirNomUtilisateur(e.target.value)}
+            placeholder="EXEMPLE : MARIE"
+            className="mt-1.5 w-full rounded-xl border border-border bg-transparent px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        </div>
+      </section>
 
       <section className="carte p-4">
         <div className="flex items-center justify-between">
