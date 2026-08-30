@@ -89,7 +89,7 @@ export function BottomNav() {
                     />
                   )}
                   <Icone
-                    className={`relative h-[1.3rem] w-[1.3rem] transition-transform duration-300 ${
+                    className={`relative ${tailleIcone} transition-transform duration-300 ${
                       actif ? "scale-110" : "group-active:scale-95"
                     }`}
                     strokeWidth={actif ? 2.4 : 1.9}
