@@ -24,6 +24,7 @@ import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
 import { SyncAuto } from "../components/SyncAuto";
+import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -169,6 +170,7 @@ function RootComponent() {
           <EcranVerrou />
           <MiseAJourAuto />
           <SyncAuto />
+          <AlerteStockage />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>

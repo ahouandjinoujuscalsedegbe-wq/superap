@@ -14,7 +14,8 @@ export const Route = createFileRoute("/comptes/transferts/nouveau")({
       { title: "Nouveau transfert — SUPER APP" },
       {
         name: "description",
-        content: "Transférez des francs CFA d'un compte du foyer vers un autre en quatre questions.",
+        content:
+          "Transférez des francs CFA d'un compte du foyer vers un autre en quatre questions.",
       },
       { property: "og:title", content: "Nouveau transfert entre comptes — SUPER APP" },
       {

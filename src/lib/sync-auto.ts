@@ -18,6 +18,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { chiffrer, dechiffrer, type EnveloppeChiffree } from "./sauvegarde";
 import { journaliser } from "./journal";
 import type { Etat } from "./store";
+import {
+  assainirBudget,
+  assainirCategorie,
+  assainirComptes,
+  assainirDette,
+  assainirEnveloppe,
+  assainirTransaction,
+  assainirTransfert,
+} from "./validation";
+
+/**
+ * Longueur minimale de la phrase secrète. Le salon en ligne est une simple
+ * empreinte de cette phrase : une phrase courte serait devinable, ce qui
+ * permettrait à un tiers de déposer de fausses données dans le coffre.
+ */
+export const PHRASE_MIN = 12;
 
 export const CLE_SYNC_AUTO = "superapp:sync-auto:v1";
 
@@ -93,14 +109,38 @@ export async function deposer(etat: Etat, r: ReglagesAuto): Promise<number> {
 
 type AvecId = { id: string };
 
-function fusionner<T extends AvecId>(actuel: T[], entrant: T[]): { liste: T[]; ajoutes: number } {
+/**
+ * Fusionne une liste distante dans la liste locale.
+ *
+ * Chaque élément entrant passe OBLIGATOIREMENT par son assainisseur : un dépôt
+ * forgé ou corrompu ne peut donc pas injecter de montant négatif, de NaN ou de
+ * date impossible dans les comptes du foyer. Les éléments refusés sont comptés
+ * et signalés dans le journal.
+ */
+function fusionner<T extends AvecId>(
+  actuel: T[],
+  entrant: unknown,
+  assainir: (x: unknown) => T | null,
+): { liste: T[]; ajoutes: number; refuses: number } {
   const connus = new Set(actuel.map((x) => x?.id));
-  const nouveaux = (entrant ?? []).filter((x) => x && x.id && !connus.has(x.id));
-  return { liste: [...nouveaux, ...actuel], ajoutes: nouveaux.length };
+  const nouveaux: T[] = [];
+  let refuses = 0;
+  for (const brut of Array.isArray(entrant) ? entrant : []) {
+    const propre = assainir(brut);
+    if (!propre) {
+      refuses += 1;
+      continue;
+    }
+    if (connus.has(propre.id)) continue;
+    connus.add(propre.id);
+    nouveaux.push(propre);
+  }
+  return { liste: [...nouveaux, ...actuel], ajoutes: nouveaux.length, refuses };
 }
 
-function fusionnerNoms(actuel: string[], entrant: string[]): string[] {
-  const nouveaux = (entrant ?? []).filter((x) => typeof x === "string" && !actuel.includes(x));
+function fusionnerNoms(actuel: string[], entrant: unknown): string[] {
+  const propres = assainirComptes(entrant);
+  const nouveaux = propres.filter((x) => !actuel.includes(x));
   return [...actuel, ...nouveaux];
 }
 
@@ -111,13 +151,27 @@ export function fusionnerEtat(
   local: Etat,
   distant: Partial<Etat>,
 ): { etat: Etat; ajoutes: number } {
-  const transactions = fusionner(local.transactions, distant.transactions ?? []);
-  const transferts = fusionner(local.transferts, distant.transferts ?? []);
-  const enveloppes = fusionner(local.enveloppes, distant.enveloppes ?? []);
-  const categories = fusionner(local.categories, distant.categories ?? []);
-  const budgets = fusionner(local.budgets, distant.budgets ?? []);
-  const dettes = fusionner(local.dettes, distant.dettes ?? []);
-  const comptes = fusionnerNoms(local.comptes, distant.comptes ?? []);
+  const transactions = fusionner(local.transactions, distant.transactions, assainirTransaction);
+  const transferts = fusionner(local.transferts, distant.transferts, assainirTransfert);
+  const enveloppes = fusionner(local.enveloppes, distant.enveloppes, assainirEnveloppe);
+  const categories = fusionner(local.categories, distant.categories, assainirCategorie);
+  const budgets = fusionner(local.budgets, distant.budgets, assainirBudget);
+  const dettes = fusionner(local.dettes, distant.dettes, assainirDette);
+  const comptes = fusionnerNoms(local.comptes, distant.comptes);
+  const refuses =
+    transactions.refuses +
+    transferts.refuses +
+    enveloppes.refuses +
+    categories.refuses +
+    budgets.refuses +
+    dettes.refuses;
+  if (refuses > 0) {
+    journaliser(
+      "avertissement",
+      "application",
+      `${refuses} élément(s) reçus ont été refusés : données invalides ou altérées.`,
+    );
+  }
   return {
     etat: {
       ...local,

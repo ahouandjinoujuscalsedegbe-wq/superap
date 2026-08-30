@@ -116,7 +116,6 @@ function SaisieIntelligente() {
       .map((s) => empreinteTicket(s.texte));
   }, []);
 
-
   useEffect(() => {
     return () => {
       reco.current?.stop();
@@ -169,7 +168,6 @@ function SaisieIntelligente() {
     },
     [comptes, enveloppes, sourcesRevenu],
   );
-
 
   const majBrouillon = useCallback((id: string, champs: Partial<Brouillon>) => {
     setBrouillons((liste) => liste.map((b) => (b.id === id ? { ...b, ...champs } : b)));
@@ -267,7 +265,6 @@ function SaisieIntelligente() {
           toast.warning(`Ticket ${i + 1} : à contrôler (${verdict.score}/100).`);
         }
         setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu, verdict)]);
-
       } catch (erreur) {
         journalErreur("ocr", "Échec de la lecture du ticket", {
           fichier: f.name,
@@ -322,7 +319,6 @@ function SaisieIntelligente() {
       return "Ticket jugé douteux : contrôlez-le puis cochez « J'ai vérifié ce ticket ».";
     return null;
   }
-
 
   function demanderEnregistrement(mode: "un" | "tous", id?: string) {
     const cibles = mode === "tous" ? brouillons : brouillons.filter((b) => b.id === id);
@@ -573,7 +569,11 @@ function SaisieIntelligente() {
                       {b.verdict.indices.slice(0, 5).map((ind) => (
                         <li key={ind.code} className="flex items-start gap-1.5">
                           <span aria-hidden>
-                            {ind.niveau === "alerte" ? "⛔" : ind.niveau === "attention" ? "⚠️" : "✅"}
+                            {ind.niveau === "alerte"
+                              ? "⛔"
+                              : ind.niveau === "attention"
+                                ? "⚠️"
+                                : "✅"}
                           </span>
                           <span>{ind.message}</span>
                         </li>
@@ -598,7 +598,6 @@ function SaisieIntelligente() {
                     )}
                   </div>
                 )}
-
 
                 {doublon && (
                   <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive">

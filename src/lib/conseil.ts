@@ -108,7 +108,12 @@ export function evaluerSante(args: {
     },
     {
       nom: "Régularité de suivi",
-      score: borne((transactions.filter((t) => j(t.date) >= j(new Date(Date.now() - 30 * JOUR).toISOString())).length / 20) * 100),
+      score: borne(
+        (transactions.filter((t) => j(t.date) >= j(new Date(Date.now() - 30 * JOUR).toISOString()))
+          .length /
+          20) *
+          100,
+      ),
       poids: 0.1,
       commentaire: "Plus vous saisissez, plus les conseils sont précis.",
     },
@@ -116,7 +121,15 @@ export function evaluerSante(args: {
 
   const score = borne(piliers.reduce((s, p) => s + p.score * p.poids, 0));
   const niveau: SanteFinanciere["niveau"] =
-    score >= 85 ? "excellent" : score >= 70 ? "solide" : score >= 50 ? "correct" : score >= 30 ? "fragile" : "critique";
+    score >= 85
+      ? "excellent"
+      : score >= 70
+        ? "solide"
+        : score >= 50
+          ? "correct"
+          : score >= 30
+            ? "fragile"
+            : "critique";
 
   return {
     score,
@@ -295,7 +308,8 @@ export function conseiller(args: {
     recos.push({
       id: "budgetisation",
       titre: "Planifiez vos dépenses récurrentes",
-      explication: "Aucune dépense planifiée n'est enregistrée : les échéances risquent de surprendre.",
+      explication:
+        "Aucune dépense planifiée n'est enregistrée : les échéances risquent de surprendre.",
       action: "Ouvrez Enveloppes → Budgétisation et planifiez loyer, scolarité et factures.",
       gainMensuel: 0,
       priorite: "moyenne",
@@ -311,7 +325,8 @@ export function conseiller(args: {
       id: "placement",
       titre: "Faites travailler votre surplus",
       explication: `Vous dégagez environ ${marge} FCFA par mois au-delà de votre réserve.`,
-      action: "Affectez ce surplus à un projet daté (terrain, formation, matériel) plutôt qu'au compte courant.",
+      action:
+        "Affectez ce surplus à un projet daté (terrain, formation, matériel) plutôt qu'au compte courant.",
       gainMensuel: marge,
       priorite: "basse",
       horizon: "1 an",
@@ -334,9 +349,7 @@ export function conseiller(args: {
   }
 
   const rang = { haute: 0, moyenne: 1, basse: 2 } as const;
-  return recos.sort(
-    (a, b) => rang[a.priorite] - rang[b.priorite] || b.gainMensuel - a.gainMensuel,
-  );
+  return recos.sort((a, b) => rang[a.priorite] - rang[b.priorite] || b.gainMensuel - a.gainMensuel);
 }
 
 /* ------------------------------------------------------------------ */

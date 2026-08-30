@@ -10,8 +10,22 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
-import { ecrireSecurise, estChiffre, lireSecurise } from "./coffre-local";
-
+import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
+import { journaliser } from "./journal";
+import {
+  assainirBudget,
+  assainirCategorie,
+  assainirComptes,
+  assainirDette,
+  assainirEnveloppe,
+  assainirListe,
+  assainirTransaction,
+  assainirTransfert,
+  montantPositifOuNul,
+  montantValide,
+  nombreSur,
+  texteSur,
+} from "./validation";
 
 export type Enveloppe = {
   id: string;
@@ -209,6 +223,27 @@ export type Etat = {
   nomUtilisateur?: string;
 };
 
+/**
+ * Ramène un état de provenance inconnue (stockage, sauvegarde importée,
+ * dépôt de synchronisation) à un état sain : tout élément invalide est écarté
+ * plutôt que d'empoisonner les soldes.
+ */
+export function assainirEtat(brut: Partial<Etat>): Etat {
+  const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
+  const comptes = assainirComptes(brut.comptes);
+  return {
+    transactions: assainirListe(brut.transactions, assainirTransaction),
+    enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
+    categories: assainirListe(brut.categories, assainirCategorie),
+    comptes: comptes.length > 0 ? comptes : [...COMPTES],
+    transferts: assainirListe(brut.transferts, assainirTransfert),
+    budgets: assainirListe(brut.budgets, assainirBudget),
+    dettes: assainirListe(brut.dettes, assainirDette),
+    transparence: Math.min(100, Math.max(0, nombreSur(brut.transparence, 85))),
+    nomUtilisateur: texteSur(brut.nomUtilisateur, 60),
+  };
+}
+
 const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
@@ -263,6 +298,8 @@ type Contexte = Etat & {
   solde: number;
   depensesParEnveloppe: Record<string, number>;
   soldesParCompte: Record<string, number>;
+  /** true quand des données existent mais n'ont pas pu être déchiffrées. */
+  stockageIllisible: boolean;
 };
 
 const CLE = "superapp:etat:v1";
@@ -281,31 +318,50 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   // Tant que la lecture chiffrée n'est pas terminée, on n'écrit rien :
   // cela évite d'écraser les données existantes par l'état initial.
   const pret = useRef(false);
+  const [illisible, setIllisible] = useState(false);
 
   useEffect(() => {
     let annule = false;
     void (async () => {
-      try {
-        const brut = await lireSecurise(CLE);
-        if (brut && !annule) {
-          const charge = { ...ETAT_INITIAL, ...(JSON.parse(brut) as Partial<Etat>) };
-          // Migration : les anciennes enveloppes reçoivent une dotation égale au plafond.
-          charge.enveloppes = charge.enveloppes.map((x) => ({
-            ...x,
-            dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
-          }));
-          setEtat(charge);
-          // Migration immédiate : réécriture chiffrée des anciennes données en clair.
-          if (!estChiffre(window.localStorage.getItem(CLE) ?? "")) {
-            await ecrireSecurise(CLE, JSON.stringify(charge));
-          }
-        }
-      } catch {
-        /* stockage indisponible */
-      } finally {
-        pret.current = true;
+      const lecture = await lireSecuriseDetail(CLE);
+      if (annule) return;
+
+      if (lecture.statut === "illisible") {
+        // Des données EXISTENT mais sont indéchiffrables (secret d'appareil
+        // perdu ou fichier abîmé). On n'active JAMAIS l'écriture : écraser
+        // reviendrait à détruire définitivement la sauvegarde de l'utilisateur.
+        setIllisible(true);
+        journaliser(
+          "erreur",
+          "stockage",
+          "Données locales illisibles : écriture suspendue pour ne rien détruire.",
+        );
+        return;
       }
 
+      if (lecture.statut === "ok") {
+        try {
+          const charge = assainirEtat(JSON.parse(lecture.valeur) as Partial<Etat>);
+          setEtat(charge);
+          // Migration immédiate : réécriture chiffrée des anciennes données en clair.
+          let enClair = false;
+          try {
+            enClair = !estChiffre(window.localStorage.getItem(CLE) ?? "");
+          } catch {
+            enClair = false;
+          }
+          if (enClair) await ecrireSecurise(CLE, JSON.stringify(charge));
+        } catch {
+          // JSON corrompu : même prudence, on ne réécrit rien.
+          setIllisible(true);
+          journaliser("erreur", "stockage", "Données locales corrompues : écriture suspendue.");
+          return;
+        }
+      }
+
+      // Le drapeau ne passe à true qu'ici : aucune écriture ne peut partir
+      // avant que la lecture initiale soit complètement terminée.
+      pret.current = true;
     })();
     return () => {
       annule = true;
@@ -314,17 +370,17 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Chiffrement AES-GCM avant toute écriture sur le téléphone.
-    if (pret.current) void ecrireSecurise(CLE, JSON.stringify(etat));
+    if (pret.current && !illisible) void ecrireSecurise(CLE, JSON.stringify(etat));
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
-  }, [etat]);
-
-
+  }, [etat, illisible]);
 
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
-    setEtat((e) => ({
-      ...e,
-      transactions: [{ ...t, id: crypto.randomUUID() }, ...e.transactions],
-    }));
+    const propre = assainirTransaction({ ...t, id: crypto.randomUUID() });
+    if (!propre) {
+      journaliser("avertissement", "application", "Opération refusée : montant ou date invalide.");
+      return;
+    }
+    setEtat((e) => ({ ...e, transactions: [propre, ...e.transactions] }));
   }, []);
 
   const supprimerTransaction = useCallback((id: string) => {
@@ -332,7 +388,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterCompte = useCallback((nom: string) => {
-    setEtat((e) => (e.comptes.includes(nom) ? e : { ...e, comptes: [...e.comptes, nom] }));
+    const propre = texteSur(nom, 60);
+    if (!propre) return;
+    setEtat((e) => (e.comptes.includes(propre) ? e : { ...e, comptes: [...e.comptes, propre] }));
   }, []);
 
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
@@ -351,14 +409,32 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const supprimerCompte = useCallback((nom: string) => {
-    setEtat((e) => ({ ...e, comptes: e.comptes.filter((c) => c !== nom) }));
+    setEtat((e) => {
+      // Garde-fou métier : un compte encore référencé ne peut pas disparaître,
+      // sinon ses opérations deviendraient orphelines et fausseraient les soldes.
+      const utilise =
+        e.transactions.some((t) => t.compte === nom) ||
+        e.transferts.some((t) => t.source === nom || t.destination === nom) ||
+        e.budgets.some((b) => b.compte === nom);
+      if (utilise) {
+        journaliser(
+          "avertissement",
+          "application",
+          `Suppression refusée : le compte « ${nom} » est encore utilisé.`,
+        );
+        return e;
+      }
+      return { ...e, comptes: e.comptes.filter((c) => c !== nom) };
+    });
   }, []);
 
   const ajouterTransfert = useCallback((t: Omit<Transfert, "id">) => {
-    setEtat((e) => ({
-      ...e,
-      transferts: [{ ...t, id: crypto.randomUUID() }, ...e.transferts],
-    }));
+    const propre = assainirTransfert({ ...t, id: crypto.randomUUID() });
+    if (!propre) {
+      journaliser("avertissement", "application", "Transfert refusé : données invalides.");
+      return;
+    }
+    setEtat((e) => ({ ...e, transferts: [propre, ...e.transferts] }));
   }, []);
 
   const supprimerTransfert = useCallback((id: string) => {
@@ -366,16 +442,22 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">) => {
-    setEtat((e) => ({
-      ...e,
-      enveloppes: [...e.enveloppes, { ...env, id: crypto.randomUUID() }],
-    }));
+    const propre = assainirEnveloppe({ ...env, id: crypto.randomUUID() });
+    if (!propre) {
+      journaliser("avertissement", "application", "Enveloppe refusée : nom ou montant invalide.");
+      return;
+    }
+    setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
   }, []);
 
   const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
+    if (env.plafond !== undefined && !montantPositifOuNul(env.plafond)) return;
+    if (env.dotation !== undefined && !montantPositifOuNul(env.dotation)) return;
     setEtat((e) => ({
       ...e,
-      enveloppes: e.enveloppes.map((x) => (x.id === id ? { ...x, ...env } : x)),
+      enveloppes: e.enveloppes.map((x) =>
+        x.id === id ? (assainirEnveloppe({ ...x, ...env }) ?? x) : x,
+      ),
     }));
   }, []);
 
@@ -537,7 +619,16 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterBudget = useCallback((b: Omit<Budget, "id">) => {
-    setEtat((e) => ({ ...e, budgets: [{ ...b, id: crypto.randomUUID() }, ...e.budgets] }));
+    const propre = assainirBudget({ ...b, id: crypto.randomUUID() });
+    if (!propre) {
+      journaliser(
+        "avertissement",
+        "application",
+        "Budget refusé : montant, période ou date invalide.",
+      );
+      return;
+    }
+    setEtat((e) => ({ ...e, budgets: [propre, ...e.budgets] }));
   }, []);
 
   const convertirBudget = useCallback((id: string, fois = 1) => {
@@ -592,14 +683,38 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         return garde > 0 ? { ...b, prochaine: date } : b;
       });
       if (nouvelles.length === 0) return e;
+
+      // Cohérence avec la règle appliquée aux transferts : on prévient quand
+      // une échéance planifiée fait passer un compte en négatif.
+      const soldes: Record<string, number> = {};
+      for (const t of e.transactions)
+        soldes[t.compte] = (soldes[t.compte] ?? 0) + (t.type === "revenu" ? t.montant : -t.montant);
+      for (const t of e.transferts) {
+        soldes[t.source] = (soldes[t.source] ?? 0) - t.montant;
+        soldes[t.destination] = (soldes[t.destination] ?? 0) + t.montant;
+      }
+      const decouverts = new Set<string>();
+      for (const n of nouvelles) {
+        soldes[n.compte] = (soldes[n.compte] ?? 0) - n.montant;
+        if ((soldes[n.compte] ?? 0) < 0) decouverts.add(n.compte);
+      }
+      for (const compte of decouverts) {
+        journaliser(
+          "avertissement",
+          "application",
+          `Échéances planifiées : le compte « ${compte} » passe en solde négatif.`,
+        );
+      }
+
       return { ...e, transactions: [...nouvelles, ...e.transactions], budgets };
     });
   }, []);
 
   const modifierBudget = useCallback((id: string, b: Partial<Omit<Budget, "id">>) => {
+    if (b.montant !== undefined && !montantValide(b.montant)) return;
     setEtat((e) => ({
       ...e,
-      budgets: e.budgets.map((x) => (x.id === id ? { ...x, ...b } : x)),
+      budgets: e.budgets.map((x) => (x.id === id ? (assainirBudget({ ...x, ...b }) ?? x) : x)),
     }));
   }, []);
 
@@ -609,6 +724,14 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   const ajouterDette = useCallback(
     (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => {
+      if (!montantValide(d.montantInitial) || !texteSur(d.personne)) {
+        journaliser(
+          "avertissement",
+          "application",
+          "Fiche refusée : montant ou personne invalide.",
+        );
+        return;
+      }
       setEtat((e) => {
         const id = crypto.randomUUID();
         const creeLe = new Date().toISOString().slice(0, 10);
@@ -635,6 +758,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   const modifierDette = useCallback(
     (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
+      if (d.montantInitial !== undefined && !montantValide(d.montantInitial)) return;
       setEtat((e) => ({
         ...e,
         dettes: e.dettes.map((x) => (x.id === id ? { ...x, ...d } : x)),
@@ -654,6 +778,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   const ajouterRemboursement = useCallback(
     (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => {
+      if (!montantValide(r.montant)) {
+        journaliser("avertissement", "application", "Remboursement refusé : montant invalide.");
+        return;
+      }
       setEtat((e) => {
         const cible = e.dettes.find((x) => x.id === detteId);
         if (!cible) return e;
@@ -700,22 +828,18 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const definirTransparence = useCallback((v: number) => {
-    setEtat((e) => ({ ...e, transparence: v }));
+    const propre = Math.min(100, Math.max(0, nombreSur(v, 85)));
+    setEtat((e) => ({ ...e, transparence: propre }));
   }, []);
 
   const definirNomUtilisateur = useCallback((nom: string) => {
-    setEtat((e) => ({ ...e, nomUtilisateur: nom.trim() }));
+    setEtat((e) => ({ ...e, nomUtilisateur: texteSur(nom, 60) }));
   }, []);
 
   const remplacerEtat = useCallback((nouveau: Partial<Etat>) => {
-    setEtat((e) => {
-      const fusion = { ...ETAT_INITIAL, ...e, ...nouveau };
-      fusion.enveloppes = fusion.enveloppes.map((x) => ({
-        ...x,
-        dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
-      }));
-      return fusion;
-    });
+    // Tout ce qui vient de l'extérieur (sauvegarde, synchronisation) est
+    // systématiquement assaini avant d'entrer dans l'application.
+    setEtat((e) => assainirEtat({ ...ETAT_INITIAL, ...e, ...nouveau }));
   }, []);
 
   const etatRef = useRef<Etat>(etat);
@@ -833,8 +957,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       solde: totalRevenus - totalDepenses,
       depensesParEnveloppe,
       soldesParCompte,
+      stockageIllisible: illisible,
     };
-  }, [etat, actions]);
+  }, [etat, actions, illisible]);
 
   return <SuperAppContext.Provider value={valeur}>{children}</SuperAppContext.Provider>;
 }

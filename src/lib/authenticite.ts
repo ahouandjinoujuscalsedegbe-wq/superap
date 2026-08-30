@@ -40,7 +40,11 @@ const MARQUEURS: { code: string; libelle: string; test: RegExp }[] = [
   { code: "date", libelle: "une date", test: /\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}/ },
   { code: "heure", libelle: "une heure", test: /\b\d{1,2}\s*[h:]\s*\d{2}\b/ },
   { code: "monnaie", libelle: "une monnaie", test: /\b(f\s*cfa|fcfa|xof|cfa|francs?)\b/ },
-  { code: "fiscal", libelle: "une mention fiscale", test: /\b(tva|ht|ttc|ifu|nif|rccm|siret|n°\s*fiscal)\b/ },
+  {
+    code: "fiscal",
+    libelle: "une mention fiscale",
+    test: /\b(tva|ht|ttc|ifu|nif|rccm|siret|n°\s*fiscal)\b/,
+  },
   { code: "commerce", libelle: "un nom de commerce", test: /[a-z]{4,}/ },
   {
     code: "caisse",
@@ -296,7 +300,9 @@ export function verifierAuthenticite(
   }
 
   /* 7. Indices de retouche ou de document généré. */
-  if (/capture|screenshot|whatsapp|img[-_]?\d{8}|photoshop|canva/.test(sansAccents(nomFichier ?? ""))) {
+  if (
+    /capture|screenshot|whatsapp|img[-_]?\d{8}|photoshop|canva/.test(sansAccents(nomFichier ?? ""))
+  ) {
     indices.push({
       niveau: "attention",
       code: "image-partagee",
@@ -317,7 +323,8 @@ export function verifierAuthenticite(
     indices.push({
       niveau: "alerte",
       code: "document-non-comptable",
-      message: "Le document se présente comme un devis, un spécimen ou un modèle, pas une preuve d'achat.",
+      message:
+        "Le document se présente comme un devis, un spécimen ou un modèle, pas une preuve d'achat.",
       poids: 40,
     });
   }
@@ -353,7 +360,11 @@ export function verifierAuthenticite(
   const alertes = indices.filter((i) => i.niveau === "alerte").length;
 
   const verdict: VerdictAuthenticite["verdict"] =
-    score >= 75 && alertes === 0 ? "authentique" : score >= 45 && alertes <= 1 ? "a_verifier" : "suspect";
+    score >= 75 && alertes === 0
+      ? "authentique"
+      : score >= 45 && alertes <= 1
+        ? "a_verifier"
+        : "suspect";
 
   const resume =
     verdict === "authentique"

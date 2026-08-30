@@ -379,8 +379,8 @@ function Outils() {
 
         <p className="text-xs text-muted-foreground">
           Revenu moyen {formatFCFA(sante.revenuMensuel)} / mois · Dépenses{" "}
-          {formatFCFA(sante.depenseMensuelle)} / mois · Réserve{" "}
-          {sante.moisDeReserve.toFixed(1)} mois
+          {formatFCFA(sante.depenseMensuelle)} / mois · Réserve {sante.moisDeReserve.toFixed(1)}{" "}
+          mois
         </p>
 
         {recommandations.length > 0 && (
@@ -434,7 +434,6 @@ function Outils() {
             ))}
         </div>
       </section>
-
 
       {alertesRouges.length > 0 && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">

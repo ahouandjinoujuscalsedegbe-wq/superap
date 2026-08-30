@@ -28,7 +28,13 @@ export const Route = createFileRoute("/parametres")({
 });
 
 function Parametres() {
-  const { transparence, definirTransparence, reinitialiser, nomUtilisateur, definirNomUtilisateur } = useSuperApp();
+  const {
+    transparence,
+    definirTransparence,
+    reinitialiser,
+    nomUtilisateur,
+    definirNomUtilisateur,
+  } = useSuperApp();
 
   return (
     <div className="space-y-5">

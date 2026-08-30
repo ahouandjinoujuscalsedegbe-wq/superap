@@ -79,8 +79,20 @@ function tx(p: Partial<Transaction> & { montant: number; type: Transaction["type
 }
 
 const transactions: Transaction[] = [
-  tx({ type: "revenu", montant: 250000, libelle: "Salaire", categorie: "salaire", date: isoIlYA(25) }),
-  tx({ type: "revenu", montant: 250000, libelle: "Salaire", categorie: "salaire", date: isoIlYA(55) }),
+  tx({
+    type: "revenu",
+    montant: 250000,
+    libelle: "Salaire",
+    categorie: "salaire",
+    date: isoIlYA(25),
+  }),
+  tx({
+    type: "revenu",
+    montant: 250000,
+    libelle: "Salaire",
+    categorie: "salaire",
+    date: isoIlYA(55),
+  }),
   tx({ type: "depense", montant: 20000, libelle: "Marché Dantokpa", date: isoIlYA(20) }),
   tx({ type: "depense", montant: 22000, libelle: "Marché Dantokpa", date: isoIlYA(10) }),
   tx({ type: "depense", montant: 18000, libelle: "Marché Dantokpa", date: isoIlYA(3) }),
