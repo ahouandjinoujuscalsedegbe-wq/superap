@@ -324,7 +324,7 @@ describe("Intelligence 9 — Statistiques avancées", () => {
       },
     ];
     const taux = tauxRealisationBudgets(budgets, transactions, enveloppes);
-    expect(taux.length).toBe(1);
+    expect(taux.lignes.length).toBe(1);
     expect(depensesRecurrentes(transactions).length).toBeGreaterThanOrEqual(0);
   });
 });
@@ -344,9 +344,8 @@ describe("Intelligence 10 — Simulations et prévisions", () => {
     expect(Array.isArray(detecterFuites(transactions, 30))).toBe(true);
     const a = alertesTresorerie({
       transactions,
-      soldes: { Espèces: 5000 },
+      soldesParCompte: { Espèces: 5000 },
       budgets: [],
-      dettes: [],
     });
     expect(Array.isArray(a)).toBe(true);
   });
@@ -382,14 +381,13 @@ describe("Intelligence 10 — Simulations et prévisions", () => {
         remboursements: [],
       },
     ];
-    const s = strategieRemboursement({ dettes, capaciteMensuelle: 20000, methode: "avalanche" });
+    const s = strategieRemboursement({ dettes, capaciteMensuelle: 20000, strategie: "avalanche" });
     expect(s.etapes.length).toBeGreaterThan(0);
 
     const decouverts = simulerDecouvert({
       transactions,
-      soldes: { Espèces: 1000 },
-      budgets: [],
-      jours: 60,
+      soldesParCompte: { Espèces: 1000 },
+      horizonJours: 60,
     });
     const alertes = alertesProactives({
       decouverts,
