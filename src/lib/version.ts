@@ -33,6 +33,13 @@ export type ResultatVerification =
   | { etat: "hors-ligne"; message: string }
   | { etat: "erreur"; message: string };
 
+export type EtapeInstallation =
+  | { etape: "telechargement"; message: string }
+  | { etape: "enregistrement"; message: string }
+  | { etape: "installation"; message: string }
+  | { etape: "termine"; message: string }
+  | { etape: "erreur"; message: string };
+
 /** Adresse du manifeste enregistrée sur l'appareil. */
 export function lireUrlManifeste(): string {
   if (typeof localStorage === "undefined") return URL_MANIFESTE_DEFAUT;
