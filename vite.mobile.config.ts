@@ -43,10 +43,12 @@ export default defineConfig({
     rollupOptions: {
       input: "mobile.html",
       output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          routeur: ["@tanstack/react-router"],
-          icones: ["lucide-react"],
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("react-dom") || /node_modules\/react\//.test(id)) return "react";
+          if (id.includes("@tanstack")) return "routeur";
+          if (id.includes("lucide-react")) return "icones";
+          return "librairies";
         },
       },
     },
