@@ -158,9 +158,8 @@ function ActionEnveloppes() {
             </div>
           </Link>
 
-          <button
-            type="button"
-            onClick={ouvrirCreer}
+          <Link
+            to="/enveloppes/creer"
             className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -169,10 +168,10 @@ function ActionEnveloppes() {
             <div>
               <p className="font-semibold">Créer une nouvelle enveloppe</p>
               <p className="text-sm text-muted-foreground">
-                Ajoutez une enveloppe avec son plafond.
+                Ouvrez la page de création d'enveloppe.
               </p>
             </div>
-          </button>
+          </Link>
 
           <Link
             to="/enveloppes/modifier"
@@ -190,174 +189,6 @@ function ActionEnveloppes() {
           </Link>
         </div>
       </section>
-
-      {modal === "creer" && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Créer une nouvelle enveloppe"
-          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
-          onClick={fermer}
-        >
-          <div className="carte w-full max-w-md space-y-4 p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold">Nouvelle enveloppe</h3>
-                <p className="text-xs text-muted-foreground">Créez une enveloppe budgétaire.</p>
-              </div>
-              <button
-                type="button"
-                onClick={fermer}
-                aria-label="Fermer"
-                className="rounded-full p-1.5 transition-colors hover:bg-secondary"
-              >
-                <X aria-hidden className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={creerEnveloppe} className="space-y-3">
-              <div className="flex gap-2">
-                <div className="w-20">
-                  <label htmlFor="e-emoji" className="text-sm font-medium">
-                    Emoji
-                  </label>
-                  <input
-                    id="e-emoji"
-                    value={emoji}
-                    onChange={(ev) => setEmoji(ev.target.value)}
-                    className={champ}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label htmlFor="e-nom" className="text-sm font-medium">
-                    Nom
-                  </label>
-                  <input
-                    id="e-nom"
-                    value={nom}
-                    onChange={(ev) => setNom(ev.target.value)}
-                    placeholder="Santé"
-                    className={champ}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="e-plafond" className="text-sm font-medium">
-                  Plafond (FCFA)
-                </label>
-                <input
-                  id="e-plafond"
-                  inputMode="numeric"
-                  value={plafond}
-                  onChange={(ev) => setPlafond(ev.target.value.replace(/[^\d]/g, ""))}
-                  placeholder="25000"
-                  className={champ}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="e-dotation" className="text-sm font-medium">
-                  Somme attribuée (FCFA)
-                </label>
-                <input
-                  id="e-dotation"
-                  inputMode="numeric"
-                  value={dotation}
-                  onChange={(ev) => setDotation(ev.target.value.replace(/[^\d]/g, ""))}
-                  placeholder="30000"
-                  className={champ}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Montant réellement placé dans l'enveloppe. Il diminue à chaque dépense ; au-delà
-                  du plafond, vous entrez en réserve.
-                </p>
-              </div>
-
-              <div>
-                <label htmlFor="e-categorie" className="text-sm font-medium">
-                  Catégorie (obligatoire)
-                </label>
-                <select
-                  id="e-categorie"
-                  value={categorie}
-                  onChange={(ev) => {
-                    const valeur = ev.target.value;
-                    if (valeur && !listeCategories.some((c) => c.nom === valeur)) {
-                      setErreur(
-                        `La catégorie « ${valeur} » n'existe pas dans la liste. Choisissez une catégorie proposée ou créez-la depuis « Gérer les catégories et sous-catégories ».`,
-                      );
-                      ev.target.value = categorie;
-                      return;
-                    }
-                    setCategorie(valeur);
-                    setSousCategorie("");
-                  }}
-                  className={champ}
-                >
-                  <option value="">Choisir une catégorie…</option>
-                  {listeCategories.map((c) => (
-                    <option key={c.id} value={c.nom}>
-                      {c.nom}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="e-sous-categorie" className="text-sm font-medium">
-                  Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
-                </label>
-                <select
-                  id="e-sous-categorie"
-                  value={sousCategorie}
-                  onChange={(ev) => {
-                    const valeur = ev.target.value;
-                    if (valeur && !sousCategories.includes(valeur)) {
-                      setErreur(
-                        `La sous-catégorie « ${valeur} » n'existe pas dans la catégorie « ${categorie.trim()} ». Choisissez une sous-catégorie proposée dans la liste.`,
-                      );
-                      ev.target.value = sousCategorie;
-                      return;
-                    }
-                    setSousCategorie(valeur);
-                  }}
-                  disabled={!categorieChoisie || sousCategories.length === 0}
-                  className={champ}
-                >
-                  <option value="">
-                    {sousCategories.length === 0 ? "Général" : "Choisir une sous-catégorie…"}
-                  </option>
-                  {sousCategories.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Exemple : Transport › Carburant, Factures › Facture SONEB.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
-                >
-                  Ajouter
-                </button>
-                <button
-                  type="button"
-                  onClick={fermer}
-                  className="flex-1 rounded-xl border border-input py-3 font-medium"
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <ErreurPopup
         ouvert={erreur !== null}
