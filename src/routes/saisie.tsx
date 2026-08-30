@@ -16,6 +16,7 @@ import {
   CopyCheck,
   Repeat,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
