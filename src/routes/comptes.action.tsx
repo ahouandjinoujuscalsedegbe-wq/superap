@@ -132,10 +132,7 @@ function ActionComptes() {
 
   return (
     <div className="space-y-4">
-      <Link
-        to="/comptes"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-      >
+      <Link to="/comptes" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden /> Comptes
       </Link>
 
