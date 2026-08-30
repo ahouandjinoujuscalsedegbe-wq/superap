@@ -10,10 +10,16 @@
 export const VERSION_APPLICATION = "1.0.0";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
-export const URL_MANIFESTE_DEFAUT = "";
+export const URL_MANIFESTE_DEFAUT =
+  "https://github.com/ahouandjinoujuscalsedegbe-wq/superap/releases/latest/download/version.json";
+
+/** Délai minimum entre deux vérifications automatiques (6 heures). */
+const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
 
 const CLE_URL = "superapp:maj:url";
 const CLE_DERNIERE = "superapp:maj:derniere";
+const CLE_TENTATIVE = "superapp:maj:tentative";
+const CLE_IGNOREE = "superapp:maj:ignoree";
 
 export type Manifeste = {
   version: string;
@@ -158,4 +164,33 @@ export function lancerTelechargement(url: string) {
   if (typeof window === "undefined") return;
   const fenetre = window.open(url, "_blank", "noopener,noreferrer");
   if (!fenetre) window.location.href = url;
+}
+
+
+/** Version que l'utilisateur a choisi d'ignorer (bouton « Plus tard »). */
+export function lireVersionIgnoree(): string | null {
+  if (typeof localStorage === "undefined") return null;
+  return localStorage.getItem(CLE_IGNOREE);
+}
+
+export function ignorerVersion(version: string) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(CLE_IGNOREE, version);
+}
+
+/**
+ * Vérification silencieuse au démarrage : l'utilisateur n'a rien à faire.
+ * On limite à une tentative toutes les 6 heures pour ne pas consommer de data.
+ */
+export async function verifierAuDemarrage(): Promise<Manifeste | null> {
+  if (typeof localStorage === "undefined") return null;
+  const derniereTentative = Number(localStorage.getItem(CLE_TENTATIVE) ?? 0);
+  if (Number.isFinite(derniereTentative) && Date.now() - derniereTentative < DELAI_AUTO_MS) {
+    return null;
+  }
+  localStorage.setItem(CLE_TENTATIVE, String(Date.now()));
+  const resultat = await verifierMiseAJour();
+  if (resultat.etat !== "disponible") return null;
+  if (lireVersionIgnoree() === resultat.manifeste.version) return null;
+  return resultat.manifeste;
 }

@@ -21,6 +21,7 @@ import { installerCaptureGlobale } from "@/lib/journal";
 
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
+import { MiseAJourAuto } from "../components/MiseAJourAuto";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -160,6 +161,7 @@ function RootComponent() {
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
+          <MiseAJourAuto />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>

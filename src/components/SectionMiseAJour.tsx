@@ -1,24 +1,25 @@
 import { useEffect, useState } from "react";
-import { Download, RefreshCw, X } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 import {
   VERSION_APPLICATION,
   enregistrerUrlManifeste,
-  lancerTelechargement,
   lireDerniereVerification,
   lireUrlManifeste,
   verifierMiseAJour,
   type Manifeste,
   type ResultatVerification,
 } from "@/lib/version";
+import { DialogueMiseAJour } from "@/components/MiseAJourAuto";
 
 /**
- * Vérification et installation des mises à jour de l'application.
- * Pensée pour un usage hors ligne : rien ne part sur Internet tant que
- * l'utilisateur n'appuie pas lui-même sur le bouton de vérification.
+ * Mises à jour de l'application.
+ * L'application vérifie toute seule à l'ouverture ; ce bloc sert uniquement
+ * à forcer une vérification immédiate et, si besoin, à changer l'adresse.
  */
 export function SectionMiseAJour() {
   const [url, setUrl] = useState("");
+  const [avance, setAvance] = useState(false);
   const [derniere, setDerniere] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const [message, setMessage] = useState<{ ton: "info" | "erreur"; texte: string } | null>(null);
@@ -59,23 +60,10 @@ export function SectionMiseAJour() {
         </span>
       </div>
       <p className="text-sm text-muted-foreground">
-        L'application fonctionne entièrement hors ligne. La vérification n'a lieu que si vous
-        appuyez sur le bouton ci-dessous, et vos données restent intactes après une mise à jour.
+        L'application vérifie automatiquement les nouvelles versions à son ouverture. Quand une
+        mise à jour existe, un message s'affiche et un seul clic suffit pour l'installer : vos
+        données restent intactes.
       </p>
-
-      <label htmlFor="maj-url" className="block text-xs font-semibold text-muted-foreground">
-        Adresse du fichier version.json
-      </label>
-      <input
-        id="maj-url"
-        type="url"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        data-majuscules="non"
-        data-clavier="off"
-        placeholder="https://exemple.com/version.json"
-        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-      />
 
       <button
         type="button"
@@ -84,7 +72,7 @@ export function SectionMiseAJour() {
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
       >
         <RefreshCw aria-hidden className={`h-4 w-4 ${enCours ? "animate-spin" : ""}`} />
-        {enCours ? "Vérification en cours…" : "Vérifier les mises à jour"}
+        {enCours ? "Vérification en cours…" : "Vérifier maintenant"}
       </button>
 
       {derniere && (
@@ -106,88 +94,34 @@ export function SectionMiseAJour() {
         </p>
       )}
 
-      {nouvelle && (
-        <DialogueMiseAJour manifeste={nouvelle} onFermer={() => setNouvelle(null)} />
-      )}
-    </section>
-  );
-}
-
-function DialogueMiseAJour({
-  manifeste,
-  onFermer,
-}: {
-  manifeste: Manifeste;
-  onFermer: () => void;
-}) {
-  useEffect(() => {
-    const surTouche = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onFermer();
-    };
-    document.addEventListener("keydown", surTouche);
-    return () => document.removeEventListener("keydown", surTouche);
-  }, [onFermer]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 p-3 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Nouvelle version disponible"
-      onClick={onFermer}
-    >
-      <div
-        className="w-full max-w-md space-y-3 rounded-2xl border border-border bg-card p-4 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+      <button
+        type="button"
+        onClick={() => setAvance((v) => !v)}
+        className="text-xs font-semibold text-muted-foreground underline"
       >
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-bold">Nouvelle version {manifeste.version}</h3>
-            <p className="text-xs text-muted-foreground">
-              Vous utilisez actuellement la version {VERSION_APPLICATION}.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onFermer}
-            aria-label="Fermer"
-            className="rounded-full bg-secondary p-1.5"
-          >
-            <X aria-hidden className="h-4 w-4" />
-          </button>
-        </div>
+        {avance ? "Masquer le réglage avancé" : "Réglage avancé (adresse des mises à jour)"}
+      </button>
 
-        {manifeste.changelog && (
-          <div className="max-h-52 overflow-y-auto whitespace-pre-line rounded-xl bg-secondary p-3 text-sm">
-            {manifeste.changelog}
-          </div>
-        )}
+      {avance && (
+        <>
+          <label htmlFor="maj-url" className="block text-xs font-semibold text-muted-foreground">
+            Adresse du fichier version.json
+          </label>
+          <input
+            id="maj-url"
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onBlur={() => enregistrerUrlManifeste(url)}
+            data-majuscules="non"
+            data-clavier="off"
+            placeholder="https://exemple.com/version.json"
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+          />
+        </>
+      )}
 
-        <p className="text-xs text-muted-foreground">
-          L'installation se fait par-dessus l'application actuelle : toutes vos enveloppes,
-          opérations et sauvegardes locales sont conservées.
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onFermer}
-            className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
-          >
-            Plus tard
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              lancerTelechargement(manifeste.url);
-              onFermer();
-            }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            <Download aria-hidden className="h-4 w-4" /> Mettre à jour maintenant
-          </button>
-        </div>
-      </div>
-    </div>
+      {nouvelle && <DialogueMiseAJour manifeste={nouvelle} onFermer={() => setNouvelle(null)} />}
+    </section>
   );
 }
