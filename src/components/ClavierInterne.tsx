@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowBigUp, Check, Delete, X } from "lucide-react";
+import { ArrowBigUp, Check, Delete, Eraser, X } from "lucide-react";
+import {
+  retourTouche,
+  useReglagesClavier,
+  type Disposition,
+  type Taille,
+} from "@/lib/clavier-reglages";
 
 /**
  * Clavier interne à l'application.
@@ -11,11 +17,39 @@ import { ArrowBigUp, Check, Delete, X } from "lucide-react";
 
 type Mode = "texte" | "numerique";
 
-const LIGNES_TEXTE = [
-  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-  ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
-  ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
-  ["w", "x", "c", "v", "b", "n", "'", "-"],
+const RANGEE_CHIFFRES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+const DISPOSITIONS: Record<Disposition, string[][]> = {
+  azerty: [
+    ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
+    ["w", "x", "c", "v", "b", "n", "'", "-"],
+  ],
+  qwerty: [
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
+    ["z", "x", "c", "v", "b", "n", "'", "-"],
+  ],
+  alphabetique: [
+    ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    ["k", "l", "m", "n", "o", "p", "q", "r", "s", "t"],
+    ["u", "v", "w", "x", "y", "z", "'", "-"],
+  ],
+};
+
+/** Hauteur des touches selon la taille choisie dans les paramètres. */
+const HAUTEURS: Record<Taille, { petite: string; pleine: string; large: string }> = {
+  compacte: { petite: "py-1.5 text-sm", pleine: "py-1.5 text-sm", large: "py-2 text-sm" },
+  normale: { petite: "py-2.5 text-sm", pleine: "py-2.5 text-sm", large: "py-3 text-base" },
+  grande: { petite: "py-4 text-lg", pleine: "py-4 text-lg", large: "py-4 text-lg" },
+};
+
+/** Raccourcis de montants proposés sur le pavé numérique. */
+const RACCOURCIS = [
+  { label: "000", ajout: "000" },
+  { label: "+1 000", valeur: 1000 },
+  { label: "+5 000", valeur: 5000 },
+  { label: "+10 000", valeur: 10000 },
 ];
 const ACCENTS = ["é", "è", "ê", "à", "ç", "ù", "ô", "î"];
 const TOUCHES_NUM = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0"];
