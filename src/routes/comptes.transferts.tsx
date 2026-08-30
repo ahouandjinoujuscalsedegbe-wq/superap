@@ -248,10 +248,12 @@ function Transferts() {
                 <select
                   id="destination"
                   value={destination}
-                  onChange={(ev) => setDestination(ev.target.value)}
+                  onChange={(ev) => choisirDestination(ev.target.value)}
                   className={champ}
                 >
-                  {comptes.map((c) => (
+                  {comptes
+                    .filter((c) => c !== source)
+                    .map((c) => (
                     <option key={c} value={c}>
                       {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
                     </option>
