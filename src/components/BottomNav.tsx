@@ -6,7 +6,7 @@ const ONGLETS = [
   { to: "/enveloppes", label: "Enveloppes", icone: Wallet },
   { to: "/saisie", label: "Saisie intelligente", icone: Sparkles, milieu: true },
   { to: "/comptes", label: "Comptes", icone: Landmark },
-  { to: "/outils", label: "Outils et simulation", icone: Calculator },
+  { to: "/outils", label: "Outils et simulation", icone: Calculator, tailleIcone: "h-6 w-6" },
 ] as const;
 
 export function BottomNav() {
