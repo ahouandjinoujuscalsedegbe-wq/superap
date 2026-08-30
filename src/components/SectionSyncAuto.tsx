@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { CloudCog, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import {
-  ecrireReglagesAuto,
-  lireReglagesAuto,
-  type ReglagesAuto,
-} from "@/lib/sync-auto";
+import { ecrireReglagesAuto, lireReglagesAuto, type ReglagesAuto } from "@/lib/sync-auto";
 import { EVENEMENT_SYNC_AUTO } from "@/components/SyncAuto";
 
 function horodatage(iso?: string): string {

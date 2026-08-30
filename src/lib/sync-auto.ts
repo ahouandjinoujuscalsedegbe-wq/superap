@@ -107,7 +107,10 @@ function fusionnerNoms(actuel: string[], entrant: string[]): string[] {
 export type ResultatFusion = { etat: Etat; ajoutes: number; curseur: number };
 
 /** Fusionne un état distant dans l'état local sans jamais écraser l'existant. */
-export function fusionnerEtat(local: Etat, distant: Partial<Etat>): { etat: Etat; ajoutes: number } {
+export function fusionnerEtat(
+  local: Etat,
+  distant: Partial<Etat>,
+): { etat: Etat; ajoutes: number } {
   const transactions = fusionner(local.transactions, distant.transactions ?? []);
   const transferts = fusionner(local.transferts, distant.transferts ?? []);
   const enveloppes = fusionner(local.enveloppes, distant.enveloppes ?? []);
