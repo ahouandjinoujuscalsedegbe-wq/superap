@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
-import { ecrireSecurise, lireSecurise } from "./coffre-local";
+import { ecrireSecurise, estChiffre, lireSecurise } from "./coffre-local";
 
 
 export type Enveloppe = {
