@@ -682,6 +682,29 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         return garde > 0 ? { ...b, prochaine: date } : b;
       });
       if (nouvelles.length === 0) return e;
+
+      // Cohérence avec la règle appliquée aux transferts : on prévient quand
+      // une échéance planifiée fait passer un compte en négatif.
+      const soldes: Record<string, number> = {};
+      for (const t of e.transactions)
+        soldes[t.compte] = (soldes[t.compte] ?? 0) + (t.type === "revenu" ? t.montant : -t.montant);
+      for (const t of e.transferts) {
+        soldes[t.source] = (soldes[t.source] ?? 0) - t.montant;
+        soldes[t.destination] = (soldes[t.destination] ?? 0) + t.montant;
+      }
+      const decouverts = new Set<string>();
+      for (const n of nouvelles) {
+        soldes[n.compte] = (soldes[n.compte] ?? 0) - n.montant;
+        if ((soldes[n.compte] ?? 0) < 0) decouverts.add(n.compte);
+      }
+      for (const compte of decouverts) {
+        journaliser(
+          "avertissement",
+          "application",
+          `Échéances planifiées : le compte « ${compte} » passe en solde négatif.`,
+        );
+      }
+
       return { ...e, transactions: [...nouvelles, ...e.transactions], budgets };
     });
   }, []);
