@@ -3,8 +3,11 @@ name: Compiler l'APK Android
 # Ce workflow compile automatiquement l'application mobile Android (APK).
 # Il se lance manuellement depuis GitHub : onglet "Actions" →
 # "Compiler l'APK Android" → bouton "Run workflow".
-on:
+"on":
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   apk:
