@@ -231,11 +231,12 @@ export type Etat = {
  */
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
+  const comptes = assainirComptes(brut.comptes);
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
     categories: assainirListe(brut.categories, assainirCategorie),
-    comptes: assainirComptes(brut.comptes),
+    comptes: comptes.length > 0 ? comptes : [...COMPTES],
     transferts: assainirListe(brut.transferts, assainirTransfert),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
