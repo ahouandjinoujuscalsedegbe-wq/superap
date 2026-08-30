@@ -76,133 +76,133 @@ function estObjet(v: unknown): v is Record<string, unknown> {
 /* ------------------------------------------------------------------ */
 
 export function assainirTransaction(v: unknown): Transaction | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const montant = nombreSur(v.montant);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const montant = nombreSur(v["montant"]);
   if (!montantValide(montant)) return null;
-  const date = dateSure(v.date);
+  const date = dateSure(v["date"]);
   if (!date) return null;
-  const type = v.type === "revenu" || v.type === "depense" ? v.type : null;
+  const type = v["type"] === "revenu" || v["type"] === "depense" ? v["type"] : null;
   if (!type) return null;
   const t: Transaction = {
-    id: v.id,
+    id: v["id"],
     type,
     montant,
-    libelle: texteSur(v.libelle),
-    categorie: texteSur(v.categorie),
-    compte: texteSur(v.compte, 60),
+    libelle: texteSur(v["libelle"]),
+    categorie: texteSur(v["categorie"]),
+    compte: texteSur(v["compte"], 60),
     date,
   };
-  if (idValide(v.budgetId)) t.budgetId = v.budgetId;
-  if (idValide(v.detteId)) t.detteId = v.detteId;
+  if (idValide(v["budgetId"])) t.budgetId = v["budgetId"];
+  if (idValide(v["detteId"])) t.detteId = v["detteId"];
   return t;
 }
 
 export function assainirTransfert(v: unknown): Transfert | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const montant = nombreSur(v.montant);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const montant = nombreSur(v["montant"]);
   if (!montantValide(montant)) return null;
-  const date = dateSure(v.date);
+  const date = dateSure(v["date"]);
   if (!date) return null;
-  const source = texteSur(v.source, 60);
-  const destination = texteSur(v.destination, 60);
+  const source = texteSur(v["source"], 60);
+  const destination = texteSur(v["destination"], 60);
   if (!source || !destination || source === destination) return null;
-  return { id: v.id, source, destination, montant, note: texteSur(v.note), date };
+  return { id: v["id"], source, destination, montant, note: texteSur(v["note"]), date };
 }
 
 export function assainirEnveloppe(v: unknown): Enveloppe | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const nom = texteSur(v.nom, 80);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const nom = texteSur(v["nom"], 80);
   if (!nom) return null;
-  const plafond = nombreSur(v.plafond);
-  const dotation = typeof v.dotation === "number" ? nombreSur(v.dotation) : plafond;
+  const plafond = nombreSur(v["plafond"]);
+  const dotation = typeof v["dotation"] === "number" ? nombreSur(v["dotation"]) : plafond;
   return {
-    id: v.id,
+    id: v["id"],
     nom,
-    emoji: texteSur(v.emoji, 8) || "📦",
+    emoji: texteSur(v["emoji"], 8) || "📦",
     plafond,
     dotation,
-    categorie: texteSur(v.categorie, 80),
-    sousCategorie: texteSur(v.sousCategorie, 80),
+    categorie: texteSur(v["categorie"], 80),
+    sousCategorie: texteSur(v["sousCategorie"], 80),
   };
 }
 
 export function assainirCategorie(v: unknown): CategorieEnveloppe | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const nom = texteSur(v.nom, 80);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const nom = texteSur(v["nom"], 80);
   if (!nom) return null;
-  const brut = Array.isArray(v.sousCategories) ? v.sousCategories : [];
+  const brut = Array.isArray(v["sousCategories"]) ? v["sousCategories"] : [];
   const sousCategories = Array.from(
     new Set(brut.map((s) => texteSur(s, 80)).filter((s) => s !== "")),
   ).slice(0, 200);
-  return { id: v.id, nom, sousCategories };
+  return { id: v["id"], nom, sousCategories };
 }
 
 const PERIODES_VALIDES = ["jour", "semaine", "mois", "trimestre", "semestre", "annee"] as const;
 
 export function assainirBudget(v: unknown): Budget | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const montant = nombreSur(v.montant);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const montant = nombreSur(v["montant"]);
   if (!montantValide(montant)) return null;
-  const periode = PERIODES_VALIDES.find((p) => p === v.periode);
+  const periode = PERIODES_VALIDES.find((p) => p === v["periode"]);
   if (!periode) return null;
-  const prochaine = dateSure(v.prochaine);
+  const prochaine = dateSure(v["prochaine"]);
   if (!prochaine) return null;
   const b: Budget = {
-    id: v.id,
-    libelle: texteSur(v.libelle),
-    enveloppeId: texteSur(v.enveloppeId, 100),
+    id: v["id"],
+    libelle: texteSur(v["libelle"]),
+    enveloppeId: texteSur(v["enveloppeId"], 100),
     montant,
     periode,
-    compte: texteSur(v.compte, 60),
+    compte: texteSur(v["compte"], 60),
     prochaine,
-    actif: v.actif !== false,
+    actif: v["actif"] !== false,
   };
-  const debut = dateSure(v.debut);
+  const debut = dateSure(v["debut"]);
   if (debut) b.debut = debut;
-  const fin = dateSure(v.fin);
+  const fin = dateSure(v["fin"]);
   if (fin) b.fin = fin;
-  if (typeof v.ponctuel === "boolean") b.ponctuel = v.ponctuel;
-  const intervalle = Math.round(nombreSur(v.intervalle, 1));
+  if (typeof v["ponctuel"] === "boolean") b.ponctuel = v["ponctuel"];
+  const intervalle = Math.round(nombreSur(v["intervalle"], 1));
   if (intervalle >= 1 && intervalle <= 365) b.intervalle = intervalle;
   return b;
 }
 
 export function assainirRemboursement(v: unknown): Remboursement | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const montant = nombreSur(v.montant);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const montant = nombreSur(v["montant"]);
   if (!montantValide(montant)) return null;
-  const date = dateSure(v.date);
+  const date = dateSure(v["date"]);
   if (!date) return null;
-  const r: Remboursement = { id: v.id, montant, date };
-  const note = texteSur(v.note);
+  const r: Remboursement = { id: v["id"], montant, date };
+  const note = texteSur(v["note"]);
   if (note) r.note = note;
   return r;
 }
 
 export function assainirDette(v: unknown): Dette | null {
-  if (!estObjet(v) || !idValide(v.id)) return null;
-  const montantInitial = nombreSur(v.montantInitial);
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const montantInitial = nombreSur(v["montantInitial"]);
   if (!montantValide(montantInitial)) return null;
-  const sens = v.sens === "dette" || v.sens === "creance" ? v.sens : null;
+  const sens = v["sens"] === "dette" || v["sens"] === "creance" ? v["sens"] : null;
   if (!sens) return null;
-  const personne = texteSur(v.personne, 80);
+  const personne = texteSur(v["personne"], 80);
   if (!personne) return null;
-  const brut = Array.isArray(v.remboursements) ? v.remboursements : [];
+  const brut = Array.isArray(v["remboursements"]) ? v["remboursements"] : [];
   const remboursements = brut
     .map(assainirRemboursement)
     .filter((r): r is Remboursement => r !== null)
     .slice(0, 1000);
   const d: Dette = {
-    id: v.id,
+    id: v["id"],
     personne,
     sens,
     montantInitial,
-    creeLe: dateSure(v.creeLe) ?? new Date().toISOString().slice(0, 10),
+    creeLe: dateSure(v["creeLe"]) ?? new Date().toISOString().slice(0, 10),
     remboursements,
   };
-  const note = texteSur(v.note);
+  const note = texteSur(v["note"]);
   if (note) d.note = note;
-  const dateLimite = dateSure(v.dateLimite);
+  const dateLimite = dateSure(v["dateLimite"]);
   if (dateLimite) d.dateLimite = dateLimite;
   return d;
 }
