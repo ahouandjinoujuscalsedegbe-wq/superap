@@ -17,6 +17,7 @@ import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
+import { EtatReseau } from "../components/EtatReseau";
 import { installerCaptureGlobale } from "@/lib/journal";
 
 import { SecuriteProvider } from "@/lib/securite";
