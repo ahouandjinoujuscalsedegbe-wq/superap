@@ -179,8 +179,8 @@ function ModifierEnveloppe() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Modifier une enveloppe existante</h1>
         <p className="text-sm text-muted-foreground">
-          {enveloppes.length} enveloppe{enveloppes.length > 1 ? "s" : ""} · la modification se fait dans une
-          fenêtre dédiée, puis une confirmation est demandée.
+          {enveloppes.length} enveloppe{enveloppes.length > 1 ? "s" : ""} · la modification se fait
+          dans une fenêtre dédiée, puis une confirmation est demandée.
         </p>
       </header>
 
@@ -190,7 +190,9 @@ function ModifierEnveloppe() {
         <div className="space-y-5">
           {groupes.map((g) => (
             <section key={g.categorie} className="space-y-3">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-primary">{g.categorie}</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+                {g.categorie}
+              </h2>
               {g.sousCategories.map((s) => (
                 <div key={s.sousCategorie} className="space-y-2">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -217,8 +219,10 @@ function ModifierEnveloppe() {
                                 <span aria-hidden>{e.emoji}</span> {e.nom}
                               </span>
                               <span className="text-sm text-muted-foreground">
-                                {formatFCFA(etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant)} restants
-                                · plafond {formatFCFA(e.plafond)}
+                                {formatFCFA(
+                                  etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
+                                )}{" "}
+                                restants · plafond {formatFCFA(e.plafond)}
                               </span>
                             </span>
                           </button>
@@ -278,8 +282,8 @@ function ModifierEnveloppe() {
             <header>
               <h2 className="text-lg font-semibold">Modifier l'enveloppe</h2>
               <p className="text-sm text-muted-foreground">
-                <span aria-hidden>{enveloppeEditee.emoji}</span> {enveloppeEditee.nom} — répondez à chaque
-                question, puis validez la confirmation.
+                <span aria-hidden>{enveloppeEditee.emoji}</span> {enveloppeEditee.nom} — répondez à
+                chaque question, puis validez la confirmation.
               </p>
             </header>
 
@@ -334,7 +338,8 @@ function ModifierEnveloppe() {
                   className={champ}
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Cette somme diminue à chaque dépense. Au-delà du plafond, vous puisez dans la réserve.
+                  Cette somme diminue à chaque dépense. Au-delà du plafond, vous puisez dans la
+                  réserve.
                 </p>
               </div>
 
@@ -419,11 +424,19 @@ function ModifierEnveloppe() {
         </div>
       )}
 
-      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
+      <ErreurPopup
+        ouvert={erreur !== null}
+        message={erreur ?? ""}
+        onFermer={() => setErreur(null)}
+      />
 
       <Confirmation
         ouvert={demande !== null}
-        titre={demande?.type === "suppression" ? "Supprimer cette enveloppe ?" : "Confirmer la modification"}
+        titre={
+          demande?.type === "suppression"
+            ? "Supprimer cette enveloppe ?"
+            : "Confirmer la modification"
+        }
         message={
           demande?.type === "suppression"
             ? "Cette suppression est irréversible. Vérifiez l'enveloppe concernée."

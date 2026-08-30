@@ -30,7 +30,6 @@ const ENTREES = [
   { to: "/aide", label: "Aide", icone: HelpCircle },
 ] as const;
 
-
 export function MenuPrincipal() {
   const [ouvert, setOuvert] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -113,9 +112,7 @@ export function MenuPrincipal() {
                     tabIndex={ouvert ? 0 : -1}
                     activeOptions={{ exact: true }}
                     className={`relative flex items-center gap-3 py-3 pl-4 pr-3 text-sm transition-colors hover:bg-accent/60 ${
-                      actif
-                        ? "bg-accent font-semibold text-accent-foreground"
-                        : "text-foreground"
+                      actif ? "bg-accent font-semibold text-accent-foreground" : "text-foreground"
                     }`}
                   >
                     <span

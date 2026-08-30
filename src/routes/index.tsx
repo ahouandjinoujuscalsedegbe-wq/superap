@@ -61,9 +61,7 @@ function Accueil() {
 
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">Solde disponible</p>
-        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">
-          {formatFCFA(solde)}
-        </p>
+        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">{formatFCFA(solde)}</p>
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-secondary/70 p-3">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -89,7 +87,10 @@ function Accueil() {
           <ul className="space-y-1.5 text-sm">
             {echeancesProches.map((b) => (
               <li key={b.id} className="flex justify-between gap-2">
-                <Link to="/enveloppes/budgetisation" className="truncate underline-offset-2 hover:underline">
+                <Link
+                  to="/enveloppes/budgetisation"
+                  className="truncate underline-offset-2 hover:underline"
+                >
                   {b.libelle} · {formatDateFr(b.prochaine)}
                 </Link>
                 <span className="shrink-0 font-semibold">{formatFCFA(b.montant)}</span>
@@ -107,7 +108,10 @@ function Accueil() {
             ))}
             {enveloppesRouges.map((e) => (
               <li key={e.id} className="flex justify-between gap-2">
-                <Link to="/enveloppes/details" className="truncate underline-offset-2 hover:underline">
+                <Link
+                  to="/enveloppes/details"
+                  className="truncate underline-offset-2 hover:underline"
+                >
                   {e.emoji} {e.nom} — plafond atteint
                 </Link>
               </li>
@@ -136,9 +140,7 @@ function Accueil() {
       </section>
 
       <section className="carte p-4">
-        <h2 className="text-sm font-semibold text-muted-foreground">
-          Dernières opérations
-        </h2>
+        <h2 className="text-sm font-semibold text-muted-foreground">Dernières opérations</h2>
         {dernieres.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <Wallet className="h-8 w-8 text-muted-foreground" aria-hidden />

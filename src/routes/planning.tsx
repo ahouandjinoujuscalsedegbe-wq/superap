@@ -74,8 +74,7 @@ function ajouterJours(iso: string, n: number): string {
 }
 
 type ActionEcheance =
-  | { genre: "payer"; echeance: Echeance }
-  | { genre: "reporter"; echeance: Echeance };
+  { genre: "payer"; echeance: Echeance } | { genre: "reporter"; echeance: Echeance };
 
 function PagePlanning() {
   const {
@@ -241,8 +240,7 @@ function PagePlanning() {
           Planning de {planning.semaines.length} semaines
         </h1>
         <p className="text-sm text-muted-foreground">
-          Projection de vos revenus attendus, dépenses planifiées et soldes semaine après
-          semaine.
+          Projection de vos revenus attendus, dépenses planifiées et soldes semaine après semaine.
         </p>
       </header>
 
@@ -345,7 +343,11 @@ function PagePlanning() {
         <button
           type="button"
           onClick={() =>
-            telechargerFichier("planning.txt", planningEnTexte(planning), "text/plain;charset=utf-8")
+            telechargerFichier(
+              "planning.txt",
+              planningEnTexte(planning),
+              "text/plain;charset=utf-8",
+            )
           }
           className="flex items-center gap-1 rounded-full bg-accent/40 px-3 py-1 text-xs"
         >
@@ -454,7 +456,9 @@ function PagePlanning() {
                       (s.ecartDepenses ?? 0) > 0 ? "text-destructive" : "text-muted-foreground"
                     }
                   >
-                    {s.ecartDepenses === null ? "—" : `${s.ecartDepenses > 0 ? "+" : ""}${s.ecartDepenses} %`}
+                    {s.ecartDepenses === null
+                      ? "—"
+                      : `${s.ecartDepenses > 0 ? "+" : ""}${s.ecartDepenses} %`}
                   </span>
                 </div>
                 <div className="text-muted-foreground">
@@ -546,8 +550,8 @@ function PagePlanning() {
                     {s.suggestions.length > 0 && (
                       <div className="space-y-1 rounded-xl border border-destructive/40 bg-destructive/5 p-2">
                         <p className="flex items-center gap-1 font-medium text-destructive">
-                          <Lightbulb aria-hidden className="h-3.5 w-3.5" /> Comment corriger
-                          cette semaine
+                          <Lightbulb aria-hidden className="h-3.5 w-3.5" /> Comment corriger cette
+                          semaine
                         </p>
                         <ul className="list-disc space-y-0.5 pl-4">
                           {s.suggestions.map((c) => (
@@ -681,10 +685,7 @@ function PagePlanning() {
 
       {/* Popup saisie rapide de dépense */}
       {popupDepense && (
-        <Popup
-          titre={`Dépense — ${popupDepense.libelle}`}
-          onFermer={() => setPopupDepense(null)}
-        >
+        <Popup titre={`Dépense — ${popupDepense.libelle}`} onFermer={() => setPopupDepense(null)}>
           <Champ label="Libellé">
             <input
               value={dLibelle}
@@ -892,9 +893,7 @@ function Carte({
         {icone}
         {titre}
       </div>
-      <p className={`mt-1 text-sm font-semibold ${alerte ? "text-destructive" : ""}`}>
-        {valeur}
-      </p>
+      <p className={`mt-1 text-sm font-semibold ${alerte ? "text-destructive" : ""}`}>{valeur}</p>
     </div>
   );
 }

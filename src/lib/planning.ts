@@ -212,7 +212,9 @@ export function construirePlanning(params: OptionsPlanning): Planning {
     .map((s) => s.ecartDepenses)
     .filter((x): x is number => x !== null)
     .map(Math.abs);
-  const fiabilite = ecarts.length ? Math.round(ecarts.reduce((a, b) => a + b, 0) / ecarts.length) : null;
+  const fiabilite = ecarts.length
+    ? Math.round(ecarts.reduce((a, b) => a + b, 0) / ecarts.length)
+    : null;
 
   // --- Semaines à venir ------------------------------------------------------
   const semaines: SemainePlanning[] = [];
@@ -261,10 +263,9 @@ export function construirePlanning(params: OptionsPlanning): Planning {
     const risque = solde < 0 || depensesPrevues > revenusAttendus * 1.5;
     const suggestions: string[] = [];
     if (risque) {
-      const manque = solde < 0 ? Math.abs(solde) : depensesPrevues - Math.round(revenusAttendus * 1.5);
-      suggestions.push(
-        `Réduire ou reporter ${Math.round(manque)} FCFA de dépenses cette semaine.`,
-      );
+      const manque =
+        solde < 0 ? Math.abs(solde) : depensesPrevues - Math.round(revenusAttendus * 1.5);
+      suggestions.push(`Réduire ou reporter ${Math.round(manque)} FCFA de dépenses cette semaine.`);
       const plusGrosse = [...echeances].sort((a, z) => z.montant - a.montant)[0];
       if (plusGrosse) {
         suggestions.push(

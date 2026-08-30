@@ -20,9 +20,21 @@ export const Route = createFileRoute("/enveloppes/")({
 });
 
 const liens = [
-  { to: "/enveloppes/budgetisation", titre: "Budgétisation", texte: "Planifiez vos dépenses période par période." },
-  { to: "/enveloppes/action", titre: "Action", texte: "Ajoutez, modifiez ou supprimez vos enveloppes." },
-  { to: "/enveloppes/chronologie", titre: "Chronologie et suivi", texte: "Échéances à venir et prévu contre réel." },
+  {
+    to: "/enveloppes/budgetisation",
+    titre: "Budgétisation",
+    texte: "Planifiez vos dépenses période par période.",
+  },
+  {
+    to: "/enveloppes/action",
+    titre: "Action",
+    texte: "Ajoutez, modifiez ou supprimez vos enveloppes.",
+  },
+  {
+    to: "/enveloppes/chronologie",
+    titre: "Chronologie et suivi",
+    texte: "Échéances à venir et prévu contre réel.",
+  },
 ] as const;
 
 function EnveloppesAccueil() {
@@ -58,9 +70,7 @@ function EnveloppesAccueil() {
                     className="flex h-full flex-col justify-between rounded-xl border border-border/70 bg-secondary/40 p-3 transition-colors hover:bg-secondary"
                   >
                     <span className="text-sm font-semibold leading-tight">
-                      {groupe.categorie === CATEGORIE_LIBRE
-                        ? "Sans catégorie"
-                        : groupe.categorie}
+                      {groupe.categorie === CATEGORIE_LIBRE ? "Sans catégorie" : groupe.categorie}
                     </span>
                     <span className="mt-2 block text-xs text-muted-foreground">
                       {enveloppesCat.length} enveloppe{enveloppesCat.length > 1 ? "s" : ""}

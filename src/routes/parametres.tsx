@@ -78,8 +78,6 @@ function Parametres() {
         <ArrowLeft className="h-4 w-4 rotate-180 text-muted-foreground" aria-hidden />
       </Link>
 
-
-
       <section className="carte p-4">
         <div className="flex items-center justify-between">
           <label htmlFor="transparence" className="font-semibold">

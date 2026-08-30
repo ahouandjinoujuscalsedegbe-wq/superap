@@ -21,7 +21,8 @@ export const Route = createFileRoute("/enveloppes/categories")({
       { property: "og:title", content: "Catégories — SUPER APP" },
       {
         property: "og:description",
-        content: "Page dédiée à la gestion des catégories et sous-catégories des enveloppes budgétaires.",
+        content:
+          "Page dédiée à la gestion des catégories et sous-catégories des enveloppes budgétaires.",
       },
     ],
   }),
@@ -91,9 +92,7 @@ function PageCategories() {
 
   function ouvrirSaisie(s: NonNullable<Saisie>) {
     setSaisie(s);
-    setValeur(
-      s.type === "renommage-categorie" || s.type === "renommage-sous" ? s.ancien : "",
-    );
+    setValeur(s.type === "renommage-categorie" || s.type === "renommage-sous" ? s.ancien : "");
     setErreurPopup(null);
   }
 
@@ -116,7 +115,10 @@ function PageCategories() {
         setDemande({ type: "creation-categorie", nom });
         break;
       case "renommage-categorie":
-        if (nom !== saisie.ancien && categories.some((c) => c.nom.toLowerCase() === nom.toLowerCase())) {
+        if (
+          nom !== saisie.ancien &&
+          categories.some((c) => c.nom.toLowerCase() === nom.toLowerCase())
+        ) {
           setSaisie(null);
           setErreurPopup(`La catégorie « ${nom} » existe déjà. Reprenez votre action.`);
           return;
@@ -267,8 +269,9 @@ function PageCategories() {
       </header>
 
       <p className="text-xs text-muted-foreground">
-        Astuce : faites glisser une bande par sa poignée <GripVertical aria-hidden className="inline h-3.5 w-3.5 align-text-bottom" />{" "}
-        (ou une sous-catégorie) pour la réorganiser. L’ordre est enregistré automatiquement.
+        Astuce : faites glisser une bande par sa poignée{" "}
+        <GripVertical aria-hidden className="inline h-3.5 w-3.5 align-text-bottom" /> (ou une
+        sous-catégorie) pour la réorganiser. L’ordre est enregistré automatiquement.
       </p>
 
       {ordrePrecedent && (

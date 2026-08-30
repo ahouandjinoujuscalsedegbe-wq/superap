@@ -13,7 +13,6 @@ function jour(iso: string): string {
   return iso.slice(0, 10);
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Rythme de dépense                                                    */
 /* ------------------------------------------------------------------ */
@@ -58,10 +57,7 @@ export function alertesTresorerie(args: {
   const joursRestants = Math.max(1, finDeMois.getDate() - aujourdhui.getDate());
   const parJourGlobal = rythmeJournalier(args.transactions);
 
-  const totalSoldes = Object.values(args.soldesParCompte).reduce(
-    (s, v) => s + Math.max(0, v),
-    0,
-  );
+  const totalSoldes = Object.values(args.soldesParCompte).reduce((s, v) => s + Math.max(0, v), 0);
 
   return Object.entries(args.soldesParCompte).map(([compte, solde]) => {
     const chargesAVenir = args.budgets

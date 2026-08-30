@@ -5,14 +5,8 @@ import { PavePin } from "./PavePin";
 
 /** Écran plein écran affiché tant que l'application est verrouillée. */
 export function EcranVerrou() {
-  const {
-    verrouille,
-    config,
-    verifierPin,
-    essais,
-    blocageJusqua,
-    deverrouillerParBiometrie,
-  } = useSecurite();
+  const { verrouille, config, verifierPin, essais, blocageJusqua, deverrouillerParBiometrie } =
+    useSecurite();
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState("");
   const [restant, setRestant] = useState(0);
@@ -45,11 +39,7 @@ export function EcranVerrou() {
     const ok = await verifierPin(valeur);
     if (!ok) {
       setCode("");
-      setErreur(
-        bloque
-          ? "Saisie temporairement bloquée."
-          : "Code incorrect. Veuillez réessayer.",
-      );
+      setErreur(bloque ? "Saisie temporairement bloquée." : "Code incorrect. Veuillez réessayer.");
     }
   };
 
@@ -77,9 +67,7 @@ export function EcranVerrou() {
           desactive={bloque}
         />
 
-        {erreur && !bloque && (
-          <p className="text-sm font-semibold text-destructive">{erreur}</p>
-        )}
+        {erreur && !bloque && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
         {bloque && (
           <p className="text-sm font-semibold text-destructive">
             Trop de tentatives. Réessayez dans {restant} s.

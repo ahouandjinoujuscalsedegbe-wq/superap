@@ -712,7 +712,11 @@ function SaisieIntelligente() {
                       </p>
                       <p className="text-[11px] text-muted-foreground">
                         {h.type === "revenu" ? "Revenu" : "Dépense"} ·{" "}
-                        {h.source === "ocr" ? "Ticket" : h.source === "dictee" ? "Dictée" : "Manuel"}{" "}
+                        {h.source === "ocr"
+                          ? "Ticket"
+                          : h.source === "dictee"
+                            ? "Dictée"
+                            : "Manuel"}{" "}
                         · {h.dateOperation} · {h.compte}
                         {h.enveloppe ? ` · ${h.enveloppe}` : ""}
                       </p>
@@ -785,7 +789,9 @@ function SaisieIntelligente() {
       <Confirmation
         ouvert={confirmation !== null}
         titre={
-          confirmation?.mode === "tous" ? "Confirmer toutes les opérations" : "Confirmer l'opération"
+          confirmation?.mode === "tous"
+            ? "Confirmer toutes les opérations"
+            : "Confirmer l'opération"
         }
         message={
           confirmation?.mode === "tous"

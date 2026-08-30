@@ -172,7 +172,12 @@ export function comparerScenarios(args: {
     const duree = Math.max(1, o.dureeMois);
     const coutMensuel = o.cout / duree;
     const soldeFinal = args.solde + (args.capaciteMensuelle - coutMensuel) * duree;
-    return { ...o, dureeMois: duree, coutMensuel: Math.round(coutMensuel), soldeFinal: Math.round(soldeFinal) };
+    return {
+      ...o,
+      dureeMois: duree,
+      coutMensuel: Math.round(coutMensuel),
+      soldeFinal: Math.round(soldeFinal),
+    };
   });
   type Calcule = (typeof calcules)[number];
   const meilleur = calcules.reduce<Calcule | undefined>(
@@ -264,7 +269,11 @@ export function evaluerFondsUrgence(args: {
   const cible = depenses * Math.max(1, args.moisCibles);
   const manquant = Math.max(0, cible - args.solde);
   const moisPourAtteindre =
-    manquant === 0 ? 0 : args.capaciteMensuelle > 0 ? Math.ceil(manquant / args.capaciteMensuelle) : null;
+    manquant === 0
+      ? 0
+      : args.capaciteMensuelle > 0
+        ? Math.ceil(manquant / args.capaciteMensuelle)
+        : null;
   const niveau: FondsUrgence["niveau"] =
     moisCouverts >= args.moisCibles ? "solide" : moisCouverts >= 1 ? "correct" : "insuffisant";
 
@@ -450,10 +459,7 @@ export function ecrireHistoriqueSimulations(liste: SimulationEnregistree[]): voi
   window.localStorage.setItem(CLE_HISTORIQUE, JSON.stringify(liste.slice(0, 50)));
 }
 
-export function enregistrerSimulation(
-  titre: string,
-  contenu: string,
-): SimulationEnregistree[] {
+export function enregistrerSimulation(titre: string, contenu: string): SimulationEnregistree[] {
   const entree: SimulationEnregistree = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     titre,

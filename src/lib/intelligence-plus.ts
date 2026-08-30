@@ -39,10 +39,7 @@ export type LigneMois = {
   net: number;
 };
 
-export function comparaisonMensuelle(
-  transactions: Transaction[],
-  nombreMois = 12,
-): LigneMois[] {
+export function comparaisonMensuelle(transactions: Transaction[], nombreMois = 12): LigneMois[] {
   const maintenant = new Date();
   const series: LigneMois[] = [];
   for (let i = nombreMois - 1; i >= 0; i -= 1) {
@@ -248,10 +245,7 @@ export type SuiviObjectif = {
   atteint: boolean;
 };
 
-export function suivreObjectifEpargne(
-  transactions: Transaction[],
-  cible: number,
-): SuiviObjectif {
+export function suivreObjectifEpargne(transactions: Transaction[], cible: number): SuiviObjectif {
   const cleCourante = cleMois(new Date().toISOString());
   let revenus = 0;
   let depenses = 0;
@@ -326,10 +320,7 @@ export function degradeCirculaire(parts: { part: number }[]): string {
 /* ------------------------------------------------------------------ */
 
 function echapper(texte: string): string {
-  return texte
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return texte.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export function exporterRapportPdf(titre: string, contenu: string): boolean {

@@ -46,10 +46,7 @@ export function Confirmation({
       className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4"
       onClick={onAnnuler}
     >
-      <div
-        className="carte w-full max-w-sm space-y-4 p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="carte w-full max-w-sm space-y-4 p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start gap-3">
           <span
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
@@ -71,9 +68,13 @@ export function Confirmation({
                 <dt className="shrink-0 text-muted-foreground">{d.label}</dt>
                 <dd className="min-w-0 text-right font-medium">
                   {d.avant !== undefined && d.avant !== d.apres && (
-                    <span className="mr-1 text-muted-foreground line-through">{d.avant || "—"}</span>
+                    <span className="mr-1 text-muted-foreground line-through">
+                      {d.avant || "—"}
+                    </span>
                   )}
-                  <span className={d.avant !== undefined && d.avant !== d.apres ? "text-primary" : ""}>
+                  <span
+                    className={d.avant !== undefined && d.avant !== d.apres ? "text-primary" : ""}
+                  >
                     {d.apres || "—"}
                   </span>
                 </dd>

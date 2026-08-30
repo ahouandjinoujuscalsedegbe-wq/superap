@@ -199,7 +199,14 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       for (const e of evenements) window.removeEventListener(e, reprogrammer);
       document.removeEventListener("visibilitychange", surVisibilite);
     };
-  }, [config.actif, config.empreinte, config.delaiMinutes, verrouille, marquerActivite, verrouiller]);
+  }, [
+    config.actif,
+    config.empreinte,
+    config.delaiMinutes,
+    verrouille,
+    marquerActivite,
+    verrouiller,
+  ]);
 
   const verifierPin = useCallback(
     async (pin: string) => {

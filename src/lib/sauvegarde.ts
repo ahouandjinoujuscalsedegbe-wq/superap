@@ -45,15 +45,16 @@ function depuisBase64(txt: string): Uint8Array {
 }
 
 async function deriverCle(phrase: string, sel: Uint8Array): Promise<CryptoKey> {
-  const base = await crypto.subtle.importKey(
-    "raw",
-    encodeur.encode(phrase),
-    "PBKDF2",
-    false,
-    ["deriveKey"],
-  );
+  const base = await crypto.subtle.importKey("raw", encodeur.encode(phrase), "PBKDF2", false, [
+    "deriveKey",
+  ]);
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: sel as unknown as BufferSource, iterations: ITERATIONS, hash: "SHA-256" },
+    {
+      name: "PBKDF2",
+      salt: sel as unknown as BufferSource,
+      iterations: ITERATIONS,
+      hash: "SHA-256",
+    },
     base,
     { name: "AES-GCM", length: 256 },
     false,
@@ -136,8 +137,21 @@ export function horodatageFichier(d = new Date()): string {
 
 /** Convertit les listes principales en CSV lisible (non sensible aux formats). */
 export function versCsv(etat: {
-  transactions: { date: string; type: string; libelle: string; categorie: string; compte: string; montant: number }[];
-  transferts: { date: string; source: string; destination: string; montant: number; note: string }[];
+  transactions: {
+    date: string;
+    type: string;
+    libelle: string;
+    categorie: string;
+    compte: string;
+    montant: number;
+  }[];
+  transferts: {
+    date: string;
+    source: string;
+    destination: string;
+    montant: number;
+    note: string;
+  }[];
 }): string {
   const echapper = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lignes: string[] = ["TYPE;DATE;LIBELLE;CATEGORIE;COMPTE;MONTANT"];

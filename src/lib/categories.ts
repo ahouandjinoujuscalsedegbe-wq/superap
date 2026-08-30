@@ -2,7 +2,13 @@ import type { CategorieEnveloppe, Enveloppe } from "./store";
 
 /** Catégories et sous-catégories proposées par défaut au foyer. */
 export const CATEGORIES_SUGGEREES: Record<string, string[]> = {
-  Transport: ["Carburant", "Vidange voiture", "Entretien moto", "Taxi / Zémidjan", "Assurance véhicule"],
+  Transport: [
+    "Carburant",
+    "Vidange voiture",
+    "Entretien moto",
+    "Taxi / Zémidjan",
+    "Assurance véhicule",
+  ],
   Factures: ["Facture SBEE", "Facture SONEB", "Internet", "Crédit téléphonique", "Abonnement TV"],
   Alimentation: ["Marché", "Boutique", "Restaurant", "Eau potable"],
   Logement: ["Loyer", "Réparations", "Meubles", "Gardiennage"],
@@ -32,9 +38,10 @@ export function sousCategoriesDisponibles(
   categories: CategorieEnveloppe[] = [],
 ): string[] {
   const declaree = categories.find((c) => c.nom === categorie);
-  const set = new Set(declaree ? declaree.sousCategories : CATEGORIES_SUGGEREES[categorie] ?? []);
+  const set = new Set(declaree ? declaree.sousCategories : (CATEGORIES_SUGGEREES[categorie] ?? []));
   for (const e of enveloppes) {
-    if (e.categorie?.trim() === categorie && e.sousCategorie?.trim()) set.add(e.sousCategorie.trim());
+    if (e.categorie?.trim() === categorie && e.sousCategorie?.trim())
+      set.add(e.sousCategorie.trim());
   }
   return [...set].sort((a, b) => a.localeCompare(b, "fr"));
 }

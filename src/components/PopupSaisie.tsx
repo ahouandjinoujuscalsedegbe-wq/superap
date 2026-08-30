@@ -52,10 +52,7 @@ export function PopupSaisie({
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
       onClick={onAnnuler}
     >
-      <div
-        className="carte w-full max-w-sm space-y-4 p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="carte w-full max-w-sm space-y-4 p-5" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-base font-semibold">{titre}</h3>
         <div className="space-y-1.5">
           <label htmlFor="popup-saisie-champ" className="text-sm font-medium">

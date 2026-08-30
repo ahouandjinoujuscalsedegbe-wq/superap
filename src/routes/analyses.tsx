@@ -66,14 +66,7 @@ const COULEUR_NIVEAU = {
 const ICONE_NIVEAU = { alerte: "🚨", attention: "⚠️", bon: "✅" } as const;
 
 function Analyses() {
-  const {
-    transactions,
-    enveloppes,
-    depensesParEnveloppe,
-    dettes,
-    budgets,
-    solde,
-  } = useSuperApp();
+  const { transactions, enveloppes, depensesParEnveloppe, dettes, budgets, solde } = useSuperApp();
   const [fenetre, setFenetre] = useState<Fenetre>("mois");
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
@@ -125,10 +118,7 @@ function Analyses() {
     () => prevuContreReel(budgets, transactions, enveloppes),
     [budgets, transactions, enveloppes],
   );
-  const anomalies = useMemo(
-    () => detecterAnomalies(periode, enveloppes),
-    [periode, enveloppes],
-  );
+  const anomalies = useMemo(() => detecterAnomalies(periode, enveloppes), [periode, enveloppes]);
   const alertes = useMemo(
     () => alertesEnveloppes(enveloppes, depensesParEnveloppe, transactions),
     [enveloppes, depensesParEnveloppe, transactions],
@@ -196,10 +186,7 @@ function Analyses() {
     return `${base}\n${extras.join("\n")}`;
   };
   const tauxEpargne = totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
-  const maxTendance = Math.max(
-    1,
-    ...tendance.map((m) => Math.max(m.revenus, m.depenses)),
-  );
+  const maxTendance = Math.max(1, ...tendance.map((m) => Math.max(m.revenus, m.depenses)));
 
   return (
     <div className="space-y-5">
@@ -454,8 +441,8 @@ function Analyses() {
         <h2 className="font-semibold">Budget prévu contre dépenses réelles (ce mois)</h2>
         {prevuReel.lignes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aucune planification ni dépense ce mois-ci. Planifiez vos dépenses dans la
-            Budgétisation pour activer cette comparaison.
+            Aucune planification ni dépense ce mois-ci. Planifiez vos dépenses dans la Budgétisation
+            pour activer cette comparaison.
           </p>
         ) : (
           <>
@@ -526,7 +513,9 @@ function Analyses() {
                 >
                   {e.ecart > 0 ? "+" : ""}
                   {formatFCFA(e.ecart)}
-                  {e.pourcentage !== null ? ` (${e.pourcentage > 0 ? "+" : ""}${e.pourcentage} %)` : ""}
+                  {e.pourcentage !== null
+                    ? ` (${e.pourcentage > 0 ? "+" : ""}${e.pourcentage} %)`
+                    : ""}
                 </span>
               </li>
             ))}
@@ -726,9 +715,7 @@ function Analyses() {
             {moyenne.moisComptes} derniers mois : <strong>{formatFCFA(moyenne.moyenne)}</strong>.
             <br />
             <span
-              className={`font-semibold ${
-                moyenne.ecart > 0 ? "text-destructive" : "text-success"
-              }`}
+              className={`font-semibold ${moyenne.ecart > 0 ? "text-destructive" : "text-success"}`}
             >
               {moyenne.ecart > 0 ? "+" : ""}
               {formatFCFA(moyenne.ecart)}
