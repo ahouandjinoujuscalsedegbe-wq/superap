@@ -74,27 +74,27 @@ function ComptesAccueil() {
         {comptes.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun compte pour le moment.</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-2">
+          <ul className="grid grid-cols-3 gap-1.5">
             {lignes.map((l) => (
               <li key={l.compte}>
                 <Link
                   to="/comptes/$compte"
                   params={{ compte: l.compte }}
-                  className="flex aspect-square flex-col justify-between rounded-xl border border-border/70 bg-secondary/40 p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
+                  className="flex flex-col justify-between rounded-lg border border-border/70 bg-secondary/40 p-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
                 >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <Wallet className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-                    <span className="truncate text-xs font-semibold leading-tight">{l.compte}</span>
+                  <span className="flex min-w-0 items-center gap-1">
+                    <Wallet className="h-3 w-3 shrink-0 text-primary" aria-hidden />
+                    <span className="truncate text-[10px] font-semibold leading-none">{l.compte}</span>
                   </span>
 
-                  <div className="space-y-0.5">
+                  <div className="mt-1.5 space-y-0">
                     <span
-                      className={`block text-sm font-bold leading-tight ${l.solde < 0 ? "text-destructive" : "text-foreground"}`}
+                      className={`block text-xs font-bold leading-none ${l.solde < 0 ? "text-destructive" : "text-foreground"}`}
                     >
                       {formatFCFA(l.solde)}
                     </span>
-                    <span className="block text-[10px] leading-none text-muted-foreground">
-                      {l.nb} opération{l.nb > 1 ? "s" : ""}
+                    <span className="block text-[9px] leading-none text-muted-foreground">
+                      {l.nb} op{l.nb > 1 ? "s" : ""}
                     </span>
                   </div>
                 </Link>
