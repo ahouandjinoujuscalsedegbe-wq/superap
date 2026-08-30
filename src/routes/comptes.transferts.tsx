@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
+import { BoutonRetour } from "@/components/BoutonRetour";
 
 type Demande =
   | { type: "transfert"; source: string; destination: string; montant: number; note: string }
@@ -90,10 +91,8 @@ function Transferts() {
   const danger = demande?.type === "suppression";
 
   return (
-    <div className="space-y-4">
-      <Link to="/comptes" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Comptes
-      </Link>
+    <div className="page-anim space-y-5">
+      <BoutonRetour to="/comptes/" label="Retour aux comptes" />
 
       <section className="carte space-y-3 p-4">
         <div>

@@ -178,3 +178,40 @@ input:not([type="date"]):not([type="time"]):not([data-majuscules="non"]),
 textarea:not([data-majuscules="non"]) {
   text-transform: uppercase;
 }
+
+@keyframes page-entree {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility page-anim {
+  animation: page-entree 0.26s ease-out both;
+}
+
+@keyframes popup-entree {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility popup-anim {
+  animation: popup-entree 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-anim,
+  .popup-anim {
+    animation: none;
+  }
+}
