@@ -254,10 +254,10 @@ function Transferts() {
                   {comptes
                     .filter((c) => c !== source)
                     .map((c) => (
-                    <option key={c} value={c}>
-                      {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
-                    </option>
-                  ))}
+                      <option key={c} value={c}>
+                        {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
+                      </option>
+                    ))}
                 </select>
               </div>
 
