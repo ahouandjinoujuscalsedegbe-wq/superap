@@ -251,7 +251,7 @@ function bufferVersBase64(buffer: ArrayBuffer): string {
   let binaire = "";
   const taille = bytes.byteLength;
   for (let i = 0; i < taille; i += 1) {
-    binaire += String.fromCharCode(bytes[i]);
+    binaire += String.fromCharCode(bytes[i] ?? 0);
   }
   return btoa(binaire);
 }
