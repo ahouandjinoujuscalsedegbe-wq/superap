@@ -33,6 +33,13 @@ export type ResultatVerification =
   | { etat: "hors-ligne"; message: string }
   | { etat: "erreur"; message: string };
 
+export type EtapeInstallation =
+  | { etape: "telechargement"; message: string }
+  | { etape: "enregistrement"; message: string }
+  | { etape: "installation"; message: string }
+  | { etape: "termine"; message: string }
+  | { etape: "erreur"; message: string };
+
 /** Adresse du manifeste enregistrée sur l'appareil. */
 export function lireUrlManifeste(): string {
   if (typeof localStorage === "undefined") return URL_MANIFESTE_DEFAUT;
@@ -86,8 +93,7 @@ function estAdresseValide(url: string): boolean {
 /** Vrai lorsque le code tourne dans l'application Android (Capacitor). */
 export function estApplicationNative(): boolean {
   if (typeof window === "undefined") return false;
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
-    .Capacitor;
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   try {
     return Boolean(cap?.isNativePlatform?.());
   } catch {
@@ -121,7 +127,8 @@ async function telechargerNatif(
   } catch {
     return {
       etat: "hors-ligne",
-      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message:
+        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -147,8 +154,6 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
   }
   return { etat: "a-jour", version: VERSION_APPLICATION };
 }
-
-
 
 /**
  * Télécharge le manifeste et le compare à la version installée.
@@ -188,7 +193,6 @@ export async function verifierMiseAJour(
     const natif = await telechargerNatif(cible);
     if (natif.etat !== "ok") return { etat: natif.etat, message: natif.message };
     return interpreterManifeste(natif.donnees);
-
   }
 
   const controleur = new AbortController();
@@ -234,6 +238,130 @@ export async function verifierMiseAJour(
         : "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion puis réessayez.",
     };
   }
+}
+
+/**
+ * Convertit un ArrayBuffer en chaîne base64.
+ */
+function bufferVersBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binaire = "";
+  const taille = bytes.byteLength;
+  for (let i = 0; i < taille; i += 1) {
+    binaire += String.fromCharCode(bytes[i] ?? 0);
+  }
+  return btoa(binaire);
+}
+
+/**
+ * Télécharge l'APK avec le réseau natif Android et retourne son contenu
+ * sous forme d'ArrayBuffer. Cette méthode évite les restrictions CORS.
+ */
+async function telechargerAPKNatif(
+  url: string,
+  surEtape?: (etape: EtapeInstallation) => void,
+): Promise<{ ok: true; donnees: ArrayBuffer } | { ok: false; message: string }> {
+  try {
+    surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
+    const { CapacitorHttp } = await import("@capacitor/core");
+    const reponse = await CapacitorHttp.get({
+      url,
+      headers: { Accept: "application/vnd.android.package-archive" },
+      responseType: "arraybuffer",
+      readTimeout: 120000,
+      connectTimeout: 30000,
+    });
+    if (reponse.status < 200 || reponse.status >= 300) {
+      return {
+        ok: false,
+        message: `Le serveur a répondu ${reponse.status} lors du téléchargement de l'APK.`,
+      };
+    }
+    const donnees = reponse.data as ArrayBuffer;
+    if (!donnees || donnees.byteLength < 1024) {
+      return { ok: false, message: "Le fichier APK téléchargé est vide ou incomplet." };
+    }
+    return { ok: true, donnees };
+  } catch {
+    return {
+      ok: false,
+      message: "Impossible de télécharger la mise à jour. Vérifiez votre connexion Internet.",
+    };
+  }
+}
+
+/**
+ * Écrit l'APK dans le cache de l'application puis l'ouvre avec l'installateur
+ * Android natif. L'utilisateur n'a plus qu'à confirmer l'installation.
+ */
+async function installerAPKDepuisCache(
+  donnees: ArrayBuffer,
+  surEtape?: (etape: EtapeInstallation) => void,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    surEtape?.({ etape: "enregistrement", message: "Préparation du fichier d'installation..." });
+    const [{ Filesystem, Directory }, { FileOpener }] = await Promise.all([
+      import("@capacitor/filesystem"),
+      import("@capacitor-community/file-opener"),
+    ]);
+
+    const nomFichier = "super-app-mise-a-jour.apk";
+    const base64 = bufferVersBase64(donnees);
+
+    await Filesystem.writeFile({
+      path: nomFichier,
+      data: base64,
+      directory: Directory.Cache,
+      recursive: true,
+    });
+
+    const uri = await Filesystem.getUri({
+      path: nomFichier,
+      directory: Directory.Cache,
+    });
+
+    surEtape?.({
+      etape: "installation",
+      message: "Lancement de l'installateur Android. Confirmez l'installation.",
+    });
+
+    await FileOpener.open({
+      filePath: uri.uri,
+      contentType: "application/vnd.android.package-archive",
+    });
+
+    return { ok: true };
+  } catch (erreur) {
+    const message = erreur instanceof Error ? erreur.message : String(erreur);
+    return {
+      ok: false,
+      message: `Impossible de lancer l'installateur : ${message}. Autorisez l'installation depuis cette application dans les paramètres Android si demandé.`,
+    };
+  }
+}
+
+/**
+ * Lance la mise à jour en un clic dans l'application Android :
+ * téléchargement de l'APK, enregistrement local, ouverture de l'installateur.
+ * Sur navigateur, on retombe sur l'ouverture d'un nouvel onglet.
+ */
+export async function installerMiseAJour(
+  url: string,
+  surEtape?: (etape: EtapeInstallation) => void,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!estApplicationNative()) {
+    lancerTelechargement(url);
+    return { ok: true };
+  }
+
+  const telechargement = await telechargerAPKNatif(url, surEtape);
+  if (!telechargement.ok) return telechargement;
+
+  const installation = await installerAPKDepuisCache(telechargement.donnees, surEtape);
+  if (!installation.ok) return installation;
+
+  surEtape?.({ etape: "termine", message: "Installateur Android lancé." });
+  return { ok: true };
 }
 
 /**

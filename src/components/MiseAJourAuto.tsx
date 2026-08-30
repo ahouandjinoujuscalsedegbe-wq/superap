@@ -4,8 +4,9 @@ import { Download, X } from "lucide-react";
 import {
   VERSION_APPLICATION,
   ignorerVersion,
-  lancerTelechargement,
+  installerMiseAJour,
   verifierAuDemarrage,
+  type EtapeInstallation,
   type Manifeste,
 } from "@/lib/version";
 
@@ -20,6 +21,8 @@ export function DialogueMiseAJour({
   manifeste: Manifeste;
   onFermer: () => void;
 }) {
+  const [etape, setEtape] = useState<EtapeInstallation | null>(null);
+
   useEffect(() => {
     const surTouche = (e: KeyboardEvent) => {
       if (e.key === "Escape") onFermer();
@@ -27,6 +30,10 @@ export function DialogueMiseAJour({
     document.addEventListener("keydown", surTouche);
     return () => document.removeEventListener("keydown", surTouche);
   }, [onFermer]);
+
+  const enCours = etape !== null && etape.etape !== "termine" && etape.etape !== "erreur";
+  const termine = etape?.etape === "termine";
+  const erreur = etape?.etape === "erreur";
 
   return (
     <div
@@ -68,23 +75,43 @@ export function DialogueMiseAJour({
           opérations et sauvegardes locales sont conservées.
         </p>
 
+        {etape && (
+          <div
+            className={`rounded-xl px-3 py-2 text-sm ${
+              erreur
+                ? "bg-destructive/10 text-destructive"
+                : termine
+                  ? "bg-green-500/10 text-green-700"
+                  : "bg-secondary"
+            }`}
+          >
+            {etape.message}
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button
             type="button"
+            disabled={enCours}
             onClick={onFermer}
-            className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+            className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
           >
-            Plus tard
+            {termine || erreur ? "Fermer" : "Plus tard"}
           </button>
           <button
             type="button"
-            onClick={() => {
-              lancerTelechargement(manifeste.url);
-              onFermer();
+            disabled={enCours}
+            onClick={async () => {
+              setEtape({ etape: "telechargement", message: "Téléchargement en cours..." });
+              const resultat = await installerMiseAJour(manifeste.url, setEtape);
+              if (!resultat.ok) {
+                setEtape({ etape: "erreur", message: resultat.message });
+              }
             }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-70"
           >
-            <Download aria-hidden className="h-4 w-4" /> Mettre à jour maintenant
+            <Download aria-hidden className="h-4 w-4" />
+            {enCours ? "Patientez..." : "Mettre à jour maintenant"}
           </button>
         </div>
       </div>
