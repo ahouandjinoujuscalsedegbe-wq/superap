@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight, Wallet } from "lucide-reac
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
+import logoSuperApp from "@/assets/logo-super-app.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,9 +55,18 @@ function Accueil() {
 
   return (
     <div className="space-y-5">
-      <header className="pr-12">
-        <p className="text-sm text-muted-foreground">Bonjour 👋</p>
-        <h1 className="text-2xl font-bold tracking-tight">Budget du foyer</h1>
+      <header className="flex items-center gap-3 pr-12">
+        <img
+          src={logoSuperApp}
+          alt="Logo SUPER APP"
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-2xl object-cover shadow-sm"
+        />
+        <div>
+          <p className="text-sm text-muted-foreground">Bonjour 👋</p>
+          <h1 className="text-2xl font-bold tracking-tight">Budget du foyer</h1>
+        </div>
       </header>
 
       <section className="carte p-5">
