@@ -12,6 +12,9 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Mode SPA : génère un index.html statique dans dist/client,
+    // indispensable pour empaqueter l'application dans Capacitor (APK Android).
+    spa: { enabled: true, maskPath: "/" },
   },
   vite: {
     plugins: [
