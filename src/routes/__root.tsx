@@ -23,6 +23,7 @@ import { installerCaptureGlobale } from "@/lib/journal";
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
+import { SyncAuto } from "../components/SyncAuto";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -167,6 +168,7 @@ function RootComponent() {
           <Toaster position="top-center" richColors />
           <EcranVerrou />
           <MiseAJourAuto />
+          <SyncAuto />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
