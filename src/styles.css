@@ -215,3 +215,202 @@ textarea:not([data-majuscules="non"]) {
     animation: none;
   }
 }
+
+/* ============================================================
+ * Couleur dynamique : la teinte rose respire lentement pour
+ * donner une présentation vivante et élégante.
+ * ============================================================ */
+@property --teinte {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 353;
+}
+
+@keyframes respiration-teinte {
+  0% {
+    --teinte: 348;
+  }
+  50% {
+    --teinte: 358;
+  }
+  100% {
+    --teinte: 348;
+  }
+}
+
+:root {
+  --teinte: 353;
+  animation: respiration-teinte 22s ease-in-out infinite;
+  --primary: oklch(0.68 0.155 var(--teinte));
+  --ring: oklch(0.68 0.155 var(--teinte));
+  --accent: oklch(0.925 0.05 var(--teinte));
+  --sidebar-primary: oklch(0.68 0.155 var(--teinte));
+  --degrade-primaire: linear-gradient(
+    135deg,
+    oklch(0.72 0.15 calc(var(--teinte) - 14)),
+    oklch(0.66 0.17 calc(var(--teinte) + 16))
+  );
+}
+
+.dark {
+  --primary: oklch(0.75 0.15 var(--teinte));
+  --ring: oklch(0.75 0.15 var(--teinte));
+  --accent: oklch(0.34 0.06 var(--teinte));
+  --sidebar-primary: oklch(0.75 0.15 var(--teinte));
+}
+
+@utility texte-degrade {
+  background-image: var(--degrade-primaire);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bande-degrade {
+  background-image: var(--degrade-primaire);
+  color: var(--primary-foreground);
+}
+
+/* ============================================================
+ * Animations globales des éléments cliquables
+ * ============================================================ */
+a,
+button,
+summary,
+[role="button"],
+[role="tab"],
+select,
+label[for] {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease,
+    opacity 0.22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:active,
+button:not(:disabled):active,
+summary:active,
+[role="button"]:active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  transform: none;
+}
+
+@media (hover: hover) {
+  a:hover,
+  button:not(:disabled):hover,
+  [role="button"]:hover {
+    filter: brightness(1.02);
+  }
+}
+
+/* Cartes et bandes cliquables */
+.carte {
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+a.carte:active,
+button.carte:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  a.carte:hover,
+  button.carte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px -18px color-mix(in oklab, var(--primary) 70%, transparent);
+    border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  }
+}
+
+/* Champs de saisie */
+input,
+textarea {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* Apparition en cascade des éléments d'une page */
+@keyframes apparition-douce {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility cascade {
+  animation: apparition-douce 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page-anim > * {
+  animation: apparition-douce 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-anim > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.page-anim > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.page-anim > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.page-anim > *:nth-child(4) {
+  animation-delay: 0.14s;
+}
+.page-anim > *:nth-child(5) {
+  animation-delay: 0.18s;
+}
+.page-anim > *:nth-child(n + 6) {
+  animation-delay: 0.22s;
+}
+
+/* Pastille active de la barre de navigation */
+@keyframes pastille-active {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@utility pastille-anim {
+  animation: pastille-active 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    animation: none;
+  }
+  .page-anim,
+  .page-anim > *,
+  .popup-anim,
+  .cascade,
+  .pastille-anim {
+    animation: none !important;
+  }
+  a,
+  button,
+  .carte,
+  [role="button"] {
+    transition: none !important;
+    transform: none !important;
+  }
+}

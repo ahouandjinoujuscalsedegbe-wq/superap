@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -142,6 +143,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Capture des erreurs non gérées dans le journal de diagnostic.
   useEffect(() => installerCaptureGlobale(), []);
@@ -152,8 +154,11 @@ function RootComponent() {
         <SuperAppProvider>
           <div className="safe-area-top mx-auto min-h-screen w-full max-w-md px-3 pb-28 sm:px-4">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
+            <div key={pathname} className="cascade">
+              <Outlet />
+            </div>
           </div>
+
           <EcheancesAuto />
           <MenuPrincipal />
           <BottomNav />
