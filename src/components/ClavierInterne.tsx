@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowBigUp, Check, Delete, X } from "lucide-react";
+import { ArrowBigUp, Check, Delete, Eraser, X } from "lucide-react";
+import {
+  retourTouche,
+  useReglagesClavier,
+  type Disposition,
+  type Taille,
+} from "@/lib/clavier-reglages";
 
 /**
  * Clavier interne à l'application.
@@ -11,11 +17,39 @@ import { ArrowBigUp, Check, Delete, X } from "lucide-react";
 
 type Mode = "texte" | "numerique";
 
-const LIGNES_TEXTE = [
-  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
-  ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
-  ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
-  ["w", "x", "c", "v", "b", "n", "'", "-"],
+const RANGEE_CHIFFRES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+const DISPOSITIONS: Record<Disposition, string[][]> = {
+  azerty: [
+    ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
+    ["w", "x", "c", "v", "b", "n", "'", "-"],
+  ],
+  qwerty: [
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
+    ["z", "x", "c", "v", "b", "n", "'", "-"],
+  ],
+  alphabetique: [
+    ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"],
+    ["k", "l", "m", "n", "o", "p", "q", "r", "s", "t"],
+    ["u", "v", "w", "x", "y", "z", "'", "-"],
+  ],
+};
+
+/** Hauteur des touches selon la taille choisie dans les paramètres. */
+const HAUTEURS: Record<Taille, { petite: string; pleine: string; large: string }> = {
+  compacte: { petite: "py-1.5 text-sm", pleine: "py-1.5 text-sm", large: "py-2 text-sm" },
+  normale: { petite: "py-2.5 text-sm", pleine: "py-2.5 text-sm", large: "py-3 text-base" },
+  grande: { petite: "py-4 text-lg", pleine: "py-4 text-lg", large: "py-4 text-lg" },
+};
+
+/** Raccourcis de montants proposés sur le pavé numérique. */
+const RACCOURCIS = [
+  { label: "000", ajout: "000" },
+  { label: "+1 000", valeur: 1000 },
+  { label: "+5 000", valeur: 5000 },
+  { label: "+10 000", valeur: 10000 },
 ];
 const ACCENTS = ["é", "è", "ê", "à", "ç", "ù", "ô", "î"];
 const TOUCHES_NUM = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0"];
@@ -54,11 +88,13 @@ function proprietesAppui(action: () => void) {
   const declencher = (event: { cancelable?: boolean; preventDefault: () => void }) => {
     if (event.cancelable !== false) event.preventDefault();
     dernierAppui = Date.now();
+    retourTouche();
     action();
   };
   const repliClic = () => {
     // Si un appui vient déjà d'être traité, on ignore le clic de synthèse.
     if (Date.now() - dernierAppui < 500) return;
+    retourTouche();
     action();
   };
   return SUPPORTE_POINTER
@@ -67,6 +103,7 @@ function proprietesAppui(action: () => void) {
 }
 
 export function ClavierInterne() {
+  const reglages = useReglagesClavier();
   const [ouvert, setOuvert] = useState(false);
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
@@ -74,6 +111,7 @@ export function ClavierInterne() {
   const [numeriqueForce, setNumeriqueForce] = useState(false);
   const champRef = useRef<Champ | null>(null);
   const clavierRef = useRef<HTMLDivElement | null>(null);
+  const repetition = useRef<{ debut: number; boucle: number } | null>(null);
 
   const fermer = useCallback(() => {
     setOuvert(false);
@@ -143,6 +181,7 @@ export function ClavierInterne() {
       const cible = ev.target as Element | null;
       if (!estChampTexte(cible)) return;
       if (cible.dataset["clavier"] === "off" || cible.readOnly || cible.disabled) return;
+      if (!reglages.actif) return;
 
       champRef.current = cible;
       const modeOrigine =
@@ -158,7 +197,7 @@ export function ClavierInterne() {
       setDecimale((cible as HTMLInputElement).type === "number" || modeOrigine === "decimal");
       setMode(numerique ? "numerique" : "texte");
       setNumeriqueForce(numerique);
-      setMajuscule(false);
+      setMajuscule(reglages.majusculesAuto);
       setOuvert(true);
     };
     const onFocusOut = (ev: FocusEvent) => {
@@ -175,7 +214,12 @@ export function ClavierInterne() {
       document.removeEventListener("focusin", onFocus);
       document.removeEventListener("focusout", onFocusOut);
     };
-  }, [fermer]);
+  }, [fermer, reglages.actif]);
+
+  // Le clavier interne se referme si l'utilisateur le désactive dans les réglages.
+  useEffect(() => {
+    if (!reglages.actif && ouvert) fermer();
+  }, [reglages.actif, ouvert, fermer]);
 
   const taper = (touche: string) => {
     const champ = champRef.current;
@@ -189,11 +233,18 @@ export function ClavierInterne() {
       } else if (!/^\d$/.test(ajout)) {
         return;
       }
-    } else {
+    } else if (reglages.majusculesAuto || majuscule) {
       ajout = ajout.toLocaleUpperCase("fr-FR");
     }
     ecrire(champ, valeur + ajout);
-    if (majuscule) setMajuscule(false);
+    if (majuscule && !reglages.majusculesAuto) setMajuscule(false);
+  };
+
+  /** Insère un texte brut (chiffres, espace, « 000 ») sans filtrage de mode. */
+  const taperTexte = (texte: string) => {
+    const champ = champRef.current;
+    if (!champ) return;
+    ecrire(champ, (champ.value ?? "") + texte);
   };
 
   const effacer = () => {
@@ -202,10 +253,44 @@ export function ClavierInterne() {
     ecrire(champ, (champ.value ?? "").slice(0, -1));
   };
 
+  /** Efface tout le contenu du champ actif. */
+  const toutEffacer = () => {
+    const champ = champRef.current;
+    if (champ) ecrire(champ, "");
+  };
+
+  /** Ajoute un montant rapide (+1 000, +5 000…) au champ numérique. */
+  const ajouterMontant = (valeur: number) => {
+    const champ = champRef.current;
+    if (!champ) return;
+    const actuel = Number.parseFloat((champ.value ?? "").replace(/[^\d.]/g, "")) || 0;
+    ecrire(champ, String(actuel + valeur));
+  };
+
+  /** Effacement continu tant que la touche « supprimer » reste enfoncée. */
+  const demarrerEffacement = () => {
+    if (!reglages.effacementContinu || repetition.current) return;
+    const boucle = window.setInterval(() => {
+      const champ = champRef.current;
+      if (!champ || !champ.value) return;
+      retourTouche();
+      ecrire(champ, champ.value.slice(0, -1));
+    }, 90);
+    repetition.current = { debut: Date.now(), boucle };
+  };
+  const arreterEffacement = useCallback(() => {
+    if (repetition.current) {
+      window.clearInterval(repetition.current.boucle);
+      repetition.current = null;
+    }
+  }, []);
+
+  useEffect(() => arreterEffacement, [arreterEffacement]);
+
   const valider = () => {
     const champ = champRef.current;
     champ?.blur();
-    fermer();
+    if (!reglages.resterOuvert) fermer();
   };
 
   if (!ouvert) return null;
@@ -248,48 +333,119 @@ export function ClavierInterne() {
         </div>
 
         {mode === "numerique" ? (
-          <div className="grid grid-cols-3 gap-1.5">
-            {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
-              <Touche key={t} onClick={() => taper(t)} label={t} />
-            ))}
-            <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
-            <button
-              type="button"
-              {...proprietesAppui(valider)}
-              style={{ touchAction: "manipulation" }}
-              className="col-span-3 flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
-            >
-              <Check aria-hidden className="h-4 w-4" /> Valider
-            </button>
+          <div className="space-y-1.5">
+            {reglages.raccourcisMontants && (
+              <div className="flex gap-1">
+                {RACCOURCIS.map((r) => (
+                  <Touche
+                    key={r.label}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => (r.valeur ? ajouterMontant(r.valeur) : taperTexte(r.ajout!))}
+                    label={r.label}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-1.5">
+              {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
+                <Touche
+                  key={t}
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={() => taper(t)}
+                  label={t}
+                />
+              ))}
+              <Touche
+                taille={reglages.taille}
+                visuel={reglages.retourVisuel}
+                onClick={effacer}
+                onMaintien={demarrerEffacement}
+                onRelacher={arreterEffacement}
+                label={<Delete aria-hidden className="h-5 w-5" />}
+              />
+            </div>
+            <div className="flex gap-1.5">
+              {reglages.toucheToutEffacer && (
+                <Touche
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={toutEffacer}
+                  label={<Eraser aria-hidden className="h-4 w-4" />}
+                  petite
+                />
+              )}
+              <button
+                type="button"
+                {...proprietesAppui(valider)}
+                style={{ touchAction: "manipulation" }}
+                className="flex flex-[3] items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                <Check aria-hidden className="h-4 w-4" /> Valider
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-1.5">
-            <div className="flex justify-center gap-1">
-              {ACCENTS.map((t) => (
-                <Touche key={t} onClick={() => taper(t)} label={t} petite />
-              ))}
-            </div>
-            {LIGNES_TEXTE.map((ligne, i) => (
-              <div key={i} className="flex justify-center gap-1">
-                {i === 3 && (
+            {reglages.accents && (
+              <div className="flex justify-center gap-1">
+                {ACCENTS.map((t) => (
                   <Touche
+                    key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => taper(t)}
+                    label={t}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            {reglages.rangeeChiffres && (
+              <div className="flex justify-center gap-1">
+                {RANGEE_CHIFFRES.map((t) => (
+                  <Touche
+                    key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => taperTexte(t)}
+                    label={t}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            {DISPOSITIONS[reglages.disposition].map((ligne, i) => (
+              <div key={i} className="flex justify-center gap-1">
+                {i === 2 && (
+                  <Touche
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={() => setMajuscule((m) => !m)}
                     label={<ArrowBigUp aria-hidden className="h-4 w-4" />}
-                    actif={majuscule}
+                    actif={majuscule || reglages.majusculesAuto}
                     petite
                   />
                 )}
                 {ligne.map((t) => (
                   <Touche
                     key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={() => taper(t)}
-                    label={majuscule ? t.toUpperCase() : t}
+                    label={majuscule || reglages.majusculesAuto ? t.toUpperCase() : t}
                     petite
                   />
                 ))}
-                {i === 3 && (
+                {i === 2 && (
                   <Touche
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={effacer}
+                    onMaintien={demarrerEffacement}
+                    onRelacher={arreterEffacement}
                     label={<Delete aria-hidden className="h-4 w-4" />}
                     petite
                   />
@@ -297,7 +453,22 @@ export function ClavierInterne() {
               </div>
             ))}
             <div className="flex gap-1.5">
-              <Touche onClick={() => taper(" ")} label="espace" pleine />
+              {reglages.toucheToutEffacer && (
+                <Touche
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={toutEffacer}
+                  label={<Eraser aria-hidden className="h-4 w-4" />}
+                  petite
+                />
+              )}
+              <Touche
+                taille={reglages.taille}
+                visuel={reglages.retourVisuel}
+                onClick={() => taperTexte(" ")}
+                label="espace"
+                pleine
+              />
               <button
                 type="button"
                 {...proprietesAppui(valider)}
@@ -317,26 +488,48 @@ export function ClavierInterne() {
 function Touche({
   label,
   onClick,
+  onMaintien,
+  onRelacher,
   petite,
   pleine,
   actif,
+  taille = "normale",
+  visuel = true,
 }: {
   label: React.ReactNode;
   onClick: () => void;
+  onMaintien?: () => void;
+  onRelacher?: () => void;
   petite?: boolean;
   pleine?: boolean;
   actif?: boolean;
+  taille?: Taille;
+  visuel?: boolean;
 }) {
+  const h = HAUTEURS[taille];
+  const maintien =
+    onMaintien && onRelacher
+      ? {
+          onTouchStart: onMaintien,
+          onTouchEnd: onRelacher,
+          onTouchCancel: onRelacher,
+          onPointerUp: onRelacher,
+          onPointerLeave: onRelacher,
+        }
+      : {};
   return (
     <button
       type="button"
       // Sur téléphone, on déclenche la touche dès l'appui : le WebView Android
       // n'envoie pas toujours l'événement « click » quand le focus reste au champ.
       {...proprietesAppui(onClick)}
+      {...maintien}
       style={{ touchAction: "manipulation" }}
-      className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors active:bg-primary/20 ${
-        actif ? "bg-primary/20" : "bg-secondary"
-      } ${pleine ? "flex-1 py-2.5 text-sm" : petite ? "min-w-8 flex-1 py-2.5 text-sm" : "py-3 text-base"}`}
+      className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors ${
+        visuel ? "active:scale-95 active:bg-primary/30" : ""
+      } ${actif ? "bg-primary/20" : "bg-secondary"} ${
+        pleine ? `flex-1 ${h.pleine}` : petite ? `min-w-8 flex-1 ${h.petite}` : h.large
+      }`}
     >
       {label}
     </button>

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { SectionSecurite } from "@/components/SectionSecurite";
+import { SectionClavier } from "@/components/SectionClavier";
 import { SectionMiseAJour } from "@/components/SectionMiseAJour";
 import { SectionPurge } from "@/components/SectionPurge";
 import { SectionRestauration } from "@/components/SectionRestauration";
@@ -104,6 +105,8 @@ function Parametres() {
       </section>
 
       <SectionSecurite />
+
+      <SectionClavier />
 
       <SectionMiseAJour />
 
