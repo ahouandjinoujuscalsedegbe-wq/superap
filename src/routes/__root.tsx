@@ -159,6 +159,7 @@ function RootComponent() {
           <BottomNav />
           <ClavierInterne />
           <MajusculesPartout />
+          <EtatReseau />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
         </SuperAppProvider>
