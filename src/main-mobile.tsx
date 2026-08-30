@@ -45,6 +45,12 @@ try {
   // un historique en mémoire évite toute page « 404 » au démarrage.
   const router = getRouter(createMemoryHistory({ initialEntries: ["/"] }));
   if (racine) createRoot(racine).render(<RouterProvider router={router} />);
+  // L'écran de démarrage reste visible jusqu'à ce que l'interface soit prête.
+  void import("@capacitor/splash-screen")
+    .then(({ SplashScreen }) => {
+      window.setTimeout(() => void SplashScreen.hide({ fadeOutDuration: 350 }), 400);
+    })
+    .catch(() => undefined);
 } catch (erreur) {
   afficherPanne(
     erreur instanceof Error ? `${erreur.message}\n${erreur.stack ?? ""}` : String(erreur),

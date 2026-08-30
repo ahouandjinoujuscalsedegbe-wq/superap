@@ -69,6 +69,23 @@ jobs:
           cp resources/android/icons/icon-192.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           echo "Icônes de l'application appliquées."
 
+      - name: Appliquer l'écran de démarrage personnalisé
+        run: |
+          # L'image de démarrage est copiée dans tous les dossiers drawable
+          # existants du projet Android natif (portrait, paysage, densités).
+          RES=android/app/src/main/res
+          mkdir -p "$RES/drawable"
+          cp resources/android/splash/splash.png "$RES/drawable/splash.png"
+          for d in "$RES"/drawable-*; do
+            [ -d "$d" ] || continue
+            case "$d" in
+              *land*) cp resources/android/splash/splash-land.png "$d/splash.png" ;;
+              *port*) cp resources/android/splash/splash-port.png "$d/splash.png" ;;
+              *) cp resources/android/splash/splash.png "$d/splash.png" ;;
+            esac
+          done
+          echo "Écran de démarrage appliqué."
+
       # 7b. Configurer les permissions Android pour l'installateur d'APK
       - name: Configurer les permissions de mise à jour
         run: |

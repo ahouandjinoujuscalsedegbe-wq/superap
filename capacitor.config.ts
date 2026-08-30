@@ -15,6 +15,18 @@ const config: CapacitorConfig = {
     // depuis chrome://inspect si un problème persiste.
     webContentsDebuggingEnabled: true,
   },
+  plugins: {
+    // Écran de démarrage aux couleurs du logo (rose clair).
+    SplashScreen: {
+      launchShowDuration: 3000,
+      launchAutoHide: false,
+      backgroundColor: "#ffe4ee",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: false,
+    },
+  },
 };
 
 export default config;
