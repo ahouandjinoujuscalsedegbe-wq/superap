@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { CloudCog, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { ecrireReglagesAuto, lireReglagesAuto, type ReglagesAuto } from "@/lib/sync-auto";
+import {
+  ecrireReglagesAuto,
+  lireReglagesAuto,
+  PHRASE_MIN,
+  type ReglagesAuto,
+} from "@/lib/sync-auto";
 import { EVENEMENT_SYNC_AUTO } from "@/components/SyncAuto";
 
 function horodatage(iso?: string): string {
@@ -34,8 +39,10 @@ export function SectionSyncAuto() {
   const enregistrer = () => {
     const p = phrase.trim();
     const a = appareil.trim().toUpperCase();
-    if (p.length < 6) {
-      toast.error("La phrase secrète doit contenir au moins 6 caractères.");
+    if (p.length < PHRASE_MIN) {
+      toast.error(
+        `La phrase secrète doit contenir au moins ${PHRASE_MIN} caractères : une phrase courte pourrait être devinée.`,
+      );
       return;
     }
     if (!a) {
@@ -98,7 +105,8 @@ export function SectionSyncAuto() {
         <span>
           La phrase secrète ne quitte jamais le téléphone : elle sert à chiffrer les données avant
           l'envoi. Sans elle, personne ne peut lire vos données. Saisissez exactement la même sur
-          les deux téléphones.
+          les deux téléphones, avec au moins {PHRASE_MIN} caractères (une phrase entière est
+          idéale, par exemple « NOTRE MAISON DE COTONOU »).
         </span>
       </p>
 
