@@ -42,6 +42,30 @@ function ecrire(champ: Champ, valeur: string) {
   champ.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
+/**
+ * Déclenchement d'une touche compatible avec toutes les WebView Android.
+ * Certaines WebView n'émettent pas « pointerdown » : on écoute alors
+ * « touchstart » / « mousedown », avec un repli sur « click ».
+ */
+const SUPPORTE_POINTER = typeof window !== "undefined" && "PointerEvent" in window;
+let dernierAppui = 0;
+
+function proprietesAppui(action: () => void) {
+  const declencher = (event: { cancelable?: boolean; preventDefault: () => void }) => {
+    if (event.cancelable !== false) event.preventDefault();
+    dernierAppui = Date.now();
+    action();
+  };
+  const repliClic = () => {
+    // Si un appui vient déjà d'être traité, on ignore le clic de synthèse.
+    if (Date.now() - dernierAppui < 500) return;
+    action();
+  };
+  return SUPPORTE_POINTER
+    ? { onPointerDown: declencher, onClick: repliClic }
+    : { onTouchStart: declencher, onMouseDown: declencher, onClick: repliClic };
+}
+
 export function ClavierInterne() {
   const [ouvert, setOuvert] = useState(false);
   const [mode, setMode] = useState<Mode>("texte");
@@ -190,7 +214,7 @@ export function ClavierInterne() {
     <div
       ref={clavierRef}
       data-clavier-interne
-      onPointerDown={(e) => e.preventDefault()}
+      onMouseDown={(e) => e.preventDefault()}
       className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/98 p-2 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] backdrop-blur"
       role="group"
       aria-label="Clavier interne de l'application"
@@ -204,10 +228,8 @@ export function ClavierInterne() {
             {!numeriqueForce && (
               <button
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  setMode(mode === "texte" ? "numerique" : "texte");
-                }}
+                {...proprietesAppui(() => setMode(mode === "texte" ? "numerique" : "texte"))}
+                style={{ touchAction: "manipulation" }}
                 className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
               >
                 {mode === "texte" ? "123" : "ABC"}
@@ -215,10 +237,8 @@ export function ClavierInterne() {
             )}
             <button
               type="button"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                valider();
-              }}
+              {...proprietesAppui(valider)}
+              style={{ touchAction: "manipulation" }}
               aria-label="Fermer le clavier"
               className="rounded-md bg-secondary p-1"
             >
@@ -235,10 +255,8 @@ export function ClavierInterne() {
             <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
             <button
               type="button"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                valider();
-              }}
+              {...proprietesAppui(valider)}
+              style={{ touchAction: "manipulation" }}
               className="col-span-3 flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
             >
               <Check aria-hidden className="h-4 w-4" /> Valider
@@ -282,10 +300,8 @@ export function ClavierInterne() {
               <Touche onClick={() => taper(" ")} label="espace" pleine />
               <button
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  valider();
-                }}
+                {...proprietesAppui(valider)}
+                style={{ touchAction: "manipulation" }}
                 className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
               >
                 <Check aria-hidden className="h-4 w-4" /> OK
@@ -316,10 +332,7 @@ function Touche({
       type="button"
       // Sur téléphone, on déclenche la touche dès l'appui : le WebView Android
       // n'envoie pas toujours l'événement « click » quand le focus reste au champ.
-      onPointerDown={(event) => {
-        event.preventDefault();
-        onClick();
-      }}
+      {...proprietesAppui(onClick)}
       style={{ touchAction: "manipulation" }}
       className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors active:bg-primary/20 ${
         actif ? "bg-primary/20" : "bg-secondary"

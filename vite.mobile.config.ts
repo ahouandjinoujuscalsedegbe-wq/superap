@@ -31,6 +31,9 @@ export default defineConfig({
   define: { "import.meta.env.VITE_COQUE_MOBILE": "true" },
   plugins: [tsconfigPaths(), tailwindcss(), react(), renommerEnIndex()],
   build: {
+    // Cible volontairement large : les WebView Android livrées sur des
+    // téléphones plus anciens ne comprennent pas la syntaxe la plus récente.
+    target: ["es2017", "chrome80", "safari13"],
     outDir: "dist-mobile",
     emptyOutDir: true,
     rollupOptions: {
