@@ -17,7 +17,7 @@ export function BottomNav() {
       aria-label="Navigation principale"
       className="surface fixed inset-x-0 bottom-0 z-50 border-t border-border pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto flex max-w-md items-end justify-between px-1 pb-2 pt-1">
+      <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 pb-2 pt-1">
         {ONGLETS.map((onglet) => {
           const actif = onglet.to === "/" ? pathname === "/" : pathname.startsWith(onglet.to);
           const Icone = onglet.icone;
@@ -25,7 +25,7 @@ export function BottomNav() {
 
           if (estMilieu) {
             return (
-              <li key={onglet.to} className="flex flex-1 justify-center">
+              <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">
                 <Link
                   to={onglet.to}
                   aria-current={actif ? "page" : undefined}
