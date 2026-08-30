@@ -67,7 +67,7 @@ export function BottomNav() {
           }
 
           return (
-            <li key={onglet.to} className="flex-1">
+            <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">
               <Link
                 to={onglet.to}
                 aria-current={actif ? "page" : undefined}
