@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/comptes")({
 
 function ComptesLayout() {
   const { comptes, soldesParCompte } = useSuperApp();
+  const chemin = useRouterState({ select: (s) => s.location.pathname });
   const total = comptes.reduce((s, c) => s + (soldesParCompte[c] ?? 0), 0);
 
   return (
@@ -35,7 +36,9 @@ function ComptesLayout() {
         </p>
       </header>
 
-      <Outlet />
+      <div key={chemin}>
+        <Outlet />
+      </div>
     </div>
   );
 }
