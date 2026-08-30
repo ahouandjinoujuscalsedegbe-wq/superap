@@ -94,7 +94,8 @@ function AjouterDepense() {
                 key={m}
                 type="button"
                 onClick={() => setMontant(String((Number(montant.replace(/[^\d]/g, "")) || 0) + m))}
-                className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
+                aria-label={`Ajouter ${formatFCFA(m)} au montant`}
+                className="min-h-11 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
               >
                 +{formatFCFA(m)}
               </button>
