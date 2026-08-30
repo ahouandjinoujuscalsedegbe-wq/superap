@@ -36,6 +36,7 @@ import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.c
 import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.classer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
+import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 
@@ -174,6 +175,11 @@ const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
   path: '/modifier',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ComptesTransfertsRoute,
+} as any)
 const ComptesTransfertsNouveauRoute =
   ComptesTransfertsNouveauRouteImport.update({
     id: '/nouveau',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
+  '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -233,7 +240,6 @@ export interface FileRoutesByTo {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
-  '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -245,6 +251,7 @@ export interface FileRoutesByTo {
   '/enveloppes': typeof EnveloppesIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
+  '/comptes/transferts': typeof ComptesTransfertsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -277,6 +284,7 @@ export interface FileRoutesById {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
+  '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -310,6 +318,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
+    | '/comptes/transferts/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -327,7 +336,6 @@ export interface FileRouteTypes {
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
-    | '/comptes/transferts'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
@@ -339,6 +347,7 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
+    | '/comptes/transferts'
   id:
     | '__root__'
     | '/'
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
+    | '/comptes/transferts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -581,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/comptes/transferts/': {
+      id: '/comptes/transferts/'
+      path: '/'
+      fullPath: '/comptes/transferts/'
+      preLoaderRoute: typeof ComptesTransfertsIndexRouteImport
+      parentRoute: typeof ComptesTransfertsRoute
+    }
     '/comptes/transferts/nouveau': {
       id: '/comptes/transferts/nouveau'
       path: '/nouveau'
@@ -600,10 +617,12 @@ declare module '@tanstack/react-router' {
 
 interface ComptesTransfertsRouteChildren {
   ComptesTransfertsNouveauRoute: typeof ComptesTransfertsNouveauRoute
+  ComptesTransfertsIndexRoute: typeof ComptesTransfertsIndexRoute
 }
 
 const ComptesTransfertsRouteChildren: ComptesTransfertsRouteChildren = {
   ComptesTransfertsNouveauRoute: ComptesTransfertsNouveauRoute,
+  ComptesTransfertsIndexRoute: ComptesTransfertsIndexRoute,
 }
 
 const ComptesTransfertsRouteWithChildren =
