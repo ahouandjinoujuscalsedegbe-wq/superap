@@ -147,6 +147,14 @@ function RootComponent() {
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </div>
+          <EcheancesAuto />
+          <MenuPrincipal />
+          <BottomNav />
+          <ClavierInterne />
+          <MajusculesPartout />
+          <Toaster position="top-center" richColors />
+          <EcranVerrou />
+
           
           
           
