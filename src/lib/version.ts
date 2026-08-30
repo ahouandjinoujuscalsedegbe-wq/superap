@@ -246,22 +246,48 @@ function bufferVersBase64(buffer: ArrayBuffer): string {
   return btoa(binaire);
 }
 
+/** Nettoie une chaîne base64 (préfixe « data: », espaces, retours à la ligne). */
+function nettoyerBase64(valeur: string): string {
+  const sansPrefixe = valeur.includes("base64,") ? valeur.slice(valeur.indexOf("base64,") + 7) : valeur;
+  return sansPrefixe.replace(/\s/g, "");
+}
+
+/** Vérifie que le fichier commence bien par la signature d'une archive APK (« PK »). */
+function estArchiveApk(base64: string): boolean {
+  try {
+    const debut = atob(base64.slice(0, 8));
+    return debut.charCodeAt(0) === 0x50 && debut.charCodeAt(1) === 0x4b;
+  } catch {
+    return false;
+  }
+}
+
+/** Taille réelle en octets d'un contenu base64. */
+function tailleBase64(base64: string): number {
+  const rembourrage = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - rembourrage;
+}
+
 /**
- * Télécharge l'APK avec le réseau natif Android et retourne son contenu
- * sous forme d'ArrayBuffer. Cette méthode évite les restrictions CORS.
+ * Télécharge l'APK avec le réseau natif Android et retourne son contenu en
+ * base64 (format attendu par le système de fichiers Capacitor).
+ *
+ * Important : avec `responseType: "arraybuffer"`, le pont natif renvoie déjà
+ * une chaîne base64. La reconvertir comme un tableau d'octets produisait un
+ * fichier corrompu, d'où le message « problème lors de l'analyse du package ».
  */
 async function telechargerAPKNatif(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
-): Promise<{ ok: true; donnees: ArrayBuffer } | { ok: false; message: string }> {
+): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
   try {
     surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
       url,
       headers: { Accept: "application/vnd.android.package-archive" },
-      responseType: "arraybuffer",
-      readTimeout: 120000,
+      responseType: "blob",
+      readTimeout: 180000,
       connectTimeout: 30000,
     });
     if (reponse.status < 200 || reponse.status >= 300) {
@@ -270,11 +296,38 @@ async function telechargerAPKNatif(
         message: `Le serveur a répondu ${reponse.status} lors du téléchargement de l'APK.`,
       };
     }
-    const donnees = reponse.data as ArrayBuffer;
-    if (!donnees || donnees.byteLength < 1024) {
-      return { ok: false, message: "Le fichier APK téléchargé est vide ou incomplet." };
+
+    const brut = reponse.data as unknown;
+    let base64: string;
+    if (typeof brut === "string") {
+      base64 = nettoyerBase64(brut);
+    } else if (brut instanceof ArrayBuffer) {
+      base64 = bufferVersBase64(brut);
+    } else if (ArrayBuffer.isView(brut)) {
+      const vue = brut as ArrayBufferView;
+      base64 = bufferVersBase64(
+        vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer,
+      );
+    } else {
+      return { ok: false, message: "Réponse inattendue du serveur : le fichier n'a pas pu être lu." };
     }
-    return { ok: true, donnees };
+
+    if (tailleBase64(base64) < 100_000) {
+      return {
+        ok: false,
+        message:
+          "Le fichier téléchargé est trop petit pour être une application. Vérifiez que l'adresse pointe bien vers l'APK de la nouvelle version.",
+      };
+    }
+    if (!estArchiveApk(base64)) {
+      return {
+        ok: false,
+        message:
+          "Le fichier téléchargé n'est pas une application Android valide (page web ou lien invalide). Vérifiez l'adresse indiquée dans version.json.",
+      };
+    }
+
+    return { ok: true, base64 };
   } catch {
     return {
       ok: false,
@@ -288,7 +341,7 @@ async function telechargerAPKNatif(
  * Android natif. L'utilisateur n'a plus qu'à confirmer l'installation.
  */
 async function installerAPKDepuisCache(
-  donnees: ArrayBuffer,
+  base64: string,
   surEtape?: (etape: EtapeInstallation) => void,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
@@ -298,15 +351,24 @@ async function installerAPKDepuisCache(
       import("@capacitor-community/file-opener"),
     ]);
 
-    const nomFichier = "super-app-mise-a-jour.apk";
-    const base64 = bufferVersBase64(donnees);
+    const nomFichier = `super-app-${Date.now()}.apk`;
 
+    // Un ancien fichier partiellement écrit provoquerait la même erreur
+    // d'analyse : on repart toujours d'un nom neuf et d'une écriture complète.
     await Filesystem.writeFile({
       path: nomFichier,
       data: base64,
       directory: Directory.Cache,
       recursive: true,
     });
+
+    const info = await Filesystem.stat({ path: nomFichier, directory: Directory.Cache });
+    if (!info.size || info.size < 100_000) {
+      return {
+        ok: false,
+        message: "L'enregistrement du fichier d'installation est incomplet. Réessayez la mise à jour.",
+      };
+    }
 
     const uri = await Filesystem.getUri({
       path: nomFichier,
@@ -333,6 +395,7 @@ async function installerAPKDepuisCache(
   }
 }
 
+
 /**
  * Lance la mise à jour en un clic dans l'application Android :
  * téléchargement de l'APK, enregistrement local, ouverture de l'installateur.
@@ -350,7 +413,7 @@ export async function installerMiseAJour(
   const telechargement = await telechargerAPKNatif(url, surEtape);
   if (!telechargement.ok) return telechargement;
 
-  const installation = await installerAPKDepuisCache(telechargement.donnees, surEtape);
+  const installation = await installerAPKDepuisCache(telechargement.base64, surEtape);
   if (!installation.ok) return installation;
 
   surEtape?.({ etape: "termine", message: "Installateur Android lancé." });
