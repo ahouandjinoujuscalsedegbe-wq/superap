@@ -7,7 +7,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.2";
+export const VERSION_APPLICATION = "1.0.3";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -305,9 +305,7 @@ async function telechargerAPKNatif(
       base64 = bufferVersBase64(brut);
     } else if (ArrayBuffer.isView(brut)) {
       const vue = brut as ArrayBufferView;
-      base64 = bufferVersBase64(
-        vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer,
-      );
+      base64 = bufferVersBase64(vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer);
     } else {
       return { ok: false, message: "Réponse inattendue du serveur : le fichier n'a pas pu être lu." };
     }
@@ -394,7 +392,6 @@ async function installerAPKDepuisCache(
     };
   }
 }
-
 
 /**
  * Lance la mise à jour en un clic dans l'application Android :
