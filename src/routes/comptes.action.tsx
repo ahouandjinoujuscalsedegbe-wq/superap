@@ -51,9 +51,18 @@ function ActionComptes() {
 
   function validerCreation() {
     const nom = nouveau.trim();
-    if (!nom) return toast.error("Donnez un nom au compte.");
-    if (nom.length > 30) return toast.error("Nom trop long (30 caractères maximum).");
-    if (comptes.includes(nom)) return toast.error("Ce compte existe déjà.");
+    if (!nom) {
+      toast.error("Donnez un nom au compte.");
+      return;
+    }
+    if (nom.length > 30) {
+      toast.error("Nom trop long (30 caractères maximum).");
+      return;
+    }
+    if (comptes.includes(nom)) {
+      toast.error("Ce compte existe déjà.");
+      return;
+    }
     setPopupCreation(false);
     setDemande({ type: "creation", nom });
   }
@@ -61,18 +70,30 @@ function ActionComptes() {
   function validerRenommage() {
     if (!enEdition) return;
     const nom = nomEdite.trim();
-    if (!nom) return toast.error("Le nom ne peut pas être vide.");
-    if (nom !== enEdition && comptes.includes(nom)) return toast.error("Ce compte existe déjà.");
+    if (!nom) {
+      toast.error("Le nom ne peut pas être vide.");
+      return;
+    }
+    if (nom !== enEdition && comptes.includes(nom)) {
+      toast.error("Ce compte existe déjà.");
+      return;
+    }
     setDemande({ type: "renommage", ancien: enEdition, nom });
   }
 
   function retirer(nom: string) {
-    if (transactions.some((t) => t.compte === nom))
-      return toast.error("Ce compte contient des opérations.");
-    if (transferts.some((t) => t.source === nom || t.destination === nom))
-      return toast.error("Ce compte est lié à des transferts.");
-    if ((soldesParCompte[nom] ?? 0) !== 0)
-      return toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
+    if (transactions.some((t) => t.compte === nom)) {
+      toast.error("Ce compte contient des opérations.");
+      return;
+    }
+    if (transferts.some((t) => t.source === nom || t.destination === nom)) {
+      toast.error("Ce compte est lié à des transferts.");
+      return;
+    }
+    if ((soldesParCompte[nom] ?? 0) !== 0) {
+      toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
+      return;
+    }
     setDemande({ type: "suppression", nom });
   }
 

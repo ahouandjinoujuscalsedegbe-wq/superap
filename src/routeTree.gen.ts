@@ -26,6 +26,7 @@ import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
+import { Route as ComptesActionRouteImport } from './routes/comptes.action'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
 import { Route as EnveloppesBudgetisationRouteImport } from './routes/enveloppes.budgetisation'
@@ -121,6 +122,11 @@ const ComptesCompteRoute = ComptesCompteRouteImport.update({
   path: '/$compte',
   getParentRoute: () => ComptesRoute,
 } as any)
+const ComptesActionRoute = ComptesActionRouteImport.update({
+  id: '/action',
+  path: '/action',
+  getParentRoute: () => ComptesRoute,
+} as any)
 const EnveloppesIndexRoute = EnveloppesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/sauvegarde': typeof SauvegardeRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes/action': typeof ComptesActionRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/sauvegarde': typeof SauvegardeRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes/action': typeof ComptesActionRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/sauvegarde': typeof SauvegardeRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
+  '/comptes/action': typeof ComptesActionRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/synchronisation'
     | '/comptes/$compte'
+    | '/comptes/action'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/synchronisation'
     | '/comptes/$compte'
+    | '/comptes/action'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/synchronisation'
     | '/comptes/$compte'
+    | '/comptes/action'
     | '/enveloppes/action'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
@@ -474,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComptesCompteRouteImport
       parentRoute: typeof ComptesRoute
     }
+    '/comptes/action': {
+      id: '/comptes/action'
+      path: '/action'
+      fullPath: '/comptes/action'
+      preLoaderRoute: typeof ComptesActionRouteImport
+      parentRoute: typeof ComptesRoute
+    }
     '/enveloppes/': {
       id: '/enveloppes/'
       path: '/'
@@ -542,11 +561,13 @@ declare module '@tanstack/react-router' {
 
 interface ComptesRouteChildren {
   ComptesCompteRoute: typeof ComptesCompteRoute
+  ComptesActionRoute: typeof ComptesActionRoute
   ComptesIndexRoute: typeof ComptesIndexRoute
 }
 
 const ComptesRouteChildren: ComptesRouteChildren = {
   ComptesCompteRoute: ComptesCompteRoute,
+  ComptesActionRoute: ComptesActionRoute,
   ComptesIndexRoute: ComptesIndexRoute,
 }
 
