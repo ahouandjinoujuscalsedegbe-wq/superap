@@ -186,7 +186,7 @@ export function ClavierInterne() {
     fermer();
   };
 
-  if (!ouvert) return null;
+  if (!ouvert || true) return null;
 
   return (
     <div
