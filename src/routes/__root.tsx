@@ -17,6 +17,7 @@ import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
+import { EtatReseau } from "../components/EtatReseau";
 import { installerCaptureGlobale } from "@/lib/journal";
 
 import { SecuriteProvider } from "@/lib/securite";
@@ -100,6 +101,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Enveloppes, revenus et dépenses du foyer en francs CFA, hors ligne.",
       },
       { name: "theme-color", content: "#f8dbe6" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "SUPER APP" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -109,7 +114,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/icone-192.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -152,6 +159,7 @@ function RootComponent() {
           <BottomNav />
           <ClavierInterne />
           <MajusculesPartout />
+          <EtatReseau />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
         </SuperAppProvider>
