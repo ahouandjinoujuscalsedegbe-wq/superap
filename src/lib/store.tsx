@@ -273,32 +273,42 @@ registreGlobal.__superAppContext = SuperAppContext;
 
 export function SuperAppProvider({ children }: { children: ReactNode }) {
   const [etat, setEtat] = useState<Etat>(ETAT_INITIAL);
+  // Tant que la lecture chiffrée n'est pas terminée, on n'écrit rien :
+  // cela évite d'écraser les données existantes par l'état initial.
+  const pret = useRef(false);
 
   useEffect(() => {
-    try {
-      const brut = window.localStorage.getItem(CLE);
-      if (brut) {
-        const charge = { ...ETAT_INITIAL, ...(JSON.parse(brut) as Partial<Etat>) };
-        // Migration : les anciennes enveloppes reçoivent une dotation égale au plafond.
-        charge.enveloppes = charge.enveloppes.map((x) => ({
-          ...x,
-          dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
-        }));
-        setEtat(charge);
+    let annule = false;
+    void (async () => {
+      try {
+        const brut = await lireSecurise(CLE);
+        if (brut && !annule) {
+          const charge = { ...ETAT_INITIAL, ...(JSON.parse(brut) as Partial<Etat>) };
+          // Migration : les anciennes enveloppes reçoivent une dotation égale au plafond.
+          charge.enveloppes = charge.enveloppes.map((x) => ({
+            ...x,
+            dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
+          }));
+          setEtat(charge);
+        }
+      } catch {
+        /* stockage indisponible */
+      } finally {
+        pret.current = true;
       }
-    } catch {
-      /* stockage indisponible */
-    }
+    })();
+    return () => {
+      annule = true;
+    };
   }, []);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(CLE, JSON.stringify(etat));
-    } catch {
-      /* stockage indisponible */
-    }
+    // Chiffrement AES-GCM avant toute écriture sur le téléphone.
+    if (pret.current) void ecrireSecurise(CLE, JSON.stringify(etat));
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat]);
+
+
 
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
     setEtat((e) => ({
