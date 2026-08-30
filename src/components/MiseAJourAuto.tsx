@@ -4,8 +4,9 @@ import { Download, X } from "lucide-react";
 import {
   VERSION_APPLICATION,
   ignorerVersion,
-  lancerTelechargement,
+  installerMiseAJour,
   verifierAuDemarrage,
+  type EtapeInstallation,
   type Manifeste,
 } from "@/lib/version";
 
