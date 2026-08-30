@@ -67,23 +67,28 @@ jobs:
       - name: Préparer la signature Release
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::warning::Clé de signature absente : compilation d'un APK de test (debug). Pour obtenir la version définitive, lancez le workflow 'Créer la clé de signature' puis enregistrez les 4 secrets ANDROID_*."
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::warning::Secrets de signature incomplets (ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ou ANDROID_KEY_PASSWORD manquant). Compilation d'un APK de test (debug)."
             echo "MODE=debug" >> "$GITHUB_ENV"
           else
-            # On retire espaces, retours à la ligne et guillemets éventuels,
-            # puis on ignore les caractères parasites (-i) : un copier-coller
-            # imparfait du secret ne fait plus échouer la compilation.
-            printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n"' | base64 -di > android/app/cle-signature.jks 2>/dev/null || true
-            if [ ! -s android/app/cle-signature.jks ]; then
-              echo "::warning::Le secret ANDROID_KEYSTORE_BASE64 n'est pas lisible (contenu base64 invalide). Compilation d'un APK de test (debug). Relancez le workflow 'Créer la clé de signature' et recopiez le secret en entier, sans espace ni retour à la ligne."
-              rm -f android/app/cle-signature.jks
-              echo "MODE=debug" >> "$GITHUB_ENV"
-            else
+            # Nettoyage du Base64 et décodage
+            # tr -dc 'A-Za-z0-9+/=' supprime tout ce qui n'est pas du base64 (espaces, retours ligne, etc.)
+            printf '%s' "$KEYSTORE_BASE64" | tr -dc 'A-Za-z0-9+/=' | base64 -d > android/app/cle-signature.jks 2>/dev/null || true
+            
+            # Validation réelle de l'intégrité et des identifiants via keytool
+            if [ -s android/app/cle-signature.jks ] && keytool -list -keystore android/app/cle-signature.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+              echo "MODE=release" >> "$GITHUB_ENV"
               cp signature-release.gradle android/app/signature-release.gradle
               echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
-              echo "MODE=release" >> "$GITHUB_ENV"
+              echo "Signature Release configurée et validée avec succès."
+            else
+              echo "::error::Échec de validation de la clé. Causes possibles : 1) Le secret ANDROID_KEYSTORE_BASE64 est mal copié. 2) Le mot de passe ou l'alias est incorrect. 3) Le fichier est corrompu."
+              rm -f android/app/cle-signature.jks
+              echo "MODE=debug" >> "$GITHUB_ENV"
             fi
           fi
 

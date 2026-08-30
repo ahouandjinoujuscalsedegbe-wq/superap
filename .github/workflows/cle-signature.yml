@@ -25,14 +25,37 @@ jobs:
         env:
           MDP: ${{ inputs.mot_de_passe }}
         run: |
+          # Création avec storetype explicite PKCS12 (standard moderne)
           keytool -genkeypair -v \
             -keystore cle-signature.jks \
+            -storetype PKCS12 \
             -alias superapp \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$MDP" -keypass "$MDP" \
             -dname "CN=SUPER APP, OU=Personnel, O=SUPER APP, L=Porto-Novo, C=BJ"
+          
+          # Vérification immédiate
+          echo "Vérification de la clé générée..."
+          keytool -list -keystore cle-signature.jks -storepass "$MDP" -alias superapp
+          
+          # Encodage Base64 (sans retour à la ligne) pour faciliter le copier-coller
           base64 -w0 cle-signature.jks > cle-signature.base64.txt
-          echo "Clé créée. Téléchargez l'artefact puis copiez le contenu de cle-signature.base64.txt dans le secret ANDROID_KEYSTORE_BASE64."
+          
+          echo "Génération du fichier d'instructions..."
+          cat > INSTRUCTIONS.txt <<EOF
+          CONFIGURATION DES SECRETS GITHUB POUR LA SIGNATURE ANDROID
+
+          Pour que la compilation Release fonctionne, vous devez ajouter les 4 secrets suivants dans GitHub (Settings > Secrets and variables > Actions) :
+
+          1. ANDROID_KEYSTORE_BASE64 : Copiez-collez tout le contenu du fichier 'cle-signature.base64.txt' (c'est une longue chaîne de caractères).
+          2. ANDROID_KEYSTORE_PASSWORD : Le mot de passe que vous avez choisi : $MDP
+          3. ANDROID_KEY_ALIAS : superapp
+          4. ANDROID_KEY_PASSWORD : Le même mot de passe : $MDP
+
+          CONSEIL : Téléchargez l'artefact 'cle-signature' de ce workflow et conservez le fichier 'cle-signature.jks' en lieu sûr (Cloud, clé USB). Si vous perdez cette clé, vous ne pourrez plus mettre à jour votre application sur le Play Store ou chez vos utilisateurs.
+          EOF
+          
+          echo "Clé créée et vérifiée avec succès."
 
       - name: Publier la clé (à conserver en lieu sûr)
         uses: actions/upload-artifact@v4
@@ -41,4 +64,5 @@ jobs:
           path: |
             cle-signature.jks
             cle-signature.base64.txt
+            INSTRUCTIONS.txt
           retention-days: 7
