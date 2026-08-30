@@ -150,7 +150,6 @@ function RootComponent() {
           <EcheancesAuto />
           <MenuPrincipal />
           <BottomNav />
-          <ClavierInterne />
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
