@@ -186,8 +186,9 @@ export async function verifierMiseAJour(
   // téléphone, qui n'est pas soumis à cette restriction.
   if (estApplicationNative()) {
     const natif = await telechargerNatif(cible);
-    if (natif.etat === "erreur" || natif.etat === "hors-ligne") return natif;
+    if (natif.etat !== "ok") return { etat: natif.etat, message: natif.message };
     return interpreterManifeste(natif.donnees);
+
   }
 
   const controleur = new AbortController();
