@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
+import { ecrireSecurise, lireSecurise } from "./coffre-local";
+
 
 export type Enveloppe = {
   id: string;
