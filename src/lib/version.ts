@@ -112,10 +112,21 @@ export async function verifierMiseAJour(
     };
   }
 
+  const cible = `${adresse}${adresse.includes("?") ? "&" : "?"}t=${Date.now()}`;
+
+  // Dans l'application Android, `fetch` est bloqué par la politique CORS des
+  // serveurs (GitHub par exemple). On passe alors par le réseau natif du
+  // téléphone, qui n'est pas soumis à cette restriction.
+  if (estApplicationNative()) {
+    const natif = await telechargerNatif(cible);
+    if (natif.etat === "erreur" || natif.etat === "hors-ligne") return natif;
+    return interpreterManifeste(natif.donnees);
+  }
+
   const controleur = new AbortController();
   const delai = setTimeout(() => controleur.abort(), 15000);
   try {
-    const reponse = await fetch(`${adresse}${adresse.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+    const reponse = await fetch(cible, {
       cache: "no-store",
       signal: controleur.signal,
     });
@@ -126,6 +137,7 @@ export async function verifierMiseAJour(
       };
     }
     const donnees = (await reponse.json()) as Partial<Manifeste>;
+
     if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
       return {
         etat: "erreur",
