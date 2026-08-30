@@ -20,6 +20,11 @@ import {
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
+import {
+  empreinteTicket,
+  verifierAuthenticite,
+  type VerdictAuthenticite,
+} from "@/lib/authenticite";
 import { creerDictee, dicteeDisponible } from "@/lib/dictee";
 import {
   ajouterHistoriqueSaisie,
@@ -76,6 +81,10 @@ type Brouillon = {
   enveloppe: string;
   source: string;
   compte: string;
+  /** Contrôle d'authenticité du ticket photographié. */
+  verdict?: VerdictAuthenticite;
+  /** L'utilisateur certifie avoir vérifié un ticket jugé douteux. */
+  certifie?: boolean;
 };
 
 function SaisieIntelligente() {
@@ -95,10 +104,17 @@ function SaisieIntelligente() {
   const [viderDemande, setViderDemande] = useState(false);
   const fichier = useRef<HTMLInputElement>(null);
   const reco = useRef<ReturnType<typeof creerDictee>>(null);
+  /** Empreintes des tickets déjà lus ou déjà enregistrés. */
+  const empreintesConnues = useRef<string[]>([]);
 
   useEffect(() => {
-    setHistorique(lireHistoriqueSaisies());
+    const liste = lireHistoriqueSaisies();
+    setHistorique(liste);
+    empreintesConnues.current = liste
+      .filter((s) => s.source === "ocr" && s.texte)
+      .map((s) => empreinteTicket(s.texte));
   }, []);
+
 
   useEffect(() => {
     return () => {
@@ -125,6 +141,7 @@ function SaisieIntelligente() {
       origine: Brouillon["origine"],
       texteSource: string,
       vignette?: string,
+      verdict?: VerdictAuthenticite,
     ): Brouillon => {
       const apprise = suggererEnveloppe(resultat.libelle);
       const enveloppeChoisie =
@@ -132,23 +149,26 @@ function SaisieIntelligente() {
         resultat.indiceEnveloppe ??
         enveloppes[0]?.id ??
         "";
+      const montantRetenu = verdict?.montantRecoupe ?? resultat.montant;
       return {
         id: crypto.randomUUID(),
         origine,
         texte: texteSource,
         ...(vignette ? { vignette } : {}),
-        confiance: resultat.confiance,
+        confiance: verdict ? verdict.score / 100 : resultat.confiance,
         type: resultat.type,
-        montant: resultat.montant ? String(resultat.montant) : "",
+        montant: montantRetenu ? String(montantRetenu) : "",
         libelle: resultat.libelle,
         date: resultat.date,
         enveloppe: enveloppeChoisie,
         source: sourcesRevenu[0] ?? "Salaire",
         compte: comptes[0] ?? COMPTES[0] ?? "",
+        ...(verdict ? { verdict } : {}),
       };
     },
     [comptes, enveloppes, sourcesRevenu],
   );
+
 
   const majBrouillon = useCallback((id: string, champs: Partial<Brouillon>) => {
     setBrouillons((liste) => liste.map((b) => (b.id === id ? { ...b, ...champs } : b)));
@@ -226,7 +246,27 @@ function SaisieIntelligente() {
         }
         setTexte(lu);
         const extrait = analyserTexte(lu, enveloppes);
-        setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu)]);
+        const verdict = verifierAuthenticite(lu, {
+          confianceOcr: confiance,
+          dateOperation: extrait.date,
+          montant: extrait.montant,
+          empreintesConnues: empreintesConnues.current,
+          nomFichier: f.name,
+        });
+        empreintesConnues.current = [...empreintesConnues.current, verdict.empreinte];
+        journalInfo("ocr", "Contrôle d'authenticité du ticket", {
+          fichier: f.name,
+          score: verdict.score,
+          verdict: verdict.verdict,
+          alertes: verdict.indices.filter((x) => x.niveau === "alerte").length,
+        });
+        if (verdict.verdict === "suspect") {
+          toast.error(`Ticket ${i + 1} : document douteux (${verdict.score}/100). Vérifiez-le.`);
+        } else if (verdict.verdict === "a_verifier") {
+          toast.warning(`Ticket ${i + 1} : à contrôler (${verdict.score}/100).`);
+        }
+        setBrouillons((liste) => [...liste, creerBrouillon(extrait, "ocr", lu, apercu, verdict)]);
+
       } catch (erreur) {
         journalErreur("ocr", "Échec de la lecture du ticket", {
           fichier: f.name,

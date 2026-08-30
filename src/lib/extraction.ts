@@ -129,36 +129,145 @@ export function nombreDepuisMots(texte: string): number | null {
   return somme > 0 ? somme : null;
 }
 
+/** Lignes à ne jamais confondre avec le total payé. */
+const LIGNES_EXCLUES =
+  /\b(rendu|monnaie|espece|especes|cash|recu client|a rendu|tva|t\.v\.a|taxe|remise|reduction|ristourne|quantite|qte|tel|telephone|rccm|ifu|nif|carte|reference|ref|caisse|heure|code|solde de points|fidelite)\b/;
+
+/** Lignes qui désignent explicitement la somme à payer. */
+const LIGNES_TOTAL =
+  /\b(total\s*(ttc|general|a\s*payer|net)?|net\s*a\s*payer|montant\s*(total|du|a\s*payer)?|somme\s*a?\s*payer|ttc|a\s*payer)\b/;
+
+/**
+ * Convertit un nombre écrit sur un ticket en valeur numérique.
+ * Gère « 12 500 », « 1.250.000 », « 1 234,56 » et « 12,500.50 ».
+ */
+export function parseMontant(brut: string): number | null {
+  const nettoye = brut.replace(/\s/g, "").replace(/[^\d.,]/g, "");
+  if (!nettoye) return null;
+  const dernierPoint = nettoye.lastIndexOf(".");
+  const derniereVirgule = nettoye.lastIndexOf(",");
+  const sep = Math.max(dernierPoint, derniereVirgule);
+  let valeur: number;
+  if (sep === -1) {
+    valeur = Number(nettoye);
+  } else {
+    const decimales = nettoye.length - sep - 1;
+    const groupes = nettoye.slice(0, sep).split(/[.,]/);
+    const separateurMillier = decimales === 3 && groupes.every((g, idx) => idx === 0 || g.length === 3);
+    if (separateurMillier) {
+      valeur = Number(nettoye.replace(/[.,]/g, ""));
+    } else {
+      const entier = nettoye.slice(0, sep).replace(/[.,]/g, "");
+      valeur = Number(`${entier}.${nettoye.slice(sep + 1)}`);
+    }
+  }
+  if (!Number.isFinite(valeur) || valeur <= 0) return null;
+  return Math.round(valeur);
+}
+
+/** Tous les nombres monétaires plausibles d'une ligne. */
+export function montantsDeLigne(ligne: string): number[] {
+  const sansDates = ligne.replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ").replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ");
+  const trouves: number[] = [];
+  const regex = /\d[\d\s.,]{0,15}\d|\d/g;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(sansDates))) {
+    const valeur = parseMontant(m[0]);
+    if (valeur !== null) trouves.push(valeur);
+  }
+  return trouves;
+}
+
+/** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
+export type StructureTicket = {
+  lignes: string[];
+  articles: { libelle: string; montant: number }[];
+  totalAnnonce: number | null;
+  tva: number | null;
+  sousTotal: number | null;
+  especes: number | null;
+  rendu: number | null;
+};
+
+export function structurerTicket(texte: string): StructureTicket {
+  const lignes = sansAccents(texte)
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const articles: { libelle: string; montant: number }[] = [];
+  let totalAnnonce: number | null = null;
+  let tva: number | null = null;
+  let sousTotal: number | null = null;
+  let especes: number | null = null;
+  let rendu: number | null = null;
+
+  for (const ligne of lignes) {
+    const montants = montantsDeLigne(ligne);
+    const dernier = montants.length > 0 ? (montants[montants.length - 1] as number) : null;
+    if (dernier === null) continue;
+
+    if (/\b(tva|t\.v\.a|taxe)\b/.test(ligne)) {
+      tva = tva ?? dernier;
+      continue;
+    }
+    if (/\b(sous[- ]?total|total\s*ht|montant\s*ht)\b/.test(ligne)) {
+      sousTotal = sousTotal ?? dernier;
+      continue;
+    }
+    if (/\b(espece|especes|cash|recu client|regle|paye en)\b/.test(ligne)) {
+      especes = especes ?? dernier;
+      continue;
+    }
+    if (/\b(rendu|monnaie)\b/.test(ligne)) {
+      rendu = rendu ?? dernier;
+      continue;
+    }
+    if (LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+      totalAnnonce = Math.max(totalAnnonce ?? 0, dernier) || dernier;
+      continue;
+    }
+    if (LIGNES_EXCLUES.test(ligne)) continue;
+    // Ligne d'article : du texte suivi d'un montant.
+    if (/[a-z]{3,}/.test(ligne) && dernier >= 10) {
+      articles.push({ libelle: ligne.replace(/[\d\s.,]+$/, "").trim(), montant: dernier });
+    }
+  }
+
+  return { lignes, articles, totalAnnonce, tva, sousTotal, especes, rendu };
+}
+
 /** Extrait le montant le plus probable d'un texte (chiffres ou lettres). */
 export function extraireMontant(texte: string): number | null {
   const normalise = sansAccents(texte);
+  const structure = structurerTicket(texte);
 
-  // Priorité aux lignes qui contiennent « total », « montant » ou « net à payer ».
-  const lignes = normalise.split(/\n+/);
-  const prioritaires = lignes.filter((l) => /total|montant|net a payer|a payer|somme/.test(l));
-  const candidats: number[] = [];
+  const plausible = (v: number | null): v is number =>
+    v !== null && v >= 10 && v <= 100_000_000;
 
-  const collecter = (source: string) => {
-    const regex = /(\d[\d\s.,]{0,15}\d|\d)/g;
-    let m: RegExpExecArray | null;
-    while ((m = regex.exec(source))) {
-      const brut = m[1] ?? "";
-      // Ignore les dates du type 12/05/2026 déjà consommées ailleurs.
-      const nettoye = brut.replace(/[\s.]/g, "").replace(",", ".");
-      const valeur = Number(nettoye);
-      if (Number.isFinite(valeur) && valeur > 0) candidats.push(Math.round(valeur));
-    }
-  };
+  if (plausible(structure.totalAnnonce)) return structure.totalAnnonce;
 
-  const sansDates = normalise.replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ");
-  if (prioritaires.length > 0) prioritaires.forEach(collecter);
-  if (candidats.length === 0) collecter(sansDates);
+  // Total déductible du paiement : espèces remises − monnaie rendue.
+  if (plausible(structure.especes) && structure.rendu !== null) {
+    const calcule = structure.especes - structure.rendu;
+    if (plausible(calcule)) return calcule;
+  }
 
-  const plausibles = candidats.filter((v) => v >= 10 && v <= 100_000_000);
-  if (plausibles.length > 0) return Math.max(...plausibles);
+  // Somme des articles détectés.
+  if (structure.articles.length >= 2) {
+    const somme = structure.articles.reduce((s, a) => s + a.montant, 0);
+    if (plausible(somme)) return somme;
+  }
+
+  const candidats = structure.lignes
+    .filter((l) => !LIGNES_EXCLUES.test(l))
+    .flatMap(montantsDeLigne)
+    .filter((v) => v >= 10 && v <= 100_000_000);
+  if (candidats.length > 0) return Math.max(...candidats);
 
   return nombreDepuisMots(normalise);
 }
+
 
 /** Extrait une date du texte, sinon retourne la date du jour. */
 export function extraireDate(texte: string, aujourdHui = new Date()): string {
