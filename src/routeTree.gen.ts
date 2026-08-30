@@ -36,6 +36,7 @@ import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.c
 import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.classer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
+import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 
 const IndexRoute = IndexRouteImport.update({
@@ -173,6 +174,12 @@ const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
   path: '/modifier',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ComptesTransfertsNouveauRoute =
+  ComptesTransfertsNouveauRouteImport.update({
+    id: '/nouveau',
+    path: '/nouveau',
+    getParentRoute: () => ComptesTransfertsRoute,
+  } as any)
 const EnveloppesCategorieNomRoute = EnveloppesCategorieNomRouteImport.update({
   id: '/categorie/$nom',
   path: '/categorie/$nom',
@@ -197,7 +204,7 @@ export interface FileRoutesByFullPath {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
-  '/comptes/transferts': typeof ComptesTransfertsRoute
+  '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRoutesByTo {
@@ -225,7 +233,7 @@ export interface FileRoutesByTo {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
-  '/comptes/transferts': typeof ComptesTransfertsRoute
+  '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -235,6 +243,7 @@ export interface FileRoutesByTo {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
+  '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRoutesById {
@@ -256,7 +265,7 @@ export interface FileRoutesById {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
-  '/comptes/transferts': typeof ComptesTransfertsRoute
+  '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -266,6 +275,7 @@ export interface FileRoutesById {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
 }
 export interface FileRouteTypes {
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes'
     | '/enveloppes'
+    | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
   id:
     | '__root__'
@@ -356,6 +368,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
   fileRoutesById: FileRoutesById
 }
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/comptes/transferts/nouveau': {
+      id: '/comptes/transferts/nouveau'
+      path: '/nouveau'
+      fullPath: '/comptes/transferts/nouveau'
+      preLoaderRoute: typeof ComptesTransfertsNouveauRouteImport
+      parentRoute: typeof ComptesTransfertsRoute
+    }
     '/enveloppes/categorie/$nom': {
       id: '/enveloppes/categorie/$nom'
       path: '/categorie/$nom'
@@ -578,17 +598,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ComptesTransfertsRouteChildren {
+  ComptesTransfertsNouveauRoute: typeof ComptesTransfertsNouveauRoute
+}
+
+const ComptesTransfertsRouteChildren: ComptesTransfertsRouteChildren = {
+  ComptesTransfertsNouveauRoute: ComptesTransfertsNouveauRoute,
+}
+
+const ComptesTransfertsRouteWithChildren =
+  ComptesTransfertsRoute._addFileChildren(ComptesTransfertsRouteChildren)
+
 interface ComptesRouteChildren {
   ComptesCompteRoute: typeof ComptesCompteRoute
   ComptesActionRoute: typeof ComptesActionRoute
-  ComptesTransfertsRoute: typeof ComptesTransfertsRoute
+  ComptesTransfertsRoute: typeof ComptesTransfertsRouteWithChildren
   ComptesIndexRoute: typeof ComptesIndexRoute
 }
 
 const ComptesRouteChildren: ComptesRouteChildren = {
   ComptesCompteRoute: ComptesCompteRoute,
   ComptesActionRoute: ComptesActionRoute,
-  ComptesTransfertsRoute: ComptesTransfertsRoute,
+  ComptesTransfertsRoute: ComptesTransfertsRouteWithChildren,
   ComptesIndexRoute: ComptesIndexRoute,
 }
 
