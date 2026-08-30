@@ -68,7 +68,9 @@ function ComptesAccueil() {
       <section className="carte space-y-2 p-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">Détails actuels</h2>
-          <span className="text-xs text-muted-foreground">{comptes.length} compte{comptes.length > 1 ? "s" : ""}</span>
+          <span className="text-xs text-muted-foreground">
+            {comptes.length} compte{comptes.length > 1 ? "s" : ""}
+          </span>
         </div>
 
         {comptes.length === 0 ? (
@@ -84,7 +86,9 @@ function ComptesAccueil() {
                 >
                   <span className="flex min-w-0 items-center gap-1">
                     <Wallet className="h-3 w-3 shrink-0 text-primary" aria-hidden />
-                    <span className="truncate text-[10px] font-semibold leading-none">{l.compte}</span>
+                    <span className="truncate text-[10px] font-semibold leading-none">
+                      {l.compte}
+                    </span>
                   </span>
 
                   <div className="mt-1.5 space-y-0">
