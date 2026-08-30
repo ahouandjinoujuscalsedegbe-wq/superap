@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:e2e": "python3 e2e/purge_e2e.py"
+    "test:e2e": "python3 e2e/purge_e2e.py",
+    "build:mobile": "vite build --config vite.mobile.config.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
