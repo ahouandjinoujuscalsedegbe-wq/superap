@@ -8,6 +8,7 @@ import {
   Copy,
   CreditCard,
   FileDown,
+  Gauge,
   History,
   LifeBuoy,
   Scale,
@@ -42,6 +43,7 @@ import {
   texteSimulation,
 } from "@/lib/simulation-plus";
 import { exporterRapportPdf } from "@/lib/intelligence-plus";
+import { conseiller, evaluerSante, planDAction } from "@/lib/conseil";
 
 export const Route = createFileRoute("/outils")({
   head: () => ({
