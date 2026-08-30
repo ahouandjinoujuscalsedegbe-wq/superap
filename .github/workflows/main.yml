@@ -53,6 +53,22 @@ jobs:
           if [ ! -d android ]; then bunx cap add android; fi
           bunx cap sync android
 
+      - name: Appliquer l'icône personnalisée de l'application
+        run: |
+          # Les icônes générées depuis le logo utilisateur sont copiées dans
+          # les dossiers mipmap du projet Android natif.
+          cp resources/android/icons/icon-48.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          cp resources/android/icons/icon-72.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp resources/android/icons/icon-96.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp resources/android/icons/icon-144.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp resources/android/icons/icon-192.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp resources/android/icons/icon-48.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          cp resources/android/icons/icon-72.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          cp resources/android/icons/icon-96.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          cp resources/android/icons/icon-144.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          cp resources/android/icons/icon-192.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          echo "Icônes de l'application appliquées."
+
       # 7b. Configurer les permissions Android pour l'installateur d'APK
       - name: Configurer les permissions de mise à jour
         run: |
