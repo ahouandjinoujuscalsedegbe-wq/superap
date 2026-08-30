@@ -61,7 +61,7 @@ export function ClavierInterne() {
   // Quand le clavier est ouvert : réserve de l'espace en bas de page et
   // remonte le champ actif juste au-dessus du clavier pour qu'il reste visible.
   useEffect(() => {
-    if (!ouvert) return;
+    if (!ouvert || true) return;
     const champ = champRef.current;
     if (!champ) return;
 
