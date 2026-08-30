@@ -317,8 +317,11 @@ function SaisieIntelligente() {
     if (valeurDe(b) <= 0) return "Le montant doit être supérieur à zéro.";
     if (b.type === "depense" && !b.enveloppe) return "Choisissez une enveloppe pour cette dépense.";
     if (!b.compte) return "Choisissez un compte.";
+    if (b.verdict?.blocageRecommande && !b.certifie)
+      return "Ticket jugé douteux : contrôlez-le puis cochez « J'ai vérifié ce ticket ».";
     return null;
   }
+
 
   function demanderEnregistrement(mode: "un" | "tous", id?: string) {
     const cibles = mode === "tous" ? brouillons : brouillons.filter((b) => b.id === id);
