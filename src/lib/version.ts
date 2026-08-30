@@ -83,6 +83,73 @@ function estAdresseValide(url: string): boolean {
   return /^https?:\/\//i.test(url.trim());
 }
 
+/** Vrai lorsque le code tourne dans l'application Android (Capacitor). */
+export function estApplicationNative(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
+    .Capacitor;
+  try {
+    return Boolean(cap?.isNativePlatform?.());
+  } catch {
+    return false;
+  }
+}
+
+/** Téléchargement par le réseau natif Android (aucune restriction CORS). */
+async function telechargerNatif(
+  cible: string,
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
+  try {
+    const { CapacitorHttp } = await import("@capacitor/core");
+    const reponse = await CapacitorHttp.get({
+      url: cible,
+      headers: { Accept: "application/json" },
+      readTimeout: 15000,
+      connectTimeout: 15000,
+    });
+    if (reponse.status < 200 || reponse.status >= 300) {
+      return {
+        etat: "erreur",
+        message: `Le serveur a répondu ${reponse.status}. Vérifiez l'adresse du fichier version.json (le dépôt doit être public).`,
+      };
+    }
+    const brut = reponse.data;
+    const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as Partial<Manifeste>;
+    return { etat: "ok", donnees };
+  } catch {
+    return {
+      etat: "hors-ligne",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+    };
+  }
+}
+
+/** Compare le manifeste téléchargé à la version installée. */
+function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification {
+  if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
+    return {
+      etat: "erreur",
+      message: "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
+    };
+  }
+  memoriserVerification();
+  if (comparerVersions(donnees.version, VERSION_APPLICATION) > 0) {
+    return {
+      etat: "disponible",
+      manifeste: {
+        version: donnees.version,
+        url: donnees.url,
+        ...(donnees.changelog ? { changelog: donnees.changelog } : {}),
+      },
+    };
+  }
+  return { etat: "a-jour", version: VERSION_APPLICATION };
+}
+
+
+
 /**
  * Télécharge le manifeste et le compare à la version installée.
  * Ne lève jamais d'exception : toutes les issues sont décrites dans le résultat.
