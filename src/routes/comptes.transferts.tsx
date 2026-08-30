@@ -59,11 +59,29 @@ function Transferts() {
   }, [popupOuvert]);
 
   function ouvrirPopup() {
+    if (comptes.length < 2) {
+      setErreur("Créez au moins deux comptes avant d'effectuer un transfert.");
+      return;
+    }
     setSource(comptes[0] ?? "");
     setDestination(comptes[1] ?? "");
     setMontant("");
     setNote("");
     setPopupOuvert(true);
+  }
+
+  function choisirSource(valeur: string) {
+    setSource(valeur);
+    if (valeur === destination) {
+      setDestination(comptes.find((c) => c !== valeur) ?? "");
+    }
+  }
+
+  function choisirDestination(valeur: string) {
+    setDestination(valeur);
+    if (valeur === source) {
+      setSource(comptes.find((c) => c !== valeur) ?? "");
+    }
   }
 
   function envoyer(ev: React.FormEvent) {
@@ -212,7 +230,7 @@ function Transferts() {
                 <select
                   id="source"
                   value={source}
-                  onChange={(ev) => setSource(ev.target.value)}
+                  onChange={(ev) => choisirSource(ev.target.value)}
                   className={champ}
                 >
                   {comptes.map((c) => (
@@ -230,14 +248,16 @@ function Transferts() {
                 <select
                   id="destination"
                   value={destination}
-                  onChange={(ev) => setDestination(ev.target.value)}
+                  onChange={(ev) => choisirDestination(ev.target.value)}
                   className={champ}
                 >
-                  {comptes.map((c) => (
-                    <option key={c} value={c}>
-                      {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
-                    </option>
-                  ))}
+                  {comptes
+                    .filter((c) => c !== source)
+                    .map((c) => (
+                      <option key={c} value={c}>
+                        {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
+                      </option>
+                    ))}
                 </select>
               </div>
 
