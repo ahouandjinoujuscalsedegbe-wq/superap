@@ -55,8 +55,14 @@ async def main() -> None:
         assert avant["local"] > 0 and avant["session"] > 0
         assert avant["bases"] >= 1 and avant["caches"] >= 1 and avant["cookies"]
 
-        await page.wait_for_timeout(1500)  # hydratation React
-        await page.click('[data-test="ouvrir-purge"]')
+        await page.wait_for_timeout(2500)  # hydratation React
+        for _ in range(5):
+            await page.click('[data-test="ouvrir-purge"]')
+            try:
+                await page.wait_for_selector('[data-test="option-sauvegarde"]', timeout=2000)
+                break
+            except Exception:
+                await page.wait_for_timeout(1000)
         # On désactive l'export chiffré pour ce scénario.
         case = page.locator('[data-test="option-sauvegarde"]')
         if await case.is_checked():
@@ -84,6 +90,7 @@ async def main() -> None:
         # Le journal conserve une trace de la purge après rechargement.
         await page.click('[data-test="demarrer-a-zero"]')
         await page.wait_for_selector('[data-test="journal-donnees"]')
+        await page.wait_for_timeout(1500)
         journal = (await page.inner_text('[data-test="journal-donnees"]')).upper()
         assert "PURGE COMPL" in journal, "la purge doit apparaître dans le journal"
 
