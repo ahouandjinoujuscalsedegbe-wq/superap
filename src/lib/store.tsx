@@ -703,6 +703,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, transparence: v }));
   }, []);
 
+  const definirNomUtilisateur = useCallback((nom: string) => {
+    setEtat((e) => ({ ...e, nomUtilisateur: nom.trim() }));
+  }, []);
+
   const remplacerEtat = useCallback((nouveau: Partial<Etat>) => {
     setEtat((e) => {
       const fusion = { ...ETAT_INITIAL, ...e, ...nouveau };
@@ -753,6 +757,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterRemboursement,
       supprimerRemboursement,
       definirTransparence,
+      definirNomUtilisateur,
       remplacerEtat,
       etatComplet,
       reinitialiser,
@@ -789,6 +794,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterRemboursement,
       supprimerRemboursement,
       definirTransparence,
+      definirNomUtilisateur,
       remplacerEtat,
       etatComplet,
       reinitialiser,
