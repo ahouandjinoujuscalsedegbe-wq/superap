@@ -55,7 +55,7 @@ export function BottomNav() {
                     />
                   </span>
                   <span
-                    className={`mt-1.5 max-w-[4.5rem] text-center text-[0.6rem] leading-none transition-all duration-300 ${
+                    className={`mt-1.5 h-6 max-w-[4.5rem] overflow-hidden text-center text-[0.6rem] leading-3 transition-all duration-300 ${
                       actif ? "texte-degrade font-semibold" : "text-muted-foreground"
                     }`}
                   >
