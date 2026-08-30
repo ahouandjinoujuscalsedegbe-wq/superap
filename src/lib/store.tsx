@@ -793,11 +793,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   );
 
   const valeur = useMemo<Contexte>(() => {
+    const moisEnCours = new Date().toISOString().slice(0, 7);
     const totalRevenus = etat.transactions
-      .filter((t) => t.type === "revenu")
+      .filter((t) => t.type === "revenu" && t.date.slice(0, 7) === moisEnCours)
       .reduce((s, t) => s + t.montant, 0);
     const totalDepenses = etat.transactions
-      .filter((t) => t.type === "depense")
+      .filter((t) => t.type === "depense" && t.date.slice(0, 7) === moisEnCours)
       .reduce((s, t) => s + t.montant, 0);
     const depensesParEnveloppe: Record<string, number> = {};
     for (const t of etat.transactions) {
