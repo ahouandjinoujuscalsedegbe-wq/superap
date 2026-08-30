@@ -72,10 +72,19 @@ jobs:
             echo "::warning::Clé de signature absente : compilation d'un APK de test (debug). Pour obtenir la version définitive, lancez le workflow 'Créer la clé de signature' puis enregistrez les 4 secrets ANDROID_*."
             echo "MODE=debug" >> "$GITHUB_ENV"
           else
-            echo "$KEYSTORE_BASE64" | base64 -d > android/app/cle-signature.jks
-            cp signature-release.gradle android/app/signature-release.gradle
-            echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
-            echo "MODE=release" >> "$GITHUB_ENV"
+            # On retire espaces, retours à la ligne et guillemets éventuels,
+            # puis on ignore les caractères parasites (-i) : un copier-coller
+            # imparfait du secret ne fait plus échouer la compilation.
+            printf '%s' "$KEYSTORE_BASE64" | tr -d ' \t\r\n"' | base64 -di > android/app/cle-signature.jks 2>/dev/null || true
+            if [ ! -s android/app/cle-signature.jks ]; then
+              echo "::warning::Le secret ANDROID_KEYSTORE_BASE64 n'est pas lisible (contenu base64 invalide). Compilation d'un APK de test (debug). Relancez le workflow 'Créer la clé de signature' et recopiez le secret en entier, sans espace ni retour à la ligne."
+              rm -f android/app/cle-signature.jks
+              echo "MODE=debug" >> "$GITHUB_ENV"
+            else
+              cp signature-release.gradle android/app/signature-release.gradle
+              echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
+              echo "MODE=release" >> "$GITHUB_ENV"
+            fi
           fi
 
       # 10. Compiler l'APK
