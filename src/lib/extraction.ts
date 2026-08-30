@@ -150,7 +150,7 @@ export function extraireMontant(texte: string): number | null {
     }
   };
 
-  const sansDates = normalise.replace(/\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/g, " ");
+  const sansDates = normalise.replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ");
   if (prioritaires.length > 0) prioritaires.forEach(collecter);
   if (candidats.length === 0) collecter(sansDates);
 
@@ -176,7 +176,7 @@ export function extraireDate(texte: string, aujourdHui = new Date()): string {
     return iso(d);
   }
 
-  const numerique = t.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  const numerique = t.match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})/);
   if (numerique) {
     const jour = Number(numerique[1]);
     const mois = Number(numerique[2]);
@@ -264,7 +264,7 @@ export function analyserTexte(
   let confiance = 0;
   if (montant > 0) confiance += 0.6;
   if (libelle.length >= 3) confiance += 0.2;
-  if (/\d{1,2}[\/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.2;
+  if (/\d{1,2}[/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.2;
 
   const indice = devinerEnveloppe(texte, enveloppes);
   return {

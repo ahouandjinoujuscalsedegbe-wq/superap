@@ -156,7 +156,7 @@ export function ClavierInterne() {
   const taper = (touche: string) => {
     const champ = champRef.current;
     if (!champ) return;
-    let valeur = champ.value ?? "";
+    const valeur = champ.value ?? "";
     let ajout = touche;
     if (mode === "numerique") {
       // Champ numérique : chiffres uniquement, point décimal seulement si autorisé.
