@@ -114,7 +114,6 @@ export function ClavierInterne() {
     };
   }, [ouvert, mode]);
 
-
   useEffect(() => {
     const onFocus = (ev: FocusEvent) => {
       const cible = ev.target as Element | null;
@@ -132,9 +131,7 @@ export function ClavierInterne() {
         (cible as HTMLInputElement).type === "number" ||
         cible.dataset["clavier"] === "numerique" ||
         ["numeric", "decimal", "tel"].includes(modeOrigine);
-      setDecimale(
-        (cible as HTMLInputElement).type === "number" || modeOrigine === "decimal",
-      );
+      setDecimale((cible as HTMLInputElement).type === "number" || modeOrigine === "decimal");
       setMode(numerique ? "numerique" : "texte");
       setNumeriqueForce(numerique);
       setMajuscule(false);
@@ -143,9 +140,10 @@ export function ClavierInterne() {
     const onFocusOut = (ev: FocusEvent) => {
       const suivant = ev.relatedTarget as Element | null;
       if (suivant && suivant.closest?.("[data-clavier-interne]")) return;
-      if (!estChampTexte(suivant)) window.setTimeout(() => {
-        if (!estChampTexte(document.activeElement)) fermer();
-      }, 60);
+      if (!estChampTexte(suivant))
+        window.setTimeout(() => {
+          if (!estChampTexte(document.activeElement)) fermer();
+        }, 60);
     };
     document.addEventListener("focusin", onFocus);
     document.addEventListener("focusout", onFocusOut);

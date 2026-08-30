@@ -154,11 +154,11 @@ function Budgetisation() {
       ? nombreOccurrences(debut, fin, frequence.periode, frequence.intervalle)
       : 1;
 
-
   /** Dépenses déjà existantes dans l'application, proposées comme sujets. */
   const sujets = useMemo(() => {
     const set = new Set<string>();
-    for (const t of transactions) if (t.type === "depense" && t.libelle.trim()) set.add(t.libelle.trim());
+    for (const t of transactions)
+      if (t.type === "depense" && t.libelle.trim()) set.add(t.libelle.trim());
     for (const b of budgets) if (b.libelle.trim()) set.add(b.libelle.trim());
     return Array.from(set).sort((a, z) => a.localeCompare(z, "fr"));
   }, [transactions, budgets]);
@@ -182,7 +182,9 @@ function Budgetisation() {
       return {
         id,
         nom: env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée",
-        liste: liste.slice().sort((a, z) => (a.debut ?? a.prochaine).localeCompare(z.debut ?? z.prochaine)),
+        liste: liste
+          .slice()
+          .sort((a, z) => (a.debut ?? a.prochaine).localeCompare(z.debut ?? z.prochaine)),
         total: liste.reduce((s, b) => s + b.montant, 0),
       };
     });
@@ -193,7 +195,9 @@ function Budgetisation() {
 
   function libelleRepetition(b: { periode: Periode; intervalle?: number; ponctuel?: boolean }) {
     if (b.ponctuel !== false) return "Une seule fois";
-    const f = FREQUENCES.find((x) => x.periode === b.periode && x.intervalle === (b.intervalle ?? 1));
+    const f = FREQUENCES.find(
+      (x) => x.periode === b.periode && x.intervalle === (b.intervalle ?? 1),
+    );
     return f ? f.label : b.periode;
   }
 
@@ -230,7 +234,9 @@ function Budgetisation() {
     }
     if (!debut) {
       toast.error(
-        periodique ? "Choisissez le jour de la première dépense." : "Choisissez le jour de la dépense.",
+        periodique
+          ? "Choisissez le jour de la première dépense."
+          : "Choisissez le jour de la dépense.",
       );
       return;
     }
@@ -338,7 +344,9 @@ function Budgetisation() {
             </p>
             <button
               type="button"
-              onClick={() => setDemande({ type: "conversion-tout", nb: nbDues, montant: montantDu })}
+              onClick={() =>
+                setDemande({ type: "conversion-tout", nb: nbDues, montant: montantDu })
+              }
               className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
             >
               Convertir en dépenses réelles
@@ -638,7 +646,8 @@ function Budgetisation() {
                   </p>
                 )}
                 <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
-                  Période couverte : <span className="font-semibold">{libellePlage({ debut, fin })}</span>
+                  Période couverte :{" "}
+                  <span className="font-semibold">{libellePlage({ debut, fin })}</span>
                   {periodique === true && frequence && duree && (
                     <>
                       {" · "}
@@ -649,7 +658,6 @@ function Budgetisation() {
                   )}
                 </p>
               </div>
-
 
               <div className="flex gap-2">
                 <button

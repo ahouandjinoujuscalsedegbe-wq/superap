@@ -71,17 +71,13 @@ function DetailsActuels() {
                 <li key={groupe.categorie} className="rounded-xl border border-border/70">
                   <button
                     type="button"
-                    onClick={() =>
-                      setCategorieOuverte(estOuverte ? null : groupe.categorie)
-                    }
+                    onClick={() => setCategorieOuverte(estOuverte ? null : groupe.categorie)}
                     aria-expanded={estOuverte}
                     className="flex w-full items-center justify-between gap-3 rounded-xl bg-secondary/40 p-4 text-left transition-colors hover:bg-secondary"
                   >
                     <div className="min-w-0">
                       <span className="block font-semibold">
-                        {groupe.categorie === CATEGORIE_LIBRE
-                          ? "Sans catégorie"
-                          : groupe.categorie}
+                        {groupe.categorie === CATEGORIE_LIBRE ? "Sans catégorie" : groupe.categorie}
                       </span>
                       <span className="block text-xs text-muted-foreground">
                         {nbEnveloppes} enveloppe{nbEnveloppes > 1 ? "s" : ""} ·{" "}
@@ -106,17 +102,12 @@ function DetailsActuels() {
                           </h3>
                           <ul className="space-y-3">
                             {sous.enveloppes.map((e) => (
-                              <li
-                                key={e.id}
-                                className="rounded-xl border border-border/70 p-4"
-                              >
+                              <li key={e.id} className="rounded-xl border border-border/70 p-4">
                                 <CarteEnveloppe
                                   e={e}
                                   estOuverte={enveloppeOuverte === e.id}
                                   onToggle={() =>
-                                    setEnveloppeOuverte(
-                                      enveloppeOuverte === e.id ? null : e.id,
-                                    )
+                                    setEnveloppeOuverte(enveloppeOuverte === e.id ? null : e.id)
                                   }
                                 />
                               </li>
@@ -256,7 +247,6 @@ export function CarteEnveloppe({
         </div>
       </dl>
 
-
       <button
         type="button"
         onClick={onToggle}
@@ -307,10 +297,7 @@ export function CarteEnveloppe({
             ) : (
               <ul className="mt-1 space-y-1.5">
                 {operations.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-center justify-between gap-2 text-xs"
-                  >
+                  <li key={t.id} className="flex items-center justify-between gap-2 text-xs">
                     <span className="truncate">
                       {formatDateFr(t.date)} · {t.libelle}
                       <span className="text-muted-foreground"> · {t.compte}</span>
@@ -340,10 +327,7 @@ export function CarteEnveloppe({
             ) : (
               <ul className="mt-1 space-y-1.5">
                 {planifie.map((b) => (
-                  <li
-                    key={b.id}
-                    className="flex items-center justify-between gap-2 text-xs"
-                  >
+                  <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
                     <span className="truncate">
                       {b.libelle}
                       <span className="text-muted-foreground">

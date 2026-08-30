@@ -82,25 +82,46 @@ function Comptes() {
   function creerCompte(ev: React.FormEvent) {
     ev.preventDefault();
     const nom = nouveauCompte.trim();
-    if (!nom) { toast.error("Donnez un nom au compte."); return; }
-    if (comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
-    if (nom.length > 30) { toast.error("Nom trop long (30 caractères maximum)."); return; }
+    if (!nom) {
+      toast.error("Donnez un nom au compte.");
+      return;
+    }
+    if (comptes.includes(nom)) {
+      toast.error("Ce compte existe déjà.");
+      return;
+    }
+    if (nom.length > 30) {
+      toast.error("Nom trop long (30 caractères maximum).");
+      return;
+    }
     setDemande({ type: "creation", nom });
   }
 
   function validerEdition(ancien: string) {
     const nom = nomEdite.trim();
-    if (!nom) { toast.error("Le nom ne peut pas être vide."); return; }
-    if (nom !== ancien && comptes.includes(nom)) { toast.error("Ce compte existe déjà."); return; }
+    if (!nom) {
+      toast.error("Le nom ne peut pas être vide.");
+      return;
+    }
+    if (nom !== ancien && comptes.includes(nom)) {
+      toast.error("Ce compte existe déjà.");
+      return;
+    }
     setDemande({ type: "renommage", ancien, nom });
   }
 
   function retirerCompte(nom: string) {
     if (transactions.some((t) => t.compte === nom)) {
-      { toast.error("Ce compte contient des opérations."); return; }
+      {
+        toast.error("Ce compte contient des opérations.");
+        return;
+      }
     }
     if (transferts.some((t) => t.source === nom || t.destination === nom)) {
-      { toast.error("Ce compte est lié à des transferts."); return; }
+      {
+        toast.error("Ce compte est lié à des transferts.");
+        return;
+      }
     }
     if ((soldesParCompte[nom] ?? 0) !== 0) {
       toast.error("Videz d'abord ce compte : son solde n'est pas nul.");
@@ -112,10 +133,22 @@ function Comptes() {
   function faireTransfert(ev: React.FormEvent) {
     ev.preventDefault();
     const valeur = Number(montant);
-    if (!Number.isFinite(valeur) || valeur <= 0) { toast.error("Montant invalide."); return; }
-    if (!source || !destination) { toast.error("Choisissez les deux comptes."); return; }
-    if (source === destination) { toast.error("Choisissez deux comptes différents."); return; }
-    if (!Number.isInteger(valeur)) { toast.error("Le montant doit être un nombre entier de FCFA."); return; }
+    if (!Number.isFinite(valeur) || valeur <= 0) {
+      toast.error("Montant invalide.");
+      return;
+    }
+    if (!source || !destination) {
+      toast.error("Choisissez les deux comptes.");
+      return;
+    }
+    if (source === destination) {
+      toast.error("Choisissez deux comptes différents.");
+      return;
+    }
+    if (!Number.isInteger(valeur)) {
+      toast.error("Le montant doit être un nombre entier de FCFA.");
+      return;
+    }
     const dispo = soldesParCompte[source] ?? 0;
     if (valeur > dispo) {
       toast.error(
@@ -214,18 +247,18 @@ function Comptes() {
               params={{ compte: l.compte }}
               className="carte block p-4 transition-transform active:scale-[0.99]"
             >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">{l.compte}</span>
-              <span className="font-bold">{formatFCFA(l.solde)}</span>
-            </div>
-            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-              <span>
-                + {formatFCFA(l.entrees)} · − {formatFCFA(l.sorties)}
-              </span>
-              <span>
-                {l.nb} opération{l.nb > 1 ? "s" : ""} · détails ›
-              </span>
-            </div>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{l.compte}</span>
+                <span className="font-bold">{formatFCFA(l.solde)}</span>
+              </div>
+              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                <span>
+                  + {formatFCFA(l.entrees)} · − {formatFCFA(l.sorties)}
+                </span>
+                <span>
+                  {l.nb} opération{l.nb > 1 ? "s" : ""} · détails ›
+                </span>
+              </div>
             </Link>
           </li>
         ))}

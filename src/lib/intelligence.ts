@@ -111,11 +111,7 @@ export function projectionFinDeMois(transactions: Transaction[]): {
   const duMois = transactions.filter((t) => t.type === "depense" && jour(t.date) >= debutMois);
   const dejaDepense = duMois.reduce((s, t) => s + t.montant, 0);
   const jourActuel = maintenant.getDate();
-  const joursDuMois = new Date(
-    maintenant.getFullYear(),
-    maintenant.getMonth() + 1,
-    0,
-  ).getDate();
+  const joursDuMois = new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 0).getDate();
   const moyenneJour = Math.round(dejaDepense / jourActuel);
   const joursRestants = joursDuMois - jourActuel;
   return {
@@ -156,8 +152,7 @@ export function diagnostiquer(args: {
   const conseils: Conseil[] = [];
   let score = 100;
 
-  const tauxEpargne =
-    totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
+  const tauxEpargne = totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
 
   if (totaux.revenus === 0) {
     score -= 20;
@@ -265,7 +260,8 @@ export function diagnostiquer(args: {
       id: "planif",
       niveau: "attention",
       titre: "Aucune dépense planifiée",
-      texte: "Utilisez la Budgétisation pour prévoir vos dépenses récurrentes et éviter les surprises.",
+      texte:
+        "Utilisez la Budgétisation pour prévoir vos dépenses récurrentes et éviter les surprises.",
     });
   }
 
@@ -281,7 +277,13 @@ export function diagnostiquer(args: {
 
   score = Math.max(0, Math.min(100, score));
   const mention =
-    score >= 80 ? "Situation saine" : score >= 60 ? "Situation correcte" : score >= 40 ? "Vigilance" : "Situation critique";
+    score >= 80
+      ? "Situation saine"
+      : score >= 60
+        ? "Situation correcte"
+        : score >= 40
+          ? "Vigilance"
+          : "Situation critique";
 
   return { score, mention, conseils };
 }
@@ -512,7 +514,12 @@ export function alertesEnveloppes(
         joursRestants: parJour > 0 ? Math.floor(etat.restant / parJour) : null,
       };
     })
-    .filter((a) => a.plafondAtteint || a.pourcentage >= 70 || (a.joursRestants !== null && a.joursRestants <= 15))
+    .filter(
+      (a) =>
+        a.plafondAtteint ||
+        a.pourcentage >= 70 ||
+        (a.joursRestants !== null && a.joursRestants <= 15),
+    )
     .sort((a, b) => b.pourcentage - a.pourcentage);
 }
 

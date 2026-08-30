@@ -20,7 +20,8 @@ export const Route = createFileRoute("/enveloppes/action")({
       { property: "og:title", content: "Action — SUPER APP" },
       {
         property: "og:description",
-        content: "Gestion des enveloppes : création, modification des plafonds et suppression en FCFA.",
+        content:
+          "Gestion des enveloppes : création, modification des plafonds et suppression en FCFA.",
       },
     ],
   }),
@@ -94,19 +95,27 @@ function ActionEnveloppes() {
       return;
     }
     if (!categorie.trim()) {
-      setErreur("La catégorie est obligatoire : choisissez-en une dans la liste déroulante avant de créer l'enveloppe.");
+      setErreur(
+        "La catégorie est obligatoire : choisissez-en une dans la liste déroulante avant de créer l'enveloppe.",
+      );
       return;
     }
     if (!categorieChoisie) {
-      setErreur(`La catégorie « ${categorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`);
+      setErreur(
+        `La catégorie « ${categorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`,
+      );
       return;
     }
     if (sousCategories.length > 0 && !sousCategorie.trim()) {
-      setErreur("Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.");
+      setErreur(
+        "Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.",
+      );
       return;
     }
     if (sousCategorie.trim() && !sousCategories.includes(sousCategorie.trim())) {
-      setErreur(`La sous-catégorie « ${sousCategorie.trim()} » n'existe pas dans la catégorie « ${categorie.trim()} ». Reprenez votre choix.`);
+      setErreur(
+        `La sous-catégorie « ${sousCategorie.trim()} » n'existe pas dans la catégorie « ${categorie.trim()} ». Reprenez votre choix.`,
+      );
       return;
     }
     setConfirmation({
@@ -143,7 +152,9 @@ function ActionEnveloppes() {
             </span>
             <div>
               <p className="font-semibold">Gérer les catégories et sous-catégories</p>
-              <p className="text-sm text-muted-foreground">Créez, renommez ou supprimez vos classements.</p>
+              <p className="text-sm text-muted-foreground">
+                Créez, renommez ou supprimez vos classements.
+              </p>
             </div>
           </Link>
 
@@ -157,7 +168,9 @@ function ActionEnveloppes() {
             </span>
             <div>
               <p className="font-semibold">Créer une nouvelle enveloppe</p>
-              <p className="text-sm text-muted-foreground">Ajoutez une enveloppe avec son plafond.</p>
+              <p className="text-sm text-muted-foreground">
+                Ajoutez une enveloppe avec son plafond.
+              </p>
             </div>
           </button>
 
@@ -170,7 +183,9 @@ function ActionEnveloppes() {
             </span>
             <div>
               <p className="font-semibold">Modifier une enveloppe existante</p>
-              <p className="text-sm text-muted-foreground">Renommez, changez le plafond ou supprimez.</p>
+              <p className="text-sm text-muted-foreground">
+                Renommez, changez le plafond ou supprimez.
+              </p>
             </div>
           </Link>
         </div>
@@ -184,10 +199,7 @@ function ActionEnveloppes() {
           className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
           onClick={fermer}
         >
-          <div
-            className="carte w-full max-w-md space-y-4 p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="carte w-full max-w-md space-y-4 p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold">Nouvelle enveloppe</h3>
@@ -257,8 +269,8 @@ function ActionEnveloppes() {
                   className={champ}
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Montant réellement placé dans l'enveloppe. Il diminue à chaque dépense ; au-delà du
-                  plafond, vous entrez en réserve.
+                  Montant réellement placé dans l'enveloppe. Il diminue à chaque dépense ; au-delà
+                  du plafond, vous entrez en réserve.
                 </p>
               </div>
 
@@ -273,7 +285,7 @@ function ActionEnveloppes() {
                     const valeur = ev.target.value;
                     if (valeur && !listeCategories.some((c) => c.nom === valeur)) {
                       setErreur(
-                        `La catégorie « ${valeur} » n'existe pas dans la liste. Choisissez une catégorie proposée ou créez-la depuis « Gérer les catégories et sous-catégories ».`
+                        `La catégorie « ${valeur} » n'existe pas dans la liste. Choisissez une catégorie proposée ou créez-la depuis « Gérer les catégories et sous-catégories ».`,
                       );
                       ev.target.value = categorie;
                       return;
@@ -303,7 +315,7 @@ function ActionEnveloppes() {
                     const valeur = ev.target.value;
                     if (valeur && !sousCategories.includes(valeur)) {
                       setErreur(
-                        `La sous-catégorie « ${valeur} » n'existe pas dans la catégorie « ${categorie.trim()} ». Choisissez une sous-catégorie proposée dans la liste.`
+                        `La sous-catégorie « ${valeur} » n'existe pas dans la catégorie « ${categorie.trim()} ». Choisissez une sous-catégorie proposée dans la liste.`,
                       );
                       ev.target.value = sousCategorie;
                       return;
@@ -347,7 +359,11 @@ function ActionEnveloppes() {
         </div>
       )}
 
-      <ErreurPopup ouvert={erreur !== null} message={erreur ?? ""} onFermer={() => setErreur(null)} />
+      <ErreurPopup
+        ouvert={erreur !== null}
+        message={erreur ?? ""}
+        onFermer={() => setErreur(null)}
+      />
 
       <Confirmation
         ouvert={confirmation !== null}

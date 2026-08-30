@@ -80,7 +80,13 @@ export function SectionSecurite() {
     processus === "creer"
       ? [{ label: "Verrouillage", avant: "Désactivé", apres: `Activé · ${longueur} chiffres` }]
       : processus === "changer"
-        ? [{ label: "Code PIN", avant: "Code actuel", apres: `Nouveau code · ${code.length} chiffres` }]
+        ? [
+            {
+              label: "Code PIN",
+              avant: "Code actuel",
+              apres: `Nouveau code · ${code.length} chiffres`,
+            },
+          ]
         : [{ label: "Verrouillage", avant: "Activé", apres: "Désactivé" }];
 
   return (
@@ -130,7 +136,8 @@ export function SectionSecurite() {
                 if (config.biometrie) desactiverBiometrie();
                 else
                   void activerBiometrie().then((ok) => {
-                    if (!ok) setErreur("La biométrie n'a pas pu être enregistrée sur cet appareil.");
+                    if (!ok)
+                      setErreur("La biométrie n'a pas pu être enregistrée sur cet appareil.");
                   });
               }}
               className="flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold"
@@ -232,7 +239,8 @@ export function SectionSecurite() {
               </div>
             )}
 
-            {((processus === "creer" && etape === 1) || (processus === "changer" && etape === 1)) && (
+            {((processus === "creer" && etape === 1) ||
+              (processus === "changer" && etape === 1)) && (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Saisissez votre nouveau code à {longueur} chiffres.

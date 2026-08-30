@@ -15,7 +15,6 @@ import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal"
 
 export type ImagePreparee = { blob: Blob; apercu: string; degrade?: boolean };
 
-
 function chargerImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -88,7 +87,6 @@ export async function preparerImage(fichier: File, largeurMax = 1400): Promise<I
     URL.revokeObjectURL(url);
   }
 }
-
 
 function miniature(canvas: HTMLCanvasElement, largeur = 160): string {
   const petit = document.createElement("canvas");
@@ -379,10 +377,26 @@ const COMMANDES: { motifs: string[]; chemin: string; libelle: string }[] = [
   { motifs: ["accueil", "page d'accueil", "tableau de bord"], chemin: "/", libelle: "Accueil" },
   { motifs: ["enveloppe", "enveloppes"], chemin: "/enveloppes", libelle: "Enveloppes" },
   { motifs: ["compte", "comptes"], chemin: "/comptes", libelle: "Comptes" },
-  { motifs: ["analyse", "analyses", "conseil", "conseils"], chemin: "/analyses", libelle: "Analyses et conseils" },
-  { motifs: ["outil", "outils", "simulation", "simulateur"], chemin: "/outils", libelle: "Outils et simulation" },
-  { motifs: ["dette", "dettes", "creance", "creances"], chemin: "/dettes", libelle: "Dettes et créances" },
-  { motifs: ["parametre", "parametres", "reglage", "reglages"], chemin: "/parametres", libelle: "Paramètres" },
+  {
+    motifs: ["analyse", "analyses", "conseil", "conseils"],
+    chemin: "/analyses",
+    libelle: "Analyses et conseils",
+  },
+  {
+    motifs: ["outil", "outils", "simulation", "simulateur"],
+    chemin: "/outils",
+    libelle: "Outils et simulation",
+  },
+  {
+    motifs: ["dette", "dettes", "creance", "creances"],
+    chemin: "/dettes",
+    libelle: "Dettes et créances",
+  },
+  {
+    motifs: ["parametre", "parametres", "reglage", "reglages"],
+    chemin: "/parametres",
+    libelle: "Paramètres",
+  },
   { motifs: ["aide", "assistance"], chemin: "/aide", libelle: "Aide" },
   { motifs: ["revenu", "nouveau revenu"], chemin: "/revenu", libelle: "Revenu" },
   { motifs: ["depense", "nouvelle depense"], chemin: "/depense", libelle: "Dépense" },
@@ -391,10 +405,16 @@ const COMMANDES: { motifs: string[]; chemin: string; libelle: string }[] = [
 /** Reconnaît « ouvre les enveloppes », « va à l'accueil », « affiche les comptes ». */
 export function reconnaitreCommande(texte: string): CommandeVocale | undefined {
   const t = sansAccents(texte).trim();
-  const declencheur = /^(ouvre|ouvrir|va(?:\s+a|\s+vers)?|aller\s+a|affiche|afficher|montre|montrer|navigue\s+vers)\b/;
+  const declencheur =
+    /^(ouvre|ouvrir|va(?:\s+a|\s+vers)?|aller\s+a|affiche|afficher|montre|montrer|navigue\s+vers)\b/;
   if (!declencheur.test(t)) return undefined;
-  const reste = t.replace(declencheur, "").replace(/\b(le|la|les|l|au|aux|a|vers|page|onglet|de|du|des)\b/g, " ");
-  const mots = reste.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  const reste = t
+    .replace(declencheur, "")
+    .replace(/\b(le|la|les|l|au|aux|a|vers|page|onglet|de|du|des)\b/g, " ");
+  const mots = reste
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
   if (mots.length === 0) return undefined;
   for (const commande of COMMANDES) {
     if (commande.motifs.some((m) => mots.includes(m))) {

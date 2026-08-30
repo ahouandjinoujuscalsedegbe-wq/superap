@@ -319,13 +319,7 @@ export function filtrerDepuis<T>(liste: T[], depuis?: string): T[] {
 /* ------------------------------------------------------------------ */
 
 export type TypeDonnees =
-  | "transactions"
-  | "transferts"
-  | "enveloppes"
-  | "categories"
-  | "budgets"
-  | "dettes"
-  | "comptes";
+  "transactions" | "transferts" | "enveloppes" | "categories" | "budgets" | "dettes" | "comptes";
 
 export const TYPES_DONNEES: { id: TypeDonnees; label: string }[] = [
   { id: "transactions", label: "Opérations" },
@@ -364,7 +358,17 @@ function resume(x: unknown): string {
   if (!x || typeof x !== "object") return String(x);
   const o = x as Record<string, unknown>;
   const parts: string[] = [];
-  for (const cle of ["nom", "libelle", "personne", "montant", "montantInitial", "plafond", "dotation", "date", "compte"]) {
+  for (const cle of [
+    "nom",
+    "libelle",
+    "personne",
+    "montant",
+    "montantInitial",
+    "plafond",
+    "dotation",
+    "date",
+    "compte",
+  ]) {
     if (o[cle] !== undefined && o[cle] !== null && o[cle] !== "") {
       parts.push(`${cle} : ${String(o[cle])}`);
     }
@@ -432,9 +436,6 @@ export function fusionnerAvecChoix<T extends AvecId>(
       remplaces += 1;
     }
   }
-  const liste = [
-    ...nouveaux,
-    ...actuel.map((x) => connus.get(x.id) ?? x),
-  ];
+  const liste = [...nouveaux, ...actuel.map((x) => connus.get(x.id) ?? x)];
   return { liste, ajoutes: nouveaux.length, remplaces };
 }

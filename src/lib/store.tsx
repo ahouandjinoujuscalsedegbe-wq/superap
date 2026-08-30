@@ -120,17 +120,73 @@ export const COMPTES = [
 ] as const;
 
 export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
-  { id: "vitaux", nom: "Besoins vitaux", emoji: "🍚", plafond: 150000, dotation: 180000, categorie: "Alimentation", sousCategorie: "Marché" },
-  { id: "transport", nom: "Transport", emoji: "🛵", plafond: 40000, dotation: 50000, categorie: "Transport", sousCategorie: "Carburant" },
-  { id: "maison", nom: "Maison & Factures", emoji: "🏠", plafond: 60000, dotation: 70000, categorie: "Factures", sousCategorie: "Facture SBEE" },
-  { id: "epargne", nom: "Épargne", emoji: "🐖", plafond: 50000, dotation: 55000, categorie: "Épargne", sousCategorie: "Tontine" },
-  { id: "envies", nom: "Projets & Envies", emoji: "✨", plafond: 30000, dotation: 35000, categorie: "Famille", sousCategorie: "Cadeaux" },
-  { id: "imprevus", nom: "Imprévus", emoji: "🚨", plafond: 20000, dotation: 25000, categorie: "Santé", sousCategorie: "Pharmacie" },
+  {
+    id: "vitaux",
+    nom: "Besoins vitaux",
+    emoji: "🍚",
+    plafond: 150000,
+    dotation: 180000,
+    categorie: "Alimentation",
+    sousCategorie: "Marché",
+  },
+  {
+    id: "transport",
+    nom: "Transport",
+    emoji: "🛵",
+    plafond: 40000,
+    dotation: 50000,
+    categorie: "Transport",
+    sousCategorie: "Carburant",
+  },
+  {
+    id: "maison",
+    nom: "Maison & Factures",
+    emoji: "🏠",
+    plafond: 60000,
+    dotation: 70000,
+    categorie: "Factures",
+    sousCategorie: "Facture SBEE",
+  },
+  {
+    id: "epargne",
+    nom: "Épargne",
+    emoji: "🐖",
+    plafond: 50000,
+    dotation: 55000,
+    categorie: "Épargne",
+    sousCategorie: "Tontine",
+  },
+  {
+    id: "envies",
+    nom: "Projets & Envies",
+    emoji: "✨",
+    plafond: 30000,
+    dotation: 35000,
+    categorie: "Famille",
+    sousCategorie: "Cadeaux",
+  },
+  {
+    id: "imprevus",
+    nom: "Imprévus",
+    emoji: "🚨",
+    plafond: 20000,
+    dotation: 25000,
+    categorie: "Santé",
+    sousCategorie: "Pharmacie",
+  },
 ];
 
 export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
-  { id: "cat-transport", nom: "Transport", sousCategories: ["Carburant", "Vidange voiture", "Taxi / Zémidjan"] },
-  { id: "cat-factures", nom: "Factures", sousCategories: ["Facture SBEE", "Facture SONEB", "Internet"] },
+  {
+    id: "cat-transport",
+    nom: "Transport",
+    sousCategories: ["Carburant", "Vidange voiture", "Taxi / Zémidjan"],
+  },
+  {
+    id: "cat-factures",
+    nom: "Factures",
+    sousCategories: ["Facture SBEE", "Facture SONEB", "Internet"],
+  },
   { id: "cat-alimentation", nom: "Alimentation", sousCategories: ["Marché", "Boutique"] },
   { id: "cat-sante", nom: "Santé", sousCategories: ["Pharmacie", "Consultation"] },
   { id: "cat-epargne", nom: "Épargne", sousCategories: ["Tontine", "Épargne banque"] },
@@ -188,17 +244,10 @@ type Contexte = Etat & {
   genererEcheancesDues: () => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
-  ajouterDette: (
-    d: Omit<Dette, "id" | "creeLe" | "remboursements">,
-    compte?: string,
-  ) => void;
+  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => void;
   modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
   supprimerDette: (id: string) => void;
-  ajouterRemboursement: (
-    detteId: string,
-    r: Omit<Remboursement, "id">,
-    compte?: string,
-  ) => void;
+  ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
   remplacerEtat: (e: Partial<Etat>) => void;
@@ -219,8 +268,7 @@ const CLE = "superapp:etat:v1";
 const registreGlobal = globalThis as typeof globalThis & {
   __superAppContext?: Context<Contexte | null>;
 };
-const SuperAppContext =
-  registreGlobal.__superAppContext ?? createContext<Contexte | null>(null);
+const SuperAppContext = registreGlobal.__superAppContext ?? createContext<Contexte | null>(null);
 registreGlobal.__superAppContext = SuperAppContext;
 
 export function SuperAppProvider({ children }: { children: ReactNode }) {
@@ -249,10 +297,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     } catch {
       /* stockage indisponible */
     }
-    document.documentElement.style.setProperty(
-      "--surface-alpha",
-      String(etat.transparence / 100),
-    );
+    document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat]);
 
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
@@ -267,9 +312,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterCompte = useCallback((nom: string) => {
-    setEtat((e) =>
-      e.comptes.includes(nom) ? e : { ...e, comptes: [...e.comptes, nom] },
-    );
+    setEtat((e) => (e.comptes.includes(nom) ? e : { ...e, comptes: [...e.comptes, nom] }));
   }, []);
 
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
@@ -309,15 +352,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const modifierEnveloppe = useCallback(
-    (id: string, env: Partial<Omit<Enveloppe, "id">>) => {
-      setEtat((e) => ({
-        ...e,
-        enveloppes: e.enveloppes.map((x) => (x.id === id ? { ...x, ...env } : x)),
-      }));
-    },
-    [],
-  );
+  const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
+    setEtat((e) => ({
+      ...e,
+      enveloppes: e.enveloppes.map((x) => (x.id === id ? { ...x, ...env } : x)),
+    }));
+  }, []);
 
   const supprimerEnveloppe = useCallback((id: string) => {
     setEtat((e) => ({
@@ -338,9 +378,17 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       const memeCat = (x: Enveloppe | undefined) => (x?.categorie ?? "").trim() === cat;
       let voisin = -1;
       if (sens === "haut") {
-        for (let i = index - 1; i >= 0; i -= 1) if (memeCat(liste[i])) { voisin = i; break; }
+        for (let i = index - 1; i >= 0; i -= 1)
+          if (memeCat(liste[i])) {
+            voisin = i;
+            break;
+          }
       } else {
-        for (let i = index + 1; i < liste.length; i += 1) if (memeCat(liste[i])) { voisin = i; break; }
+        for (let i = index + 1; i < liste.length; i += 1)
+          if (memeCat(liste[i])) {
+            voisin = i;
+            break;
+          }
       }
       const autre = voisin < 0 ? undefined : liste[voisin];
       if (!autre) return e;
@@ -355,7 +403,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) =>
       e.categories.some((c) => c.nom === nom)
         ? e
-        : { ...e, categories: [...e.categories, { id: crypto.randomUUID(), nom, sousCategories: [] }] },
+        : {
+            ...e,
+            categories: [...e.categories, { id: crypto.randomUUID(), nom, sousCategories: [] }],
+          },
     );
   }, []);
 
@@ -465,7 +516,6 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-
   const ajouterBudget = useCallback((b: Omit<Budget, "id">) => {
     setEtat((e) => ({ ...e, budgets: [{ ...b, id: crypto.randomUUID() }, ...e.budgets] }));
   }, []);
@@ -551,9 +601,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           type: d.sens === "dette" ? "revenu" : "depense",
           montant: d.montantInitial,
           libelle:
-            d.sens === "dette"
-              ? `Emprunt auprès de ${d.personne}`
-              : `Prêt accordé à ${d.personne}`,
+            d.sens === "dette" ? `Emprunt auprès de ${d.personne}` : `Prêt accordé à ${d.personne}`,
           categorie: "dettes",
           compte,
           date: new Date(creeLe).toISOString(),
@@ -593,10 +641,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           x.id === detteId
             ? {
                 ...x,
-                remboursements: [
-                  ...x.remboursements,
-                  { ...r, id: crypto.randomUUID() },
-                ].sort((a, b) => a.date.localeCompare(b.date)),
+                remboursements: [...x.remboursements, { ...r, id: crypto.randomUUID() }].sort(
+                  (a, b) => a.date.localeCompare(b.date),
+                ),
               }
             : x,
         );

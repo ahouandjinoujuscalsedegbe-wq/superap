@@ -135,7 +135,8 @@
 
   body {
     background-color: var(--color-background);
-    background-image: radial-gradient(
+    background-image:
+      radial-gradient(
         120% 60% at 50% -10%,
         color-mix(in oklab, var(--primary) 22%, transparent),
         transparent 70%
@@ -153,21 +154,13 @@
 
 /* Surfaces translucides : l'opacité suit le réglage utilisateur. */
 @utility surface {
-  background-color: color-mix(
-    in oklab,
-    var(--card) calc(var(--surface-alpha) * 100%),
-    transparent
-  );
+  background-color: color-mix(in oklab, var(--card) calc(var(--surface-alpha) * 100%), transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
 @utility carte {
-  background-color: color-mix(
-    in oklab,
-    var(--card) calc(var(--surface-alpha) * 100%),
-    transparent
-  );
+  background-color: color-mix(in oklab, var(--card) calc(var(--surface-alpha) * 100%), transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);

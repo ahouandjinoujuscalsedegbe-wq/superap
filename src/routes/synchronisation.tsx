@@ -235,7 +235,11 @@ function PageSynchronisation() {
     try {
       const { colis, empreinte } = await ouvrirColisPlus(colisRecu, phraseRecu);
       const tousConflits: Conflit[] = [
-        ...detecterConflits("transactions", app.transactions, (colis.transactions ?? []) as never[]),
+        ...detecterConflits(
+          "transactions",
+          app.transactions,
+          (colis.transactions ?? []) as never[],
+        ),
         ...detecterConflits("transferts", app.transferts, (colis.transferts ?? []) as never[]),
         ...detecterConflits("enveloppes", app.enveloppes, (colis.enveloppes ?? []) as never[]),
         ...detecterConflits("categories", app.categories, (colis.categories ?? []) as never[]),
@@ -484,7 +488,9 @@ function PageSynchronisation() {
       ) : null}
 
       {info ? (
-        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">{info}</p>
+        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
+          {info}
+        </p>
       ) : null}
 
       {/* Cet appareil */}
@@ -653,9 +659,7 @@ function PageSynchronisation() {
         <select
           id="frequence"
           value={plus.frequence}
-          onChange={(e) =>
-            enregistrerPlus({ ...plus, frequence: e.target.value as FrequenceSync })
-          }
+          onChange={(e) => enregistrerPlus({ ...plus, frequence: e.target.value as FrequenceSync })}
           className={champ}
         >
           {FREQUENCES.map((f) => (
@@ -828,8 +832,8 @@ function PageSynchronisation() {
           <RefreshCw className="h-4 w-4" aria-hidden /> Vérifier et fusionner
         </button>
         <p className="text-xs text-muted-foreground">
-          L'empreinte du colis est vérifiée avant tout déchiffrement. La fusion ajoute ce qui
-          manque : rien n'est écrasé sans votre choix.
+          L'empreinte du colis est vérifiée avant tout déchiffrement. La fusion ajoute ce qui manque
+          : rien n'est écrasé sans votre choix.
         </p>
 
         {conflits.length > 0 ? (

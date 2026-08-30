@@ -75,7 +75,8 @@ function ClasserEnveloppes() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégoriser les enveloppes existantes</h1>
         <p className="text-sm text-muted-foreground">
-          Choisissez la catégorie de chaque enveloppe et ajustez leur ordre avec les flèches. L'ordre est conservé.
+          Choisissez la catégorie de chaque enveloppe et ajustez leur ordre avec les flèches.
+          L'ordre est conservé.
         </p>
       </header>
 
@@ -114,7 +115,10 @@ function ClasserEnveloppes() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label htmlFor={`cat-${e.id}`} className="text-xs font-medium text-muted-foreground">
+                      <label
+                        htmlFor={`cat-${e.id}`}
+                        className="text-xs font-medium text-muted-foreground"
+                      >
                         Catégorie
                       </label>
                       <select
@@ -132,7 +136,10 @@ function ClasserEnveloppes() {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor={`sous-${e.id}`} className="text-xs font-medium text-muted-foreground">
+                      <label
+                        htmlFor={`sous-${e.id}`}
+                        className="text-xs font-medium text-muted-foreground"
+                      >
                         Sous-catégorie
                       </label>
                       <select

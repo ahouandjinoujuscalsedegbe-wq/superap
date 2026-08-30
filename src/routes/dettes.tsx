@@ -44,7 +44,13 @@ type Formulaire = {
   note: string;
 };
 
-const FORM_VIDE: Formulaire = { sens: "dette", personne: "", montant: "", dateLimite: "", note: "" };
+const FORM_VIDE: Formulaire = {
+  sens: "dette",
+  personne: "",
+  montant: "",
+  dateLimite: "",
+  note: "",
+};
 
 type Dialogue =
   | { type: "creer" }
@@ -121,7 +127,10 @@ function PageDettes() {
       setErreur("Le montant doit être un nombre positif.");
       return;
     }
-    if (dialogue?.type === "modifier" && montant < dialogue.dette.montantInitial - resteDu(dialogue.dette)) {
+    if (
+      dialogue?.type === "modifier" &&
+      montant < dialogue.dette.montantInitial - resteDu(dialogue.dette)
+    ) {
       setErreur("Le montant initial ne peut pas être inférieur au total déjà remboursé.");
       return;
     }
@@ -135,7 +144,12 @@ function PageDettes() {
       details: [
         {
           label: "Type",
-          avant: dialogue?.type === "modifier" ? (dialogue.dette.sens === "dette" ? "Dette" : "Créance") : undefined,
+          avant:
+            dialogue?.type === "modifier"
+              ? dialogue.dette.sens === "dette"
+                ? "Dette"
+                : "Créance"
+              : undefined,
           apres: form.sens === "dette" ? "Dette" : "Créance",
         },
         {
@@ -145,12 +159,18 @@ function PageDettes() {
         },
         {
           label: "Montant initial",
-          avant: dialogue?.type === "modifier" ? formatFCFA(dialogue.dette.montantInitial) : undefined,
+          avant:
+            dialogue?.type === "modifier" ? formatFCFA(dialogue.dette.montantInitial) : undefined,
           apres: formatFCFA(montant),
         },
         {
           label: "Échéance",
-          avant: dialogue?.type === "modifier" ? (dialogue.dette.dateLimite ? formatDateFr(dialogue.dette.dateLimite) : "Aucune") : undefined,
+          avant:
+            dialogue?.type === "modifier"
+              ? dialogue.dette.dateLimite
+                ? formatDateFr(dialogue.dette.dateLimite)
+                : "Aucune"
+              : undefined,
           apres: form.dateLimite ? formatDateFr(form.dateLimite) : "Aucune",
         },
         ...(dialogue?.type === "creer"
@@ -205,7 +225,11 @@ function PageDettes() {
         { label: "Personne", apres: dialogue.dette.personne },
         { label: "Montant", apres: formatFCFA(montant) },
         { label: "Date", apres: formatDateFr(dateRemb) },
-        { label: "Reste après opération", avant: formatFCFA(reste), apres: formatFCFA(reste - montant) },
+        {
+          label: "Reste après opération",
+          avant: formatFCFA(reste),
+          apres: formatFCFA(reste - montant),
+        },
         {
           label: "Mouvement d'argent",
           apres: compteRemb
@@ -290,10 +314,13 @@ function PageDettes() {
             {liste.map((d) => {
               const reste = resteDu(d);
               const rembourse = d.montantInitial - reste;
-              const pct = d.montantInitial > 0 ? Math.min(100, (rembourse / d.montantInitial) * 100) : 0;
+              const pct =
+                d.montantInitial > 0 ? Math.min(100, (rembourse / d.montantInitial) * 100) : 0;
               const solde = reste === 0;
               const echue =
-                !solde && d.dateLimite !== undefined && d.dateLimite < new Date().toISOString().slice(0, 10);
+                !solde &&
+                d.dateLimite !== undefined &&
+                d.dateLimite < new Date().toISOString().slice(0, 10);
               const expand = ouvertId === d.id;
               return (
                 <li key={d.id} className="surface rounded-xl border border-border">
@@ -337,7 +364,9 @@ function PageDettes() {
                         <dt className="text-muted-foreground">Déjà remboursé</dt>
                         <dd className="text-right font-medium">{formatFCFA(rembourse)}</dd>
                         <dt className="text-muted-foreground">Reste</dt>
-                        <dd className="text-right font-semibold text-primary">{formatFCFA(reste)}</dd>
+                        <dd className="text-right font-semibold text-primary">
+                          {formatFCFA(reste)}
+                        </dd>
                         <dt className="text-muted-foreground">Échéance</dt>
                         <dd className={`text-right font-medium ${echue ? "text-destructive" : ""}`}>
                           {d.dateLimite ? formatDateFr(d.dateLimite) : "Aucune"}
@@ -372,7 +401,9 @@ function PageDettes() {
                                   <span className="font-semibold">{formatFCFA(r.montant)}</span>
                                   <button
                                     type="button"
-                                    onClick={() => demanderSuppressionRemb(d, r.id, r.montant, r.date)}
+                                    onClick={() =>
+                                      demanderSuppressionRemb(d, r.id, r.montant, r.date)
+                                    }
                                     aria-label={`Supprimer le remboursement du ${formatDateFr(r.date)}`}
                                     title="Supprimer"
                                     className="rounded-md p-1 text-destructive hover:bg-destructive/10"

@@ -104,7 +104,10 @@ export function lienEmail(email: string, appareil: string, colis: string): strin
 type AvecId = { id: string };
 
 /** Fusion sans doublon : les éléments déjà présents (même id) sont conservés. */
-export function fusionnerParId<T extends AvecId>(actuel: T[], entrant: T[]): {
+export function fusionnerParId<T extends AvecId>(
+  actuel: T[],
+  entrant: T[],
+): {
   liste: T[];
   ajoutes: number;
 } {
@@ -113,7 +116,10 @@ export function fusionnerParId<T extends AvecId>(actuel: T[], entrant: T[]): {
   return { liste: [...nouveaux, ...actuel], ajoutes: nouveaux.length };
 }
 
-export function fusionnerNoms(actuel: string[], entrant: string[]): {
+export function fusionnerNoms(
+  actuel: string[],
+  entrant: string[],
+): {
   liste: string[];
   ajoutes: number;
 } {

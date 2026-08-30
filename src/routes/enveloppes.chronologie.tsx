@@ -44,7 +44,8 @@ export const Route = createFileRoute("/enveloppes/chronologie")({
       { property: "og:title", content: "Chronologie et suivi — SUPER APP" },
       {
         property: "og:description",
-        content: "Chronologie des échéances et comparaison budget prévu / dépenses réelles en FCFA.",
+        content:
+          "Chronologie des échéances et comparaison budget prévu / dépenses réelles en FCFA.",
       },
     ],
   }),
@@ -155,9 +156,7 @@ function ChronologieSuivi() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Dépensé réel</span>
-                      <span
-                        className={`font-semibold ${depasse ? "text-destructive" : ""}`}
-                      >
+                      <span className={`font-semibold ${depasse ? "text-destructive" : ""}`}>
                         {formatFCFA(reel)}
                       </span>
                     </div>

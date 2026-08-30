@@ -129,7 +129,8 @@ export async function verifierMiseAJour(
     if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
       return {
         etat: "erreur",
-        message: "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
+        message:
+          "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
       };
     }
     memoriserVerification();
@@ -165,7 +166,6 @@ export function lancerTelechargement(url: string) {
   const fenetre = window.open(url, "_blank", "noopener,noreferrer");
   if (!fenetre) window.location.href = url;
 }
-
 
 /** Version que l'utilisateur a choisi d'ignorer (bouton « Plus tard »). */
 export function lireVersionIgnoree(): string | null {

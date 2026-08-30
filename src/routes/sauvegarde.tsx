@@ -106,10 +106,7 @@ function PageSauvegarde() {
   function exporterLisible(format: "json" | "csv") {
     const etat = app.etatComplet();
     if (format === "json") {
-      telecharger(
-        `superapp-export-${horodatageFichier()}.json`,
-        JSON.stringify(etat, null, 2),
-      );
+      telecharger(`superapp-export-${horodatageFichier()}.json`, JSON.stringify(etat, null, 2));
     } else {
       telecharger(
         `superapp-operations-${horodatageFichier()}.csv`,
@@ -220,7 +217,9 @@ function PageSauvegarde() {
       </header>
 
       {info ? (
-        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">{info}</p>
+        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
+          {info}
+        </p>
       ) : null}
 
       <section className="carte p-4">

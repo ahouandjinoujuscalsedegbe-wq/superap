@@ -102,8 +102,15 @@ function Section({
 const champ = "mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm";
 
 function Outils() {
-  const { transactions, enveloppes, budgets, dettes, depensesParEnveloppe, soldesParCompte, solde } =
-    useSuperApp();
+  const {
+    transactions,
+    enveloppes,
+    budgets,
+    dettes,
+    depensesParEnveloppe,
+    soldesParCompte,
+    solde,
+  } = useSuperApp();
 
   // Objectif d'épargne
   const [objectif, setObjectif] = useState(500000);
@@ -314,7 +321,6 @@ function Outils() {
   const sauvegarder = () => {
     setHistorique(enregistrerSimulation("Simulation complète", rapportSimulations()));
   };
-
 
   return (
     <div className="space-y-4">
@@ -692,7 +698,9 @@ function Outils() {
                     <p className="font-semibold">{d.compte}</p>
                     <p className="text-xs text-muted-foreground">
                       Sortie estimée {formatFCFA(d.sortieParJour)} par jour ·{" "}
-                      {d.joursTenus === null ? "aucune sortie détectée" : `${d.joursTenus} jours tenus`}
+                      {d.joursTenus === null
+                        ? "aucune sortie détectée"
+                        : `${d.joursTenus} jours tenus`}
                     </p>
                     <p className="mt-1">{d.message}</p>
                   </li>
