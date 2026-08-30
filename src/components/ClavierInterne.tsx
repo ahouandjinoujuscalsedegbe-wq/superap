@@ -240,6 +240,13 @@ export function ClavierInterne() {
     if (majuscule && !reglages.majusculesAuto) setMajuscule(false);
   };
 
+  /** Insère un texte brut (chiffres, espace, « 000 ») sans filtrage de mode. */
+  const taperTexte = (texte: string) => {
+    const champ = champRef.current;
+    if (!champ) return;
+    ecrire(champ, (champ.value ?? "") + texte);
+  };
+
   const effacer = () => {
     const champ = champRef.current;
     if (!champ) return;
