@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeftRight, Wallet } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeftRight, Plus, Search, Wallet } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -27,32 +28,62 @@ const liens = [
     to: "/comptes/action",
     titre: "Action",
     texte: "Ajoutez, renommez ou supprimez vos comptes.",
+    icone: Plus,
   },
   {
     to: "/comptes/transferts",
     titre: "Transferts",
     texte: "Déplacez de l'argent d'un compte vers un autre.",
+    icone: ArrowLeftRight,
   },
 ] as const;
 
+type Tri = "nom" | "solde-desc" | "solde-asc" | "operations";
+
+const TRIS: { valeur: Tri; label: string }[] = [
+  { valeur: "nom", label: "Nom (A → Z)" },
+  { valeur: "solde-desc", label: "Solde décroissant" },
+  { valeur: "solde-asc", label: "Solde croissant" },
+  { valeur: "operations", label: "Plus d'opérations" },
+];
+
+const champ =
+  "w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none transition-shadow focus:ring-2 focus:ring-ring";
+
 function ComptesAccueil() {
   const { comptes, transactions, transferts, soldesParCompte } = useSuperApp();
+  const [recherche, setRecherche] = useState("");
+  const [tri, setTri] = useState<Tri>("nom");
 
-  const lignes = comptes.map((compte) => {
-    const liees = transactions.filter((t) => t.compte === compte);
-    const entrees =
-      liees.filter((t) => t.type === "revenu").reduce((s, t) => s + t.montant, 0) +
-      transferts.filter((t) => t.destination === compte).reduce((s, t) => s + t.montant, 0);
-    const sorties =
-      liees.filter((t) => t.type === "depense").reduce((s, t) => s + t.montant, 0) +
-      transferts.filter((t) => t.source === compte).reduce((s, t) => s + t.montant, 0);
-    return { compte, entrees, sorties, solde: soldesParCompte[compte] ?? 0, nb: liees.length };
-  });
+  const lignes = useMemo(() => {
+    const base = comptes.map((compte) => {
+      const liees = transactions.filter((t) => t.compte === compte);
+      const entrees =
+        liees.filter((t) => t.type === "revenu").reduce((s, t) => s + t.montant, 0) +
+        transferts.filter((t) => t.destination === compte).reduce((s, t) => s + t.montant, 0);
+      const sorties =
+        liees.filter((t) => t.type === "depense").reduce((s, t) => s + t.montant, 0) +
+        transferts.filter((t) => t.source === compte).reduce((s, t) => s + t.montant, 0);
+      return { compte, entrees, sorties, solde: soldesParCompte[compte] ?? 0, nb: liees.length };
+    });
 
-  const total = lignes.reduce((s, l) => s + l.solde, 0);
+    const q = recherche.trim().toLowerCase();
+    const filtrees = q ? base.filter((l) => l.compte.toLowerCase().includes(q)) : base;
+
+    const triees = [...filtrees];
+    triees.sort((a, b) => {
+      if (tri === "solde-desc") return b.solde - a.solde;
+      if (tri === "solde-asc") return a.solde - b.solde;
+      if (tri === "operations") return b.nb - a.nb;
+      return a.compte.localeCompare(b.compte, "fr");
+    });
+    return triees;
+  }, [comptes, transactions, transferts, soldesParCompte, recherche, tri]);
+
+  const total = comptes.reduce((s, c) => s + (soldesParCompte[c] ?? 0), 0);
 
   return (
-    <div className="space-y-4">
+    <div className="page-anim space-y-4">
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">Total disponible</p>
         <p className="mt-1 text-3xl font-bold tracking-tight text-primary">{formatFCFA(total)}</p>
@@ -66,8 +97,41 @@ function ComptesAccueil() {
           </p>
         </div>
 
-        {lignes.length === 0 ? (
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="relative min-w-0">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              id="recherche-compte"
+              value={recherche}
+              onChange={(ev) => setRecherche(ev.target.value)}
+              placeholder="Rechercher un compte…"
+              aria-label="Rechercher un compte"
+              className={`${champ} pl-9`}
+            />
+          </div>
+          <select
+            value={tri}
+            onChange={(ev) => setTri(ev.target.value as Tri)}
+            aria-label="Trier les comptes"
+            className={`${champ} sm:w-52`}
+          >
+            {TRIS.map((t) => (
+              <option key={t.valeur} value={t.valeur}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {comptes.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun compte pour le moment.</p>
+        ) : lignes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucun compte ne correspond à « {recherche.trim()} ».
+          </p>
         ) : (
           <ul className="grid gap-3">
             {lignes.map((l) => (
@@ -75,7 +139,7 @@ function ComptesAccueil() {
                 <Link
                   to="/comptes/$compte"
                   params={{ compte: l.compte }}
-                  className="block rounded-xl border border-border/70 bg-secondary/40 p-3 transition-colors hover:bg-secondary active:scale-[0.99]"
+                  className="block rounded-xl border border-border/70 bg-secondary/40 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex min-w-0 items-center gap-2">
@@ -104,19 +168,25 @@ function ComptesAccueil() {
       </section>
 
       <ul className="grid gap-3">
-        {liens.map((l) => (
-          <li key={l.to}>
-            <Link to={l.to} className="carte block p-4 transition-colors hover:bg-accent/40">
-              <p className="flex items-center gap-2 font-semibold">
-                {l.titre === "Transferts" && (
-                  <ArrowLeftRight className="h-4 w-4 text-primary" aria-hidden />
-                )}
-                {l.titre}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{l.texte}</p>
-            </Link>
-          </li>
-        ))}
+        {liens.map((l) => {
+          const Icone = l.icone;
+          return (
+            <li key={l.to}>
+              <Link
+                to={l.to}
+                className="carte flex w-full items-center gap-3 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-accent/40 active:scale-[0.99]"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Icone aria-hidden className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold">{l.titre}</span>
+                  <span className="block text-sm text-muted-foreground">{l.texte}</span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
