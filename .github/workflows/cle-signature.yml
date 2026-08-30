@@ -1,0 +1,44 @@
+name: Créer la clé de signature
+
+# À lancer UNE SEULE FOIS, avant la première compilation Release.
+# Il crée la clé qui signe vos APK. Gardez-la précieusement : sans elle,
+# les futures mises à jour ne pourront plus s'installer par-dessus
+# l'application existante (vos données seraient perdues).
+"on":
+  workflow_dispatch:
+    inputs:
+      mot_de_passe:
+        description: "Mot de passe de la clé (8 caractères minimum, notez-le !)"
+        required: true
+
+jobs:
+  cle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Installer Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Générer la clé
+        env:
+          MDP: ${{ inputs.mot_de_passe }}
+        run: |
+          keytool -genkeypair -v \
+            -keystore cle-signature.jks \
+            -alias superapp \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$MDP" -keypass "$MDP" \
+            -dname "CN=SUPER APP, OU=Personnel, O=SUPER APP, L=Porto-Novo, C=BJ"
+          base64 -w0 cle-signature.jks > cle-signature.base64.txt
+          echo "Clé créée. Téléchargez l'artefact puis copiez le contenu de cle-signature.base64.txt dans le secret ANDROID_KEYSTORE_BASE64."
+
+      - name: Publier la clé (à conserver en lieu sûr)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cle-signature
+          path: |
+            cle-signature.jks
+            cle-signature.base64.txt
+          retention-days: 7
