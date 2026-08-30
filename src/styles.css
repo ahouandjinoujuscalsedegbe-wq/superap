@@ -217,6 +217,28 @@ textarea:not([data-majuscules="non"]) {
 }
 
 /* ============================================================
+ * Pop-ups adaptatifs : toute fenêtre modale (overlay fixed
+ * plein écran) voit son contenu limité à la hauteur visible,
+ * avec défilement interne et prise en compte des zones
+ * sûres du téléphone (encoche, barre de statut).
+ * ============================================================ */
+.fixed.inset-0 > * {
+  max-width: calc(100vw - 1rem);
+  max-height: calc(
+    100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.5rem
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-height: 480px) {
+  .fixed.inset-0 > * {
+    font-size: 0.9375rem;
+  }
+}
+
+/* ============================================================
  * Couleur dynamique : la teinte rose respire lentement pour
  * donner une présentation vivante et élégante.
  * ============================================================ */
