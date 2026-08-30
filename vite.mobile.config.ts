@@ -26,6 +26,9 @@ function renommerEnIndex(): Plugin {
 export default defineConfig({
   // Chemins relatifs : indispensables dans la WebView Android (capacitor://localhost).
   base: "./",
+  // Indique au composant racine de ne pas recréer <html>/<body> : dans la
+  // WebView, React est monté dans le <div id="root"> de index.html.
+  define: { "import.meta.env.VITE_COQUE_MOBILE": "true" },
   plugins: [tsconfigPaths(), tailwindcss(), react(), renommerEnIndex()],
   build: {
     outDir: "dist-mobile",

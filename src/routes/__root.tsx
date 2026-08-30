@@ -119,6 +119,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Build mobile (Capacitor) : le document HTML existe déjà (index.html) et
+  // React s'insère dans <div id="root">. Recréer <html>/<body> ici casserait
+  // l'arbre du DOM et figerait l'application dès le premier champ de saisie.
+  if (import.meta.env["VITE_COQUE_MOBILE"]) {
+    return <>{children}</>;
+  }
+
   return (
     <html lang="fr">
       <head>
@@ -139,7 +146,6 @@ function RootComponent() {
   useEffect(() => installerCaptureGlobale(), []);
 
   return (
-
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
         <SuperAppProvider>
@@ -154,13 +160,6 @@ function RootComponent() {
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
-
-          
-          
-          
-          
-          
-          
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
