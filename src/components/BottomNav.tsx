@@ -96,7 +96,7 @@ export function BottomNav() {
                   />
                 </span>
                 <span
-                  className={`max-w-[4rem] text-center text-[0.65rem] leading-none transition-all duration-300 ${
+                  className={`h-6 max-w-[4rem] overflow-hidden text-center text-[0.65rem] leading-3 transition-all duration-300 ${
                     actif ? "texte-degrade font-semibold" : "text-muted-foreground"
                   }`}
                 >
