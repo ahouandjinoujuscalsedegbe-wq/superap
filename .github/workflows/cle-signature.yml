@@ -25,14 +25,31 @@ jobs:
         env:
           MDP: ${{ inputs.mot_de_passe }}
         run: |
+          if [ "${#MDP}" -lt 8 ]; then
+            echo "::error::Le mot de passe doit contenir au moins 8 caractères."
+            exit 1
+          fi
           keytool -genkeypair -v \
             -keystore cle-signature.jks \
+            -storetype PKCS12 \
             -alias superapp \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$MDP" -keypass "$MDP" \
             -dname "CN=SUPER APP, OU=Personnel, O=SUPER APP, L=Porto-Novo, C=BJ"
+          keytool -list -keystore cle-signature.jks -storepass "$MDP" -alias superapp >/dev/null
           base64 -w0 cle-signature.jks > cle-signature.base64.txt
-          echo "Clé créée. Téléchargez l'artefact puis copiez le contenu de cle-signature.base64.txt dans le secret ANDROID_KEYSTORE_BASE64."
+          cat > INSTRUCTIONS.txt <<'EOF'
+          CONFIGURATION DES SECRETS GITHUB
+
+          ANDROID_KEYSTORE_BASE64 : tout le contenu de cle-signature.base64.txt
+          ANDROID_KEYSTORE_PASSWORD : le mot de passe saisi au lancement de ce workflow
+          ANDROID_KEY_ALIAS : superapp
+          ANDROID_KEY_PASSWORD : le même mot de passe saisi au lancement de ce workflow
+
+          Ne copiez jamais le fichier cle-signature.jks lui-même dans un champ secret.
+          Conservez cet artefact en lieu sûr pour toutes les futures mises à jour.
+          EOF
+          echo "Clé créée et vérifiée. Téléchargez l'artefact et suivez INSTRUCTIONS.txt."
 
       - name: Publier la clé (à conserver en lieu sûr)
         uses: actions/upload-artifact@v4
@@ -41,4 +58,5 @@ jobs:
           path: |
             cle-signature.jks
             cle-signature.base64.txt
+            INSTRUCTIONS.txt
           retention-days: 7
