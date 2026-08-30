@@ -1,8 +1,11 @@
 name: Compiler l'APK Android
 
-# Ce workflow compile automatiquement l'application mobile Android (APK).
+# Ce workflow compile l'application mobile Android en version Release signée.
 # Il se lance manuellement depuis GitHub : onglet "Actions" →
 # "Compiler l'APK Android" → bouton "Run workflow".
+# Prérequis : lancer une fois le workflow "Créer la clé de signature",
+# puis enregistrer les secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS et ANDROID_KEY_PASSWORD.
 "on":
   workflow_dispatch:
   push:
@@ -46,49 +49,28 @@ jobs:
       - name: Installer le SDK Android
         uses: android-actions/setup-android@v3
 
-      # 8. Reprendre le numéro de version depuis le code (src/lib/version.ts)
+      # 8. Reprendre le numéro de version depuis src/lib/version.ts
       - name: Appliquer le numéro de version
         run: |
           VERSION=$(grep -oP 'VERSION_APPLICATION = "\K[0-9.]+' src/lib/version.ts)
-          echo "Version compilée : $VERSION"
           CODE=$(echo "$VERSION" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')
+          echo "Version compilée : $VERSION (code $CODE)"
           sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" android/app/build.gradle
           sed -i "s/versionCode [0-9]*/versionCode $CODE/" android/app/build.gradle
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      # 9. Installer la clé de signature (secrets du dépôt)
+      # 9. Installer la clé de signature depuis les secrets du dépôt
       - name: Préparer la signature Release
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Aucune clé de signature trouvée. Lancez d'abord le workflow \"Créer la clé de signature\" puis enregistrez les 4 secrets ANDROID_*."
+            echo "::error::Clé de signature absente. Lancez d'abord le workflow 'Créer la clé de signature' puis enregistrez les 4 secrets ANDROID_*."
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/cle-signature.jks
-          cat >> android/app/build.gradle <<'EOF'
-
-// Signature Release ajoutée automatiquement par GitHub Actions.
-android {
-    signingConfigs {
-        release {
-            storeFile file("cle-signature.jks")
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
-        }
-    }
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-        }
-    }
-}
-EOF
+          cp signature-release.gradle android/app/signature-release.gradle
+          echo "apply from: 'signature-release.gradle'" >> android/app/build.gradle
 
       # 10. Compiler l'APK Release signé
       - name: Compiler l'APK Release
@@ -101,18 +83,15 @@ EOF
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      # 11. Préparer le fichier version.json de l'auto-updater
-      - name: Préparer version.json
+      # 11. Préparer l'APK et le fichier version.json de l'auto-updater
+      - name: Préparer les fichiers de publication
         run: |
           mkdir -p publication
           cp android/app/build/outputs/apk/release/app-release.apk "publication/super-app-$VERSION.apk"
-          cat > publication/version.json <<EOF
-          {
-            "version": "$VERSION",
-            "url": "https://github.com/${{ github.repository }}/releases/latest/download/super-app-$VERSION.apk",
-            "changelog": "Nouvelle version $VERSION de SUPER APP."
-          }
-          EOF
+          BASE="https://github.com/${{ github.repository }}/releases/latest/download"
+          printf '{\n  "version": "%s",\n  "url": "%s/super-app-%s.apk",\n  "changelog": "Nouvelle version %s de SUPER APP."\n}\n' \
+            "$VERSION" "$BASE" "$VERSION" "$VERSION" > publication/version.json
+          cat publication/version.json
 
       # 12. Rendre l'APK signé téléchargeable depuis la page du workflow
       - name: Publier l'APK en téléchargement
