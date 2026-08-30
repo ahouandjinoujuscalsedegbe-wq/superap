@@ -79,7 +79,7 @@ function AjouterRevenu() {
               <button
                 key={m}
                 type="button"
-                onClick={() => setMontant(String((Number(montant) || 0) + m))}
+                onClick={() => setMontant(String((Number(montant.replace(/[^\d]/g, "")) || 0) + m))}
                 className="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
               >
                 +{formatFCFA(m)}
