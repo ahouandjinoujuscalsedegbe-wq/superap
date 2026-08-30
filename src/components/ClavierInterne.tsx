@@ -528,6 +528,3 @@ function Touche({
     </button>
   );
 }
-
-  );
-}
