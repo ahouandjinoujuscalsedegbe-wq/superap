@@ -64,10 +64,13 @@ export function dateSure(v: unknown): string | null {
   // Sans ce contrôle, JavaScript « rattrape » des dates absurdes comme
   // "0001-13-45" au lieu de les refuser.
   if (!/^\d{4}-\d{2}-\d{2}([T ].*)?$/.test(v)) return null;
-  const [a, m, j] = v.slice(0, 10).split("-").map(Number);
+  const a = Number(v.slice(0, 4));
+  const m = Number(v.slice(5, 7));
+  const j = Number(v.slice(8, 10));
   if (m < 1 || m > 12 || j < 1 || j > 31) return null;
   const controle = new Date(Date.UTC(a, m - 1, j));
   if (controle.getUTCMonth() !== m - 1 || controle.getUTCDate() !== j) return null;
+
   const t = new Date(v).getTime();
   if (!Number.isFinite(t)) return null;
   // Bornes raisonnables : 1990 → 2100.
