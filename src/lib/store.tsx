@@ -292,12 +292,17 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             dotation: typeof x.dotation === "number" ? x.dotation : x.plafond,
           }));
           setEtat(charge);
+          // Migration immédiate : réécriture chiffrée des anciennes données en clair.
+          if (!estChiffre(window.localStorage.getItem(CLE) ?? "")) {
+            await ecrireSecurise(CLE, JSON.stringify(charge));
+          }
         }
       } catch {
         /* stockage indisponible */
       } finally {
         pret.current = true;
       }
+
     })();
     return () => {
       annule = true;
