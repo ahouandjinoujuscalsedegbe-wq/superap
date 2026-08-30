@@ -73,17 +73,17 @@ function Accueil() {
         <p className="text-sm text-muted-foreground">Solde disponible</p>
         <p className="mt-1 text-4xl font-bold tracking-tight text-primary">{formatFCFA(solde)}</p>
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-secondary/70 p-3">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ArrowUpRight className="h-4 w-4 text-success" aria-hidden /> Revenus
+          <div className="rounded-xl bg-success/15 p-3">
+            <span className="flex items-center gap-1.5 text-xs text-success/80">
+              <ArrowUpRight className="h-4 w-4" aria-hidden /> Revenus
             </span>
-            <p className="mt-1 font-semibold">{formatFCFA(totalRevenus)}</p>
+            <p className="mt-1 font-semibold text-success">{formatFCFA(totalRevenus)}</p>
           </div>
-          <div className="rounded-xl bg-secondary/70 p-3">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ArrowDownRight className="h-4 w-4 text-destructive" aria-hidden /> Dépenses
+          <div className="rounded-xl bg-destructive/15 p-3">
+            <span className="flex items-center gap-1.5 text-xs text-destructive/80">
+              <ArrowDownRight className="h-4 w-4" aria-hidden /> Dépenses
             </span>
-            <p className="mt-1 font-semibold">{formatFCFA(totalDepenses)}</p>
+            <p className="mt-1 font-semibold text-destructive">{formatFCFA(totalDepenses)}</p>
           </div>
         </div>
       </section>
