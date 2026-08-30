@@ -420,28 +420,28 @@ function SaisieIntelligente() {
             type="button"
             onClick={() => fichier.current?.click()}
             disabled={progression !== null}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-2.5 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
           >
             {progression !== null ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
             ) : (
-              <Camera className="h-4 w-4" aria-hidden />
+              <Camera className="h-3.5 w-3.5" aria-hidden />
             )}
             {progression !== null ? "Lecture…" : "Photos de tickets"}
           </button>
           <button
             type="button"
             onClick={basculerDictee}
-            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold ${
+            className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-semibold ${
               ecoute
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-secondary text-secondary-foreground"
             }`}
           >
             {ecoute ? (
-              <MicOff className="h-4 w-4" aria-hidden />
+              <MicOff className="h-3.5 w-3.5" aria-hidden />
             ) : (
-              <Mic className="h-4 w-4" aria-hidden />
+              <Mic className="h-3.5 w-3.5" aria-hidden />
             )}
             {ecoute ? "Arrêter" : "Dicter"}
           </button>
