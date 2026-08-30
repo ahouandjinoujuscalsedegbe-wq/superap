@@ -33,4 +33,4 @@ dist-ssr
 
 # Mobile build artifacts
 dist-mobile
-android
+/android
