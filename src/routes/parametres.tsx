@@ -4,6 +4,8 @@ import { useSuperApp } from "@/lib/store";
 import { SectionSecurite } from "@/components/SectionSecurite";
 import { SectionMiseAJour } from "@/components/SectionMiseAJour";
 import { SectionPurge } from "@/components/SectionPurge";
+import { SectionRestauration } from "@/components/SectionRestauration";
+import { JournalDonnees } from "@/components/JournalDonnees";
 
 export const Route = createFileRoute("/parametres")({
   head: () => ({
