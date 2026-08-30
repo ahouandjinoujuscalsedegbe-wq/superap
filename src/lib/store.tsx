@@ -27,7 +27,6 @@ import {
   texteSur,
 } from "./validation";
 
-
 export type Enveloppe = {
   id: string;
   nom: string;
@@ -375,8 +374,6 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 
-
-
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
     const propre = assainirTransaction({ ...t, id: crypto.randomUUID() });
     if (!propre) {
@@ -624,7 +621,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const ajouterBudget = useCallback((b: Omit<Budget, "id">) => {
     const propre = assainirBudget({ ...b, id: crypto.randomUUID() });
     if (!propre) {
-      journaliser("avertissement", "application", "Budget refusé : montant, période ou date invalide.");
+      journaliser(
+        "avertissement",
+        "application",
+        "Budget refusé : montant, période ou date invalide.",
+      );
       return;
     }
     setEtat((e) => ({ ...e, budgets: [propre, ...e.budgets] }));
@@ -724,7 +725,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const ajouterDette = useCallback(
     (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => {
       if (!montantValide(d.montantInitial) || !texteSur(d.personne)) {
-        journaliser("avertissement", "application", "Fiche refusée : montant ou personne invalide.");
+        journaliser(
+          "avertissement",
+          "application",
+          "Fiche refusée : montant ou personne invalide.",
+        );
         return;
       }
       setEtat((e) => {

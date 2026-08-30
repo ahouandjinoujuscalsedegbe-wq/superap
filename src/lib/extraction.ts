@@ -153,7 +153,8 @@ export function parseMontant(brut: string): number | null {
   } else {
     const decimales = nettoye.length - sep - 1;
     const groupes = nettoye.slice(0, sep).split(/[.,]/);
-    const separateurMillier = decimales === 3 && groupes.every((g, idx) => idx === 0 || g.length === 3);
+    const separateurMillier =
+      decimales === 3 && groupes.every((g, idx) => idx === 0 || g.length === 3);
     if (separateurMillier) {
       valeur = Number(nettoye.replace(/[.,]/g, ""));
     } else {
@@ -167,7 +168,9 @@ export function parseMontant(brut: string): number | null {
 
 /** Tous les nombres monétaires plausibles d'une ligne. */
 export function montantsDeLigne(ligne: string): number[] {
-  const sansDates = ligne.replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ").replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ");
+  const sansDates = ligne
+    .replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ")
+    .replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ");
   const trouves: number[] = [];
   const regex = /\d[\d\s.,]{0,15}\d|\d/g;
   let m: RegExpExecArray | null;
@@ -242,8 +245,7 @@ export function extraireMontant(texte: string): number | null {
   const normalise = sansAccents(texte);
   const structure = structurerTicket(texte);
 
-  const plausible = (v: number | null): v is number =>
-    v !== null && v >= 10 && v <= 100_000_000;
+  const plausible = (v: number | null): v is number => v !== null && v >= 10 && v <= 100_000_000;
 
   if (plausible(structure.totalAnnonce)) return structure.totalAnnonce;
 
@@ -267,7 +269,6 @@ export function extraireMontant(texte: string): number | null {
 
   return nombreDepuisMots(normalise);
 }
-
 
 /** Extrait une date du texte, sinon retourne la date du jour. */
 export function extraireDate(texte: string, aujourdHui = new Date()): string {

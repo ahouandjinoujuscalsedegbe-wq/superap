@@ -21,7 +21,8 @@ export function BottomNav() {
         {ONGLETS.map((onglet) => {
           const actif = onglet.to === "/" ? pathname === "/" : pathname.startsWith(onglet.to);
           const Icone = onglet.icone;
-          const tailleIcone = "tailleIcone" in onglet ? onglet.tailleIcone : "h-[1.3rem] w-[1.3rem]";
+          const tailleIcone =
+            "tailleIcone" in onglet ? onglet.tailleIcone : "h-[1.3rem] w-[1.3rem]";
           const estMilieu = "milieu" in onglet && onglet.milieu;
 
           if (estMilieu) {

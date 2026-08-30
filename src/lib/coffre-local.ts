@@ -119,9 +119,7 @@ export async function dechiffrerLocal(valeur: string): Promise<string | null> {
  *                 ne doit surtout rien réécrire par-dessus.
  */
 export type LectureCoffre =
-  | { statut: "vide" }
-  | { statut: "ok"; valeur: string }
-  | { statut: "illisible" };
+  { statut: "vide" } | { statut: "ok"; valeur: string } | { statut: "illisible" };
 
 /** Lit une valeur chiffrée en distinguant « rien » de « illisible ». */
 export async function lireSecuriseDetail(cle: string): Promise<LectureCoffre> {

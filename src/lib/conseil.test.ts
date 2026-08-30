@@ -2,8 +2,7 @@ import { describe, expect, it } from "vitest";
 import { conseiller, evaluerSante, planDAction } from "@/lib/conseil";
 import type { Dette, Enveloppe, Transaction } from "@/lib/store";
 
-const jourIso = (decalage: number) =>
-  new Date(Date.now() - decalage * 86_400_000).toISOString();
+const jourIso = (decalage: number) => new Date(Date.now() - decalage * 86_400_000).toISOString();
 
 const enveloppes: Enveloppe[] = [
   { id: "e1", nom: "ALIMENTATION", emoji: "🍚", plafond: 50000, dotation: 50000 },

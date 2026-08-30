@@ -104,7 +104,9 @@ export function estApplicationNative(): boolean {
 /** Téléchargement par le réseau natif Android (aucune restriction CORS). */
 async function telechargerNatif(
   cible: string,
-): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
   try {
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
@@ -125,7 +127,8 @@ async function telechargerNatif(
   } catch {
     return {
       etat: "hors-ligne",
-      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message:
+        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -156,12 +159,15 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
  * Télécharge le manifeste et le compare à la version installée.
  * Ne lève jamais d'exception : toutes les issues sont décrites dans le résultat.
  */
-export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Promise<ResultatVerification> {
+export async function verifierMiseAJour(
+  urlManifeste = lireUrlManifeste(),
+): Promise<ResultatVerification> {
   const adresse = urlManifeste.trim();
   if (!adresse) {
     return {
       etat: "erreur",
-      message: "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
+      message:
+        "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
     };
   }
   if (!estAdresseValide(adresse)) {
@@ -207,7 +213,8 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
     if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
       return {
         etat: "erreur",
-        message: "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
+        message:
+          "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
       };
     }
     memoriserVerification();

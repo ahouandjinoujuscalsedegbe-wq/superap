@@ -20,10 +20,10 @@ export function AlerteStockage() {
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
       <span>
-        <strong className="font-semibold">Données locales illisibles.</strong> Vos anciennes
-        données sont toujours sur le téléphone mais ne peuvent pas être ouvertes. Par sécurité,
-        l'application n'enregistre rien pour ne pas les effacer. Restaurez une sauvegarde depuis
-        la page Sauvegarde, ou contactez l'assistance avant de saisir quoi que ce soit.
+        <strong className="font-semibold">Données locales illisibles.</strong> Vos anciennes données
+        sont toujours sur le téléphone mais ne peuvent pas être ouvertes. Par sécurité,
+        l'application n'enregistre rien pour ne pas les effacer. Restaurez une sauvegarde depuis la
+        page Sauvegarde, ou contactez l'assistance avant de saisir quoi que ce soit.
       </span>
     </div>
   );

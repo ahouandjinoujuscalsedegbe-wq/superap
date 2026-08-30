@@ -143,7 +143,9 @@ function ComptesAccueil() {
                 >
                   <span className="flex min-w-0 items-center gap-1">
                     <Wallet className={`${style.icone} shrink-0 text-primary`} aria-hidden />
-                    <span className={`truncate font-semibold leading-none ${style.nom}`}>{l.compte}</span>
+                    <span className={`truncate font-semibold leading-none ${style.nom}`}>
+                      {l.compte}
+                    </span>
                   </span>
 
                   <div className="mt-1 space-y-0">

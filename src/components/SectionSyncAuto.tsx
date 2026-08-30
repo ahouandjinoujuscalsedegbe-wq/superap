@@ -105,8 +105,8 @@ export function SectionSyncAuto() {
         <span>
           La phrase secrète ne quitte jamais le téléphone : elle sert à chiffrer les données avant
           l'envoi. Sans elle, personne ne peut lire vos données. Saisissez exactement la même sur
-          les deux téléphones, avec au moins {PHRASE_MIN} caractères (une phrase entière est
-          idéale, par exemple « NOTRE MAISON DE COTONOU »).
+          les deux téléphones, avec au moins {PHRASE_MIN} caractères (une phrase entière est idéale,
+          par exemple « NOTRE MAISON DE COTONOU »).
         </span>
       </p>
 

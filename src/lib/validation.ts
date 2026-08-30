@@ -218,7 +218,10 @@ export function assainirDette(v: unknown): Dette | null {
 /** Nettoie une liste de noms de comptes (uniques, non vides, bornée). */
 export function assainirComptes(v: unknown): string[] {
   const brut = Array.isArray(v) ? v : [];
-  return Array.from(new Set(brut.map((c) => texteSur(c, 60)).filter((c) => c !== ""))).slice(0, 200);
+  return Array.from(new Set(brut.map((c) => texteSur(c, 60)).filter((c) => c !== ""))).slice(
+    0,
+    200,
+  );
 }
 
 /** Applique un assainisseur à une liste inconnue et retire les éléments invalides. */
