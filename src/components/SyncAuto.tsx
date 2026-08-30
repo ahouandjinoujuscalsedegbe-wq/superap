@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSuperApp } from "@/lib/store";
 import {
   deposer,
+  PHRASE_MIN,
   lireReglagesAuto,
   ecrireReglagesAuto,
   recevoir,
@@ -30,8 +31,13 @@ export function SyncAuto() {
     return () => window.removeEventListener(EVENEMENT_SYNC_AUTO, recharger);
   }, []);
 
-  const actif = reglages.actif && reglages.phrase.length >= 6 && reglages.appareil.length > 0;
-  const empreinte = actif ? JSON.stringify(etatComplet()) : "";
+  const actif =
+    reglages.actif && reglages.phrase.length >= PHRASE_MIN && reglages.appareil.length > 0;
+
+  // L'état ne change d'identité qu'à chaque modification réelle : l'empreinte
+  // n'est donc plus recalculée à chaque rendu (coûteux sur téléphone).
+  const etatActuel = etatComplet();
+  const empreinte = useMemo(() => (actif ? JSON.stringify(etatActuel) : ""), [actif, etatActuel]);
 
   // -------- Envoi automatique après chaque modification --------
   useEffect(() => {
@@ -70,7 +76,10 @@ export function SyncAuto() {
         if (resultat.curseur !== courant.curseur) {
           if (resultat.ajoutes > 0) {
             remplacerEtat(resultat.etat);
-            derniereEmpreinte.current = "";
+            // L'état fusionné ne doit PAS être redéposé : nos propres données
+            // ont déjà été envoyées, et redéposer relançait un aller-retour
+            // permanent entre les deux téléphones.
+            derniereEmpreinte.current = JSON.stringify(resultat.etat);
           }
           const suite = {
             ...courant,
