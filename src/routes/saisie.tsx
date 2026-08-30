@@ -548,6 +548,57 @@ function SaisieIntelligente() {
                   />
                 )}
 
+                {b.verdict && (
+                  <div
+                    className={`space-y-2 rounded-xl border px-3 py-2.5 text-xs ${
+                      b.verdict.verdict === "authentique"
+                        ? "border-primary/40 bg-accent/50 text-accent-foreground"
+                        : b.verdict.verdict === "a_verifier"
+                          ? "border-amber-500/50 bg-amber-500/10 text-foreground"
+                          : "border-destructive/50 bg-destructive/10 text-destructive"
+                    }`}
+                  >
+                    <p className="flex items-center gap-2 font-semibold">
+                      <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+                      {b.verdict.verdict === "authentique"
+                        ? "Ticket vérifié"
+                        : b.verdict.verdict === "a_verifier"
+                          ? "Ticket à contrôler"
+                          : "Ticket douteux"}{" "}
+                      — {b.verdict.score}/100
+                    </p>
+                    <p>{b.verdict.resume}</p>
+                    <ul className="space-y-1">
+                      {b.verdict.indices.slice(0, 5).map((ind) => (
+                        <li key={ind.code} className="flex items-start gap-1.5">
+                          <span aria-hidden>
+                            {ind.niveau === "alerte" ? "⛔" : ind.niveau === "attention" ? "⚠️" : "✅"}
+                          </span>
+                          <span>{ind.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {b.verdict.montantRecoupe !== null && (
+                      <p className="font-medium">
+                        Montant recoupé sur le total imprimé :{" "}
+                        {formatFCFA(b.verdict.montantRecoupe)}.
+                      </p>
+                    )}
+                    {b.verdict.blocageRecommande && (
+                      <label className="flex items-center gap-2 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(b.certifie)}
+                          onChange={(e) => majBrouillon(b.id, { certifie: e.target.checked })}
+                          className="h-4 w-4"
+                        />
+                        J'ai vérifié ce ticket, je l'enregistre quand même.
+                      </label>
+                    )}
+                  </div>
+                )}
+
+
                 {doublon && (
                   <p className="flex items-start gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive">
                     <CopyCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
