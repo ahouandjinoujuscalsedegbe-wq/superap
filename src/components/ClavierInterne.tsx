@@ -326,48 +326,119 @@ export function ClavierInterne() {
         </div>
 
         {mode === "numerique" ? (
-          <div className="grid grid-cols-3 gap-1.5">
-            {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
-              <Touche key={t} onClick={() => taper(t)} label={t} />
-            ))}
-            <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
-            <button
-              type="button"
-              {...proprietesAppui(valider)}
-              style={{ touchAction: "manipulation" }}
-              className="col-span-3 flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
-            >
-              <Check aria-hidden className="h-4 w-4" /> Valider
-            </button>
+          <div className="space-y-1.5">
+            {reglages.raccourcisMontants && (
+              <div className="flex gap-1">
+                {RACCOURCIS.map((r) => (
+                  <Touche
+                    key={r.label}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => (r.valeur ? ajouterMontant(r.valeur) : taperTexte(r.ajout!))}
+                    label={r.label}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-1.5">
+              {TOUCHES_NUM.filter((t) => t !== "." || decimale).map((t) => (
+                <Touche
+                  key={t}
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={() => taper(t)}
+                  label={t}
+                />
+              ))}
+              <Touche
+                taille={reglages.taille}
+                visuel={reglages.retourVisuel}
+                onClick={effacer}
+                onMaintien={demarrerEffacement}
+                onRelacher={arreterEffacement}
+                label={<Delete aria-hidden className="h-5 w-5" />}
+              />
+            </div>
+            <div className="flex gap-1.5">
+              {reglages.toucheToutEffacer && (
+                <Touche
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={toutEffacer}
+                  label={<Eraser aria-hidden className="h-4 w-4" />}
+                  petite
+                />
+              )}
+              <button
+                type="button"
+                {...proprietesAppui(valider)}
+                style={{ touchAction: "manipulation" }}
+                className="flex flex-[3] items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                <Check aria-hidden className="h-4 w-4" /> Valider
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-1.5">
-            <div className="flex justify-center gap-1">
-              {ACCENTS.map((t) => (
-                <Touche key={t} onClick={() => taper(t)} label={t} petite />
-              ))}
-            </div>
-            {LIGNES_TEXTE.map((ligne, i) => (
-              <div key={i} className="flex justify-center gap-1">
-                {i === 3 && (
+            {reglages.accents && (
+              <div className="flex justify-center gap-1">
+                {ACCENTS.map((t) => (
                   <Touche
+                    key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => taper(t)}
+                    label={t}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            {reglages.rangeeChiffres && (
+              <div className="flex justify-center gap-1">
+                {RANGEE_CHIFFRES.map((t) => (
+                  <Touche
+                    key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
+                    onClick={() => taperTexte(t)}
+                    label={t}
+                    petite
+                  />
+                ))}
+              </div>
+            )}
+            {DISPOSITIONS[reglages.disposition].map((ligne, i) => (
+              <div key={i} className="flex justify-center gap-1">
+                {i === 2 && (
+                  <Touche
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={() => setMajuscule((m) => !m)}
                     label={<ArrowBigUp aria-hidden className="h-4 w-4" />}
-                    actif={majuscule}
+                    actif={majuscule || reglages.majusculesAuto}
                     petite
                   />
                 )}
                 {ligne.map((t) => (
                   <Touche
                     key={t}
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={() => taper(t)}
-                    label={majuscule ? t.toUpperCase() : t}
+                    label={majuscule || reglages.majusculesAuto ? t.toUpperCase() : t}
                     petite
                   />
                 ))}
-                {i === 3 && (
+                {i === 2 && (
                   <Touche
+                    taille={reglages.taille}
+                    visuel={reglages.retourVisuel}
                     onClick={effacer}
+                    onMaintien={demarrerEffacement}
+                    onRelacher={arreterEffacement}
                     label={<Delete aria-hidden className="h-4 w-4" />}
                     petite
                   />
@@ -375,7 +446,22 @@ export function ClavierInterne() {
               </div>
             ))}
             <div className="flex gap-1.5">
-              <Touche onClick={() => taper(" ")} label="espace" pleine />
+              {reglages.toucheToutEffacer && (
+                <Touche
+                  taille={reglages.taille}
+                  visuel={reglages.retourVisuel}
+                  onClick={toutEffacer}
+                  label={<Eraser aria-hidden className="h-4 w-4" />}
+                  petite
+                />
+              )}
+              <Touche
+                taille={reglages.taille}
+                visuel={reglages.retourVisuel}
+                onClick={() => taperTexte(" ")}
+                label="espace"
+                pleine
+              />
               <button
                 type="button"
                 {...proprietesAppui(valider)}
@@ -395,28 +481,53 @@ export function ClavierInterne() {
 function Touche({
   label,
   onClick,
+  onMaintien,
+  onRelacher,
   petite,
   pleine,
   actif,
+  taille = "normale",
+  visuel = true,
 }: {
   label: React.ReactNode;
   onClick: () => void;
+  onMaintien?: () => void;
+  onRelacher?: () => void;
   petite?: boolean;
   pleine?: boolean;
   actif?: boolean;
+  taille?: Taille;
+  visuel?: boolean;
 }) {
+  const h = HAUTEURS[taille];
+  const maintien =
+    onMaintien && onRelacher
+      ? {
+          onTouchStart: onMaintien,
+          onTouchEnd: onRelacher,
+          onTouchCancel: onRelacher,
+          onPointerUp: onRelacher,
+          onPointerLeave: onRelacher,
+        }
+      : {};
   return (
     <button
       type="button"
       // Sur téléphone, on déclenche la touche dès l'appui : le WebView Android
       // n'envoie pas toujours l'événement « click » quand le focus reste au champ.
       {...proprietesAppui(onClick)}
+      {...maintien}
       style={{ touchAction: "manipulation" }}
-      className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors active:bg-primary/20 ${
-        actif ? "bg-primary/20" : "bg-secondary"
-      } ${pleine ? "flex-1 py-2.5 text-sm" : petite ? "min-w-8 flex-1 py-2.5 text-sm" : "py-3 text-base"}`}
+      className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors ${
+        visuel ? "active:scale-95 active:bg-primary/30" : ""
+      } ${actif ? "bg-primary/20" : "bg-secondary"} ${
+        pleine ? `flex-1 ${h.pleine}` : petite ? `min-w-8 flex-1 ${h.petite}` : h.large
+      }`}
     >
       {label}
     </button>
+  );
+}
+
   );
 }
