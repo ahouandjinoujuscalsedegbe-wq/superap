@@ -35,6 +35,7 @@ function Accueil() {
     dettes,
     enveloppes,
     depensesParEnveloppe,
+    nomUtilisateur,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
 
@@ -66,7 +67,9 @@ function Accueil() {
         />
         <div>
           <p className="text-sm text-muted-foreground">Bonjour 👋</p>
-          <h1 className="text-2xl font-bold tracking-tight">Budget du foyer</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Bienvenue{nomUtilisateur ? ` ${nomUtilisateur}` : ""}
+          </h1>
         </div>
       </header>
 

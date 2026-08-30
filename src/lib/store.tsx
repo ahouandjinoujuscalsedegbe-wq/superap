@@ -206,6 +206,7 @@ export type Etat = {
   budgets: Budget[];
   dettes: Dette[];
   transparence: number;
+  nomUtilisateur?: string;
 };
 
 const ETAT_INITIAL: Etat = {
@@ -217,6 +218,7 @@ const ETAT_INITIAL: Etat = {
   budgets: [],
   dettes: [],
   transparence: 85,
+  nomUtilisateur: "",
 };
 
 type Contexte = Etat & {
@@ -252,6 +254,7 @@ type Contexte = Etat & {
   ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
   definirTransparence: (v: number) => void;
+  definirNomUtilisateur: (nom: string) => void;
   remplacerEtat: (e: Partial<Etat>) => void;
   etatComplet: () => Etat;
   reinitialiser: () => void;
