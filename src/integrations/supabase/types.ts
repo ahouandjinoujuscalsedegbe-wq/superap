@@ -14,13 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coffre_sync: {
+        Row: {
+          appareil: string
+          contenu: string
+          cree_le: string
+          id: number
+          salon: string
+        }
+        Insert: {
+          appareil: string
+          contenu: string
+          cree_le?: string
+          id?: number
+          salon: string
+        }
+        Update: {
+          appareil?: string
+          contenu?: string
+          cree_le?: string
+          id?: number
+          salon?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      sync_lire: {
+        Args: { p_appareil: string; p_depuis: number; p_salon: string }
+        Returns: {
+          appareil: string
+          contenu: string
+          cree_le: string
+          id: number
+        }[]
+      }
+      sync_publier: {
+        Args: { p_appareil: string; p_contenu: string; p_salon: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
