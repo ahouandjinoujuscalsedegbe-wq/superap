@@ -36,8 +36,20 @@ export default defineConfig({
     target: ["es2017", "chrome80", "safari13"],
     outDir: "dist-mobile",
     emptyOutDir: true,
+    // Un seul fichier JavaScript d'un mégaoctet ralentit le démarrage de la
+    // WebView. On sépare les grosses bibliothèques du code de l'application :
+    // le navigateur les met en cache une fois pour toutes.
+    chunkSizeWarningLimit: 900,
     rollupOptions: {
       input: "mobile.html",
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          routeur: ["@tanstack/react-router"],
+          icones: ["lucide-react"],
+        },
+      },
     },
+
   },
 });
