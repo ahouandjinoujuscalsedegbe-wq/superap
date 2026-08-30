@@ -89,8 +89,8 @@ export function installerCompatibiliteMobile() {
   }
 
   // requestIdleCallback
-  const w = g as typeof globalThis & { requestIdleCallback?: unknown };
-  if (typeof w.requestIdleCallback !== "function") {
-    w.requestIdleCallback = ((cb: () => void) => setTimeout(cb, 1)) as unknown;
+  const w = g as unknown as Record<string, unknown>;
+  if (typeof w["requestIdleCallback"] !== "function") {
+    w["requestIdleCallback"] = (cb: () => void) => setTimeout(cb, 1);
   }
 }
