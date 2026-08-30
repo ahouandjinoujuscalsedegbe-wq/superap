@@ -68,7 +68,7 @@ export function MenuPrincipal() {
         aria-haspopup="menu"
         aria-expanded={ouvert}
         aria-controls="menu-principal"
-        className="surface fixed right-3 top-3 z-[60] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+        className="surface fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[60] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
       >
         {ouvert ? (
           <X className="h-5 w-5" aria-hidden />
@@ -91,7 +91,7 @@ export function MenuPrincipal() {
         role="menu"
         aria-label="Menu principal"
         aria-hidden={!ouvert}
-        className={`fixed right-0 top-0 z-50 flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+        className={`fixed right-0 top-0 z-50 flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -159,6 +159,11 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* Marge haute respectant la zone de statut (encoche, Dynamic Island, etc.). */
+@utility safe-area-top {
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+}
+
 @utility carte {
   background-color: color-mix(in oklab, var(--card) calc(var(--surface-alpha) * 100%), transparent);
   backdrop-filter: blur(14px);
