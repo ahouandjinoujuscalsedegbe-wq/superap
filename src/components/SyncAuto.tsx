@@ -18,7 +18,7 @@ const DELAI_LECTURE = 5000; // relève du coffre toutes les 5 s
  * et récupère celles de l'autre téléphone, sans aucune action manuelle.
  */
 export function SyncAuto() {
-  const { etatComplet, remplacerEtat, ...etat } = useSuperApp();
+  const { etatComplet, remplacerEtat } = useSuperApp();
   const [reglages, setReglages] = useState<ReglagesAuto>(() => lireReglagesAuto());
   const derniereEmpreinte = useRef<string>("");
   const occupe = useRef(false);
@@ -31,18 +31,17 @@ export function SyncAuto() {
   }, []);
 
   const actif = reglages.actif && reglages.phrase.length >= 6 && reglages.appareil.length > 0;
+  const empreinte = actif ? JSON.stringify(etatComplet()) : "";
 
   // -------- Envoi automatique après chaque modification --------
   useEffect(() => {
     if (!actif) return;
-    const courant = etatComplet();
-    const empreinte = JSON.stringify(courant);
-    if (empreinte === derniereEmpreinte.current) return;
+    if (!empreinte || empreinte === derniereEmpreinte.current) return;
     const minuteur = window.setTimeout(async () => {
       if (occupe.current) return;
       occupe.current = true;
       try {
-        await deposer(courant, reglages);
+        await deposer(JSON.parse(empreinte), lireReglagesAuto());
         derniereEmpreinte.current = empreinte;
         const suite = { ...lireReglagesAuto(), dernierEnvoi: new Date().toISOString() };
         ecrireReglagesAuto(suite);
@@ -55,7 +54,7 @@ export function SyncAuto() {
     }, DELAI_ENVOI);
     return () => window.clearTimeout(minuteur);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actif, reglages.phrase, reglages.appareil, etat]);
+  }, [actif, reglages.phrase, reglages.appareil, empreinte]);
 
   // -------- Réception automatique --------
   useEffect(() => {
