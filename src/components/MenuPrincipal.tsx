@@ -3,13 +3,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   MoreVertical,
   X,
-  Landmark,
   LineChart,
   Calculator,
   Settings,
   HelpCircle,
   HandCoins,
-  ScanText,
   Stethoscope,
   CalendarRange,
   ShieldCheck,
@@ -17,8 +15,6 @@ import {
 } from "lucide-react";
 
 const ENTREES = [
-  { to: "/saisie", label: "Saisie intelligente", icone: ScanText },
-  { to: "/comptes", label: "Comptes", icone: Landmark },
   { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
