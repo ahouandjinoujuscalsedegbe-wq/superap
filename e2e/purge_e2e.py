@@ -75,17 +75,17 @@ async def main() -> None:
         assert apres["caches"] == 0, "les caches doivent être vidés"
         assert not apres["cookies"], "les cookies doivent être supprimés"
 
-        texte = await page.inner_text('[data-test="purge-succes"]')
-        assert "Suppression réussie" in texte
-        for libelle in ("localStorage", "IndexedDB", "Caches", "Cookies", "Service workers"):
+        texte = (await page.inner_text('[data-test="purge-succes"]')).upper()
+        assert "SUPPRESSION R" in texte
+        for libelle in ("LOCALSTORAGE", "INDEXEDDB", "CACHES", "COOKIES", "SERVICE WORKERS"):
             assert libelle in texte, f"récapitulatif incomplet : {libelle}"
         assert await page.locator('[data-test="demarrer-a-zero"]').is_visible()
 
         # Le journal conserve une trace de la purge après rechargement.
         await page.click('[data-test="demarrer-a-zero"]')
         await page.wait_for_selector('[data-test="journal-donnees"]')
-        journal = await page.inner_text('[data-test="journal-donnees"]')
-        assert "Purge complète" in journal, "la purge doit apparaître dans le journal"
+        journal = (await page.inner_text('[data-test="journal-donnees"]')).upper()
+        assert "PURGE COMPL" in journal, "la purge doit apparaître dans le journal"
 
         print("OK — purge e2e validée")
         await navigateur.close()
