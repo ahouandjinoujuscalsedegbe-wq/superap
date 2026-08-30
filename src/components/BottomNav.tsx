@@ -6,7 +6,7 @@ const ONGLETS = [
   { to: "/enveloppes", label: "Enveloppes", icone: Wallet },
   { to: "/saisie", label: "Saisie intelligente", icone: Sparkles, milieu: true },
   { to: "/comptes", label: "Comptes", icone: Landmark },
-  { to: "/outils", label: "Outils et simulation", icone: Calculator },
+  { to: "/outils", label: "Outils et simulation", icone: Calculator, tailleIcone: "h-6 w-6" },
 ] as const;
 
 export function BottomNav() {
@@ -17,15 +17,16 @@ export function BottomNav() {
       aria-label="Navigation principale"
       className="surface fixed inset-x-0 bottom-0 z-50 border-t border-border pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto flex max-w-md items-end justify-between px-1 pb-2 pt-1">
+      <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 pb-2 pt-1">
         {ONGLETS.map((onglet) => {
           const actif = onglet.to === "/" ? pathname === "/" : pathname.startsWith(onglet.to);
           const Icone = onglet.icone;
+          const tailleIcone = "tailleIcone" in onglet ? onglet.tailleIcone : "h-[1.3rem] w-[1.3rem]";
           const estMilieu = "milieu" in onglet && onglet.milieu;
 
           if (estMilieu) {
             return (
-              <li key={onglet.to} className="flex flex-1 justify-center">
+              <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">
                 <Link
                   to={onglet.to}
                   aria-current={actif ? "page" : undefined}
@@ -55,7 +56,7 @@ export function BottomNav() {
                     />
                   </span>
                   <span
-                    className={`mt-1.5 max-w-[4.5rem] text-center text-[0.6rem] leading-none transition-all duration-300 ${
+                    className={`mt-1.5 h-6 max-w-[4.5rem] overflow-hidden text-center text-[0.6rem] leading-3 transition-all duration-300 ${
                       actif ? "texte-degrade font-semibold" : "text-muted-foreground"
                     }`}
                   >
@@ -67,7 +68,7 @@ export function BottomNav() {
           }
 
           return (
-            <li key={onglet.to} className="flex-1">
+            <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">
               <Link
                 to={onglet.to}
                 aria-current={actif ? "page" : undefined}
@@ -88,7 +89,7 @@ export function BottomNav() {
                     />
                   )}
                   <Icone
-                    className={`relative h-[1.3rem] w-[1.3rem] transition-transform duration-300 ${
+                    className={`relative ${tailleIcone} transition-transform duration-300 ${
                       actif ? "scale-110" : "group-active:scale-95"
                     }`}
                     strokeWidth={actif ? 2.4 : 1.9}
@@ -96,7 +97,7 @@ export function BottomNav() {
                   />
                 </span>
                 <span
-                  className={`max-w-[4rem] text-center text-[0.65rem] leading-none transition-all duration-300 ${
+                  className={`h-6 max-w-[4rem] overflow-hidden text-center text-[0.65rem] leading-3 transition-all duration-300 ${
                     actif ? "texte-degrade font-semibold" : "text-muted-foreground"
                   }`}
                 >
