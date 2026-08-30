@@ -93,8 +93,7 @@ function estAdresseValide(url: string): boolean {
 /** Vrai lorsque le code tourne dans l'application Android (Capacitor). */
 export function estApplicationNative(): boolean {
   if (typeof window === "undefined") return false;
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
-    .Capacitor;
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   try {
     return Boolean(cap?.isNativePlatform?.());
   } catch {
@@ -128,7 +127,8 @@ async function telechargerNatif(
   } catch {
     return {
       etat: "hors-ligne",
-      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message:
+        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -154,8 +154,6 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
   }
   return { etat: "a-jour", version: VERSION_APPLICATION };
 }
-
-
 
 /**
  * Télécharge le manifeste et le compare à la version installée.
@@ -195,7 +193,6 @@ export async function verifierMiseAJour(
     const natif = await telechargerNatif(cible);
     if (natif.etat !== "ok") return { etat: natif.etat, message: natif.message };
     return interpreterManifeste(natif.donnees);
-
   }
 
   const controleur = new AbortController();
