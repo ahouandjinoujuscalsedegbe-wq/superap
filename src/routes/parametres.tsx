@@ -126,6 +126,10 @@ function Parametres() {
         </button>
       </section>
 
+      <SectionRestauration />
+
+      <JournalDonnees />
+
       <SectionPurge />
     </div>
   );
