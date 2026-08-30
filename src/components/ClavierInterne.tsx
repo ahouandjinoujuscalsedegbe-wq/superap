@@ -88,11 +88,13 @@ function proprietesAppui(action: () => void) {
   const declencher = (event: { cancelable?: boolean; preventDefault: () => void }) => {
     if (event.cancelable !== false) event.preventDefault();
     dernierAppui = Date.now();
+    retourTouche();
     action();
   };
   const repliClic = () => {
     // Si un appui vient déjà d'être traité, on ignore le clic de synthèse.
     if (Date.now() - dernierAppui < 500) return;
+    retourTouche();
     action();
   };
   return SUPPORTE_POINTER
@@ -101,6 +103,7 @@ function proprietesAppui(action: () => void) {
 }
 
 export function ClavierInterne() {
+  const reglages = useReglagesClavier();
   const [ouvert, setOuvert] = useState(false);
   const [mode, setMode] = useState<Mode>("texte");
   const [majuscule, setMajuscule] = useState(false);
@@ -108,6 +111,7 @@ export function ClavierInterne() {
   const [numeriqueForce, setNumeriqueForce] = useState(false);
   const champRef = useRef<Champ | null>(null);
   const clavierRef = useRef<HTMLDivElement | null>(null);
+  const repetition = useRef<{ debut: number; boucle: number } | null>(null);
 
   const fermer = useCallback(() => {
     setOuvert(false);
@@ -177,6 +181,7 @@ export function ClavierInterne() {
       const cible = ev.target as Element | null;
       if (!estChampTexte(cible)) return;
       if (cible.dataset["clavier"] === "off" || cible.readOnly || cible.disabled) return;
+      if (!reglages.actif) return;
 
       champRef.current = cible;
       const modeOrigine =
@@ -192,7 +197,7 @@ export function ClavierInterne() {
       setDecimale((cible as HTMLInputElement).type === "number" || modeOrigine === "decimal");
       setMode(numerique ? "numerique" : "texte");
       setNumeriqueForce(numerique);
-      setMajuscule(false);
+      setMajuscule(reglages.majusculesAuto);
       setOuvert(true);
     };
     const onFocusOut = (ev: FocusEvent) => {
@@ -209,7 +214,12 @@ export function ClavierInterne() {
       document.removeEventListener("focusin", onFocus);
       document.removeEventListener("focusout", onFocusOut);
     };
-  }, [fermer]);
+  }, [fermer, reglages.actif]);
+
+  // Le clavier interne se referme si l'utilisateur le désactive dans les réglages.
+  useEffect(() => {
+    if (!reglages.actif && ouvert) fermer();
+  }, [reglages.actif, ouvert, fermer]);
 
   const taper = (touche: string) => {
     const champ = champRef.current;
@@ -223,11 +233,11 @@ export function ClavierInterne() {
       } else if (!/^\d$/.test(ajout)) {
         return;
       }
-    } else {
+    } else if (reglages.majusculesAuto || majuscule) {
       ajout = ajout.toLocaleUpperCase("fr-FR");
     }
     ecrire(champ, valeur + ajout);
-    if (majuscule) setMajuscule(false);
+    if (majuscule && !reglages.majusculesAuto) setMajuscule(false);
   };
 
   const effacer = () => {
@@ -236,10 +246,44 @@ export function ClavierInterne() {
     ecrire(champ, (champ.value ?? "").slice(0, -1));
   };
 
+  /** Efface tout le contenu du champ actif. */
+  const toutEffacer = () => {
+    const champ = champRef.current;
+    if (champ) ecrire(champ, "");
+  };
+
+  /** Ajoute un montant rapide (+1 000, +5 000…) au champ numérique. */
+  const ajouterMontant = (valeur: number) => {
+    const champ = champRef.current;
+    if (!champ) return;
+    const actuel = Number.parseFloat((champ.value ?? "").replace(/[^\d.]/g, "")) || 0;
+    ecrire(champ, String(actuel + valeur));
+  };
+
+  /** Effacement continu tant que la touche « supprimer » reste enfoncée. */
+  const demarrerEffacement = () => {
+    if (!reglages.effacementContinu || repetition.current) return;
+    const boucle = window.setInterval(() => {
+      const champ = champRef.current;
+      if (!champ || !champ.value) return;
+      retourTouche();
+      ecrire(champ, champ.value.slice(0, -1));
+    }, 90);
+    repetition.current = { debut: Date.now(), boucle };
+  };
+  const arreterEffacement = useCallback(() => {
+    if (repetition.current) {
+      window.clearInterval(repetition.current.boucle);
+      repetition.current = null;
+    }
+  }, []);
+
+  useEffect(() => arreterEffacement, [arreterEffacement]);
+
   const valider = () => {
     const champ = champRef.current;
     champ?.blur();
-    fermer();
+    if (!reglages.resterOuvert) fermer();
   };
 
   if (!ouvert) return null;
