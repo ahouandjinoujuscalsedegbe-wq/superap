@@ -53,6 +53,61 @@ jobs:
           if [ ! -d android ]; then bunx cap add android; fi
           bunx cap sync android
 
+      # 7b. Configurer les permissions Android pour l'installateur d'APK
+      - name: Configurer les permissions de mise à jour
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          cat > android/app/src/main/res/xml/file_paths.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+              <cache-path name="cache" path="." />
+              <files-path name="files" path="." />
+              <external-path name="external" path="." />
+          </paths>
+          EOF
+
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          contenu = manifest.read_text(encoding="utf-8")
+
+          permissions = [
+              '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />',
+              '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
+              '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
+          ]
+          for perm in permissions:
+              if perm not in contenu:
+                  contenu = contenu.replace("<application", perm + "\n\n    <application", 1)
+
+          if "requestLegacyExternalStorage" not in contenu:
+              contenu = re.sub(
+                  r'<application\b([^>]*)>',
+                  lambda m: f'<application{m.group(1)} android:requestLegacyExternalStorage="true">',
+                  contenu,
+                  count=1,
+              )
+
+          if "androidx.core.content.FileProvider" not in contenu:
+              provider = '''
+              <provider
+                  android:name="androidx.core.content.FileProvider"
+                  android:authorities="${applicationId}.fileprovider"
+                  android:exported="false"
+                  android:grantUriPermissions="true">
+                  <meta-data
+                      android:name="android.support.FILE_PROVIDER_PATHS"
+                      android:resource="@xml/file_paths" />
+              </provider>
+          '''
+              contenu = contenu.replace("</application>", provider + "\n        </application>", 1)
+
+          manifest.write_text(contenu, encoding="utf-8")
+          print("AndroidManifest.xml configuré pour l'auto-update.")
+          PY
+
       # 8. Reprendre le numéro de version depuis src/lib/version.ts
       - name: Appliquer le numéro de version
         run: |
