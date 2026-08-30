@@ -65,43 +65,55 @@ export function ClavierInterne() {
     const champ = champRef.current;
     if (!champ) return;
 
-    const rendreVisible = (fluide = true) => {
+    let animation = 0;
+    let dernierPadding = "";
+
+    const rendreVisible = () => {
       const clavier = clavierRef.current;
       const hauteurClavier = clavier ? clavier.getBoundingClientRect().height : 0;
-      document.body.style.paddingBottom = `${hauteurClavier + 16}px`;
+      const padding = `${Math.round(hauteurClavier) + 16}px`;
+      // On n'écrit le style que s'il change réellement : sinon le
+      // redimensionnement se redéclenche en boucle et fige l'application.
+      if (padding !== dernierPadding) {
+        dernierPadding = padding;
+        document.body.style.paddingBottom = padding;
+      }
 
       const rect = champ.getBoundingClientRect();
       const limiteVisible = window.innerHeight - hauteurClavier - 12;
-      if (rect.bottom > limiteVisible || rect.top < 0) {
+      if (rect.bottom > limiteVisible + 2 || rect.top < -2) {
         const decalage = rect.bottom - limiteVisible;
-        window.scrollBy({
-          top: Math.max(decalage, rect.top - 12),
-          behavior: fluide ? "smooth" : "auto",
-        });
+        window.scrollBy({ top: Math.max(decalage, rect.top - 12), behavior: "auto" });
       }
     };
 
-    // Suivi pendant la saisie : à chaque frappe, le champ actif reste
-    // visible au-dessus du clavier, même si la ligne de saisie se déplace.
-    const surSaisie = (ev: Event) => {
-      if (ev.target === champRef.current) rendreVisible(false);
+    // Une seule mise à jour par image : évite toute boucle infinie.
+    const planifier = () => {
+      if (animation) return;
+      animation = window.requestAnimationFrame(() => {
+        animation = 0;
+        rendreVisible();
+      });
     };
 
-    const t1 = window.setTimeout(rendreVisible, 60);
-    const t2 = window.setTimeout(rendreVisible, 250);
-    const surRedimensionnement = () => rendreVisible();
-    window.addEventListener("resize", surRedimensionnement);
+    const surSaisie = (ev: Event) => {
+      if (ev.target === champRef.current) planifier();
+    };
+
+    const t1 = window.setTimeout(planifier, 60);
+    const t2 = window.setTimeout(planifier, 250);
+    window.addEventListener("resize", planifier);
     document.addEventListener("input", surSaisie, true);
-    document.addEventListener("focusin", surSaisie, true);
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
-      window.removeEventListener("resize", surRedimensionnement);
+      if (animation) window.cancelAnimationFrame(animation);
+      window.removeEventListener("resize", planifier);
       document.removeEventListener("input", surSaisie, true);
-      document.removeEventListener("focusin", surSaisie, true);
       document.body.style.paddingBottom = "";
     };
   }, [ouvert, mode]);
+
 
   useEffect(() => {
     const onFocus = (ev: FocusEvent) => {
@@ -180,7 +192,7 @@ export function ClavierInterne() {
     <div
       ref={clavierRef}
       data-clavier-interne
-      onMouseDown={(e) => e.preventDefault()}
+      onPointerDown={(e) => e.preventDefault()}
       className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/98 p-2 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] backdrop-blur"
       role="group"
       aria-label="Clavier interne de l'application"
@@ -194,7 +206,10 @@ export function ClavierInterne() {
             {!numeriqueForce && (
               <button
                 type="button"
-                onClick={() => setMode(mode === "texte" ? "numerique" : "texte")}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  setMode(mode === "texte" ? "numerique" : "texte");
+                }}
                 className="rounded-md bg-secondary px-2 py-1 text-[11px] font-semibold"
               >
                 {mode === "texte" ? "123" : "ABC"}
@@ -202,7 +217,10 @@ export function ClavierInterne() {
             )}
             <button
               type="button"
-              onClick={valider}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                valider();
+              }}
               aria-label="Fermer le clavier"
               className="rounded-md bg-secondary p-1"
             >
@@ -219,7 +237,10 @@ export function ClavierInterne() {
             <Touche onClick={effacer} label={<Delete aria-hidden className="h-5 w-5" />} />
             <button
               type="button"
-              onClick={valider}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                valider();
+              }}
               className="col-span-3 flex items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
             >
               <Check aria-hidden className="h-4 w-4" /> Valider
@@ -263,7 +284,10 @@ export function ClavierInterne() {
               <Touche onClick={() => taper(" ")} label="espace" pleine />
               <button
                 type="button"
-                onClick={valider}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  valider();
+                }}
                 className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
               >
                 <Check aria-hidden className="h-4 w-4" /> OK
@@ -292,8 +316,14 @@ function Touche({
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={`flex items-center justify-center rounded-lg border border-border/60 font-medium transition-colors active:bg-primary/20 ${
+      // Sur téléphone, on déclenche la touche dès l'appui : le WebView Android
+      // n'envoie pas toujours l'événement « click » quand le focus reste au champ.
+      onPointerDown={(event) => {
+        event.preventDefault();
+        onClick();
+      }}
+      style={{ touchAction: "manipulation" }}
+      className={`flex select-none items-center justify-center rounded-lg border border-border/60 font-medium transition-colors active:bg-primary/20 ${
         actif ? "bg-primary/20" : "bg-secondary"
       } ${pleine ? "flex-1 py-2.5 text-sm" : petite ? "min-w-8 flex-1 py-2.5 text-sm" : "py-3 text-base"}`}
     >

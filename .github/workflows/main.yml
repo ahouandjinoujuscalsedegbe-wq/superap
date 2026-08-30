@@ -27,9 +27,7 @@ jobs:
 
       # 4. Construire la version web mobile (fichiers statiques)
       - name: Construire l'application web mobile
-        run: |
-          bunx vite build --config vite.mobile.config.ts
-          cp dist-mobile/mobile.html dist-mobile/index.html
+        run: bunx vite build --config vite.mobile.config.ts
 
       # 5. Créer le projet Android natif et y copier l'application
       - name: Préparer la coque Android (Capacitor)
