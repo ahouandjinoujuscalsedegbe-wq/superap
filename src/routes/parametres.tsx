@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { SectionSecurite } from "@/components/SectionSecurite";
+import { SectionMiseAJour } from "@/components/SectionMiseAJour";
 
 export const Route = createFileRoute("/parametres")({
   head: () => ({
@@ -102,6 +103,8 @@ function Parametres() {
       </section>
 
       <SectionSecurite />
+
+      <SectionMiseAJour />
 
       <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Devise et langue</h2>
