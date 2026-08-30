@@ -413,7 +413,7 @@ export async function installerMiseAJour(
   const telechargement = await telechargerAPKNatif(url, surEtape);
   if (!telechargement.ok) return telechargement;
 
-  const installation = await installerAPKDepuisCache(telechargement.donnees, surEtape);
+  const installation = await installerAPKDepuisCache(telechargement.base64, surEtape);
   if (!installation.ok) return installation;
 
   surEtape?.({ etape: "termine", message: "Installateur Android lancé." });
