@@ -59,11 +59,29 @@ function Transferts() {
   }, [popupOuvert]);
 
   function ouvrirPopup() {
+    if (comptes.length < 2) {
+      setErreur("Créez au moins deux comptes avant d'effectuer un transfert.");
+      return;
+    }
     setSource(comptes[0] ?? "");
     setDestination(comptes[1] ?? "");
     setMontant("");
     setNote("");
     setPopupOuvert(true);
+  }
+
+  function choisirSource(valeur: string) {
+    setSource(valeur);
+    if (valeur === destination) {
+      setDestination(comptes.find((c) => c !== valeur) ?? "");
+    }
+  }
+
+  function choisirDestination(valeur: string) {
+    setDestination(valeur);
+    if (valeur === source) {
+      setSource(comptes.find((c) => c !== valeur) ?? "");
+    }
   }
 
   function envoyer(ev: React.FormEvent) {
