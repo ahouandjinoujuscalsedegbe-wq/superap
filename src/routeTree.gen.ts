@@ -34,6 +34,7 @@ import { Route as ComptesActionRouteImport } from './routes/comptes.action'
 import { Route as ComptesTransfertsRouteImport } from './routes/comptes.transferts'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
+import { Route as EnveloppesBudgetMensuelRouteImport } from './routes/enveloppes.budget-mensuel'
 import { Route as EnveloppesBudgetisationRouteImport } from './routes/enveloppes.budgetisation'
 import { Route as EnveloppesCategoriesRouteImport } from './routes/enveloppes.categories'
 import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.chronologie'
@@ -178,6 +179,11 @@ const EnveloppesActionRoute = EnveloppesActionRouteImport.update({
   path: '/action',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const EnveloppesBudgetMensuelRoute = EnveloppesBudgetMensuelRouteImport.update({
+  id: '/budget-mensuel',
+  path: '/budget-mensuel',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
 const EnveloppesBudgetisationRoute = EnveloppesBudgetisationRouteImport.update({
   id: '/budgetisation',
   path: '/budgetisation',
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
+  '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
+  '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
@@ -382,6 +390,7 @@ export interface FileRoutesById {
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
+  '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
   '/enveloppes/chronologie': typeof EnveloppesChronologieRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/comptes/action'
     | '/comptes/transferts'
     | '/enveloppes/action'
+    | '/enveloppes/budget-mensuel'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
     | '/enveloppes/chronologie'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/comptes/action'
     | '/enveloppes/action'
+    | '/enveloppes/budget-mensuel'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
     | '/enveloppes/chronologie'
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/comptes/action'
     | '/comptes/transferts'
     | '/enveloppes/action'
+    | '/enveloppes/budget-mensuel'
     | '/enveloppes/budgetisation'
     | '/enveloppes/categories'
     | '/enveloppes/chronologie'
@@ -736,6 +748,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesActionRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/enveloppes/budget-mensuel': {
+      id: '/enveloppes/budget-mensuel'
+      path: '/budget-mensuel'
+      fullPath: '/enveloppes/budget-mensuel'
+      preLoaderRoute: typeof EnveloppesBudgetMensuelRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
     '/enveloppes/budgetisation': {
       id: '/enveloppes/budgetisation'
       path: '/budgetisation'
@@ -897,6 +916,7 @@ const ComptesRouteWithChildren =
 
 interface EnveloppesRouteChildren {
   EnveloppesActionRoute: typeof EnveloppesActionRoute
+  EnveloppesBudgetMensuelRoute: typeof EnveloppesBudgetMensuelRoute
   EnveloppesBudgetisationRoute: typeof EnveloppesBudgetisationRoute
   EnveloppesCategoriesRoute: typeof EnveloppesCategoriesRoute
   EnveloppesChronologieRoute: typeof EnveloppesChronologieRoute
@@ -911,6 +931,7 @@ interface EnveloppesRouteChildren {
 
 const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesActionRoute: EnveloppesActionRoute,
+  EnveloppesBudgetMensuelRoute: EnveloppesBudgetMensuelRoute,
   EnveloppesBudgetisationRoute: EnveloppesBudgetisationRoute,
   EnveloppesCategoriesRoute: EnveloppesCategoriesRoute,
   EnveloppesChronologieRoute: EnveloppesChronologieRoute,
