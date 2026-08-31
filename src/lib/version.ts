@@ -476,6 +476,7 @@ async function verifierIntegrite(
 async function telechargerAPKNatif(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
+  integrite?: Integrite,
 ): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
   try {
     surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
