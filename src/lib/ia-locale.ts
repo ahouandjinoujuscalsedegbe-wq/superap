@@ -36,12 +36,90 @@ export type ModeleBayes = {
   /** Vocabulaire total observé. */
   vocabulaire: number;
   total: number;
+  /** Vocabulaire réel (pour rattraper les mots mal entendus par la dictée). */
+  motsConnus?: string[];
 };
 
 const MOTS_VIDES = new Set([
   "le","la","les","de","des","du","un","une","et","a","au","aux","pour","en","sur","dans","par",
   "avec","chez","mon","ma","mes","ce","cette","fcfa","francs","cfa","achat","paiement",
+  "jai","j'ai","cest","ete","fait","pris","donne","cette","celui","hier","aujourdhui","matin",
+  "soir","francais","franc",
 ]);
+
+/**
+ * Synonymes du français parlé d'Afrique de l'Ouest (Bénin, Togo, Côte d'Ivoire…)
+ * et variantes courantes de dictée, ramenés à un mot canonique connu du modèle.
+ */
+const SYNONYMES: Record<string, string> = {
+  zem: "taxi", zemidjan: "taxi", zemidjean: "taxi", zemidja: "taxi", kekeno: "taxi",
+  keke: "taxi", moto: "taxi", taximoto: "taxi", tricycle: "taxi", gbaka: "transport",
+  woro: "transport", tro: "transport", bus: "transport", car: "transport",
+  essence: "carburant", gasoil: "carburant", kpayo: "carburant", petrole: "carburant",
+  bonbon: "nourriture", garba: "nourriture", attieke: "nourriture", akassa: "nourriture",
+  amiwo: "nourriture", pate: "nourriture", riz: "nourriture", igname: "nourriture",
+  gari: "nourriture", maggi: "nourriture", condiment: "nourriture", marche: "nourriture",
+  cantine: "nourriture", restaurant: "nourriture", maquis: "nourriture", buvette: "loisirs",
+  tchoukoutou: "loisirs", sodabi: "loisirs", biere: "loisirs", cinema: "loisirs",
+  credit: "communication", forfait: "communication", unite: "communication",
+  recharge: "communication", airtime: "communication", momo: "communication",
+  mtn: "communication", moov: "communication", celtiis: "communication",
+  wifi: "communication", internet: "communication", data: "communication",
+  courant: "electricite", sbee: "electricite", cie: "electricite", ampoule: "electricite",
+  soneb: "eau", bidon: "eau", pharmacie: "sante", medicament: "sante", clinique: "sante",
+  hopital: "sante", consultation: "sante", ecolage: "scolarite", scolarite: "scolarite",
+  ecole: "scolarite", cahier: "scolarite", fourniture: "scolarite", inscription: "scolarite",
+  loyer: "logement", bailleur: "logement", maison: "logement",
+  tontine: "epargne", njangi: "epargne", cotisation: "epargne",
+};
+
+/**
+ * Code phonétique français simplifié : deux mots qui « sonnent » pareil
+ * (ph/f, ss/c/s, au/o, ez/é, doublons, lettres muettes finales) donnent la
+ * même clé. Cela rattrape les variations de prononciation de la dictée.
+ */
+export function clePhonetique(mot: string): string {
+  let s = mot;
+  s = s.replace(/(.)\1+/g, "$1");
+  s = s
+    .replace(/ph/g, "f")
+    .replace(/qu|q|ck|k/g, "k")
+    .replace(/ch|sh/g, "x")
+    .replace(/gu(?=[eiy])/g, "g")
+    .replace(/g(?=[eiy])/g, "j")
+    .replace(/c(?=[eiy])/g, "s")
+    .replace(/c/g, "k")
+    .replace(/(ai|ei|e[iy])/g, "e")
+    .replace(/(au|eau|o)/g, "o")
+    .replace(/(ou|w)/g, "u")
+    .replace(/(in|im|ain|ein|un)/g, "1")
+    .replace(/(an|am|en|em)/g, "2")
+    .replace(/(on|om)/g, "3")
+    .replace(/z/g, "s")
+    .replace(/y/g, "i")
+    .replace(/h/g, "");
+  s = s.replace(/[edtsxz]+$/g, "");
+  s = s.replace(/(.)\1+/g, "$1");
+  return s || mot;
+}
+
+/** Distance de Levenshtein bornée, pour rattraper une syllabe mal entendue. */
+function distance(a: string, b: string): number {
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  let precedent = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i += 1) {
+    const courant = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      courant[j] = Math.min(
+        (precedent[j] ?? 0) + 1,
+        (courant[j - 1] ?? 0) + 1,
+        (precedent[j - 1] ?? 0) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    precedent = courant;
+  }
+  return precedent[b.length] ?? 9;
+}
 
 /** Découpe un libellé en mots utiles (minuscules, sans accents ni mots vides). */
 export function jetons(texte: string): string[] {
@@ -53,14 +131,40 @@ export function jetons(texte: string): string[] {
     .filter((m) => m.length > 2 && !MOTS_VIDES.has(m) && !/^\d+$/.test(m));
 }
 
+/**
+ * Caractéristiques d'un libellé : chaque mot utile produit sa forme canonique
+ * (synonyme francophone éventuel) plus sa clé phonétique. Le modèle apprend et
+ * prédit sur ces deux niveaux, ce qui le rend tolérant à la prononciation.
+ */
+export function caracteristiques(texte: string, motsConnus?: string[]): string[] {
+  const sortie: string[] = [];
+  for (const brut of jetons(texte)) {
+    let mot = SYNONYMES[brut] ?? brut;
+    if (motsConnus && motsConnus.length > 0 && !motsConnus.includes(mot)) {
+      // Mot inconnu : on cherche le plus proche du vocabulaire appris.
+      const cle = clePhonetique(mot);
+      const proche =
+        motsConnus.find((m) => clePhonetique(m) === cle) ??
+        motsConnus
+          .map((m) => ({ m, d: distance(mot, m) }))
+          .filter((c) => c.d <= (mot.length > 6 ? 2 : 1))
+          .sort((a, b) => a.d - b.d)[0]?.m;
+      if (proche) mot = proche;
+    }
+    sortie.push(mot, `~${clePhonetique(mot)}`);
+  }
+  return sortie;
+}
+
 /** Entraîne le classifieur sur l'historique des dépenses (quelques millisecondes). */
 export function entrainerBayes(transactions: Transaction[]): ModeleBayes {
   const modele: ModeleBayes = { classes: {}, mots: {}, vocabulaire: 0, total: 0 };
   const vocabulaire = new Set<string>();
+  const reels = new Set<string>();
 
   for (const t of transactions) {
     if (t.type !== "depense" || !t.categorie) continue;
-    const mots = jetons(t.libelle);
+    const mots = caracteristiques(t.libelle);
     if (mots.length === 0) continue;
     modele.classes[t.categorie] = (modele.classes[t.categorie] ?? 0) + 1;
     modele.total += 1;
@@ -68,10 +172,12 @@ export function entrainerBayes(transactions: Transaction[]): ModeleBayes {
     for (const m of mots) {
       table[m] = (table[m] ?? 0) + 1;
       vocabulaire.add(m);
+      if (!m.startsWith("~")) reels.add(m);
     }
   }
 
   modele.vocabulaire = vocabulaire.size;
+  modele.motsConnus = [...reels];
   return modele;
 }
 
@@ -85,7 +191,7 @@ export function predireEnveloppe(
   libelle: string,
   modele: ModeleBayes,
 ): PredictionBayes | undefined {
-  const mots = jetons(libelle);
+  const mots = caracteristiques(libelle, modele.motsConnus);
   if (mots.length === 0 || modele.total === 0) return undefined;
 
   const scores: { enveloppe: string; log: number }[] = [];
@@ -108,6 +214,7 @@ export function predireEnveloppe(
     enveloppe: scores[0]!.enveloppe,
     confiance: somme > 0 ? (exponentielles[0] ?? 0) / somme : 0,
   };
+
 }
 
 // ═════════════════════════ 2. Prévision de trésorerie ═════════════════════════
