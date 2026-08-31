@@ -38,6 +38,7 @@ export function SectionMiseAJour() {
     setEnCours(true);
     setMessage(null);
     enregistrerUrlManifeste(url);
+    enregistrerTokenGithub(token);
     const resultat: ResultatVerification = await verifierMiseAJour(url);
     setEnCours(false);
     setDerniere(lireDerniereVerification());
@@ -107,22 +108,45 @@ export function SectionMiseAJour() {
       </button>
 
       {avance && (
-        <>
-          <label htmlFor="maj-url" className="block text-xs font-semibold text-muted-foreground">
-            Adresse du fichier version.json
-          </label>
-          <input
-            id="maj-url"
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onBlur={() => enregistrerUrlManifeste(url)}
-            data-majuscules="non"
-            data-clavier="off"
-            placeholder="https://exemple.com/version.json"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-          />
-        </>
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="maj-url" className="block text-xs font-semibold text-muted-foreground">
+              Adresse du fichier version.json
+            </label>
+            <input
+              id="maj-url"
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onBlur={() => enregistrerUrlManifeste(url)}
+              data-majuscules="non"
+              data-clavier="off"
+              placeholder="https://exemple.com/version.json"
+              className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="maj-token" className="block text-xs font-semibold text-muted-foreground">
+              Jeton d'accès GitHub (dépôt privé)
+            </label>
+            <input
+              id="maj-token"
+              type="password"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              onBlur={() => enregistrerTokenGithub(token)}
+              data-majuscules="non"
+              data-clavier="off"
+              placeholder="github_pat_…"
+              autoComplete="off"
+              className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Nécessaire uniquement si le dépôt GitHub est privé : un jeton « lecture seule » permet
+              à l'application de télécharger les nouvelles versions.
+            </p>
+          </div>
+        </div>
       )}
 
       {nouvelle && <DialogueMiseAJour manifeste={nouvelle} onFermer={() => setNouvelle(null)} />}
