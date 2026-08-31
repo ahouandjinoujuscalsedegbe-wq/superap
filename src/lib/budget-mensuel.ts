@@ -43,8 +43,8 @@ function moisDe(iso: string): string {
 
 /** Mois AAAA-MM décalé de `pas` mois (pas négatif = passé). */
 export function decalerMois(mois: string, pas: number): string {
-  const [a, m] = mois.split("-").map(Number);
-  const d = new Date(Date.UTC(a, m - 1 + pas, 1));
+  const [a, m] = mois.split("-");
+  const d = new Date(Date.UTC(Number(a), Number(m) - 1 + pas, 1));
   return d.toISOString().slice(0, 7);
 }
 
@@ -58,7 +58,7 @@ export function revenuMensuelMoyen(transactions: Transaction[]): number {
   }
   const mois = Object.keys(parMois);
   if (mois.length === 0) return 0;
-  const total = mois.reduce((s, m) => s + parMois[m], 0);
+  const total = mois.reduce((s, m) => s + (parMois[m] ?? 0), 0);
   return Math.round(total / mois.length);
 }
 
