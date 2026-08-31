@@ -259,17 +259,26 @@ jobs:
 
           cp "$SRC" "publication/super-app-$VERSION.apk"
           BASE="https://github.com/${{ github.repository }}/releases/latest/download"
-          printf '{\n  "version": "%s",\n  "url": "%s/super-app-%s.apk",\n  "changelog": "Nouvelle version %s de SUPER APP."\n}\n' \
-            "$VERSION" "$BASE" "$VERSION" "$VERSION" > publication/version.json
 
-          # Vérification immédiate du manifeste : il doit être un JSON lisible
-          # contenant la version et l'URL de l'APK.
-          python3 - "$VERSION" <<'PY'
-          import json, sys
+          # Empreinte SHA-256 de l'APK : l'application la vérifie après
+          # téléchargement pour refuser tout fichier tronqué ou corrompu.
+          EMPREINTE=$(sha256sum "publication/super-app-$VERSION.apk" | awk '{print $1}')
+
+          printf '{\n  "version": "%s",\n  "url": "%s/super-app-%s.apk",\n  "changelog": "Nouvelle version %s de SUPER APP.",\n  "sha256": "%s",\n  "taille": %s\n}\n' \
+            "$VERSION" "$BASE" "$VERSION" "$VERSION" "$EMPREINTE" "$TAILLE" > publication/version.json
+
+          # Vérification immédiate du manifeste : JSON lisible, version, URL,
+          # empreinte SHA-256 et taille cohérentes avec l'APK publié.
+          python3 - "$VERSION" "$EMPREINTE" "$TAILLE" <<'PY'
+          import json, re, sys
+          version, empreinte, taille = sys.argv[1], sys.argv[2], int(sys.argv[3])
           with open("publication/version.json", encoding="utf-8") as f:
               m = json.load(f)
-          assert m.get("version") == sys.argv[1], "version.json : version incorrecte"
-          assert m.get("url", "").endswith(f"super-app-{sys.argv[1]}.apk"), "version.json : url incorrecte"
+          assert m.get("version") == version, "version.json : version incorrecte"
+          assert m.get("url", "").endswith(f"super-app-{version}.apk"), "version.json : url incorrecte"
+          assert re.fullmatch(r"[0-9a-f]{64}", m.get("sha256", "")), "version.json : sha256 invalide"
+          assert m.get("sha256") == empreinte, "version.json : sha256 incohérent avec l'APK"
+          assert m.get("taille") == taille, "version.json : taille incohérente avec l'APK"
           print("version.json valide :", m)
           PY
 

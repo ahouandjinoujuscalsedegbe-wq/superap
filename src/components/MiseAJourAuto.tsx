@@ -104,7 +104,10 @@ export function DialogueMiseAJour({
             disabled={enCours}
             onClick={async () => {
               setEtape({ etape: "telechargement", message: "Téléchargement en cours..." });
-              const resultat = await installerMiseAJour(manifeste.url, setEtape);
+              const resultat = await installerMiseAJour(manifeste.url, setEtape, {
+                ...(manifeste.sha256 ? { sha256: manifeste.sha256 } : {}),
+                ...(typeof manifeste.taille === "number" ? { taille: manifeste.taille } : {}),
+              });
               if (!resultat.ok) {
                 setEtape({ etape: "erreur", message: resultat.message });
               }

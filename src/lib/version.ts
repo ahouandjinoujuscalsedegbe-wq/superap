@@ -476,6 +476,7 @@ async function verifierIntegrite(
 async function telechargerAPKNatif(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
+  integrite?: Integrite,
 ): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
   try {
     surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
@@ -540,6 +541,11 @@ async function telechargerAPKNatif(
           "Le fichier téléchargé n'est pas une application Android valide (page web ou lien invalide). Vérifiez l'adresse indiquée dans version.json.",
       };
     }
+
+    // Contrôle d'intégrité annoncé par version.json (taille + SHA-256) :
+    // un fichier tronqué ou altéré est refusé avant toute installation.
+    const controle = await verifierIntegrite(base64, integrite);
+    if (!controle.ok) return controle;
 
     return { ok: true, base64 };
   } catch {
@@ -617,13 +623,14 @@ async function installerAPKDepuisCache(
 export async function installerMiseAJour(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
+  integrite?: Integrite,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (!estApplicationNative()) {
     lancerTelechargement(url);
     return { ok: true };
   }
 
-  const telechargement = await telechargerAPKNatif(url, surEtape);
+  const telechargement = await telechargerAPKNatif(url, surEtape, integrite);
   if (!telechargement.ok) return telechargement;
 
   const installation = await installerAPKDepuisCache(telechargement.base64, surEtape);
