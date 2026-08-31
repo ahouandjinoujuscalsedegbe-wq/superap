@@ -3,11 +3,13 @@ import { AlarmClock, BellOff, X } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import {
   calculerAlarmes,
-  jouerSonAlarme,
+  debloquerAlarme,
+  declencherAlarmeAppareil,
   lireReglagesAlarme,
   reporterAlarme,
   type Alarme,
 } from "@/lib/alarme";
+
 
 /**
  * Surveille en continu les dépenses planifiées et les prévisions locales,
