@@ -22,6 +22,10 @@ export type ReglagesAlarme = {
   son: boolean;
   /** Volume de 0 à 100. */
   volume: number;
+  /** Vibration réelle du téléphone. */
+  vibration: boolean;
+  /** Notification système Android (visible hors application). */
+  notification: boolean;
   /** Nombre de jours d'avance pour prévenir d'une dépense planifiée. */
   avanceJours: number;
   /** Alarmes prédictives (épuisement, découvert). */
@@ -32,6 +36,8 @@ export const REGLAGES_ALARME_DEFAUT: ReglagesAlarme = {
   active: true,
   son: true,
   volume: 70,
+  vibration: true,
+  notification: true,
   avanceJours: 2,
   predictions: true,
 };
@@ -46,6 +52,8 @@ export function lireReglagesAlarme(): ReglagesAlarme {
       active: objet.active ?? true,
       son: objet.son ?? true,
       volume: Math.min(100, Math.max(0, Number(objet.volume ?? 70))),
+      vibration: objet.vibration ?? true,
+      notification: objet.notification ?? true,
       avanceJours: Math.min(15, Math.max(0, Number(objet.avanceJours ?? 2))),
       predictions: objet.predictions ?? true,
     };
@@ -53,6 +61,7 @@ export function lireReglagesAlarme(): ReglagesAlarme {
     return REGLAGES_ALARME_DEFAUT;
   }
 }
+
 
 export function ecrireReglagesAlarme(r: ReglagesAlarme) {
   if (typeof localStorage === "undefined") return;
@@ -235,47 +244,13 @@ export function calculerAlarmes(
     .sort((a, b) => rang[a.niveau] - rang[b.niveau]);
 }
 
-// --------------------------------------------------------------------- son
+// ------------------------------------------------------- son et vibration
 
-/** Bip d'alarme synthétisé localement (aucun fichier audio à télécharger). */
-export async function jouerSonAlarme(volume = 70, urgent = false) {
-  if (typeof window === "undefined") return;
-  const Ctx =
-    window.AudioContext ??
-    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctx) return;
-  try {
-    const ctx = new Ctx();
-    if (ctx.state === "suspended") await ctx.resume();
-    const gain = ctx.createGain();
-    gain.gain.value = Math.min(1, Math.max(0, volume / 100)) * 0.25;
-    gain.connect(ctx.destination);
+export {
+  debloquerAlarme,
+  declencherAlarmeAppareil,
+  jouerSonAlarme,
+  notifierAlarme,
+  vibrerAlarme,
+} from "./alarme-appareil";
 
-    const bips = urgent ? 3 : 2;
-    for (let i = 0; i < bips; i += 1) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = urgent ? 880 : 660;
-      const debut = ctx.currentTime + i * 0.28;
-      const enveloppe = ctx.createGain();
-      enveloppe.gain.setValueAtTime(0, debut);
-      enveloppe.gain.linearRampToValueAtTime(1, debut + 0.02);
-      enveloppe.gain.linearRampToValueAtTime(0, debut + 0.22);
-      osc.connect(enveloppe);
-      enveloppe.connect(gain);
-      osc.start(debut);
-      osc.stop(debut + 0.24);
-    }
-    window.setTimeout(() => void ctx.close().catch(() => {}), 1500);
-  } catch {
-    /* audio indisponible : l'alarme reste visuelle */
-  }
-
-  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-    try {
-      navigator.vibrate(urgent ? [120, 80, 120] : [90]);
-    } catch {
-      /* vibration indisponible */
-    }
-  }
-}

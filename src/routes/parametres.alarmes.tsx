@@ -4,12 +4,15 @@ import { AlarmClock, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import {
+  debloquerAlarme,
+  declencherAlarmeAppareil,
   ecrireReglagesAlarme,
-  jouerSonAlarme,
   lireReglagesAlarme,
   REGLAGES_ALARME_DEFAUT,
   type ReglagesAlarme,
 } from "@/lib/alarme";
+import { demanderPermissionNotification } from "@/lib/alarme-appareil";
+
 
 export const Route = createFileRoute("/parametres/alarmes")({
   head: () => ({
@@ -109,6 +112,29 @@ function PageAlarmes() {
         </div>
 
         <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          Vibration du téléphone
+          <input
+            type="checkbox"
+            checked={reglages.vibration}
+            onChange={(e) => maj({ vibration: e.target.checked })}
+            className="h-5 w-5"
+          />
+        </label>
+
+        <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          Notification système (même hors application)
+          <input
+            type="checkbox"
+            checked={reglages.notification}
+            onChange={(e) => {
+              maj({ notification: e.target.checked });
+              if (e.target.checked) void demanderPermissionNotification();
+            }}
+            className="h-5 w-5"
+          />
+        </label>
+
+        <label className="flex items-center justify-between gap-3 text-sm font-medium">
           Alarmes prédictives (épuisement, découvert)
           <input
             type="checkbox"
@@ -121,14 +147,26 @@ function PageAlarmes() {
         <button
           type="button"
           onClick={() => {
-            void jouerSonAlarme(reglages.volume, true);
-            toast.success("Son de test joué.");
+            void (async () => {
+              await debloquerAlarme();
+              await declencherAlarmeAppareil({
+                volume: reglages.volume,
+                urgent: true,
+                son: reglages.son,
+                vibration: reglages.vibration,
+                notification: reglages.notification,
+                titre: "Test d'alarme",
+                texte: "Voici comment SUPER APP vous préviendra.",
+              });
+            })();
+            toast.success("Alarme de test déclenchée (son, vibration, notification).");
           }}
           className="inline-flex items-center gap-2 rounded-xl border border-input px-3 py-2 text-sm font-medium"
         >
-          <Volume2 className="h-4 w-4" aria-hidden /> Tester le son
+          <Volume2 className="h-4 w-4" aria-hidden /> Tester l'alarme
         </button>
       </section>
     </div>
   );
 }
+

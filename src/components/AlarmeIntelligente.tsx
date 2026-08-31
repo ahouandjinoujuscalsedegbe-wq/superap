@@ -3,11 +3,13 @@ import { AlarmClock, BellOff, X } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import {
   calculerAlarmes,
-  jouerSonAlarme,
+  debloquerAlarme,
+  declencherAlarmeAppareil,
   lireReglagesAlarme,
   reporterAlarme,
   type Alarme,
 } from "@/lib/alarme";
+
 
 /**
  * Surveille en continu les dépenses planifiées et les prévisions locales,
@@ -31,13 +33,32 @@ export function AlarmeIntelligente() {
     setAlarmes(liste);
 
     const nouvelle = liste.find((a) => !dejaSonnees.current.has(a.id));
-    if (nouvelle && reglages.active && reglages.son) {
-      for (const a of liste) dejaSonnees.current.add(a.id);
-      void jouerSonAlarme(reglages.volume, nouvelle.niveau === "alerte");
-    } else {
-      for (const a of liste) dejaSonnees.current.add(a.id);
+    for (const a of liste) dejaSonnees.current.add(a.id);
+
+    if (nouvelle && reglages.active) {
+      void declencherAlarmeAppareil({
+        volume: reglages.volume,
+        urgent: nouvelle.niveau === "alerte",
+        son: reglages.son,
+        vibration: reglages.vibration,
+        notification: reglages.notification,
+        titre: nouvelle.titre,
+        texte: nouvelle.texte,
+      });
     }
   }, [donnees]);
+
+  // Le son et la vibration ne sont autorisés qu'après un premier contact avec
+  // l'écran : on prépare le moteur audio et la permission dès ce moment-là.
+  useEffect(() => {
+    const preparer = () => void debloquerAlarme();
+    document.addEventListener("pointerdown", preparer, { once: true });
+    document.addEventListener("keydown", preparer, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", preparer);
+      document.removeEventListener("keydown", preparer);
+    };
+  }, []);
 
   useEffect(() => {
     const depart = window.setTimeout(recalculer, 3000);
@@ -47,6 +68,7 @@ export function AlarmeIntelligente() {
       window.clearInterval(intervalle);
     };
   }, [recalculer, tick]);
+
 
   if (alarmes.length === 0) return null;
   const alarme = alarmes[0];

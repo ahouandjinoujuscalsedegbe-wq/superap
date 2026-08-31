@@ -9,6 +9,7 @@
         "@capacitor/core": "^7.2.0",
         "@capacitor/filesystem": "7.1.8",
         "@capacitor/haptics": "7.0.5",
+        "@capacitor/local-notifications": "7",
         "@capacitor/splash-screen": "7.0.5",
         "@hookform/resolvers": "^5.2.2",
         "@radix-ui/react-accordion": "^1.2.12",
@@ -144,6 +145,8 @@
     "@capacitor/filesystem": ["@capacitor/filesystem@7.1.8", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/filesystem/-/filesystem-7.1.8.tgz", { "dependencies": { "@capacitor/synapse": "^1.0.3" }, "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-Qpw/2SE4/CzqAUvGgSM9hw/uXQ5qoOaF4wxbToXwpAaKPS+tzletS1h5ti3jjLmGcqizTs2sEXMtcsARW/Ceew=="],
 
     "@capacitor/haptics": ["@capacitor/haptics@7.0.5", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/haptics/-/haptics-7.0.5.tgz", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-ujXuUkL8UG1YLhuJo/q+jiHr0K5JmclGZHmV1RttmiUBRG1XpC4Fc4gXUJyEX+6IoyfwWhgtPvJFRUB31HYnRQ=="],
+
+    "@capacitor/local-notifications": ["@capacitor/local-notifications@7.0.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/local-notifications/-/local-notifications-7.0.7.tgz", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-3qSpa8PpVMONHqBOaJ4RbA/lB5vOdEngtep0myGmP3S56gShPScDCotbw7dwmQy3NCdY4Up9nH3ySrGvUh2jZg=="],
 
     "@capacitor/splash-screen": ["@capacitor/splash-screen@7.0.5", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/splash-screen/-/splash-screen-7.0.5.tgz", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-bPG2SamFL7VT5I3XsgsGgJhkiyxq3OXCOVKEDupSieVdtEiG7j2vLbSD0xL+91zteF/qLuxsjbugGy5LD8mS2A=="],
 
