@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
+import { operationsFrequentes } from "@/lib/favoris";
 
 export const Route = createFileRoute("/revenu")({
   head: () => ({
@@ -26,13 +27,20 @@ export const Route = createFileRoute("/revenu")({
 const MONTANTS_RAPIDES = [5000, 10000, 25000, 50000, 100000];
 
 function AjouterRevenu() {
-  const { ajouterTransaction, sourcesRevenu, comptes } = useSuperApp();
+  const { ajouterTransaction, sourcesRevenu, comptes, transactions, membres } = useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
   const [source, setSource] = useState<string>(sourcesRevenu[0] ?? "Autre");
   const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [membre, setMembre] = useState("");
+
+  // Revenus répétés repérés localement (salaire, loyer perçu…).
+  const favoris = useMemo(
+    () => operationsFrequentes(transactions, { type: "revenu", maximum: 4 }),
+    [transactions],
+  );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
 
@@ -49,6 +57,7 @@ function AjouterRevenu() {
       categorie: source,
       compte,
       date: new Date(date).toISOString(),
+      ...(membre ? { membre } : {}),
     });
     toast.success(`Revenu de ${formatFCFA(valeur)} enregistré.`);
     navigate({ to: "/" });
@@ -60,6 +69,52 @@ function AjouterRevenu() {
         <h1 className="text-2xl font-bold tracking-tight">Ajouter un revenu</h1>
         <p className="text-sm text-muted-foreground">Entrée d'argent dans le foyer</p>
       </header>
+
+      {favoris.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <p className="text-sm font-medium">Revenus habituels</p>
+          <div className="flex flex-wrap gap-2">
+            {favoris.map((f) => (
+              <button
+                key={f.cle}
+                type="button"
+                onClick={() => {
+                  setMontant(String(f.montant));
+                  setLibelle(f.libelle);
+                  if (sourcesRevenu.includes(f.categorie)) setSource(f.categorie);
+                  if (comptes.includes(f.compte)) setCompte(f.compte);
+                }}
+                className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
+              >
+                {f.libelle} · {formatFCFA(f.montant)}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {membres.length > 0 && (
+        <section className="carte p-4">
+          <p className="text-sm font-medium">Qui a perçu ce revenu ?</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {["", ...membres].map((m) => (
+              <button
+                key={m || "aucun"}
+                type="button"
+                aria-pressed={membre === m}
+                onClick={() => setMembre(m)}
+                className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                  membre === m
+                    ? "border-primary bg-accent font-semibold text-accent-foreground"
+                    : "border-input bg-card text-muted-foreground"
+                }`}
+              >
+                {m || "Non précisé"}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <form onSubmit={enregistrer} className="space-y-4">
         <section className="carte p-4">
