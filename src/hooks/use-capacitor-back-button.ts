@@ -5,7 +5,7 @@ import { Capacitor } from "@capacitor/core";
 
 /**
  * Gère le bouton "Retour" matériel d'Android pour la navigation TanStack Router.
- * 
+ *
  * 1. Ferme d'abord les overlays (clavier interne, menu, dialogs).
  * 2. Si l'application est verrouillée, quitte immédiatement.
  * 3. Sinon, recule dans l'historique du routeur ou quitte si à la racine.
@@ -33,11 +33,13 @@ export function useCapacitorBackButton() {
       // Échap couvre Radix, le menu et le clavier. Le clic de repli couvre
       // les anciennes fenêtres personnalisées qui se ferment via leur fond.
       if (menuOuvert || clavierOuvert || dialogue) {
-        document.dispatchEvent(new KeyboardEvent("keydown", {
-          key: "Escape",
-          bubbles: true,
-          cancelable: true,
-        }));
+        document.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key: "Escape",
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
         if (dialogue && document.contains(dialogue)) dialogue.click();
         return;
       }
