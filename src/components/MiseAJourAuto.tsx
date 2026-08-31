@@ -133,6 +133,12 @@ export function MiseAJourAuto() {
 
   useEffect(() => {
     let actif = true;
+    // La vérification n'a de sens que dans l'application installée : sur un
+    // navigateur, l'appel à GitHub est refusé (CORS) et polluait la console.
+    const surMobile =
+      Boolean(import.meta.env["VITE_COQUE_MOBILE"]) ||
+      Boolean((window as unknown as { Capacitor?: unknown }).Capacitor);
+    if (!surMobile) return;
     const minuteur = setTimeout(() => {
       verifierAuDemarrage()
         .then((trouve) => {
@@ -142,6 +148,7 @@ export function MiseAJourAuto() {
           /* hors ligne : l'application continue normalement */
         });
     }, 2500);
+
     return () => {
       actif = false;
       clearTimeout(minuteur);
