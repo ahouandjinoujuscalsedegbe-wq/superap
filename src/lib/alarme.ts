@@ -22,6 +22,10 @@ export type ReglagesAlarme = {
   son: boolean;
   /** Volume de 0 à 100. */
   volume: number;
+  /** Vibration réelle du téléphone. */
+  vibration: boolean;
+  /** Notification système Android (visible hors application). */
+  notification: boolean;
   /** Nombre de jours d'avance pour prévenir d'une dépense planifiée. */
   avanceJours: number;
   /** Alarmes prédictives (épuisement, découvert). */
@@ -32,6 +36,8 @@ export const REGLAGES_ALARME_DEFAUT: ReglagesAlarme = {
   active: true,
   son: true,
   volume: 70,
+  vibration: true,
+  notification: true,
   avanceJours: 2,
   predictions: true,
 };
@@ -46,6 +52,8 @@ export function lireReglagesAlarme(): ReglagesAlarme {
       active: objet.active ?? true,
       son: objet.son ?? true,
       volume: Math.min(100, Math.max(0, Number(objet.volume ?? 70))),
+      vibration: objet.vibration ?? true,
+      notification: objet.notification ?? true,
       avanceJours: Math.min(15, Math.max(0, Number(objet.avanceJours ?? 2))),
       predictions: objet.predictions ?? true,
     };
@@ -53,6 +61,7 @@ export function lireReglagesAlarme(): ReglagesAlarme {
     return REGLAGES_ALARME_DEFAUT;
   }
 }
+
 
 export function ecrireReglagesAlarme(r: ReglagesAlarme) {
   if (typeof localStorage === "undefined") return;
