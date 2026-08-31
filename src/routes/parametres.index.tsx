@@ -10,6 +10,7 @@ import {
   CloudUpload,
   Mail,
   FileText,
+  AlarmClock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/parametres/")({
@@ -91,6 +92,12 @@ const GROUPES = [
         icone: RefreshCw,
         titre: "Mises à jour",
         detail: "Version installée et recherche d'une nouvelle version.",
+      },
+      {
+        to: "/parametres/alarmes",
+        icone: AlarmClock,
+        titre: "Alarmes intelligentes",
+        detail: "Rappels sonores des dépenses planifiées et alertes de prévision.",
       },
       {
         to: "/journal",
