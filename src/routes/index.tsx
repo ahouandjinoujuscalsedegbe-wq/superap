@@ -72,11 +72,28 @@ function Accueil() {
           height={48}
           className="h-12 w-12 rounded-2xl object-cover shadow-sm"
         />
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm text-muted-foreground">Bonjour 👋</p>
           <h1 className="text-2xl font-bold tracking-tight">
             Bienvenue{nomUtilisateur ? ` ${nomUtilisateur}` : ""}
           </h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/planning"
+            aria-label="Planning 14 semaines"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
+          >
+            <CalendarRange className="h-5 w-5" aria-hidden />
+          </Link>
+          <Link
+            to="/analyses"
+            aria-label="Analyses et Conseils"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
+          >
+            <LineChart className="h-5 w-5" aria-hidden />
+          </Link>
         </div>
       </header>
 
