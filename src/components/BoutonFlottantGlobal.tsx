@@ -224,11 +224,17 @@ export function BoutonFlottantGlobal() {
               ? "Fermer les accès rapides"
               : "Ouvrir les accès rapides (maintenez pour déplacer la boule)"
           }
-          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden sphere-3d rounded-full bg-primary text-primary-foreground backdrop-blur-xl transition-[transform,opacity] duration-150 ease-out will-change-transform active:scale-[0.88] active:opacity-80 ${
-            glisse ? "scale-105 opacity-95" : ""
+          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden sphere-3d sphere-vivante rounded-full bg-primary text-primary-foreground backdrop-blur-xl transition-[opacity] duration-150 ease-out will-change-transform active:opacity-80 active:[animation:none] active:scale-[0.88] ${
+            glisse ? "opacity-95 [animation:none]" : ""
           }`}
 
         >
+          {/* Reflet lumineux animé : la lumière glisse sur la sphère. */}
+          <span
+            className="sphere-reflet-anime pointer-events-none absolute left-[18%] top-[12%] h-3.5 w-3.5 rounded-full bg-white/70 blur-[3px]"
+            aria-hidden
+          />
+
           {/* Contenu qui roule avec la boule. */}
           <span
             className="pointer-events-none absolute inset-0 flex items-center justify-center"
