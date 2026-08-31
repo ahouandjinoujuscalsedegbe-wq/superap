@@ -258,14 +258,20 @@ jobs:
           path: publication/
           retention-days: 30
 
-      # 13. Créer la Release GitHub utilisée par la mise à jour automatique
+      # 13. Créer la Release GitHub utilisée par la mise à jour automatique.
+      # Toujours publiée (release signée ou debug) afin que version.json existe
+      # toujours : sans manifeste, l'auto-updater des téléphones ne voit rien.
+      # En mode debug, la Release est marquée "pré-release" pour signaler
+      # qu'elle n'est pas destinée à la distribution.
       - name: Créer la Release GitHub
-        if: env.MODE == 'release'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: SUPER APP ${{ env.VERSION }}
-          body: Nouvelle version ${{ env.VERSION }} de SUPER APP.
+          name: SUPER APP ${{ env.VERSION }}${{ env.MODE == 'debug' && ' (TEST — non signée)' || '' }}
+          body: |
+            Nouvelle version ${{ env.VERSION }} de SUPER APP.
+            Mode de compilation : ${{ env.MODE }}.
+          prerelease: ${{ env.MODE == 'debug' }}
           files: |
             publication/super-app-${{ env.VERSION }}.apk
             publication/version.json
