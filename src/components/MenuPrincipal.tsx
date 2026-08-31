@@ -11,12 +11,16 @@ import {
   CalendarRange,
   ShieldCheck,
   RefreshCw,
+  TrendingUp,
+  CalendarCheck,
 } from "lucide-react";
 
 const ENTREES = [
   { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
+  { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
+  { to: "/mois", label: "Vue globale du mois", icone: CalendarCheck },
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
   { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
