@@ -34,7 +34,14 @@ export type Manifeste = {
   version: string;
   url: string;
   changelog?: string;
+  /** Empreinte SHA-256 hexadécimale de l'APK (contrôle d'intégrité). */
+  sha256?: string;
+  /** Taille exacte de l'APK en octets (contrôle d'intégrité). */
+  taille?: number;
 };
+
+/** Contrôle d'intégrité attendu pour l'APK téléchargé. */
+export type Integrite = { sha256?: string; taille?: number };
 
 export type ResultatVerification =
   | { etat: "a-jour"; version: string }
@@ -405,6 +412,53 @@ function estArchiveApk(base64: string): boolean {
 function tailleBase64(base64: string): number {
   const rembourrage = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
   return Math.floor((base64.length * 3) / 4) - rembourrage;
+}
+
+/** Calcule l'empreinte SHA-256 hexadécimale d'un contenu base64. */
+async function sha256Base64(base64: string): Promise<string> {
+  const binaire = atob(base64);
+  const octets = new Uint8Array(binaire.length);
+  for (let i = 0; i < binaire.length; i += 1) {
+    octets[i] = binaire.charCodeAt(i);
+  }
+  const empreinte = await crypto.subtle.digest("SHA-256", octets);
+  return Array.from(new Uint8Array(empreinte))
+    .map((octet) => octet.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Vérifie l'intégrité de l'APK téléchargé contre les informations du
+ * fichier version.json : taille exacte et empreinte SHA-256. Un fichier
+ * tronqué ou corrompu pendant le transfert est ainsi refusé avant
+ * l'installation au lieu de provoquer une erreur « analyse du package ».
+ */
+async function verifierIntegrite(
+  base64: string,
+  attendu?: Integrite,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!attendu) return { ok: true };
+  if (typeof attendu.taille === "number" && attendu.taille > 0) {
+    const taille = tailleBase64(base64);
+    if (taille !== attendu.taille) {
+      return {
+        ok: false,
+        message:
+          "Le fichier téléchargé est incomplet ou corrompu (taille différente de celle annoncée). Vérifiez votre connexion puis réessayez.",
+      };
+    }
+  }
+  if (typeof attendu.sha256 === "string" && /^[0-9a-f]{64}$/i.test(attendu.sha256)) {
+    const empreinte = await sha256Base64(base64);
+    if (empreinte.toLowerCase() !== attendu.sha256.toLowerCase()) {
+      return {
+        ok: false,
+        message:
+          "Le fichier téléchargé ne correspond pas à la version officielle (empreinte différente). Vérifiez votre connexion puis réessayez.",
+      };
+    }
+  }
+  return { ok: true };
 }
 
 /**
