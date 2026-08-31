@@ -196,7 +196,7 @@ export function BoutonFlottantGlobal() {
               aria-label={label}
               tabIndex={ouvert ? 0 : -1}
               onClick={() => setOuvert(false)}
-              className="carte absolute inset-0 flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-full ring-1 ring-white/20 shadow-[0_5px_0_-2px_rgba(0,0,0,0.22),0_9px_16px_-6px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 ease-out active:translate-y-[2px]"
+              className="absolute inset-0 flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-300 ease-out active:scale-90 active:bg-accent"
               style={{
                 transform: ouvert
                   ? `translate(${x}px, ${y}px) scale(1)`
@@ -224,17 +224,9 @@ export function BoutonFlottantGlobal() {
               ? "Fermer les accès rapides"
               : "Ouvrir les accès rapides (maintenez pour déplacer la boule)"
           }
-          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/25 transition-transform duration-150 ease-out will-change-transform active:scale-95 ${
-            glisse ? "scale-105" : ""
+          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-primary-foreground/15 bg-primary text-primary-foreground backdrop-blur-xl transition-[transform,opacity,filter] duration-150 ease-out will-change-transform active:scale-[0.88] active:opacity-80 ${
+            glisse ? "scale-105 opacity-95" : ""
           }`}
-          style={{
-            // Sphère : lumière en haut-gauche, ombre interne en bas-droite.
-            backgroundImage:
-              "radial-gradient(circle at 32% 28%, color-mix(in oklab, var(--primary) 35%, white) 0%, var(--primary) 45%, color-mix(in oklab, var(--primary) 60%, black) 100%)",
-            boxShadow: glisse
-              ? "0 14px 20px -8px rgba(0,0,0,0.55), inset -4px -6px 12px rgba(0,0,0,0.45), inset 3px 4px 8px rgba(255,255,255,0.35)"
-              : "0 8px 14px -6px rgba(0,0,0,0.5), inset -4px -6px 12px rgba(0,0,0,0.4), inset 3px 4px 8px rgba(255,255,255,0.35)",
-          }}
         >
           {/* Contenu qui roule avec la boule. */}
           <span
@@ -245,9 +237,8 @@ export function BoutonFlottantGlobal() {
             }}
             aria-hidden
           >
-            <span className="absolute left-1.5 top-1.5 h-3 w-3 rounded-full bg-white/50 blur-[2px]" />
             <Plus
-              className={`h-6 w-6 drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)] transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
+              className={`h-6 w-6 transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
             />
           </span>
         </button>
