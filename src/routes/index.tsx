@@ -46,6 +46,7 @@ function Accueil() {
     enveloppes,
     depensesParEnveloppe,
     nomUtilisateur,
+    chargement,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
 
@@ -109,8 +110,12 @@ function Accueil() {
       </header>
 
       <section className="carte p-5">
-        <p className="text-sm text-muted-foreground">Solde disponible</p>
-        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">{formatFCFA(solde)}</p>
+        <p className="text-sm text-muted-foreground">
+          {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
+        </p>
+        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">
+          {chargement ? "—" : formatFCFA(solde)}
+        </p>
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-success/15 p-3">
             <span className="flex items-center gap-1.5 text-xs text-success/80">
@@ -222,7 +227,13 @@ function Accueil() {
 
       <section className="carte p-4">
         <h2 className="text-sm font-semibold text-muted-foreground">Dernières opérations</h2>
-        {dernieres.length === 0 ? (
+        {chargement ? (
+          <div className="mt-3 space-y-2" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-muted/60" />
+            ))}
+          </div>
+        ) : dernieres.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <Wallet className="h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="text-sm text-muted-foreground">

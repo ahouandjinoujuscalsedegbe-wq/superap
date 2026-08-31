@@ -300,7 +300,28 @@ type Contexte = Etat & {
   soldesParCompte: Record<string, number>;
   /** true quand des données existent mais n'ont pas pu être déchiffrées. */
   stockageIllisible: boolean;
+  /** true tant que la lecture chiffrée initiale n'est pas terminée. */
+  chargement: boolean;
 };
+
+/**
+ * Fusionne l'état lu sur le téléphone avec ce que l'utilisateur a pu saisir
+ * pendant le déchiffrement initial : sans cela, une opération enregistrée
+ * dans la première seconde d'ouverture était silencieusement écrasée.
+ */
+function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
+  const ajouts = <T extends { id: string }>(depuis: T[], deja: T[]): T[] => {
+    const connus = new Set(deja.map((x) => x.id));
+    return depuis.filter((x) => !connus.has(x.id));
+  };
+  return {
+    ...charge,
+    transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
+    transferts: [...ajouts(actuel.transferts, charge.transferts), ...charge.transferts],
+    budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
+    dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
+  };
+}
 
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
@@ -319,6 +340,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   // cela évite d'écraser les données existantes par l'état initial.
   const pret = useRef(false);
   const [illisible, setIllisible] = useState(false);
+  const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
     let annule = false;
@@ -331,6 +353,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         // perdu ou fichier abîmé). On n'active JAMAIS l'écriture : écraser
         // reviendrait à détruire définitivement la sauvegarde de l'utilisateur.
         setIllisible(true);
+        setChargement(false);
         journaliser(
           "erreur",
           "stockage",
@@ -342,7 +365,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       if (lecture.statut === "ok") {
         try {
           const charge = assainirEtat(JSON.parse(lecture.valeur) as Partial<Etat>);
-          setEtat(charge);
+          // Fusion : on conserve ce que l'utilisateur a saisi pendant la lecture.
+          setEtat((actuel) => fusionnerPendantChargement(charge, actuel));
           // Migration immédiate : réécriture chiffrée des anciennes données en clair.
           let enClair = false;
           try {
@@ -354,6 +378,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         } catch {
           // JSON corrompu : même prudence, on ne réécrit rien.
           setIllisible(true);
+          setChargement(false);
           journaliser("erreur", "stockage", "Données locales corrompues : écriture suspendue.");
           return;
         }
@@ -362,6 +387,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       // Le drapeau ne passe à true qu'ici : aucune écriture ne peut partir
       // avant que la lecture initiale soit complètement terminée.
       pret.current = true;
+      setChargement(false);
     })();
     return () => {
       annule = true;
@@ -958,8 +984,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       depensesParEnveloppe,
       soldesParCompte,
       stockageIllisible: illisible,
+      chargement,
     };
-  }, [etat, actions, illisible]);
+  }, [etat, actions, illisible, chargement]);
 
   return <SuperAppContext.Provider value={valeur}>{children}</SuperAppContext.Provider>;
 }
