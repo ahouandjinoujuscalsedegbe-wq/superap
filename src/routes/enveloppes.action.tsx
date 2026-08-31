@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Pencil, FolderTree, RefreshCcw } from "lucide-react";
+import { Plus, Pencil, FolderTree, RefreshCcw, Scale } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/enveloppes/action")({
