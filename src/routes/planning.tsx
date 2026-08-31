@@ -22,6 +22,13 @@ import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { telechargerFichier } from "@/lib/journal";
 import {
+  alarmesComptes,
+  alarmesPlafonds,
+  lireReglagesAlarme,
+  REGLAGES_ALARME_DEFAUT,
+  type ReglagesAlarme,
+} from "@/lib/alarme";
+import {
   construirePlanning,
   ecrirePrefsPlanning,
   ecrireRevenusPrevus,
@@ -87,7 +94,22 @@ function PagePlanning() {
     convertirBudget,
     modifierBudget,
     ajouterTransaction,
+    soldesParCompte,
+    depensesParEnveloppe,
   } = useSuperApp();
+
+  // Réglages d'alarme lus côté navigateur (seuils de comptes, plafonds).
+  const [reglagesAlarme, setReglagesAlarme] = useState<ReglagesAlarme>(REGLAGES_ALARME_DEFAUT);
+  useEffect(() => setReglagesAlarme(lireReglagesAlarme()), []);
+
+  /** Alarmes de suivi affichées dans l'agenda : seuils de compte et plafonds. */
+  const alarmesAgenda = useMemo(
+    () => [
+      ...alarmesComptes(soldesParCompte, reglagesAlarme.seuilsComptes),
+      ...(reglagesAlarme.plafonds ? alarmesPlafonds(enveloppes, depensesParEnveloppe) : []),
+    ],
+    [soldesParCompte, depensesParEnveloppe, enveloppes, reglagesAlarme],
+  );
 
   const [prefs, setPrefs] = useState<PrefsPlanning>(PREFS_DEFAUT);
   const [revenusPrevus, setRevenusPrevus] = useState<RevenuPrevu[]>([]);
@@ -243,6 +265,25 @@ function PagePlanning() {
           Projection de vos revenus attendus, dépenses planifiées et soldes semaine après semaine.
         </p>
       </header>
+
+      {alarmesAgenda.length > 0 && (
+        <section className="space-y-2 rounded-2xl border border-destructive/40 bg-destructive/5 p-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-destructive">
+            <AlertTriangle aria-hidden className="h-4 w-4" /> Alarmes du jour ({alarmesAgenda.length})
+          </h2>
+          <ul className="space-y-1.5">
+            {alarmesAgenda.map((a) => (
+              <li key={a.id} className="rounded-xl bg-card/70 p-2">
+                <p className="text-sm font-medium">{a.titre}</p>
+                <p className="text-xs text-muted-foreground">{a.texte}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {a.date} · {a.type === "compte" ? "Seuil de compte" : "Plafond d'enveloppe"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* 1 & 2 & 3 — réglages du planning */}
       <section className="space-y-2 rounded-2xl border border-input bg-card p-3">
