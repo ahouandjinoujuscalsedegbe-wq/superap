@@ -3,8 +3,10 @@ import { RefreshCw } from "lucide-react";
 
 import {
   VERSION_APPLICATION,
+  enregistrerTokenGithub,
   enregistrerUrlManifeste,
   lireDerniereVerification,
+  lireTokenGithub,
   lireUrlManifeste,
   verifierMiseAJour,
   type Manifeste,
