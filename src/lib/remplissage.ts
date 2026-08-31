@@ -32,6 +32,32 @@ function jour(iso: string): string {
   return iso.slice(0, 10);
 }
 
+/** Recule d'une période : avancerDate n'accepte que des pas positifs. */
+function reculer(dateIso: string, periode: Periode): string {
+  const d = new Date(`${jour(dateIso)}T12:00:00`);
+  switch (periode) {
+    case "jour":
+      d.setDate(d.getDate() - 1);
+      break;
+    case "semaine":
+      d.setDate(d.getDate() - 7);
+      break;
+    case "mois":
+      d.setMonth(d.getMonth() - 1);
+      break;
+    case "trimestre":
+      d.setMonth(d.getMonth() - 3);
+      break;
+    case "semestre":
+      d.setMonth(d.getMonth() - 6);
+      break;
+    case "annee":
+      d.setFullYear(d.getFullYear() - 1);
+      break;
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 /** Dépenses de l'enveloppe entre deux dates (bornes incluses côté début). */
 function depensesEntre(
   enveloppe: Enveloppe,
@@ -71,7 +97,7 @@ export function montantPeriodeSuivante(
   let fin = finPeriode;
   const observees: number[] = [];
   for (let i = 0; i < 3; i += 1) {
-    const debut = jour(avancerDate(`${fin}T12:00:00`, periode, -1 as unknown as number));
+    const debut = reculer(fin, periode);
     const depense = depensesEntre(enveloppe, transactions, debut, fin);
     if (depense > 0) observees.push(depense);
     fin = debut;

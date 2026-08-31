@@ -1212,6 +1212,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       soldesParCompte[t.source] = (soldesParCompte[t.source] ?? 0) - t.montant;
       soldesParCompte[t.destination] = (soldesParCompte[t.destination] ?? 0) + t.montant;
     }
+    // Remplir une enveloppe sort l'argent du compte qui l'alimente.
+    for (const r of etat.remplissages) {
+      soldesParCompte[r.compte] = (soldesParCompte[r.compte] ?? 0) - r.montant;
+    }
     return {
       ...etat,
       sourcesRevenu: SOURCES_REVENU,
