@@ -98,16 +98,14 @@ function entetesGithub(accept: string): Record<string, string> {
 
 type AssetRelease = { name: string; url: string };
 
-/** Mémoire courte de la dernière Release pour éviter les appels répétés. */
-let cacheRelease: { assets: AssetRelease[] } | null = null;
+/** Mémoire courte (60 s) de la dernière Release pour éviter les appels répétés. */
+let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 
-/**
- * Récupère la dernière Release via l'API GitHub (fonctionne avec un dépôt
- * privé grâce au jeton). Renvoie null en cas d'échec.
- */
-async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
-  if (cacheRelease) return cacheRelease;
-  const url = `https://api.github.com/repos/${DEPOT_GITHUB}/releases/latest?t=${Date.now()}`;
+/** Durée de validité du cache de Release. */
+const CACHE_RELEASE_MS = 60 * 1000;
+
+/** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
+async function lireJsonGithub(url: string): Promise<unknown | null> {
   const entetes = entetesGithub("application/vnd.github+json");
   try {
     if (estApplicationNative()) {
@@ -120,20 +118,56 @@ async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null>
       });
       if (reponse.status < 200 || reponse.status >= 300) return null;
       const brut = reponse.data;
-      const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as { assets?: AssetRelease[] };
-      if (!Array.isArray(donnees.assets)) return null;
-      cacheRelease = { assets: donnees.assets };
-      return cacheRelease;
+      return typeof brut === "string" ? JSON.parse(brut) : brut;
     }
     const reponse = await fetch(url, { headers: entetes, cache: "no-store" });
     if (!reponse.ok) return null;
-    const donnees = (await reponse.json()) as { assets?: AssetRelease[] };
-    if (!Array.isArray(donnees.assets)) return null;
-    cacheRelease = { assets: donnees.assets };
-    return cacheRelease;
+    return await reponse.json();
   } catch {
     return null;
   }
+}
+
+/**
+ * Récupère la Release la plus récente contenant le manifeste via l'API GitHub
+ * (fonctionne avec un dépôt privé grâce au jeton).
+ *
+ * Deux tentatives : d'abord `releases/latest`, puis la liste complète des
+ * Releases. La liste est indispensable car `releases/latest` ignore les
+ * pré-Releases : sans elle, une compilation de test (APK debug, publiée en
+ * pré-Release) bloquerait totalement la mise à jour automatique.
+ */
+async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
+  if (cacheRelease && Date.now() < cacheRelease.expire) return cacheRelease;
+
+  const base = `https://api.github.com/repos/${DEPOT_GITHUB}/releases`;
+
+  const latest = (await lireJsonGithub(`${base}/latest?t=${Date.now()}`)) as
+    | { assets?: AssetRelease[] }
+    | null;
+  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
+    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
+    return cacheRelease;
+  }
+
+  const liste = (await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`)) as
+    | Array<{ draft?: boolean; assets?: AssetRelease[] }>
+    | null;
+  if (Array.isArray(liste)) {
+    const trouvee = liste.find(
+      (r) => !r.draft && Array.isArray(r.assets) && r.assets.some((a) => a.name === "version.json"),
+    );
+    if (trouvee?.assets) {
+      cacheRelease = { assets: trouvee.assets, expire: Date.now() + CACHE_RELEASE_MS };
+      return cacheRelease;
+    }
+  }
+
+  if (latest && Array.isArray(latest.assets)) {
+    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
+    return cacheRelease;
+  }
+  return null;
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
@@ -141,6 +175,7 @@ async function trouverAsset(nom: string): Promise<AssetRelease | null> {
   const release = await lireDerniereRelease();
   return release?.assets.find((a) => a.name === nom) ?? null;
 }
+
 
 /**
  * Télécharge un fichier JSON d'une Release privée via l'API GitHub.
