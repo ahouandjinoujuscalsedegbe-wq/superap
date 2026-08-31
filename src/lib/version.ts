@@ -371,13 +371,31 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
   // Dépôt privé : avec un jeton, on passe par l'API GitHub authentifiée
   // (l'URL publique de téléchargement répondrait 404 sur un dépôt privé).
   if (lireTokenGithub() && adresse.includes("github.com")) {
-    const asset = await trouverAsset("version.json");
+    const { asset, echec } = await trouverAsset("version.json");
     if (!asset) {
       cacheRelease = null;
+      if (echec?.etat === "reseau") {
+        return {
+          etat: "hors-ligne",
+          message: "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
+        };
+      }
+      if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
+        return {
+          etat: "erreur",
+          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superapp et collez-le dans Paramètres → Mises à jour.`,
+        };
+      }
+      if (echec?.etat === "http") {
+        return {
+          etat: "erreur",
+          message: `GitHub a répondu ${echec.code}. Vérifiez que le jeton couvre bien le dépôt ${DEPOT_GITHUB}.`,
+        };
+      }
       return {
         etat: "erreur",
         message:
-          "Impossible de lire la dernière version sur GitHub. Vérifiez le jeton d'accès et qu'une Release existe.",
+          "Aucune Release avec un fichier version.json n'existe encore sur GitHub. Lancez d'abord le workflow « Compiler l'APK Android » (onglet Actions) jusqu'au bout.",
       };
     }
     const resultat = await telechargerAssetJson(asset.url);
