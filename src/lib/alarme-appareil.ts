@@ -173,7 +173,7 @@ export async function notifierAlarme(titre: string, texte: string, urgent = fals
           ongoing: false,
           autoCancel: true,
           schedule: { at: new Date(Date.now() + 300) },
-          sound: undefined,
+          extra: { urgent },
           extra: { urgent },
         },
       ],
