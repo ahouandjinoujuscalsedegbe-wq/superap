@@ -51,7 +51,7 @@ export type Previsions = {
   revenuMoyen: number;
   depenseMoyenne: number;
   /** Premier mois où le solde projeté devient négatif, si applicable. */
-  moisDeficit?: string;
+  moisDeficit?: string | undefined;
   /** Solde à la fin de l'horizon. */
   soldeFinal: number;
   /** Synthèse en une phrase, en français. */
