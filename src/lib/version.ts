@@ -623,13 +623,14 @@ async function installerAPKDepuisCache(
 export async function installerMiseAJour(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
+  integrite?: Integrite,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (!estApplicationNative()) {
     lancerTelechargement(url);
     return { ok: true };
   }
 
-  const telechargement = await telechargerAPKNatif(url, surEtape);
+  const telechargement = await telechargerAPKNatif(url, surEtape, integrite);
   if (!telechargement.ok) return telechargement;
 
   const installation = await installerAPKDepuisCache(telechargement.base64, surEtape);
