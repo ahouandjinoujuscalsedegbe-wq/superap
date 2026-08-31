@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
+import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -35,6 +36,7 @@ function CreerEnveloppePage() {
 
   const [nom, setNom] = useState("");
   const [emoji, setEmoji] = useState("💡");
+  const [emojiManuel, setEmojiManuel] = useState(false);
   const [plafond, setPlafond] = useState("");
   const [dotation, setDotation] = useState("");
   const [categorie, setCategorie] = useState("");
@@ -49,6 +51,12 @@ function CreerEnveloppePage() {
     categorie: string;
     sousCategorie: string;
   } | null>(null);
+
+  // Apprentissage local : les enveloppes déjà validées nourrissent l'IA d'icônes.
+  const { enveloppes: enveloppesExistantes } = useSuperApp();
+  useEffect(() => {
+    apprendreDepuisEnveloppes(enveloppesExistantes);
+  }, [enveloppesExistantes]);
 
   const categorieChoisie = listeCategories.find((c) => c.nom === categorie.trim());
   const sousCategories = categorieChoisie?.sousCategories ?? [];
@@ -106,6 +114,8 @@ function CreerEnveloppePage() {
   function confirmerCreation() {
     if (!confirmation) return;
     ajouterEnveloppe(confirmation);
+    // L'IA locale retient l'association nom → icône pour s'améliorer.
+    apprendreIcone(confirmation.nom, confirmation.emoji);
     setConfirmation(null);
     toast.success("Enveloppe ajoutée.");
     void navigate({ to: "/enveloppes/action" });
@@ -133,7 +143,10 @@ function CreerEnveloppePage() {
               <input
                 id="e-emoji"
                 value={emoji}
-                onChange={(ev) => setEmoji(ev.target.value)}
+                onChange={(ev) => {
+                  setEmojiManuel(true);
+                  setEmoji(ev.target.value);
+                }}
                 className={champ}
               />
             </div>
@@ -144,7 +157,11 @@ function CreerEnveloppePage() {
               <input
                 id="e-nom"
                 value={nom}
-                onChange={(ev) => setNom(ev.target.value)}
+                onChange={(ev) => {
+                  const valeur = ev.target.value;
+                  setNom(valeur);
+                  if (!emojiManuel) setEmoji(suggererIcone(valeur, "enveloppe"));
+                }}
                 placeholder="Santé"
                 className={champ}
               />

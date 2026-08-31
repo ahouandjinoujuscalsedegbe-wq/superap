@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
+import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
@@ -52,6 +53,8 @@ function AjouterDepense() {
       compte,
       date: new Date(date).toISOString(),
     });
+    // L'IA locale apprend le lien libellé → icône à partir des dépenses validées.
+    if (env && libelle.trim()) apprendreIcone(libelle, env.emoji);
     toast.success(`Dépense de ${formatFCFA(valeur)} enregistrée.`);
     if (env) {
       const apres = etatEnveloppe(env, (depensesParEnveloppe[env.id] ?? 0) + valeur);

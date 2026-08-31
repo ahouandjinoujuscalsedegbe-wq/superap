@@ -38,6 +38,7 @@ import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
+import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
 import { Route as ParametresDonneesRouteImport } from './routes/parametres.donnees'
 import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mises-a-jour'
@@ -192,6 +193,11 @@ const ParametresIndexRoute = ParametresIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ParametresRoute,
 } as any)
+const ParametresAlarmesRoute = ParametresAlarmesRouteImport.update({
+  id: '/alarmes',
+  path: '/alarmes',
+  getParentRoute: () => ParametresRoute,
+} as any)
 const ParametresClavierRoute = ParametresClavierRouteImport.update({
   id: '/clavier',
   path: '/clavier',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
@@ -687,6 +699,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresIndexRouteImport
       parentRoute: typeof ParametresRoute
     }
+    '/parametres/alarmes': {
+      id: '/parametres/alarmes'
+      path: '/alarmes'
+      fullPath: '/parametres/alarmes'
+      preLoaderRoute: typeof ParametresAlarmesRouteImport
+      parentRoute: typeof ParametresRoute
+    }
     '/parametres/clavier': {
       id: '/parametres/clavier'
       path: '/clavier'
@@ -807,6 +826,7 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ParametresRouteChildren {
+  ParametresAlarmesRoute: typeof ParametresAlarmesRoute
   ParametresClavierRoute: typeof ParametresClavierRoute
   ParametresDonneesRoute: typeof ParametresDonneesRoute
   ParametresMisesAJourRoute: typeof ParametresMisesAJourRoute
@@ -816,6 +836,7 @@ interface ParametresRouteChildren {
 }
 
 const ParametresRouteChildren: ParametresRouteChildren = {
+  ParametresAlarmesRoute: ParametresAlarmesRoute,
   ParametresClavierRoute: ParametresClavierRoute,
   ParametresDonneesRoute: ParametresDonneesRoute,
   ParametresMisesAJourRoute: ParametresMisesAJourRoute,

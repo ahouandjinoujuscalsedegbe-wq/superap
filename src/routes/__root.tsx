@@ -26,6 +26,7 @@ import { MiseAJourAuto } from "../components/MiseAJourAuto";
 import { SyncAuto } from "../components/SyncAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
+import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
 
 function NotFoundComponent() {
   return (
@@ -171,6 +172,7 @@ function RootComponent() {
           <MiseAJourAuto />
           <SyncAuto />
           <AlerteStockage />
+          <AlarmeIntelligente />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
