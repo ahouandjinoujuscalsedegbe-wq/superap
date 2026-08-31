@@ -340,6 +340,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   // cela évite d'écraser les données existantes par l'état initial.
   const pret = useRef(false);
   const [illisible, setIllisible] = useState(false);
+  const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
     let annule = false;
