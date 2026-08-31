@@ -542,6 +542,11 @@ async function telechargerAPKNatif(
       };
     }
 
+    // Contrôle d'intégrité annoncé par version.json (taille + SHA-256) :
+    // un fichier tronqué ou altéré est refusé avant toute installation.
+    const controle = await verifierIntegrite(base64, integrite);
+    if (!controle.ok) return controle;
+
     return { ok: true, base64 };
   } catch {
     return {
