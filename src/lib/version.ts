@@ -195,9 +195,10 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
-async function trouverAsset(nom: string): Promise<AssetRelease | null> {
+async function trouverAsset(nom: string): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
   const release = await lireDerniereRelease();
-  return release?.assets.find((a) => a.name === nom) ?? null;
+  if (release.etat !== "ok") return { asset: null, echec: release };
+  return { asset: release.assets.find((a) => a.name === nom) ?? null, echec: null };
 }
 
 /**
