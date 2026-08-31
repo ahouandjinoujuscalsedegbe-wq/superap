@@ -300,7 +300,28 @@ type Contexte = Etat & {
   soldesParCompte: Record<string, number>;
   /** true quand des données existent mais n'ont pas pu être déchiffrées. */
   stockageIllisible: boolean;
+  /** true tant que la lecture chiffrée initiale n'est pas terminée. */
+  chargement: boolean;
 };
+
+/**
+ * Fusionne l'état lu sur le téléphone avec ce que l'utilisateur a pu saisir
+ * pendant le déchiffrement initial : sans cela, une opération enregistrée
+ * dans la première seconde d'ouverture était silencieusement écrasée.
+ */
+function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
+  const ajouts = <T extends { id: string }>(depuis: T[], deja: T[]): T[] => {
+    const connus = new Set(deja.map((x) => x.id));
+    return depuis.filter((x) => !connus.has(x.id));
+  };
+  return {
+    ...charge,
+    transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
+    transferts: [...ajouts(actuel.transferts, charge.transferts), ...charge.transferts],
+    budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
+    dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
+  };
+}
 
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
