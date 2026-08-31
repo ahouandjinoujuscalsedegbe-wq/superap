@@ -564,15 +564,15 @@ async function telechargerAPKNatif(
     let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
     if (lireTokenGithub() && url.includes("github.com")) {
       const nomFichier = url.split("/").pop()?.split("?")[0] ?? "";
-      const asset = nomFichier ? await trouverAsset(nomFichier) : null;
-      if (!asset) {
+      const trouve = nomFichier ? await trouverAsset(nomFichier) : null;
+      if (!trouve?.asset) {
         cacheRelease = null;
         return {
           ok: false,
           message: `Le fichier ${nomFichier || "APK"} est introuvable dans la dernière version publiée sur GitHub.`,
         };
       }
-      cible = asset.url;
+      cible = trouve.asset.url;
       entetes = entetesGithub("application/octet-stream");
     }
 
