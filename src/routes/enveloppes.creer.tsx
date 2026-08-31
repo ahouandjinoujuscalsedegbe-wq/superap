@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
@@ -8,6 +8,7 @@ import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
+import { DialogueVocal, type EtapeVocale } from "@/components/DialogueVocal";
 import { analyserEnveloppeDictee } from "@/lib/dictee-champs";
 
 export const Route = createFileRoute("/enveloppes/creer")({
