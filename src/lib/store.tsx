@@ -718,7 +718,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         const somme = Math.min(Math.round(montant), Math.round(dispoSource));
         if (!(somme > 0)) return e;
         journaliser(
-          "information",
+          "info",
           "application",
           `Secours : ${somme} FCFA déplacés de ${source.nom} vers ${cible.nom}.`,
         );
