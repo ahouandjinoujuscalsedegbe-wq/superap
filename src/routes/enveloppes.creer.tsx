@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
@@ -8,6 +8,7 @@ import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
+import { DialogueVocal, type EtapeVocale } from "@/components/DialogueVocal";
 import { analyserEnveloppeDictee } from "@/lib/dictee-champs";
 
 export const Route = createFileRoute("/enveloppes/creer")({
@@ -98,6 +99,109 @@ function CreerEnveloppePage() {
       }`,
     );
   }
+
+  /**
+   * Discussion vocale guidée : chaque champ du formulaire devient une question
+   * posée à voix haute par l'application, à laquelle l'utilisateur répond.
+   */
+  const etapesVocales = useMemo<EtapeVocale[]>(
+    () => [
+      {
+        id: "nom",
+        question: "Comment s'appelle cette enveloppe ?",
+        type: "texte",
+        appliquer: (v) => {
+          const valeur = String(v).toUpperCase();
+          setNom(valeur);
+          if (!emojiManuel) setEmoji(suggererIcone(valeur, "enveloppe"));
+        },
+        confirmation: (v) => `Enveloppe ${String(v)}.`,
+      },
+      {
+        id: "dotation",
+        question: "Quelle somme placez-vous réellement dans cette enveloppe, en francs CFA ?",
+        type: "nombre",
+        appliquer: (v) => setDotation(String(v)),
+        confirmation: (v) => `Somme attribuée : ${formatFCFA(Number(v))}.`,
+      },
+      {
+        id: "plafond",
+        question: "Quel plafond de dépenses ne faut-il pas dépasser ?",
+        type: "nombre",
+        appliquer: (v) => setPlafond(String(v)),
+        confirmation: (v) => `Plafond : ${formatFCFA(Number(v))}.`,
+      },
+      {
+        id: "categorie",
+        question: "Dans quelle catégorie faut-il classer cette enveloppe ?",
+        type: "choix",
+        options: listeCategories.map((c) => ({ valeur: c.nom, label: c.nom })),
+        ignorer: listeCategories.length === 0,
+        appliquer: (v) => {
+          setCategorie(String(v));
+          setSousCategorie("");
+        },
+        confirmation: (v) => `Catégorie ${String(v)}.`,
+      },
+      {
+        id: "sousCategorie",
+        question: "Quelle sous-catégorie choisissez-vous ?",
+        type: "choix",
+        options: sousCategories.map((s) => ({ valeur: s, label: s })),
+        ignorer: sousCategories.length === 0,
+        appliquer: (v) => setSousCategorie(String(v)),
+        confirmation: (v) => `Sous-catégorie ${String(v)}.`,
+      },
+      {
+        id: "compte",
+        question: "Quel compte alimente cette enveloppe ?",
+        type: "choix",
+        options: comptes.map((c) => ({ valeur: c, label: c })),
+        ignorer: comptes.length === 0,
+        appliquer: (v) => setCompteSource(String(v)),
+        confirmation: (v) => `Compte source : ${String(v)}.`,
+      },
+      {
+        id: "periode",
+        question: "À quelle période l'enveloppe se renouvelle-t-elle ?",
+        type: "choix",
+        options: PERIODES.map((p) => ({ valeur: p.id, label: p.label })),
+        appliquer: (v) => setPeriodeRenouvellement(String(v) as Periode),
+        confirmation: (v) =>
+          `Renouvellement : ${PERIODES.find((p) => p.id === v)?.label ?? String(v)}.`,
+      },
+      {
+        id: "mode",
+        question:
+          "L'enveloppe se remplit-elle avec un montant fixe par période, ou avec un pourcentage de chaque revenu ?",
+        type: "choix",
+        options: [
+          { valeur: "fixe", label: "Montant fixe par période" },
+          { valeur: "pourcentage", label: "Pourcentage de chaque revenu" },
+        ],
+        appliquer: (v) => setModeRemplissage(v === "pourcentage" ? "pourcentage" : "fixe"),
+        confirmation: (v) =>
+          v === "pourcentage" ? "Remplissage par pourcentage." : "Montant fixe par période.",
+      },
+      {
+        id: "part",
+        question: "Quel pourcentage de chaque revenu faut-il verser dans cette enveloppe ?",
+        type: "nombre",
+        ignorer: modeRemplissage !== "pourcentage",
+        appliquer: (v) => setPourcentageRevenu(String(v)),
+        confirmation: (v) => `${Number(v)} pour cent de chaque revenu.`,
+      },
+      {
+        id: "ajustement",
+        question: "Dois-je ajuster seul le montant selon vos habitudes de dépense ?",
+        type: "ouiNon",
+        ignorer: modeRemplissage === "pourcentage",
+        appliquer: (v) => setAjustementAuto(Boolean(v)),
+        confirmation: (v) => (v ? "J'ajusterai automatiquement." : "Pas d'ajustement automatique."),
+      },
+    ],
+    [comptes, emojiManuel, listeCategories, modeRemplissage, sousCategories],
+  );
 
   function valider(ev: React.FormEvent) {
     ev.preventDefault();
@@ -201,8 +305,14 @@ function CreerEnveloppePage() {
         </p>
       </section>
 
+      <DialogueVocal
+        titre="Créer l'enveloppe en parlant"
+        sousTitre="L'application pose chaque question à voix haute, vous répondez. Dites « passer » ou « stop » à tout moment."
+        etapes={etapesVocales}
+      />
+
       <DicteeChamp
-        titre="Dicter l'enveloppe"
+        titre="Dicter l'enveloppe en une phrase"
         exemple="enveloppe transport avec 30000 francs, plafond 25000"
         onTexte={appliquerDictee}
       />
