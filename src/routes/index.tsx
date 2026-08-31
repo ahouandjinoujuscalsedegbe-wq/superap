@@ -46,6 +46,7 @@ function Accueil() {
     enveloppes,
     depensesParEnveloppe,
     nomUtilisateur,
+    chargement,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
 
