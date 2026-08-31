@@ -984,8 +984,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       depensesParEnveloppe,
       soldesParCompte,
       stockageIllisible: illisible,
+      chargement,
     };
-  }, [etat, actions, illisible]);
+  }, [etat, actions, illisible, chargement]);
 
   return <SuperAppContext.Provider value={valeur}>{children}</SuperAppContext.Provider>;
 }
