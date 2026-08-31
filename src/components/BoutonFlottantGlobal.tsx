@@ -196,7 +196,7 @@ export function BoutonFlottantGlobal() {
               aria-label={label}
               tabIndex={ouvert ? 0 : -1}
               onClick={() => setOuvert(false)}
-              className="carte absolute inset-0 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full ring-1 ring-white/20 shadow-[0_6px_0_-2px_rgba(0,0,0,0.22),0_10px_18px_-6px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 ease-out active:translate-y-[2px]"
+              className="carte absolute inset-0 flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-full ring-1 ring-white/20 shadow-[0_5px_0_-2px_rgba(0,0,0,0.22),0_9px_16px_-6px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 ease-out active:translate-y-[2px]"
               style={{
                 transform: ouvert
                   ? `translate(${x}px, ${y}px) scale(1)`
@@ -206,8 +206,8 @@ export function BoutonFlottantGlobal() {
                 transitionDelay: `${ouvert ? i * 45 : (ACCES.length - i) * 25}ms`,
               }}
             >
-              <Icone className="h-5 w-5 text-primary" aria-hidden />
-              <span className="text-[0.5rem] font-medium leading-none">{label}</span>
+              <Icone className="h-4 w-4 text-primary" aria-hidden />
+              <span className="text-[0.45rem] font-medium leading-none">{label}</span>
             </Link>
           );
         })}
@@ -222,32 +222,36 @@ export function BoutonFlottantGlobal() {
           aria-label={
             ouvert
               ? "Fermer les accès rapides"
-              : "Ouvrir les accès rapides (maintenez pour déplacer le bouton)"
+              : "Ouvrir les accès rapides (maintenez pour déplacer la boule)"
           }
-          className={`bande-degrade group relative flex h-14 w-14 items-center justify-center rounded-full ring-1 ring-white/25 transition-all duration-150 ease-out will-change-transform active:translate-y-[3px] ${
-            glisse ? "scale-110" : ""
+          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full ring-1 ring-white/25 transition-transform duration-150 ease-out will-change-transform active:scale-95 ${
+            glisse ? "scale-105" : ""
           }`}
           style={{
+            // Sphère : lumière en haut-gauche, ombre interne en bas-droite.
+            backgroundImage:
+              "radial-gradient(circle at 32% 28%, color-mix(in oklab, var(--primary) 35%, white) 0%, var(--primary) 45%, color-mix(in oklab, var(--primary) 60%, black) 100%)",
             boxShadow: glisse
-              ? "0 16px 30px -8px rgba(0,0,0,0.55), inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -6px 10px rgba(0,0,0,0.35)"
-              : "0 10px 0 -2px rgba(0,0,0,0.28), 0 14px 24px -8px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -6px 10px rgba(0,0,0,0.3)",
+              ? "0 14px 20px -8px rgba(0,0,0,0.55), inset -4px -6px 12px rgba(0,0,0,0.45), inset 3px 4px 8px rgba(255,255,255,0.35)"
+              : "0 8px 14px -6px rgba(0,0,0,0.5), inset -4px -6px 12px rgba(0,0,0,0.4), inset 3px 4px 8px rgba(255,255,255,0.35)",
           }}
         >
-          {/* Reflet supérieur : donne le relief bombé du bouton physique. */}
+          {/* Contenu qui roule avec la boule. */}
           <span
-            className="pointer-events-none absolute inset-x-2 top-1 h-4 rounded-full bg-white/35 blur-[2px]"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+            style={{
+              transform: `rotate(${rotation}deg)`,
+              transition: glisse ? "none" : "transform 400ms ease-out",
+            }}
             aria-hidden
-          />
-          <span
-            className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-150 group-active:opacity-100"
-            style={{ boxShadow: "inset 0 6px 12px rgba(0,0,0,0.45)" }}
-            aria-hidden
-          />
-          <Plus
-            className={`relative h-7 w-7 drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)] transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
-            aria-hidden
-          />
+          >
+            <span className="absolute left-1.5 top-1.5 h-3 w-3 rounded-full bg-white/50 blur-[2px]" />
+            <Plus
+              className={`h-6 w-6 drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)] transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
+            />
+          </span>
         </button>
+
 
       </div>
     </>
