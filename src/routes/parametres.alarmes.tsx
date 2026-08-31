@@ -4,12 +4,15 @@ import { AlarmClock, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import {
+  debloquerAlarme,
+  declencherAlarmeAppareil,
   ecrireReglagesAlarme,
-  jouerSonAlarme,
   lireReglagesAlarme,
   REGLAGES_ALARME_DEFAUT,
   type ReglagesAlarme,
 } from "@/lib/alarme";
+import { demanderPermissionNotification } from "@/lib/alarme-appareil";
+
 
 export const Route = createFileRoute("/parametres/alarmes")({
   head: () => ({
