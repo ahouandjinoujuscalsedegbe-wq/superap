@@ -10,6 +10,7 @@
 import type { Budget, Enveloppe, Transaction } from "./store";
 import { previsionEnveloppes } from "./analyste-local";
 import { risqueDecouvert } from "./ia-locale";
+import { plansSecours } from "./sauvetage";
 
 const JOUR_MS = 86_400_000;
 const CLE_REGLAGES = "SA_ALARME_REGLAGES_V1";
