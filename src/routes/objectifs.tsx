@@ -62,11 +62,21 @@ function PageObjectifs() {
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
-    if (!libelle.trim()) return toast.error("Donnez un nom à votre objectif.");
-    if (!Number.isFinite(montant) || montant <= 0) return toast.error("Montant visé invalide.");
-    if (!dateCible) return toast.error("Choisissez une date à atteindre.");
+    if (!libelle.trim()) {
+      toast.error("Donnez un nom à votre objectif.");
+      return;
+    }
+    if (!Number.isFinite(montant) || montant <= 0) {
+      toast.error("Montant visé invalide.");
+      return;
+    }
+    if (!dateCible) {
+      toast.error("Choisissez une date à atteindre.");
+      return;
+    }
     if (dateCible <= new Date().toISOString().slice(0, 10)) {
-      return toast.error("La date visée doit être dans le futur.");
+      toast.error("La date visée doit être dans le futur.");
+      return;
     }
     ajouterObjectif({
       libelle: libelle.trim(),
@@ -258,6 +268,9 @@ function PageObjectifs() {
 
       {aSupprimer && (
         <Confirmation
+          ouvert
+          danger
+          confirmerLabel="Supprimer"
           titre="Supprimer cet objectif ?"
           message="Le suivi sera définitivement retiré. Vos opérations ne sont pas touchées."
           onAnnuler={() => setASupprimer(null)}
