@@ -275,6 +275,8 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
         version: donnees.version,
         url: donnees.url,
         ...(donnees.changelog ? { changelog: donnees.changelog } : {}),
+        ...(typeof donnees.sha256 === "string" ? { sha256: donnees.sha256 } : {}),
+        ...(typeof donnees.taille === "number" ? { taille: donnees.taille } : {}),
       },
     };
   }
@@ -364,6 +366,8 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
           version: donnees.version,
           url: donnees.url,
           ...(donnees.changelog ? { changelog: donnees.changelog } : {}),
+          ...(typeof donnees.sha256 === "string" ? { sha256: donnees.sha256 } : {}),
+          ...(typeof donnees.taille === "number" ? { taille: donnees.taille } : {}),
         },
       };
     }
