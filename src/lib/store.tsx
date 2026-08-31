@@ -337,7 +337,8 @@ type Contexte = Etat & {
   supprimerCompte: (nom: string) => void;
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
   supprimerTransfert: (id: string) => void;
-  ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => void;
+  /** Crée l'enveloppe et renvoie son identifiant (null si refusée). */
+  ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => string | null;
   /** Verse un montant d'un compte vers une enveloppe (dotation + débit compte). */
   remplirEnveloppe: (
     enveloppeId: string,
@@ -689,13 +690,14 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, transferts: e.transferts.filter((t) => t.id !== id) }));
   }, []);
 
-  const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">) => {
+  const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">): string | null => {
     const propre = assainirEnveloppe({ ...env, id: crypto.randomUUID() });
     if (!propre) {
       journaliser("avertissement", "application", "Enveloppe refusée : nom ou montant invalide.");
-      return;
+      return null;
     }
     setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
+    return propre.id;
   }, []);
 
   const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
