@@ -421,10 +421,29 @@ async function telechargerAPKNatif(
 ): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
   try {
     surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
+
+    // Dépôt privé : l'URL publique de téléchargement répond 404. On la
+    // remplace par l'URL d'asset de l'API GitHub, authentifiée par le jeton.
+    let cible = url;
+    let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
+    if (lireTokenGithub() && url.includes("github.com")) {
+      const nomFichier = url.split("/").pop()?.split("?")[0] ?? "";
+      const asset = nomFichier ? await trouverAsset(nomFichier) : null;
+      if (!asset) {
+        cacheRelease = null;
+        return {
+          ok: false,
+          message: `Le fichier ${nomFichier || "APK"} est introuvable dans la dernière version publiée sur GitHub.`,
+        };
+      }
+      cible = asset.url;
+      entetes = entetesGithub("application/octet-stream");
+    }
+
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
-      url,
-      headers: { Accept: "application/vnd.android.package-archive" },
+      url: cible,
+      headers: entetes,
       responseType: "blob",
       readTimeout: 180000,
       connectTimeout: 30000,
