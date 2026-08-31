@@ -239,9 +239,17 @@ export type Etat = {
   transferts: Transfert[];
   budgets: Budget[];
   dettes: Dette[];
+  objectifs: Objectif[];
+  /** Opérations supprimées, récupérables pendant 30 jours. */
+  corbeille: ElementCorbeille[];
+  /** Membres du foyer (mode couple) ; vide = mode simple. */
+  membres: string[];
   transparence: number;
   nomUtilisateur?: string;
 };
+
+/** Durée de conservation d'une opération supprimée, en jours. */
+export const JOURS_CORBEILLE = 30;
 
 /**
  * Ramène un état de provenance inconnue (stockage, sauvegarde importée,
@@ -251,6 +259,7 @@ export type Etat = {
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
   const comptes = assainirComptes(brut.comptes);
+  const limite = Date.now() - JOURS_CORBEILLE * 86400000;
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
@@ -259,6 +268,11 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     transferts: assainirListe(brut.transferts, assainirTransfert),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
+    objectifs: assainirListe(brut.objectifs, assainirObjectif),
+    corbeille: assainirListe(brut.corbeille, assainirElementCorbeille).filter(
+      (c) => new Date(c.supprimeLe).getTime() >= limite,
+    ),
+    membres: assainirMembres(brut.membres),
     transparence: Math.min(100, Math.max(0, nombreSur(brut.transparence, 85))),
     nomUtilisateur: texteSur(brut.nomUtilisateur, 60),
   };
@@ -272,6 +286,9 @@ const ETAT_INITIAL: Etat = {
   transferts: [],
   budgets: [],
   dettes: [],
+  objectifs: [],
+  corbeille: [],
+  membres: [],
   transparence: 85,
   nomUtilisateur: "",
 };
