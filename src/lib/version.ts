@@ -741,8 +741,15 @@ export async function verifierAuDemarrage(): Promise<Manifeste | null> {
   }
   const resultat = await verifierMiseAJour();
   if (resultat.etat === "hors-ligne") return null;
+  if (resultat.etat === "erreur") {
+    // Erreur serveur, jeton refusé, Release absente… : on réessaie dans 30 min
+    // au lieu d'attendre 6 h, sinon une panne passagère gèle les mises à jour.
+    localStorage.setItem(CLE_TENTATIVE, String(Date.now() - (DELAI_AUTO_MS - 30 * 60 * 1000)));
+    return null;
+  }
   localStorage.setItem(CLE_TENTATIVE, String(Date.now()));
   if (resultat.etat !== "disponible") return null;
+
   if (lireVersionIgnoree() === resultat.manifeste.version) return null;
   return resultat.manifeste;
 }
