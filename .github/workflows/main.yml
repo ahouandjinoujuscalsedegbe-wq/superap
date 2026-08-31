@@ -306,6 +306,7 @@ jobs:
             Nouvelle version ${{ env.VERSION }} de SUPER APP.
             Mode de compilation : ${{ env.MODE }}.
           prerelease: ${{ env.MODE == 'debug' }}
+          make_latest: ${{ env.MODE == 'release' }}
           files: |
             publication/super-app-${{ env.VERSION }}.apk
             publication/version.json
