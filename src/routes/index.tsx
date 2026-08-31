@@ -158,6 +158,38 @@ function Accueil() {
         </section>
       )}
 
+      {alertesIntelligentes.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden />
+            Analyse intelligente
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Calculée sur votre téléphone, sans aucune connexion.
+          </p>
+          <ul className="space-y-1.5 text-sm">
+            {alertesIntelligentes.map((a) => (
+              <li key={a.id} className="rounded-lg bg-muted/50 px-3 py-2">
+                <span
+                  className={
+                    a.niveau === "alerte"
+                      ? "font-semibold text-destructive"
+                      : a.niveau === "attention"
+                        ? "font-semibold text-warning"
+                        : "font-semibold"
+                  }
+                >
+                  {a.titre}
+                </span>
+                <span className="block text-xs text-muted-foreground">{a.texte}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+
+
       <section className="grid grid-cols-2 gap-3">
         <Link
           to="/revenu"
