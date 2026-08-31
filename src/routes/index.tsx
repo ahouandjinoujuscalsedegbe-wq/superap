@@ -110,8 +110,12 @@ function Accueil() {
       </header>
 
       <section className="carte p-5">
-        <p className="text-sm text-muted-foreground">Solde disponible</p>
-        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">{formatFCFA(solde)}</p>
+        <p className="text-sm text-muted-foreground">
+          {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
+        </p>
+        <p className="mt-1 text-4xl font-bold tracking-tight text-primary">
+          {chargement ? "—" : formatFCFA(solde)}
+        </p>
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-success/15 p-3">
             <span className="flex items-center gap-1.5 text-xs text-success/80">
