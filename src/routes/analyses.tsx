@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
@@ -190,7 +190,15 @@ function Analyses() {
 
   return (
     <div className="space-y-5">
-      <header className="pr-12">
+      <header className="relative pr-12">
+        <Link
+          to="/"
+          className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground shadow-sm active:scale-95"
+          aria-label="Retour à l'accueil"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Accueil
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight">Analyses et Conseils</h1>
         <p className="text-sm text-muted-foreground">
           Votre intelligence financière : comprendre, anticiper, décider.
