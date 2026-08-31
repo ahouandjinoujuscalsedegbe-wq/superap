@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
 import { Route as AnalysesRouteImport } from './routes/analyses'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
@@ -61,6 +62,11 @@ const AideRoute = AideRouteImport.update({
 const AnalysesRoute = AnalysesRouteImport.update({
   id: '/analyses',
   path: '/analyses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComptesRoute = ComptesRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/depense'
     | '/dettes'
     | '/journal'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -480,6 +492,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AideRoute: typeof AideRoute
   AnalysesRoute: typeof AnalysesRoute
+  AssistantRoute: typeof AssistantRoute
   ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/analyses'
       fullPath: '/analyses'
       preLoaderRoute: typeof AnalysesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comptes': {
@@ -853,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
   AnalysesRoute: AnalysesRoute,
+  AssistantRoute: AssistantRoute,
   ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
