@@ -59,8 +59,14 @@ const MOTS_PARASITES = new Set([
   "modifie",
   "objectif",
   "epargne",
+  "epargner",
   "economiser",
   "economise",
+  "atteindre",
+  "deja",
+  "cote",
+  "reuni",
+  "ci",
   "mettre",
   "avec",
   "de",
@@ -250,7 +256,7 @@ export type ObjectifDictee = {
 export function analyserObjectifDicte(texte: string, aujourdHui = new Date()): ObjectifDictee {
   const deja = montantApres(texte, ["deja", "j ai deja", "de cote", "cote", "reuni", "epargne deja"]);
   const tous = montantsOrdonnes(texte).map((m) => m.valeur);
-  const cible = montantApres(texte, ["objectif de", "economiser", "epargner", "atteindre", "de"]) ??
+  const cible = montantApres(texte, ["objectif de", "economiser", "epargner", "atteindre", "cible de"]) ??
     tous.find((v) => v !== deja) ??
     tous[0] ??
     null;
