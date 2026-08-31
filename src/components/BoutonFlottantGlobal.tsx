@@ -134,7 +134,9 @@ export function BoutonFlottantGlobal() {
     setPosition(borner({ x: d.px + dx, y: d.py + dy }));
   }
 
+  function auPointerUp(e: React.PointerEvent<HTMLButtonElement>) {
     const d = depart.current;
+    dernier.current = null;
     depart.current = null;
     if (!d) return;
     try {
