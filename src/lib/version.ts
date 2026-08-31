@@ -13,6 +13,9 @@ export const VERSION_APPLICATION = "1.0.3";
 export const URL_MANIFESTE_DEFAUT =
   "https://github.com/ahouandjinoujuscalsedegbe-wq/superapp/releases/latest/download/version.json";
 
+/** Dépôt GitHub qui héberge les Releases (propriétaire/nom). */
+export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superapp";
+
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
 
@@ -20,6 +23,7 @@ const CLE_URL = "superapp:maj:url";
 const CLE_DERNIERE = "superapp:maj:derniere";
 const CLE_TENTATIVE = "superapp:maj:tentative";
 const CLE_IGNOREE = "superapp:maj:ignoree";
+const CLE_TOKEN = "superapp:maj:token";
 
 export type Manifeste = {
   version: string;
