@@ -21,6 +21,7 @@ import { DialogueMiseAJour } from "@/components/MiseAJourAuto";
  */
 export function SectionMiseAJour() {
   const [url, setUrl] = useState("");
+  const [token, setToken] = useState("");
   const [avance, setAvance] = useState(false);
   const [derniere, setDerniere] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
@@ -29,6 +30,7 @@ export function SectionMiseAJour() {
 
   useEffect(() => {
     setUrl(lireUrlManifeste());
+    setToken(lireTokenGithub());
     setDerniere(lireDerniereVerification());
   }, []);
 
