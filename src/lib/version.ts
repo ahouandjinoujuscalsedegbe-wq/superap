@@ -2,8 +2,13 @@
  * Version de l'application et vérification des mises à jour.
  *
  * Tout fonctionne hors ligne : la vérification n'a lieu que si l'utilisateur
- * appuie sur le bouton « Vérifier les mises à jour ». Aucune donnée n'est
- * envoyée, on télécharge seulement un petit fichier `version.json` public.
+ * appuie sur le bouton « Vérifier les mises à jour » (ou au démarrage, au
+ * maximum toutes les 6 heures). Aucune donnée n'est envoyée, on télécharge
+ * seulement un petit fichier `version.json`.
+ *
+ * Dépôt privé : quand un jeton GitHub est disponible (intégré à la
+ * compilation ou saisi dans Paramètres), le manifeste et l'APK sont
+ * téléchargés via l'API GitHub avec authentification.
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
@@ -13,6 +18,9 @@ export const VERSION_APPLICATION = "1.0.3";
 export const URL_MANIFESTE_DEFAUT =
   "https://github.com/ahouandjinoujuscalsedegbe-wq/superapp/releases/latest/download/version.json";
 
+/** Dépôt GitHub qui héberge les Releases (propriétaire/nom). */
+export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superapp";
+
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
 
@@ -20,6 +28,7 @@ const CLE_URL = "superapp:maj:url";
 const CLE_DERNIERE = "superapp:maj:derniere";
 const CLE_TENTATIVE = "superapp:maj:tentative";
 const CLE_IGNOREE = "superapp:maj:ignoree";
+const CLE_TOKEN = "superapp:maj:token";
 
 export type Manifeste = {
   version: string;
@@ -49,6 +58,119 @@ export function lireUrlManifeste(): string {
 export function enregistrerUrlManifeste(url: string) {
   if (typeof localStorage === "undefined") return;
   localStorage.setItem(CLE_URL, url.trim());
+}
+
+/**
+ * Jeton d'accès GitHub (lecture seule) utilisé lorsque le dépôt est privé.
+ * Priorité : jeton saisi dans Paramètres, sinon jeton intégré à la compilation.
+ */
+export function lireTokenGithub(): string {
+  if (typeof localStorage !== "undefined") {
+    const local = localStorage.getItem(CLE_TOKEN);
+    if (local?.trim()) return local.trim();
+  }
+  const integre = import.meta.env["VITE_GITHUB_UPDATE_TOKEN"] as string | undefined;
+  return typeof integre === "string" ? integre.trim() : "";
+}
+
+export function enregistrerTokenGithub(token: string) {
+  if (typeof localStorage === "undefined") return;
+  const valeur = token.trim();
+  if (valeur) localStorage.setItem(CLE_TOKEN, valeur);
+  else localStorage.removeItem(CLE_TOKEN);
+}
+
+/** En-têtes d'authentification pour l'API GitHub (dépôt privé). */
+function entetesGithub(accept: string): Record<string, string> {
+  return {
+    Accept: accept,
+    Authorization: `Bearer ${lireTokenGithub()}`,
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
+
+type AssetRelease = { name: string; url: string };
+
+/** Mémoire courte de la dernière Release pour éviter les appels répétés. */
+let cacheRelease: { assets: AssetRelease[] } | null = null;
+
+/**
+ * Récupère la dernière Release via l'API GitHub (fonctionne avec un dépôt
+ * privé grâce au jeton). Renvoie null en cas d'échec.
+ */
+async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
+  if (cacheRelease) return cacheRelease;
+  const url = `https://api.github.com/repos/${DEPOT_GITHUB}/releases/latest?t=${Date.now()}`;
+  const entetes = entetesGithub("application/vnd.github+json");
+  try {
+    if (estApplicationNative()) {
+      const { CapacitorHttp } = await import("@capacitor/core");
+      const reponse = await CapacitorHttp.get({
+        url,
+        headers: entetes,
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+      if (reponse.status < 200 || reponse.status >= 300) return null;
+      const brut = reponse.data;
+      const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as { assets?: AssetRelease[] };
+      if (!Array.isArray(donnees.assets)) return null;
+      cacheRelease = { assets: donnees.assets };
+      return cacheRelease;
+    }
+    const reponse = await fetch(url, { headers: entetes, cache: "no-store" });
+    if (!reponse.ok) return null;
+    const donnees = (await reponse.json()) as { assets?: AssetRelease[] };
+    if (!Array.isArray(donnees.assets)) return null;
+    cacheRelease = { assets: donnees.assets };
+    return cacheRelease;
+  } catch {
+    return null;
+  }
+}
+
+/** Trouve un fichier (asset) de la dernière Release par son nom. */
+async function trouverAsset(nom: string): Promise<AssetRelease | null> {
+  const release = await lireDerniereRelease();
+  return release?.assets.find((a) => a.name === nom) ?? null;
+}
+
+/**
+ * Télécharge un fichier JSON d'une Release privée via l'API GitHub.
+ * L'URL d'asset de l'API renvoie le contenu brut avec l'en-tête
+ * Accept « application/octet-stream » et le jeton.
+ */
+async function telechargerAssetJson(
+  assetUrl: string,
+): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+  const entetes = entetesGithub("application/octet-stream");
+  try {
+    if (estApplicationNative()) {
+      const { CapacitorHttp } = await import("@capacitor/core");
+      const reponse = await CapacitorHttp.get({
+        url: assetUrl,
+        headers: entetes,
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+      if (reponse.status < 200 || reponse.status >= 300) {
+        return { etat: "erreur", message: `GitHub a répondu ${reponse.status}. Vérifiez le jeton d'accès.` };
+      }
+      const brut = reponse.data;
+      const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as Partial<Manifeste>;
+      return { etat: "ok", donnees };
+    }
+    const reponse = await fetch(assetUrl, { headers: entetes, cache: "no-store" });
+    if (!reponse.ok) {
+      return { etat: "erreur", message: `GitHub a répondu ${reponse.status}. Vérifiez le jeton d'accès.` };
+    }
+    return { etat: "ok", donnees: (await reponse.json()) as Partial<Manifeste> };
+  } catch {
+    return {
+      etat: "hors-ligne",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+    };
+  }
 }
 
 /** Date de la dernière vérification réussie (texte lisible) ou null. */
@@ -116,7 +238,7 @@ async function telechargerNatif(
     if (reponse.status < 200 || reponse.status >= 300) {
       return {
         etat: "erreur",
-        message: `Le serveur a répondu ${reponse.status}. Vérifiez l'adresse du fichier version.json (le dépôt doit être public).`,
+        message: `Le serveur a répondu ${reponse.status}. Si le dépôt est privé, enregistrez un jeton d'accès dans Paramètres → Mises à jour.`,
       };
     }
     const brut = reponse.data;
@@ -176,6 +298,23 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
       message:
         "Aucune connexion Internet détectée. Connectez-vous puis réessayez : l'application continue de fonctionner hors ligne.",
     };
+  }
+
+  // Dépôt privé : avec un jeton, on passe par l'API GitHub authentifiée
+  // (l'URL publique de téléchargement répondrait 404 sur un dépôt privé).
+  if (lireTokenGithub() && adresse.includes("github.com")) {
+    const asset = await trouverAsset("version.json");
+    if (!asset) {
+      cacheRelease = null;
+      return {
+        etat: "erreur",
+        message:
+          "Impossible de lire la dernière version sur GitHub. Vérifiez le jeton d'accès et qu'une Release existe.",
+      };
+    }
+    const resultat = await telechargerAssetJson(asset.url);
+    if (resultat.etat !== "ok") return { etat: resultat.etat, message: resultat.message };
+    return interpreterManifeste(resultat.donnees);
   }
 
   const cible = `${adresse}${adresse.includes("?") ? "&" : "?"}t=${Date.now()}`;
@@ -282,10 +421,29 @@ async function telechargerAPKNatif(
 ): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
   try {
     surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
+
+    // Dépôt privé : l'URL publique de téléchargement répond 404. On la
+    // remplace par l'URL d'asset de l'API GitHub, authentifiée par le jeton.
+    let cible = url;
+    let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
+    if (lireTokenGithub() && url.includes("github.com")) {
+      const nomFichier = url.split("/").pop()?.split("?")[0] ?? "";
+      const asset = nomFichier ? await trouverAsset(nomFichier) : null;
+      if (!asset) {
+        cacheRelease = null;
+        return {
+          ok: false,
+          message: `Le fichier ${nomFichier || "APK"} est introuvable dans la dernière version publiée sur GitHub.`,
+        };
+      }
+      cible = asset.url;
+      entetes = entetesGithub("application/octet-stream");
+    }
+
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
-      url,
-      headers: { Accept: "application/vnd.android.package-archive" },
+      url: cible,
+      headers: entetes,
       responseType: "blob",
       readTimeout: 180000,
       connectTimeout: 30000,

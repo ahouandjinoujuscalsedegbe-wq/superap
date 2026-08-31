@@ -7,6 +7,10 @@ name: Compiler l'APK Android
 # Release SIGNÉE (recommandé, permet les mises à jour par-dessus l'app).
 # S'ils sont absents, le workflow ne échoue plus : il compile un APK de test
 # (debug) pour que vous ayez quand même une application installable.
+#
+# Dépôt PRIVÉ : ajoutez aussi le secret GITHUB_UPDATE_TOKEN (jeton GitHub en
+# lecture seule, accès "Contents: Read-only" sur ce dépôt). Il est intégré à
+# l'application à la compilation pour que l'auto-updater lise les Releases.
 "on":
   workflow_dispatch:
   push:
@@ -33,7 +37,11 @@ jobs:
         run: bun install --frozen-lockfile || bun install
 
       # 4. Construire la version web mobile (fichiers statiques)
+      # Le jeton GitHub (lecture seule) est intégré à l'application pour que
+      # l'auto-updater puisse lire les Releases même si le dépôt est privé.
       - name: Construire l'application web mobile
+        env:
+          VITE_GITHUB_UPDATE_TOKEN: ${{ secrets.GITHUB_UPDATE_TOKEN }}
         run: bunx vite build --config vite.mobile.config.ts
 
       # 5. Installer Java (nécessaire pour compiler Android)
