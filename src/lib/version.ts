@@ -64,7 +64,7 @@ export function lireTokenGithub(): string {
     const local = localStorage.getItem(CLE_TOKEN);
     if (local?.trim()) return local.trim();
   }
-  const integre = import.meta.env.VITE_GITHUB_UPDATE_TOKEN as string | undefined;
+  const integre = import.meta.env["VITE_GITHUB_UPDATE_TOKEN"] as string | undefined;
   return typeof integre === "string" ? integre.trim() : "";
 }
 
