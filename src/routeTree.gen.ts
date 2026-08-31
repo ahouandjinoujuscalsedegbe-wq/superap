@@ -38,6 +38,11 @@ import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
+import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
+import { Route as ParametresDonneesRouteImport } from './routes/parametres.donnees'
+import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mises-a-jour'
+import { Route as ParametresProfilRouteImport } from './routes/parametres.profil'
+import { Route as ParametresSecuriteRouteImport } from './routes/parametres.securite'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -187,6 +192,31 @@ const ParametresIndexRoute = ParametresIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ParametresRoute,
 } as any)
+const ParametresClavierRoute = ParametresClavierRouteImport.update({
+  id: '/clavier',
+  path: '/clavier',
+  getParentRoute: () => ParametresRoute,
+} as any)
+const ParametresDonneesRoute = ParametresDonneesRouteImport.update({
+  id: '/donnees',
+  path: '/donnees',
+  getParentRoute: () => ParametresRoute,
+} as any)
+const ParametresMisesAJourRoute = ParametresMisesAJourRouteImport.update({
+  id: '/mises-a-jour',
+  path: '/mises-a-jour',
+  getParentRoute: () => ParametresRoute,
+} as any)
+const ParametresProfilRoute = ParametresProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => ParametresRoute,
+} as any)
+const ParametresSecuriteRoute = ParametresSecuriteRouteImport.update({
+  id: '/securite',
+  path: '/securite',
+  getParentRoute: () => ParametresRoute,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -231,6 +261,11 @@ export interface FileRoutesByFullPath {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/donnees': typeof ParametresDonneesRoute
+  '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
+  '/parametres/profil': typeof ParametresProfilRoute
+  '/parametres/securite': typeof ParametresSecuriteRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -261,6 +296,11 @@ export interface FileRoutesByTo {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/donnees': typeof ParametresDonneesRoute
+  '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
+  '/parametres/profil': typeof ParametresProfilRoute
+  '/parametres/securite': typeof ParametresSecuriteRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
@@ -296,6 +336,11 @@ export interface FileRoutesById {
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
+  '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/donnees': typeof ParametresDonneesRoute
+  '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
+  '/parametres/profil': typeof ParametresProfilRoute
+  '/parametres/securite': typeof ParametresSecuriteRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -332,6 +377,11 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/clavier'
+    | '/parametres/donnees'
+    | '/parametres/mises-a-jour'
+    | '/parametres/profil'
+    | '/parametres/securite'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -362,6 +412,11 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/clavier'
+    | '/parametres/donnees'
+    | '/parametres/mises-a-jour'
+    | '/parametres/profil'
+    | '/parametres/securite'
     | '/comptes'
     | '/enveloppes'
     | '/parametres'
@@ -396,6 +451,11 @@ export interface FileRouteTypes {
     | '/enveloppes/creer'
     | '/enveloppes/details'
     | '/enveloppes/modifier'
+    | '/parametres/clavier'
+    | '/parametres/donnees'
+    | '/parametres/mises-a-jour'
+    | '/parametres/profil'
+    | '/parametres/securite'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -627,6 +687,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresIndexRouteImport
       parentRoute: typeof ParametresRoute
     }
+    '/parametres/clavier': {
+      id: '/parametres/clavier'
+      path: '/clavier'
+      fullPath: '/parametres/clavier'
+      preLoaderRoute: typeof ParametresClavierRouteImport
+      parentRoute: typeof ParametresRoute
+    }
+    '/parametres/donnees': {
+      id: '/parametres/donnees'
+      path: '/donnees'
+      fullPath: '/parametres/donnees'
+      preLoaderRoute: typeof ParametresDonneesRouteImport
+      parentRoute: typeof ParametresRoute
+    }
+    '/parametres/mises-a-jour': {
+      id: '/parametres/mises-a-jour'
+      path: '/mises-a-jour'
+      fullPath: '/parametres/mises-a-jour'
+      preLoaderRoute: typeof ParametresMisesAJourRouteImport
+      parentRoute: typeof ParametresRoute
+    }
+    '/parametres/profil': {
+      id: '/parametres/profil'
+      path: '/profil'
+      fullPath: '/parametres/profil'
+      preLoaderRoute: typeof ParametresProfilRouteImport
+      parentRoute: typeof ParametresRoute
+    }
+    '/parametres/securite': {
+      id: '/parametres/securite'
+      path: '/securite'
+      fullPath: '/parametres/securite'
+      preLoaderRoute: typeof ParametresSecuriteRouteImport
+      parentRoute: typeof ParametresRoute
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -712,10 +807,20 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ParametresRouteChildren {
+  ParametresClavierRoute: typeof ParametresClavierRoute
+  ParametresDonneesRoute: typeof ParametresDonneesRoute
+  ParametresMisesAJourRoute: typeof ParametresMisesAJourRoute
+  ParametresProfilRoute: typeof ParametresProfilRoute
+  ParametresSecuriteRoute: typeof ParametresSecuriteRoute
   ParametresIndexRoute: typeof ParametresIndexRoute
 }
 
 const ParametresRouteChildren: ParametresRouteChildren = {
+  ParametresClavierRoute: ParametresClavierRoute,
+  ParametresDonneesRoute: ParametresDonneesRoute,
+  ParametresMisesAJourRoute: ParametresMisesAJourRoute,
+  ParametresProfilRoute: ParametresProfilRoute,
+  ParametresSecuriteRoute: ParametresSecuriteRoute,
   ParametresIndexRoute: ParametresIndexRoute,
 }
 
