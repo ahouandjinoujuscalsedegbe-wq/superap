@@ -16,10 +16,10 @@ export const VERSION_APPLICATION = "1.0.8";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
-  "https://github.com/ahouandjinoujuscalsedegbe-wq/superapp/releases/latest/download/version.json";
+  "https://github.com/ahouandjinoujuscalsedegbe-wq/superap/releases/latest/download/version.json";
 
 /** Dépôt GitHub qui héberge les Releases (propriétaire/nom). */
-export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superapp";
+export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superap";
 
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
