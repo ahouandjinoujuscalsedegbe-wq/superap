@@ -95,7 +95,6 @@ function PagePlanning() {
     modifierBudget,
     ajouterTransaction,
     soldesParCompte,
-    depensesParEnveloppe,
   } = useSuperApp();
 
   // Réglages d'alarme lus côté navigateur (seuils de comptes, plafonds).
