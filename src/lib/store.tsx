@@ -58,6 +58,26 @@ export type Transaction = {
   budgetId?: string | undefined;
   /** Dette ou créance à l'origine de cette opération, si elle vient du module Dettes. */
   detteId?: string | undefined;
+  /** Membre du foyer à l'origine de l'opération (mode couple). */
+  membre?: string | undefined;
+};
+
+/** Opération supprimée, conservée 30 jours dans la corbeille. */
+export type ElementCorbeille = Transaction & { supprimeLe: string };
+
+/** Objectif d'épargne suivi par l'application. */
+export type Objectif = {
+  id: string;
+  libelle: string;
+  /** Montant visé, en FCFA. */
+  cible: number;
+  /** Date visée (YYYY-MM-DD). */
+  dateCible: string;
+  /** Montant déjà mis de côté avant le suivi. */
+  deja: number;
+  /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
+  enveloppeId?: string | undefined;
+  creeLe: string;
 };
 
 export type Transfert = {
