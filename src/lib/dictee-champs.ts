@@ -115,6 +115,24 @@ const MOTS_PARASITES = new Set([
   "l",
 ]);
 
+/** Mots propres au vocabulaire des comptes, à ne pas garder dans le nom. */
+const MOTS_COMPTE = new Set([
+  "compte",
+  "comptes",
+  "solde",
+  "initial",
+  "initiale",
+  "renommer",
+  "renomme",
+  "appelle",
+  "appeler",
+  "nommer",
+  "nomme",
+  "contient",
+  "il",
+  "y",
+]);
+
 /** Retire chiffres, mots outils et unités pour ne garder que le libellé parlé. */
 function libelleDepuis(texte: string): string {
   const mots = sansAccents(texte)
@@ -276,5 +294,46 @@ export function analyserObjectifDicte(texte: string, aujourdHui = new Date()): O
     cible: cibleValide,
     deja: dejaValide,
     dateCible: dateDepuisDelai(texte, aujourdHui),
+  };
+}
+
+export type CompteDicte = {
+  /** Nom deviné du compte (vide si non compris). */
+  nom: string;
+  /** Solde initial dicté, s'il a été compris. */
+  soldeInitial: number | null;
+};
+
+/**
+ * « Compte Mobile Money avec un solde initial de 25000 francs »
+ *  → { nom: "Mobile money", soldeInitial: 25000 }
+ */
+export function analyserCompteDicte(texte: string): CompteDicte {
+  const solde =
+    montantApres(texte, [
+      "solde initial de",
+      "solde initial",
+      "solde de",
+      "solde",
+      "avec",
+      "contient",
+      "montant de",
+      "montant",
+      "il y a",
+    ]) ??
+    montantsOrdonnes(texte)[0]?.valeur ??
+    null;
+
+  const mots = sansAccents(texte)
+    .replace(/[^a-z0-9\s'-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((mot) => !/^\d+$/.test(mot))
+    .filter((mot) => !MOTS_PARASITES.has(mot))
+    .filter((mot) => !MOTS_COMPTE.has(mot));
+
+  return {
+    nom: majusculeInitiale(mots.join(" ").trim()),
+    soldeInitial: solde && solde > 0 ? solde : null,
   };
 }

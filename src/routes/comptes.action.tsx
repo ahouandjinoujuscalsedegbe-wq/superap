@@ -7,10 +7,12 @@ import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
+import { DicteeChamp } from "@/components/DicteeChamp";
+import { analyserCompteDicte } from "@/lib/dictee-champs";
 
 type Demande =
-  | { type: "creation"; nom: string }
-  | { type: "renommage"; ancien: string; nom: string }
+  | { type: "creation"; nom: string; solde: number }
+  | { type: "renommage"; ancien: string; nom: string; ajustement: number }
   | { type: "suppression"; nom: string }
   | null;
 
@@ -43,18 +45,21 @@ function ActionComptes() {
     transferts,
     soldesParCompte,
     ajouterCompte,
+    ajouterTransaction,
     renommerCompte,
     supprimerCompte,
   } = useSuperApp();
 
   const [modal, setModal] = useState<"creer" | "modifier" | null>(null);
   const [nom, setNom] = useState("");
+  const [solde, setSolde] = useState("");
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
   function ouvrirCreation() {
     setNom("");
+    setSolde("");
     setEnEdition(null);
     setModal("creer");
   }
@@ -62,12 +67,24 @@ function ActionComptes() {
   function ouvrirModification(compte: string) {
     setEnEdition(compte);
     setNom(compte);
+    setSolde(String(soldesParCompte[compte] ?? 0));
     setModal("modifier");
   }
 
   function fermer() {
     setModal(null);
     setEnEdition(null);
+  }
+
+  function auTexteDicte(texte: string) {
+    const lu = analyserCompteDicte(texte);
+    if (!lu.nom && lu.soldeInitial === null) {
+      setErreur("Phrase non comprise. Dites par exemple : « compte mobile money avec 25000 ».");
+      return;
+    }
+    if (lu.nom) setNom(lu.nom.slice(0, 30));
+    if (lu.soldeInitial !== null) setSolde(String(lu.soldeInitial));
+    toast.success("Dictée prise en compte. Vérifiez avant de valider.");
   }
 
   function soumettre(ev: React.FormEvent) {
@@ -81,24 +98,30 @@ function ActionComptes() {
       setErreur("Nom trop long : 30 caractères maximum.");
       return;
     }
+    const soldeSaisi = solde.trim() === "" ? 0 : Number(solde.replace(/[^\d-]/g, ""));
+    if (!Number.isFinite(soldeSaisi) || soldeSaisi < 0) {
+      setErreur("Le solde doit être un nombre positif en francs CFA.");
+      return;
+    }
     if (modal === "creer") {
       if (comptes.includes(valeur)) {
         setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
         return;
       }
-      setDemande({ type: "creation", nom: valeur });
+      setDemande({ type: "creation", nom: valeur, solde: soldeSaisi });
       return;
     }
     if (!enEdition) return;
+    const ajustement = soldeSaisi - (soldesParCompte[enEdition] ?? 0);
     if (valeur !== enEdition && comptes.includes(valeur)) {
       setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
       return;
     }
-    if (valeur === enEdition) {
-      setErreur("Le nom est identique : modifiez-le ou annulez.");
+    if (valeur === enEdition && ajustement === 0) {
+      setErreur("Rien n'a changé : modifiez le nom ou le solde, ou annulez.");
       return;
     }
-    setDemande({ type: "renommage", ancien: enEdition, nom: valeur });
+    setDemande({ type: "renommage", ancien: enEdition, nom: valeur, ajustement });
   }
 
   function retirer(compte: string) {
@@ -121,9 +144,29 @@ function ActionComptes() {
     if (!demande) return;
     if (demande.type === "creation") {
       ajouterCompte(demande.nom);
+      if (demande.solde > 0) {
+        ajouterTransaction({
+          type: "revenu",
+          montant: demande.solde,
+          libelle: "SOLDE INITIAL",
+          categorie: "Autre",
+          compte: demande.nom,
+          date: new Date().toISOString().slice(0, 10),
+        });
+      }
       toast.success(`Compte « ${demande.nom} » ajouté.`);
     } else if (demande.type === "renommage") {
-      renommerCompte(demande.ancien, demande.nom);
+      if (demande.nom !== demande.ancien) renommerCompte(demande.ancien, demande.nom);
+      if (demande.ajustement !== 0) {
+        ajouterTransaction({
+          type: demande.ajustement > 0 ? "revenu" : "depense",
+          montant: Math.abs(demande.ajustement),
+          libelle: "AJUSTEMENT DE SOLDE",
+          categorie: "Autre",
+          compte: demande.nom,
+          date: new Date().toISOString().slice(0, 10),
+        });
+      }
       toast.success("Compte modifié.");
     } else {
       supprimerCompte(demande.nom);
@@ -261,6 +304,12 @@ function ActionComptes() {
               </button>
             </div>
 
+            <DicteeChamp
+              titre="Dicter le compte"
+              exemple="compte mobile money avec un solde initial de 25000 francs"
+              onTexte={auTexteDicte}
+            />
+
             <form onSubmit={soumettre} className="space-y-3">
               <div>
                 <label htmlFor="c-nom" className="text-sm font-medium">
@@ -275,6 +324,25 @@ function ActionComptes() {
                   className={champ}
                 />
                 <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
+              </div>
+
+              <div>
+                <label htmlFor="c-solde" className="text-sm font-medium">
+                  {modal === "creer" ? "Solde initial (FCFA)" : "Solde actuel (FCFA)"}
+                </label>
+                <input
+                  id="c-solde"
+                  inputMode="numeric"
+                  value={solde}
+                  onChange={(ev) => setSolde(ev.target.value)}
+                  placeholder="0"
+                  className={champ}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {modal === "creer"
+                    ? "Laissez 0 si le compte est vide."
+                    : "Une correction crée une opération d'ajustement."}
+                </p>
               </div>
 
               <div className="flex gap-2">
@@ -309,9 +377,21 @@ function ActionComptes() {
         message={message}
         details={
           demande?.type === "creation"
-            ? [{ label: "Nom", apres: demande.nom }]
+            ? [
+                { label: "Nom", apres: demande.nom },
+                { label: "Solde initial", apres: formatFCFA(demande.solde) },
+              ]
             : demande?.type === "renommage"
-              ? [{ label: "Nom", avant: demande.ancien, apres: demande.nom }]
+              ? [
+                  { label: "Nom", avant: demande.ancien, apres: demande.nom },
+                  {
+                    label: "Solde",
+                    avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
+                    apres: formatFCFA(
+                      (soldesParCompte[demande.ancien] ?? 0) + demande.ajustement,
+                    ),
+                  },
+                ]
               : demande?.type === "suppression"
                 ? [
                     { label: "Compte", apres: demande.nom },
