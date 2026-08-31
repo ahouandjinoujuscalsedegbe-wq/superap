@@ -88,6 +88,20 @@ function ActionEnveloppes() {
               </p>
             </div>
           </Link>
+          <Link
+            to="/enveloppes/budget-mensuel"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Scale aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Budget mensuel et dépenses réelles</p>
+              <p className="text-sm text-muted-foreground">
+                Budget calculé seul depuis la période, comparé au réel.
+              </p>
+            </div>
+          </Link>
         </div>
       </section>
     </div>
