@@ -162,7 +162,7 @@ function RootComponent() {
         <SuperAppProvider>
           <main className="app-page-shell safe-area-top mx-auto min-h-screen w-full max-w-md px-3 sm:px-4">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <div key={pathname} className="cascade">
+            <div key={pathname}>
               <Outlet />
             </div>
           </main>

@@ -60,6 +60,7 @@
   --radius: 1.125rem;
   --surface-alpha: 0.85;
   --app-nav-height: 5.75rem;
+  --app-keyboard-height: 0px;
   --modal-max-height: calc(
     100dvh - max(1rem, env(safe-area-inset-top, 0px)) -
       max(1rem, env(safe-area-inset-bottom, 0px))
@@ -242,6 +243,7 @@ textarea:not([data-majuscules="non"]) {
 
 /* Fenêtres personnalisées : centrage et dimensions sûres sur tous les écrans. */
 .fixed.inset-0[aria-modal="true"] {
+  bottom: var(--app-keyboard-height) !important;
   align-items: center !important;
   justify-content: center !important;
   padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem

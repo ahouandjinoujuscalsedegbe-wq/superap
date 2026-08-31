@@ -149,6 +149,7 @@ export function ClavierInterne() {
         dernierPadding = padding;
         document.body.style.paddingBottom = padding;
         document.body.dataset["clavierOuvert"] = "true";
+        document.documentElement.style.setProperty("--app-keyboard-height", `${hauteurClavier}px`);
       }
 
       const rect = champ.getBoundingClientRect();
@@ -184,6 +185,7 @@ export function ClavierInterne() {
       document.removeEventListener("input", surSaisie, true);
       document.body.style.paddingBottom = "";
       delete document.body.dataset["clavierOuvert"];
+      document.documentElement.style.removeProperty("--app-keyboard-height");
     };
   }, [ouvert, mode]);
 
