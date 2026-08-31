@@ -105,7 +105,50 @@ export function assainirTransaction(v: unknown): Transaction | null {
   };
   if (idValide(v["budgetId"])) t.budgetId = v["budgetId"];
   if (idValide(v["detteId"])) t.detteId = v["detteId"];
+  const membre = texteSur(v["membre"], 40);
+  if (membre) t.membre = membre;
   return t;
+}
+
+/** Une opération placée en corbeille conserve sa date de suppression. */
+export function assainirElementCorbeille(v: unknown): ElementCorbeille | null {
+  const t = assainirTransaction(v);
+  if (!t || !estObjet(v)) return null;
+  const supprimeLe = dateSure(v["supprimeLe"]);
+  if (!supprimeLe) return null;
+  return { ...t, supprimeLe };
+}
+
+export function assainirObjectif(v: unknown): Objectif | null {
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const cible = nombreSur(v["cible"]);
+  if (!montantValide(cible)) return null;
+  const dateCible = dateSure(v["dateCible"]);
+  const creeLe = dateSure(v["creeLe"]);
+  if (!dateCible || !creeLe) return null;
+  const libelle = texteSur(v["libelle"], 80);
+  if (!libelle) return null;
+  return {
+    id: v["id"],
+    libelle,
+    cible,
+    dateCible,
+    creeLe,
+    deja: nombreSur(v["deja"], 0),
+    enveloppeId: idValide(v["enveloppeId"]) ? v["enveloppeId"] : undefined,
+  };
+}
+
+/** Noms des membres du foyer (mode couple) : deux entrées au maximum. */
+export function assainirMembres(v: unknown): string[] {
+  const brut = Array.isArray(v) ? v : [];
+  const out: string[] = [];
+  for (const x of brut) {
+    const nom = texteSur(x, 40);
+    if (nom && !out.includes(nom)) out.push(nom);
+    if (out.length >= 4) break;
+  }
+  return out;
 }
 
 export function assainirTransfert(v: unknown): Transfert | null {
