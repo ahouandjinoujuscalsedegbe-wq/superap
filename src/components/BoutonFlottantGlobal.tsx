@@ -109,6 +109,7 @@ export function BoutonFlottantGlobal() {
       /* vibration indisponible */
     }
     depart.current = { x: e.clientX, y: e.clientY, px: position.x, py: position.y, bouge: false };
+    dernier.current = { x: e.clientX, y: e.clientY };
   }
 
   function auPointerMove(e: React.PointerEvent<HTMLButtonElement>) {
@@ -122,10 +123,17 @@ export function BoutonFlottantGlobal() {
       setGlisse(true);
       setOuvert(false);
     }
+    // La boule roule : la distance parcourue est convertie en tours.
+    const p = dernier.current;
+    if (p) {
+      const pas = Math.hypot(e.clientX - p.x, e.clientY - p.y);
+      const sens = e.clientX - p.x >= 0 ? 1 : -1;
+      setRotation((r) => r + (sens * pas * 360) / PERIMETRE);
+    }
+    dernier.current = { x: e.clientX, y: e.clientY };
     setPosition(borner({ x: d.px + dx, y: d.py + dy }));
   }
 
-  function auPointerUp(e: React.PointerEvent<HTMLButtonElement>) {
     const d = depart.current;
     depart.current = null;
     if (!d) return;
