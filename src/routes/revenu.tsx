@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { operationsFrequentes } from "@/lib/favoris";
+import { DicteeOperation } from "@/components/DicteeOperation";
 
 export const Route = createFileRoute("/revenu")({
   head: () => ({
@@ -69,6 +70,15 @@ function AjouterRevenu() {
         <h1 className="text-2xl font-bold tracking-tight">Ajouter un revenu</h1>
         <p className="text-sm text-muted-foreground">Entrée d'argent dans le foyer</p>
       </header>
+
+      <DicteeOperation
+        type="revenu"
+        onResultat={(r) => {
+          if (r.montant > 0) setMontant(String(Math.round(r.montant)));
+          if (r.libelle) setLibelle(r.libelle);
+          if (r.date) setDate(r.date);
+        }}
+      />
 
       {favoris.length > 0 && (
         <section className="carte space-y-2 p-4">

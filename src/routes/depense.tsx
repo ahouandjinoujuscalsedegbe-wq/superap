@@ -6,6 +6,7 @@ import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
+import { DicteeOperation } from "@/components/DicteeOperation";
 
 export const Route = createFileRoute("/depense")({
   head: () => ({
@@ -87,6 +88,16 @@ function AjouterDepense() {
         <h1 className="text-2xl font-bold tracking-tight">Ajouter une dépense</h1>
         <p className="text-sm text-muted-foreground">Sortie d'argent du foyer</p>
       </header>
+
+      <DicteeOperation
+        type="depense"
+        onResultat={(r) => {
+          if (r.montant > 0) setMontant(String(Math.round(r.montant)));
+          if (r.libelle) setLibelle(r.libelle);
+          if (r.date) setDate(r.date);
+          if (r.enveloppe && enveloppes.some((e) => e.id === r.enveloppe)) setEnveloppe(r.enveloppe);
+        }}
+      />
 
       {favoris.length > 0 && (
         <section className="carte space-y-2 p-4">

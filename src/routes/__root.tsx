@@ -27,6 +27,7 @@ import { SyncAuto } from "../components/SyncAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
+import { BoutonFlottantGlobal } from "../components/BoutonFlottantGlobal";
 
 function NotFoundComponent() {
   return (
@@ -173,6 +174,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
+          <BoutonFlottantGlobal />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>

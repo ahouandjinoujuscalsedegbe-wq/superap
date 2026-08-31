@@ -14,7 +14,6 @@ import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { alertesLocales } from "@/lib/analyste-local";
-import { AccesRapidesRadial } from "@/components/AccesRapidesRadial";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
@@ -138,7 +137,6 @@ function Accueil() {
         </div>
       </section>
 
-      <AccesRapidesRadial />
 
 
 
