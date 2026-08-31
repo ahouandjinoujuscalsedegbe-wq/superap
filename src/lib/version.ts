@@ -104,8 +104,13 @@ let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 /** Durée de validité du cache de Release. */
 const CACHE_RELEASE_MS = 60 * 1000;
 
+type ReponseGithub =
+  | { etat: "ok"; donnees: unknown }
+  | { etat: "http"; code: number }
+  | { etat: "reseau" };
+
 /** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
-async function lireJsonGithub(url: string): Promise<unknown | null> {
+async function lireJsonGithub(url: string): Promise<ReponseGithub> {
   const entetes = entetesGithub("application/vnd.github+json");
   try {
     if (estApplicationNative()) {
@@ -116,17 +121,25 @@ async function lireJsonGithub(url: string): Promise<unknown | null> {
         readTimeout: 15000,
         connectTimeout: 15000,
       });
-      if (reponse.status < 200 || reponse.status >= 300) return null;
+      if (reponse.status < 200 || reponse.status >= 300) {
+        return { etat: "http", code: reponse.status };
+      }
       const brut = reponse.data;
-      return typeof brut === "string" ? JSON.parse(brut) : brut;
+      return { etat: "ok", donnees: typeof brut === "string" ? JSON.parse(brut) : brut };
     }
     const reponse = await fetch(url, { headers: entetes, cache: "no-store" });
-    if (!reponse.ok) return null;
-    return await reponse.json();
+    if (!reponse.ok) return { etat: "http", code: reponse.status };
+    return { etat: "ok", donnees: await reponse.json() };
   } catch {
-    return null;
+    return { etat: "reseau" };
   }
 }
+
+type ResultatRelease =
+  | { etat: "ok"; assets: AssetRelease[] }
+  | { etat: "sans-release" }
+  | { etat: "http"; code: number }
+  | { etat: "reseau" };
 
 /**
  * Récupère la Release la plus récente contenant le manifeste via l'API GitHub
@@ -137,42 +150,55 @@ async function lireJsonGithub(url: string): Promise<unknown | null> {
  * pré-Releases : sans elle, une compilation de test (APK debug, publiée en
  * pré-Release) bloquerait totalement la mise à jour automatique.
  */
-async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
-  if (cacheRelease && Date.now() < cacheRelease.expire) return cacheRelease;
+async function lireDerniereRelease(): Promise<ResultatRelease> {
+  if (cacheRelease && Date.now() < cacheRelease.expire) {
+    return { etat: "ok", assets: cacheRelease.assets };
+  }
 
   const base = `https://api.github.com/repos/${DEPOT_GITHUB}/releases`;
 
-  const latest = (await lireJsonGithub(`${base}/latest?t=${Date.now()}`)) as { assets?: AssetRelease[] } | null;
-  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
-    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
-    return cacheRelease;
+  const reponseLatest = await lireJsonGithub(`${base}/latest?t=${Date.now()}`);
+  if (reponseLatest.etat === "reseau") return { etat: "reseau" };
+  if (reponseLatest.etat === "http" && reponseLatest.code !== 404) {
+    return { etat: "http", code: reponseLatest.code };
   }
 
-  const liste = (await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`)) as Array<{
-    draft?: boolean;
-    assets?: AssetRelease[];
-  }> | null;
+  const latest =
+    reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
+  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
+    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
+    return { etat: "ok", assets: latest.assets };
+  }
+
+  const reponseListe = await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`);
+  if (reponseListe.etat === "reseau") return { etat: "reseau" };
+  if (reponseListe.etat === "http") return { etat: "http", code: reponseListe.code };
+
+  const liste = reponseListe.donnees as Array<{ draft?: boolean; assets?: AssetRelease[] }>;
   if (Array.isArray(liste)) {
+    if (liste.length === 0) return { etat: "sans-release" };
     const trouvee = liste.find(
       (r) => !r.draft && Array.isArray(r.assets) && r.assets.some((a) => a.name === "version.json"),
     );
     if (trouvee?.assets) {
       cacheRelease = { assets: trouvee.assets, expire: Date.now() + CACHE_RELEASE_MS };
-      return cacheRelease;
+      return { etat: "ok", assets: trouvee.assets };
     }
+    return { etat: "sans-release" };
   }
 
   if (latest && Array.isArray(latest.assets)) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
-    return cacheRelease;
+    return { etat: "ok", assets: latest.assets };
   }
-  return null;
+  return { etat: "sans-release" };
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
-async function trouverAsset(nom: string): Promise<AssetRelease | null> {
+async function trouverAsset(nom: string): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
   const release = await lireDerniereRelease();
-  return release?.assets.find((a) => a.name === nom) ?? null;
+  if (release.etat !== "ok") return { asset: null, echec: release };
+  return { asset: release.assets.find((a) => a.name === nom) ?? null, echec: null };
 }
 
 /**
@@ -345,13 +371,31 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
   // Dépôt privé : avec un jeton, on passe par l'API GitHub authentifiée
   // (l'URL publique de téléchargement répondrait 404 sur un dépôt privé).
   if (lireTokenGithub() && adresse.includes("github.com")) {
-    const asset = await trouverAsset("version.json");
+    const { asset, echec } = await trouverAsset("version.json");
     if (!asset) {
       cacheRelease = null;
+      if (echec?.etat === "reseau") {
+        return {
+          etat: "hors-ligne",
+          message: "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
+        };
+      }
+      if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
+        return {
+          etat: "erreur",
+          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superapp et collez-le dans Paramètres → Mises à jour.`,
+        };
+      }
+      if (echec?.etat === "http") {
+        return {
+          etat: "erreur",
+          message: `GitHub a répondu ${echec.code}. Vérifiez que le jeton couvre bien le dépôt ${DEPOT_GITHUB}.`,
+        };
+      }
       return {
         etat: "erreur",
         message:
-          "Impossible de lire la dernière version sur GitHub. Vérifiez le jeton d'accès et qu'une Release existe.",
+          "Aucune Release avec un fichier version.json n'existe encore sur GitHub. Lancez d'abord le workflow « Compiler l'APK Android » (onglet Actions) jusqu'au bout.",
       };
     }
     const resultat = await telechargerAssetJson(asset.url);
@@ -520,15 +564,15 @@ async function telechargerAPKNatif(
     let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
     if (lireTokenGithub() && url.includes("github.com")) {
       const nomFichier = url.split("/").pop()?.split("?")[0] ?? "";
-      const asset = nomFichier ? await trouverAsset(nomFichier) : null;
-      if (!asset) {
+      const trouve = nomFichier ? await trouverAsset(nomFichier) : null;
+      if (!trouve?.asset) {
         cacheRelease = null;
         return {
           ok: false,
           message: `Le fichier ${nomFichier || "APK"} est introuvable dans la dernière version publiée sur GitHub.`,
         };
       }
-      cible = asset.url;
+      cible = trouve.asset.url;
       entetes = entetesGithub("application/octet-stream");
     }
 
