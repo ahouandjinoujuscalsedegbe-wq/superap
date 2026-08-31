@@ -37,6 +37,7 @@ import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.class
 import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
+import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -181,6 +182,11 @@ const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
   path: '/modifier',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ParametresIndexRoute = ParametresIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ParametresRoute,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -208,7 +214,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
-  '/parametres': typeof ParametresRoute
+  '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/parametres/': typeof ParametresIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -239,7 +246,6 @@ export interface FileRoutesByTo {
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
-  '/parametres': typeof ParametresRoute
   '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -257,6 +263,7 @@ export interface FileRoutesByTo {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
+  '/parametres': typeof ParametresIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
@@ -272,7 +279,7 @@ export interface FileRoutesById {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
-  '/parametres': typeof ParametresRoute
+  '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -291,6 +298,7 @@ export interface FileRoutesById {
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/parametres/': typeof ParametresIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -326,6 +334,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/parametres/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -338,7 +347,6 @@ export interface FileRouteTypes {
     | '/dettes'
     | '/journal'
     | '/outils'
-    | '/parametres'
     | '/planning'
     | '/revenu'
     | '/saisie'
@@ -356,6 +364,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes'
     | '/enveloppes'
+    | '/parametres'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts'
@@ -389,6 +398,7 @@ export interface FileRouteTypes {
     | '/enveloppes/modifier'
     | '/comptes/'
     | '/enveloppes/'
+    | '/parametres/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -404,7 +414,7 @@ export interface RootRouteChildren {
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
   JournalRoute: typeof JournalRoute
   OutilsRoute: typeof OutilsRoute
-  ParametresRoute: typeof ParametresRoute
+  ParametresRoute: typeof ParametresRouteWithChildren
   PlanningRoute: typeof PlanningRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
@@ -610,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/parametres/': {
+      id: '/parametres/'
+      path: '/'
+      fullPath: '/parametres/'
+      preLoaderRoute: typeof ParametresIndexRouteImport
+      parentRoute: typeof ParametresRoute
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -694,6 +711,18 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
   EnveloppesRouteChildren,
 )
 
+interface ParametresRouteChildren {
+  ParametresIndexRoute: typeof ParametresIndexRoute
+}
+
+const ParametresRouteChildren: ParametresRouteChildren = {
+  ParametresIndexRoute: ParametresIndexRoute,
+}
+
+const ParametresRouteWithChildren = ParametresRoute._addFileChildren(
+  ParametresRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
@@ -704,7 +733,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnveloppesRoute: EnveloppesRouteWithChildren,
   JournalRoute: JournalRoute,
   OutilsRoute: OutilsRoute,
-  ParametresRoute: ParametresRoute,
+  ParametresRoute: ParametresRouteWithChildren,
   PlanningRoute: PlanningRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
