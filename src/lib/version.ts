@@ -135,6 +135,12 @@ async function lireJsonGithub(url: string): Promise<ReponseGithub> {
   }
 }
 
+type ResultatRelease =
+  | { etat: "ok"; assets: AssetRelease[] }
+  | { etat: "sans-release" }
+  | { etat: "http"; code: number }
+  | { etat: "reseau" };
+
 /**
  * Récupère la Release la plus récente contenant le manifeste via l'API GitHub
  * (fonctionne avec un dépôt privé grâce au jeton).
@@ -144,36 +150,48 @@ async function lireJsonGithub(url: string): Promise<ReponseGithub> {
  * pré-Releases : sans elle, une compilation de test (APK debug, publiée en
  * pré-Release) bloquerait totalement la mise à jour automatique.
  */
-async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
-  if (cacheRelease && Date.now() < cacheRelease.expire) return cacheRelease;
+async function lireDerniereRelease(): Promise<ResultatRelease> {
+  if (cacheRelease && Date.now() < cacheRelease.expire) {
+    return { etat: "ok", assets: cacheRelease.assets };
+  }
 
   const base = `https://api.github.com/repos/${DEPOT_GITHUB}/releases`;
 
-  const latest = (await lireJsonGithub(`${base}/latest?t=${Date.now()}`)) as { assets?: AssetRelease[] } | null;
-  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
-    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
-    return cacheRelease;
+  const reponseLatest = await lireJsonGithub(`${base}/latest?t=${Date.now()}`);
+  if (reponseLatest.etat === "reseau") return { etat: "reseau" };
+  if (reponseLatest.etat === "http" && reponseLatest.code !== 404) {
+    return { etat: "http", code: reponseLatest.code };
   }
 
-  const liste = (await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`)) as Array<{
-    draft?: boolean;
-    assets?: AssetRelease[];
-  }> | null;
+  const latest =
+    reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
+  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
+    cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
+    return { etat: "ok", assets: latest.assets };
+  }
+
+  const reponseListe = await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`);
+  if (reponseListe.etat === "reseau") return { etat: "reseau" };
+  if (reponseListe.etat === "http") return { etat: "http", code: reponseListe.code };
+
+  const liste = reponseListe.donnees as Array<{ draft?: boolean; assets?: AssetRelease[] }>;
   if (Array.isArray(liste)) {
+    if (liste.length === 0) return { etat: "sans-release" };
     const trouvee = liste.find(
       (r) => !r.draft && Array.isArray(r.assets) && r.assets.some((a) => a.name === "version.json"),
     );
     if (trouvee?.assets) {
       cacheRelease = { assets: trouvee.assets, expire: Date.now() + CACHE_RELEASE_MS };
-      return cacheRelease;
+      return { etat: "ok", assets: trouvee.assets };
     }
+    return { etat: "sans-release" };
   }
 
   if (latest && Array.isArray(latest.assets)) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
-    return cacheRelease;
+    return { etat: "ok", assets: latest.assets };
   }
-  return null;
+  return { etat: "sans-release" };
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
