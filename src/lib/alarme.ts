@@ -133,7 +133,7 @@ function estReportee(id: string, reports: Reports): boolean {
 
 export type Alarme = {
   id: string;
-  type: "echeance" | "prediction" | "compte" | "plafond";
+  type: "echeance" | "prediction" | "compte" | "plafond" | "secours";
   niveau: "alerte" | "attention" | "info";
   titre: string;
   texte: string;
@@ -287,6 +287,30 @@ export function alarmesPlafonds(
   return alarmes;
 }
 
+/**
+ * Alarmes de surutilisation : plafond ET réserve épuisés. L'application
+ * signale le manque et indique tout de suite la piste de secours trouvée.
+ */
+export function alarmesSurutilisation(
+  enveloppes: Enveloppe[],
+  depensesParEnveloppe: Record<string, number>,
+  transactions: Transaction[],
+  aujourdHui = new Date().toISOString().slice(0, 10),
+): Alarme[] {
+  return plansSecours(enveloppes, depensesParEnveloppe, transactions).map((p) => ({
+    id: `secours-${p.enveloppe.id}`,
+    type: "secours" as const,
+    niveau: "alerte" as const,
+    titre: `${p.enveloppe.emoji} ${p.enveloppe.nom} : réserve épuisée`,
+    texte: p.couvert
+      ? `Il manque ${fcfa(p.manque)}. ${p.donneurs.length} enveloppe(s) peuvent aider sans risque : ${p.donneurs
+          .map((d) => `${d.enveloppe.nom} (${fcfa(d.montantPropose)})`)
+          .join(", ")}.`
+      : `Il manque ${fcfa(p.manque)} et seules ${fcfa(p.couverture)} sont mobilisables. ${p.conseil}`,
+    date: aujourdHui,
+  }));
+}
+
 /** Toutes les alarmes actives, hors celles mises en veille par l'utilisateur. */
 export function calculerAlarmes(
   donnees: {
@@ -310,6 +334,11 @@ export function calculerAlarmes(
     ...(reglages.plafonds
       ? alarmesPlafonds(donnees.enveloppes, donnees.depensesParEnveloppe ?? {})
       : []),
+    ...alarmesSurutilisation(
+      donnees.enveloppes,
+      donnees.depensesParEnveloppe ?? {},
+      donnees.transactions,
+    ),
   ];
   const rang = { alerte: 0, attention: 1, info: 2 };
   return liste
