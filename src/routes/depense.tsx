@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
+import { operationsFrequentes } from "@/lib/favoris";
 
 export const Route = createFileRoute("/depense")({
   head: () => ({
@@ -28,13 +29,21 @@ export const Route = createFileRoute("/depense")({
 const MONTANTS_RAPIDES = [500, 1000, 2000, 5000, 10000];
 
 function AjouterDepense() {
-  const { ajouterTransaction, enveloppes, comptes, depensesParEnveloppe } = useSuperApp();
+  const { ajouterTransaction, enveloppes, comptes, depensesParEnveloppe, transactions, membres } =
+    useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [membre, setMembre] = useState("");
+
+  // Opérations répétées repérées localement : ressaisie en un seul appui.
+  const favoris = useMemo(
+    () => operationsFrequentes(transactions, { type: "depense", maximum: 4 }),
+    [transactions],
+  );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
 
@@ -52,6 +61,7 @@ function AjouterDepense() {
       categorie: enveloppe,
       compte,
       date: new Date(date).toISOString(),
+      ...(membre ? { membre } : {}),
     });
     // L'IA locale apprend le lien libellé → icône à partir des dépenses validées.
     if (env && libelle.trim()) apprendreIcone(libelle, env.emoji);
@@ -77,6 +87,29 @@ function AjouterDepense() {
         <h1 className="text-2xl font-bold tracking-tight">Ajouter une dépense</h1>
         <p className="text-sm text-muted-foreground">Sortie d'argent du foyer</p>
       </header>
+
+      {favoris.length > 0 && (
+        <section className="carte space-y-2 p-4">
+          <p className="text-sm font-medium">Dépenses habituelles</p>
+          <div className="flex flex-wrap gap-2">
+            {favoris.map((f) => (
+              <button
+                key={f.cle}
+                type="button"
+                onClick={() => {
+                  setMontant(String(f.montant));
+                  setLibelle(f.libelle);
+                  if (enveloppes.some((e) => e.id === f.categorie)) setEnveloppe(f.categorie);
+                  if (comptes.includes(f.compte)) setCompte(f.compte);
+                }}
+                className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
+              >
+                {f.libelle} · {formatFCFA(f.montant)}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <form onSubmit={enregistrer} className="space-y-4">
         <section className="carte p-4">
@@ -132,6 +165,29 @@ function AjouterDepense() {
             })}
           </div>
         </section>
+
+        {membres.length > 0 && (
+          <section className="carte p-4">
+            <p className="text-sm font-medium">Qui a fait cette dépense ?</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["", ...membres].map((m) => (
+                <button
+                  key={m || "aucun"}
+                  type="button"
+                  aria-pressed={membre === m}
+                  onClick={() => setMembre(m)}
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    membre === m
+                      ? "border-primary bg-accent font-semibold text-accent-foreground"
+                      : "border-input bg-card text-muted-foreground"
+                  }`}
+                >
+                  {m || "Non précisé"}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="carte space-y-4 p-4">
           <div>

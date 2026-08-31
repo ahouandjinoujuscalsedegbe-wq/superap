@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BoutonRetour } from "@/components/BoutonRetour";
+import { SectionCouple } from "@/components/SectionCouple";
 import { useSuperApp } from "@/lib/store";
 
 export const Route = createFileRoute("/parametres/profil")({
@@ -68,6 +69,8 @@ function PageProfil() {
           className="mt-4 w-full accent-[var(--primary)]"
         />
       </section>
+
+      <SectionCouple />
 
       <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Devise et langue</h2>
