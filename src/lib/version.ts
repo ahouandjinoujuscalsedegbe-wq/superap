@@ -12,14 +12,14 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.8";
+export const VERSION_APPLICATION = "1.0.9";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
-  "https://github.com/ahouandjinoujuscalsedegbe-wq/superapp/releases/latest/download/version.json";
+  "https://github.com/ahouandjinoujuscalsedegbe-wq/superap/releases/latest/download/version.json";
 
 /** Dépôt GitHub qui héberge les Releases (propriétaire/nom). */
-export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superapp";
+export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superap";
 
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
@@ -59,7 +59,12 @@ export type EtapeInstallation =
 /** Adresse du manifeste enregistrée sur l'appareil. */
 export function lireUrlManifeste(): string {
   if (typeof localStorage === "undefined") return URL_MANIFESTE_DEFAUT;
-  return localStorage.getItem(CLE_URL) ?? URL_MANIFESTE_DEFAUT;
+  const enregistree = localStorage.getItem(CLE_URL);
+  // Migration : les anciennes installations pointaient vers un nom de dépôt
+  // erroné (« superapp » au lieu de « superap »), ce qui rendait toute
+  // Release introuvable. On revient alors à l'adresse correcte.
+  if (!enregistree || enregistree.includes("/superapp/")) return URL_MANIFESTE_DEFAUT;
+  return enregistree;
 }
 
 export function enregistrerUrlManifeste(url: string) {
@@ -383,7 +388,7 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
       if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
         return {
           etat: "erreur",
-          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superapp et collez-le dans Paramètres → Mises à jour.`,
+          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superap et collez-le dans Paramètres → Mises à jour.`,
         };
       }
       if (echec?.etat === "http") {
