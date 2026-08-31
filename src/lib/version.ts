@@ -59,7 +59,12 @@ export type EtapeInstallation =
 /** Adresse du manifeste enregistrée sur l'appareil. */
 export function lireUrlManifeste(): string {
   if (typeof localStorage === "undefined") return URL_MANIFESTE_DEFAUT;
-  return localStorage.getItem(CLE_URL) ?? URL_MANIFESTE_DEFAUT;
+  const enregistree = localStorage.getItem(CLE_URL);
+  // Migration : les anciennes installations pointaient vers un nom de dépôt
+  // erroné (« superapp » au lieu de « superap »), ce qui rendait toute
+  // Release introuvable. On revient alors à l'adresse correcte.
+  if (!enregistree || enregistree.includes("/superapp/")) return URL_MANIFESTE_DEFAUT;
+  return enregistree;
 }
 
 export function enregistrerUrlManifeste(url: string) {
