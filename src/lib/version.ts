@@ -12,7 +12,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.7";
+export const VERSION_APPLICATION = "1.0.8";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -142,17 +142,16 @@ async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null>
 
   const base = `https://api.github.com/repos/${DEPOT_GITHUB}/releases`;
 
-  const latest = (await lireJsonGithub(`${base}/latest?t=${Date.now()}`)) as
-    | { assets?: AssetRelease[] }
-    | null;
+  const latest = (await lireJsonGithub(`${base}/latest?t=${Date.now()}`)) as { assets?: AssetRelease[] } | null;
   if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
     return cacheRelease;
   }
 
-  const liste = (await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`)) as
-    | Array<{ draft?: boolean; assets?: AssetRelease[] }>
-    | null;
+  const liste = (await lireJsonGithub(`${base}?per_page=15&t=${Date.now()}`)) as Array<{
+    draft?: boolean;
+    assets?: AssetRelease[];
+  }> | null;
   if (Array.isArray(liste)) {
     const trouvee = liste.find(
       (r) => !r.draft && Array.isArray(r.assets) && r.assets.some((a) => a.name === "version.json"),
@@ -175,7 +174,6 @@ async function trouverAsset(nom: string): Promise<AssetRelease | null> {
   const release = await lireDerniereRelease();
   return release?.assets.find((a) => a.name === nom) ?? null;
 }
-
 
 /**
  * Télécharge un fichier JSON d'une Release privée via l'API GitHub.
