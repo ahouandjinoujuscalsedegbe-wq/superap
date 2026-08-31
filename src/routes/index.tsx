@@ -227,7 +227,13 @@ function Accueil() {
 
       <section className="carte p-4">
         <h2 className="text-sm font-semibold text-muted-foreground">Dernières opérations</h2>
-        {dernieres.length === 0 ? (
+        {chargement ? (
+          <div className="mt-3 space-y-2" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-muted/60" />
+            ))}
+          </div>
+        ) : dernieres.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <Wallet className="h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="text-sm text-muted-foreground">
