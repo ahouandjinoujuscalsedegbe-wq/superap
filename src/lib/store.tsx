@@ -457,7 +457,76 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const supprimerTransaction = useCallback((id: string) => {
-    setEtat((e) => ({ ...e, transactions: e.transactions.filter((t) => t.id !== id) }));
+    setEtat((e) => {
+      const cible = e.transactions.find((t) => t.id === id);
+      if (!cible) return e;
+      const limite = Date.now() - JOURS_CORBEILLE * 86400000;
+      const corbeille = e.corbeille.filter(
+        (c) => c.id !== id && new Date(c.supprimeLe).getTime() >= limite,
+      );
+      return {
+        ...e,
+        transactions: e.transactions.filter((t) => t.id !== id),
+        corbeille: [{ ...cible, supprimeLe: new Date().toISOString() }, ...corbeille],
+      };
+    });
+  }, []);
+
+  /** Remet une opération de la corbeille dans les comptes. */
+  const restaurerTransaction = useCallback((id: string) => {
+    setEtat((e) => {
+      const cible = e.corbeille.find((c) => c.id === id);
+      if (!cible) return e;
+      const { supprimeLe: _supprimeLe, ...operation } = cible;
+      if (e.transactions.some((t) => t.id === id)) {
+        return { ...e, corbeille: e.corbeille.filter((c) => c.id !== id) };
+      }
+      return {
+        ...e,
+        transactions: [operation, ...e.transactions],
+        corbeille: e.corbeille.filter((c) => c.id !== id),
+      };
+    });
+  }, []);
+
+  const supprimerDefinitivement = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, corbeille: e.corbeille.filter((c) => c.id !== id) }));
+  }, []);
+
+  const viderCorbeille = useCallback(() => setEtat((e) => ({ ...e, corbeille: [] })), []);
+
+  const ajouterObjectif = useCallback((o: Omit<Objectif, "id" | "creeLe">) => {
+    const propre = assainirObjectif({
+      ...o,
+      id: crypto.randomUUID(),
+      creeLe: new Date().toISOString(),
+    });
+    if (!propre) {
+      journaliser("avertissement", "application", "Objectif refusé : montant ou date invalide.");
+      return;
+    }
+    setEtat((e) => ({ ...e, objectifs: [...e.objectifs, propre] }));
+  }, []);
+
+  const modifierObjectif = useCallback(
+    (id: string, o: Partial<Omit<Objectif, "id" | "creeLe">>) => {
+      setEtat((e) => ({
+        ...e,
+        objectifs: e.objectifs.map((x) => {
+          if (x.id !== id) return x;
+          return assainirObjectif({ ...x, ...o }) ?? x;
+        }),
+      }));
+    },
+    [],
+  );
+
+  const supprimerObjectif = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, objectifs: e.objectifs.filter((o) => o.id !== id) }));
+  }, []);
+
+  const definirMembres = useCallback((noms: string[]) => {
+    setEtat((e) => ({ ...e, membres: assainirMembres(noms) }));
   }, []);
 
   const ajouterCompte = useCallback((nom: string) => {
