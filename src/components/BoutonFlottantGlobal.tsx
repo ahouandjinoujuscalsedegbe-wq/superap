@@ -224,7 +224,7 @@ export function BoutonFlottantGlobal() {
               ? "Fermer les accès rapides"
               : "Ouvrir les accès rapides (maintenez pour déplacer la boule)"
           }
-          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground shadow-none backdrop-blur-xl transition-[transform,opacity] duration-150 ease-out will-change-transform active:scale-[0.88] active:opacity-80 ${
+          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden sphere-3d rounded-full bg-primary text-primary-foreground backdrop-blur-xl transition-[transform,opacity] duration-150 ease-out will-change-transform active:scale-[0.88] active:opacity-80 ${
             glisse ? "scale-105 opacity-95" : ""
           }`}
 
