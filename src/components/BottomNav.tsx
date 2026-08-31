@@ -35,9 +35,9 @@ export function BottomNav() {
                   className="group -mt-6 flex flex-col items-center"
                 >
                   <span
-                    className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-lg transition-all duration-300 ${
+                    className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-all duration-300 ${
                       actif
-                        ? "bande-degrade shadow-[0_10px_28px_-10px_var(--primary)]"
+                        ? "bande-degrade"
                         : "bg-background text-muted-foreground ring-1 ring-border active:bg-accent/60"
                     }`}
                   >
@@ -49,13 +49,12 @@ export function BottomNav() {
                       />
                     )}
                     <Icone
-                      className={`relative h-7 w-7 transition-transform duration-300 ${
-                        actif ? "scale-110" : "group-active:scale-95"
-                      }`}
+                      className={`boule-roule relative h-7 w-7 ${actif ? "scale-110" : ""}`}
                       strokeWidth={actif ? 2.4 : 1.9}
                       aria-hidden
                     />
                   </span>
+
                   <span
                     className={`mt-1.5 h-6 max-w-[4.5rem] overflow-hidden text-center text-[0.6rem] leading-3 transition-all duration-300 ${
                       actif ? "texte-degrade font-semibold" : "text-muted-foreground"
