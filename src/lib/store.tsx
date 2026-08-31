@@ -22,6 +22,7 @@ import {
   assainirListe,
   assainirMembres,
   assainirObjectif,
+  assainirRemplissage,
   assainirTransaction,
   assainirTransfert,
   montantPositifOuNul,
@@ -41,6 +42,32 @@ export type Enveloppe = {
   categorie?: string;
   /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
   sousCategorie?: string;
+  /** Compte qui alimente l'enveloppe : le remplissage y est débité. */
+  compteSource?: string;
+  /** Périodicité de renouvellement du contenu de l'enveloppe. */
+  periodeRenouvellement?: Periode;
+  /** Mode de remplissage : montant fixe par période ou % de chaque revenu. */
+  modeRemplissage?: "fixe" | "pourcentage";
+  /** Montant fixe versé à chaque période (mode « fixe »). */
+  montantPeriode?: number;
+  /** Part de chaque revenu versée à l'enveloppe, en % (mode « pourcentage »). */
+  pourcentageRevenu?: number;
+  /** true : le montant s'ajuste seul aux habitudes de dépense observées. */
+  ajustementAuto?: boolean;
+  /** Date (ISO) du dernier remplissage périodique appliqué. */
+  dernierRemplissage?: string;
+};
+
+/** Versement d'un compte vers une enveloppe (approvisionnement). */
+export type Remplissage = {
+  id: string;
+  enveloppeId: string;
+  /** Compte débité. */
+  compte: string;
+  montant: number;
+  date: string;
+  /** Origine : renouvellement de période, part d'un revenu, ou geste manuel. */
+  origine: "periode" | "revenu" | "manuel";
 };
 
 export type CategorieEnveloppe = {
@@ -240,6 +267,8 @@ export type Etat = {
   categories: CategorieEnveloppe[];
   comptes: string[];
   transferts: Transfert[];
+  /** Approvisionnements des enveloppes depuis les comptes. */
+  remplissages: Remplissage[];
   budgets: Budget[];
   dettes: Dette[];
   objectifs: Objectif[];
@@ -269,6 +298,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
     transferts: assainirListe(brut.transferts, assainirTransfert),
+    remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
     objectifs: assainirListe(brut.objectifs, assainirObjectif),
@@ -287,6 +317,7 @@ const ETAT_INITIAL: Etat = {
   categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
   transferts: [],
+  remplissages: [],
   budgets: [],
   dettes: [],
   objectifs: [],
@@ -306,6 +337,14 @@ type Contexte = Etat & {
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
   supprimerTransfert: (id: string) => void;
   ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => void;
+  /** Verse un montant d'un compte vers une enveloppe (dotation + débit compte). */
+  remplirEnveloppe: (
+    enveloppeId: string,
+    montant: number,
+    compte: string,
+    origine?: Remplissage["origine"],
+    date?: string,
+  ) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
   deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
@@ -365,6 +404,7 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     ...charge,
     transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
     transferts: [...ajouts(actuel.transferts, charge.transferts), ...charge.transferts],
+    remplissages: [...ajouts(actuel.remplissages, charge.remplissages), ...charge.remplissages],
     budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
   };
