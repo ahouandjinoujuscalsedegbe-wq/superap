@@ -485,3 +485,67 @@ textarea {
     inset 0 2px 3px color-mix(in oklab, white 45%, transparent),
     inset 0 -4px 8px color-mix(in oklab, black 30%, transparent);
 }
+
+/* Vie propre de la sphère : léger rebond continu pour signaler l'interactivité. */
+@keyframes sphere-rebond {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2.5px) scale(1.04);
+  }
+}
+
+@keyframes sphere-rebond-survol {
+  0%,
+  100% {
+    transform: translateY(0) scale(1.06);
+  }
+  40% {
+    transform: translateY(-5px) scale(1.12);
+  }
+  70% {
+    transform: translateY(-1px) scale(1.03);
+  }
+}
+
+/* Reflet mobile : la lumière glisse sur la sphère. */
+@keyframes sphere-reflet {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(18%, 12%) scale(1.25);
+    opacity: 0.9;
+  }
+}
+
+@utility sphere-vivante {
+  animation: sphere-rebond 2.6s ease-in-out infinite;
+}
+
+@utility sphere-reflet-anime {
+  animation: sphere-reflet 2.6s ease-in-out infinite;
+}
+
+.sphere-vivante:hover,
+.sphere-vivante:focus-visible {
+  animation: sphere-rebond-survol 900ms ease-in-out infinite;
+}
+
+.sphere-vivante:hover .sphere-reflet-anime,
+.sphere-vivante:focus-visible .sphere-reflet-anime {
+  animation-duration: 900ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sphere-vivante,
+  .sphere-vivante:hover,
+  .sphere-reflet-anime {
+    animation: none !important;
+  }
+}
+
