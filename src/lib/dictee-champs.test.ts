@@ -34,6 +34,6 @@ describe("analyserObjectifDicte", () => {
     const r = analyserObjectifDicte("épargner 500000 francs pour une moto dans 6 mois", base);
     expect(r.cible).toBe(500000);
     expect(r.dateCible).toBe("2026-07-10");
-    expect(r.libelle).toContain("moto");
+    expect(r.libelle).toBe("Moto");
   });
 });
