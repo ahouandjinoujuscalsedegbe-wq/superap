@@ -243,12 +243,37 @@ jobs:
           else
             SRC=android/app/build/outputs/apk/debug/app-debug.apk
           fi
+
+          # Contrôle de cohérence : sans APK valide, la Release serait publiée
+          # avec un version.json pointant vers un fichier inexistant, ce qui
+          # casserait l'auto-updater de tous les téléphones.
+          if [ ! -s "$SRC" ]; then
+            echo "::error::APK introuvable : $SRC. La compilation n'a pas produit de fichier."
+            exit 1
+          fi
+          TAILLE=$(wc -c < "$SRC")
+          if [ "$TAILLE" -lt 1000000 ]; then
+            echo "::error::APK anormalement petit ($TAILLE octets) : $SRC. Compilation probablement corrompue."
+            exit 1
+          fi
+
           cp "$SRC" "publication/super-app-$VERSION.apk"
           BASE="https://github.com/${{ github.repository }}/releases/latest/download"
           printf '{\n  "version": "%s",\n  "url": "%s/super-app-%s.apk",\n  "changelog": "Nouvelle version %s de SUPER APP."\n}\n' \
             "$VERSION" "$BASE" "$VERSION" "$VERSION" > publication/version.json
-          cat publication/version.json
-          echo "### APK compilé ($MODE) : version $VERSION" >> "$GITHUB_STEP_SUMMARY"
+
+          # Vérification immédiate du manifeste : il doit être un JSON lisible
+          # contenant la version et l'URL de l'APK.
+          python3 - "$VERSION" <<'PY'
+          import json, sys
+          with open("publication/version.json", encoding="utf-8") as f:
+              m = json.load(f)
+          assert m.get("version") == sys.argv[1], "version.json : version incorrecte"
+          assert m.get("url", "").endswith(f"super-app-{sys.argv[1]}.apk"), "version.json : url incorrecte"
+          print("version.json valide :", m)
+          PY
+
+          echo "### APK compilé ($MODE) : version $VERSION ($TAILLE octets)" >> "$GITHUB_STEP_SUMMARY"
 
       # 12. Rendre l'APK téléchargeable depuis la page du workflow
       - name: Publier l'APK en téléchargement
@@ -258,14 +283,20 @@ jobs:
           path: publication/
           retention-days: 30
 
-      # 13. Créer la Release GitHub utilisée par la mise à jour automatique
+      # 13. Créer la Release GitHub utilisée par la mise à jour automatique.
+      # Toujours publiée (release signée ou debug) afin que version.json existe
+      # toujours : sans manifeste, l'auto-updater des téléphones ne voit rien.
+      # En mode debug, la Release est marquée "pré-release" pour signaler
+      # qu'elle n'est pas destinée à la distribution.
       - name: Créer la Release GitHub
-        if: env.MODE == 'release'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: SUPER APP ${{ env.VERSION }}
-          body: Nouvelle version ${{ env.VERSION }} de SUPER APP.
+          name: SUPER APP ${{ env.VERSION }}${{ env.MODE == 'debug' && ' (TEST — non signée)' || '' }}
+          body: |
+            Nouvelle version ${{ env.VERSION }} de SUPER APP.
+            Mode de compilation : ${{ env.MODE }}.
+          prerelease: ${{ env.MODE == 'debug' }}
           files: |
             publication/super-app-${{ env.VERSION }}.apk
             publication/version.json
