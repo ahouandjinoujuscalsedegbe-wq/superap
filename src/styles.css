@@ -59,6 +59,12 @@
 :root {
   --radius: 1.125rem;
   --surface-alpha: 0.85;
+  --app-nav-height: 5.75rem;
+  --app-keyboard-height: 0px;
+  --modal-max-height: calc(
+    100dvh - max(1rem, env(safe-area-inset-top, 0px)) -
+      max(1rem, env(safe-area-inset-bottom, 0px)) - var(--app-keyboard-height)
+  );
 
   --background: oklch(0.975 0.017 350);
   --foreground: oklch(0.26 0.045 350);
@@ -149,6 +155,8 @@
     background-attachment: fixed;
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 }
 
@@ -161,7 +169,26 @@
 
 /* Marge haute respectant la zone de statut (encoche, Dynamic Island, etc.). */
 @utility safe-area-top {
-  padding-top: max(1.5rem, env(safe-area-inset-top));
+  padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+}
+
+.app-page-shell {
+  padding-bottom: calc(var(--app-nav-height) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+}
+
+.app-bottom-nav {
+  min-height: calc(var(--app-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-keyboard {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior: contain;
+}
+
+body[data-clavier-ouvert="true"] .app-bottom-nav {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 @utility carte {
@@ -182,11 +209,9 @@ textarea:not([data-majuscules="non"]) {
 @keyframes page-entree {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -216,24 +241,27 @@ textarea:not([data-majuscules="non"]) {
   }
 }
 
-/* ============================================================
- * Pop-ups adaptatifs : toute fenêtre modale (overlay fixed
- * plein écran) voit son contenu limité à la hauteur visible,
- * avec défilement interne et prise en compte des zones
- * sûres du téléphone (encoche, barre de statut).
- * ============================================================ */
-.fixed.inset-0 > * {
+/* Fenêtres personnalisées : centrage et dimensions sûres sur tous les écrans. */
+.fixed.inset-0[aria-modal="true"] {
+  bottom: var(--app-keyboard-height) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem
+    max(1rem, env(safe-area-inset-bottom, 0px)) !important;
+  overflow: hidden;
+}
+
+.fixed.inset-0[aria-modal="true"] > * {
+  width: min(100%, 32rem);
   max-width: calc(100vw - 1rem);
-  max-height: calc(
-    100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1.5rem
-  );
+  max-height: var(--modal-max-height) !important;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
 @media (max-height: 480px) {
-  .fixed.inset-0 > * {
+  .fixed.inset-0[aria-modal="true"] > * {
     font-size: 0.9375rem;
   }
 }
@@ -367,11 +395,9 @@ textarea {
 @keyframes apparition-douce {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 

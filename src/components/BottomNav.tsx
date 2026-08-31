@@ -14,8 +14,9 @@ export function BottomNav() {
 
   return (
     <nav
+      id="navigation-principale"
       aria-label="Navigation principale"
-      className="surface fixed inset-x-0 bottom-0 z-50 border-t border-border pb-[env(safe-area-inset-bottom)]"
+      className="surface app-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-border"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-between px-1 pb-2 pt-1">
         {ONGLETS.map((onglet) => {

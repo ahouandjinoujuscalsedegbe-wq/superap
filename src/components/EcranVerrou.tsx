@@ -44,7 +44,10 @@ export function EcranVerrou() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background px-6">
+    <div
+      id="ecran-verrou"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background px-6"
+    >
       <div className="w-full max-w-xs space-y-6 text-center">
         <div className="flex flex-col items-center gap-2">
           <span className="surface rounded-full border border-border p-3 text-primary">

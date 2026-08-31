@@ -29,6 +29,7 @@ import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
 import { BoutonFlottantGlobal } from "../components/BoutonFlottantGlobal";
+import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 
 function NotFoundComponent() {
   return (
@@ -150,19 +151,28 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  useCapacitorBackButton();
+
   // Capture des erreurs non gérées dans le journal de diagnostic.
   useEffect(() => installerCaptureGlobale(), []);
+
+  // Une navigation doit toujours repartir avec une surface propre : aucun
+  // clavier ou panneau de la page précédente ne doit rester au-dessus.
+  useEffect(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
         <SuperAppProvider>
-          <div className="safe-area-top mx-auto min-h-screen w-full max-w-md px-3 pb-28 sm:px-4">
+          <main className="app-page-shell safe-area-top mx-auto min-h-screen w-full max-w-md px-3 sm:px-4">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <div key={pathname} className="cascade">
+            <div key={pathname}>
               <Outlet />
             </div>
-          </div>
+          </main>
 
           <EcheancesAuto />
           <RemplissageAuto />

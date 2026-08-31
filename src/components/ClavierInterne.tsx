@@ -120,6 +120,15 @@ export function ClavierInterne() {
     setNumeriqueForce(false);
   }, []);
 
+  useEffect(() => {
+    if (!ouvert) return;
+    const surRetour = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") fermer();
+    };
+    window.addEventListener("keydown", surRetour);
+    return () => window.removeEventListener("keydown", surRetour);
+  }, [fermer, ouvert]);
+
   // Quand le clavier est ouvert : réserve de l'espace en bas de page et
   // remonte le champ actif juste au-dessus du clavier pour qu'il reste visible.
   useEffect(() => {
@@ -139,6 +148,8 @@ export function ClavierInterne() {
       if (padding !== dernierPadding) {
         dernierPadding = padding;
         document.body.style.paddingBottom = padding;
+        document.body.dataset["clavierOuvert"] = "true";
+        document.documentElement.style.setProperty("--app-keyboard-height", `${hauteurClavier}px`);
       }
 
       const rect = champ.getBoundingClientRect();
@@ -173,6 +184,8 @@ export function ClavierInterne() {
       window.removeEventListener("resize", planifier);
       document.removeEventListener("input", surSaisie, true);
       document.body.style.paddingBottom = "";
+      delete document.body.dataset["clavierOuvert"];
+      document.documentElement.style.removeProperty("--app-keyboard-height");
     };
   }, [ouvert, mode]);
 
@@ -300,8 +313,7 @@ export function ClavierInterne() {
       ref={clavierRef}
       data-clavier-interne
       onMouseDown={(e) => e.preventDefault()}
-      style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0px) + 12px)" }}
-      className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/98 p-2 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] backdrop-blur"
+      className="app-keyboard fixed inset-x-0 bottom-0 z-[70] max-h-[calc(100dvh-env(safe-area-inset-top,0px))] overflow-y-auto border-t border-border bg-card/98 p-2 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] backdrop-blur"
       role="group"
       aria-label="Clavier interne de l'application"
     >
