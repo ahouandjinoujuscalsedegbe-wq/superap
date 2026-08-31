@@ -7,6 +7,8 @@ import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
+import { DicteeChamp } from "@/components/DicteeChamp";
+import { analyserObjectifDicte } from "@/lib/dictee-champs";
 
 export const Route = createFileRoute("/objectifs")({
   head: () => ({
@@ -59,6 +61,25 @@ function PageObjectifs() {
     () => suivreObjectifs(objectifs, transactions),
     [objectifs, transactions],
   );
+
+  /** Dictée locale : auto-nom, auto-montant et auto-délai de l'objectif. */
+  const appliquerDictee = (texte: string) => {
+    const lu = analyserObjectifDicte(texte);
+    if (lu.libelle) setLibelle(lu.libelle);
+    if (lu.cible !== null) setCible(String(lu.cible));
+    if (lu.deja !== null) setDeja(String(lu.deja));
+    if (lu.dateCible) setDateCible(lu.dateCible);
+    if (!lu.libelle && lu.cible === null) {
+      toast.warning(`« ${texte} » : rien compris, complétez à la main.`);
+      return;
+    }
+    setOuvert(true);
+    toast.success(
+      `Compris : ${lu.libelle || "objectif"}${lu.cible !== null ? ` · ${formatFCFA(lu.cible)}` : ""}${
+        lu.dateCible ? ` · pour le ${lu.dateCible}` : ""
+      }`,
+    );
+  };
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
@@ -116,6 +137,12 @@ function PageObjectifs() {
         <Plus className="h-4 w-4" aria-hidden />
         Nouvel objectif
       </button>
+
+      <DicteeChamp
+        titre="Dicter l'objectif"
+        exemple="épargner 500000 francs pour une moto dans 6 mois"
+        onTexte={appliquerDictee}
+      />
 
       {ouvert && (
         <section className="carte space-y-3 p-4">
