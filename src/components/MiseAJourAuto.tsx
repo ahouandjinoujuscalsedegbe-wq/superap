@@ -94,6 +94,7 @@ export function DialogueMiseAJour({
             type="button"
             disabled={enCours}
             onClick={onFermer}
+            title="Le rappel réapparaîtra dans 24 heures"
             className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
           >
             {termine || erreur ? "Fermer" : "Plus tard"}

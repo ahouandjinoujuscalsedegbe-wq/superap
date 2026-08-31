@@ -586,20 +586,52 @@ export function lancerTelechargement(url: string) {
   if (!fenetre) window.location.href = url;
 }
 
-/** Version que l'utilisateur a choisi d'ignorer (bouton « Plus tard »). */
-export function lireVersionIgnoree(): string | null {
+/** Durée pendant laquelle « Plus tard » repousse le rappel (24 heures). */
+export const DELAI_RAPPEL_MS = 24 * 60 * 60 * 1000;
+
+type Report = { version: string; jusqua: number };
+
+function lireReport(): Report | null {
   if (typeof localStorage === "undefined") return null;
-  return localStorage.getItem(CLE_IGNOREE);
+  try {
+    const brut = localStorage.getItem(CLE_IGNOREE);
+    if (!brut) return null;
+    // Ancien format : simple chaîne de version (ignore définitivement).
+    // On le traite comme un report déjà expiré pour ne plus jamais masquer
+    // une version indéfiniment.
+    if (!brut.startsWith("{")) return null;
+    const report = JSON.parse(brut) as Partial<Report>;
+    if (typeof report.version !== "string" || typeof report.jusqua !== "number") return null;
+    return report as Report;
+  } catch {
+    return null;
+  }
 }
 
+/**
+ * Version actuellement repoussée par « Plus tard », si le délai de rappel
+ * (24 h) n'est pas encore écoulé. Passé ce délai, la popup réapparaît :
+ * une mise à jour ne doit jamais être ignorée définitivement par accident.
+ */
+export function lireVersionIgnoree(): string | null {
+  const report = lireReport();
+  if (!report) return null;
+  if (Date.now() >= report.jusqua) return null;
+  return report.version;
+}
+
+/** Repousse le rappel d'une version de 24 heures (bouton « Plus tard »). */
 export function ignorerVersion(version: string) {
   if (typeof localStorage === "undefined") return;
-  localStorage.setItem(CLE_IGNOREE, version);
+  const report: Report = { version, jusqua: Date.now() + DELAI_RAPPEL_MS };
+  localStorage.setItem(CLE_IGNOREE, JSON.stringify(report));
 }
 
 /**
  * Vérification silencieuse au démarrage : l'utilisateur n'a rien à faire.
- * On limite à une tentative toutes les 6 heures pour ne pas consommer de data.
+ * On limite à une tentative réussie toutes les 6 heures pour ne pas consommer
+ * de data. Une tentative hors ligne ne consomme PAS le créneau : sans réseau,
+ * rien n'a pu être vérifié, donc on réessaiera à la prochaine ouverture.
  */
 export async function verifierAuDemarrage(): Promise<Manifeste | null> {
   if (typeof localStorage === "undefined") return null;
@@ -607,8 +639,9 @@ export async function verifierAuDemarrage(): Promise<Manifeste | null> {
   if (Number.isFinite(derniereTentative) && Date.now() - derniereTentative < DELAI_AUTO_MS) {
     return null;
   }
-  localStorage.setItem(CLE_TENTATIVE, String(Date.now()));
   const resultat = await verifierMiseAJour();
+  if (resultat.etat === "hors-ligne") return null;
+  localStorage.setItem(CLE_TENTATIVE, String(Date.now()));
   if (resultat.etat !== "disponible") return null;
   if (lireVersionIgnoree() === resultat.manifeste.version) return null;
   return resultat.manifeste;
