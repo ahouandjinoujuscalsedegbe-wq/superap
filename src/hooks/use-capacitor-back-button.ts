@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useRouter } from '@tanstack/react-router';
-import { App } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
+import { useEffect } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 
 /**
  * Gère le bouton "Retour" matériel d'Android pour la navigation TanStack Router.
@@ -12,45 +12,46 @@ import { Capacitor } from '@capacitor/core';
  */
 export function useCapacitorBackButton() {
   const router = useRouter();
-  const isMobile = import.meta.env["VITE_COQUE_MOBILE"] || Capacitor.isNativePlatform();
-
   useEffect(() => {
-    if (!isMobile) return;
+    if (!import.meta.env["VITE_COQUE_MOBILE"] && !Capacitor.isNativePlatform()) return;
 
-    const handler = App.addListener('backButton', () => {
-      // 1. Détection des overlays
-      const menuOuvert = document.getElementById('menu-principal')?.getAttribute('aria-hidden') === 'false';
-      const clavierOuvert = document.querySelector('[data-clavier-interne]') !== null;
-      const overlayOuvert = document.querySelector('[role="dialog"], [role="alertdialog"], [data-state="open"]') !== null;
-      const verrouille = document.getElementById('ecran-verrou') !== null;
+    const inscription = App.addListener("backButton", () => {
+      const menuOuvert =
+        document.getElementById("menu-principal")?.getAttribute("aria-hidden") === "false";
+      const clavierOuvert = document.querySelector("[data-clavier-interne]") !== null;
+      const dialogue = document.querySelector<HTMLElement>(
+        '[role="dialog"], [role="alertdialog"], [data-state="open"]',
+      );
+      const verrouille = document.getElementById("ecran-verrou") !== null;
 
       // 2. Si verrouillé, le "retour" quitte l'app pour des raisons de sécurité (ne pas naviguer derrière).
       if (verrouille) {
-        App.exitApp();
+        void App.exitApp();
         return;
       }
 
-      // 3. Fermeture des overlays via Escape
-      if (menuOuvert || clavierOuvert || overlayOuvert) {
-        document.dispatchEvent(new KeyboardEvent('keydown', { 
-          key: 'Escape', 
+      // Échap couvre Radix, le menu et le clavier. Le clic de repli couvre
+      // les anciennes fenêtres personnalisées qui se ferment via leur fond.
+      if (menuOuvert || clavierOuvert || dialogue) {
+        document.dispatchEvent(new KeyboardEvent("keydown", {
+          key: "Escape",
           bubbles: true,
-          cancelable: true 
+          cancelable: true,
         }));
+        if (dialogue && document.contains(dialogue)) dialogue.click();
         return;
       }
 
       // 4. Navigation Router
-      if (router.state.location.pathname !== '/') {
+      if (router.state.location.pathname !== "/") {
         router.history.back();
       } else {
-        // 5. Sortie de l'application si on est à l'accueil
-        App.exitApp();
+        void App.exitApp();
       }
     });
 
     return () => {
-      handler.then(h => h.remove());
+      void inscription.then((ecouteur) => ecouteur.remove());
     };
-  }, [router, isMobile]);
+  }, [router]);
 }
