@@ -24,7 +24,7 @@ describe("remplissage", () => {
   });
 
   it("ne renouvelle pas sans première période saisie", () => {
-    const sansDepart = { ...base, dernierRemplissage: undefined };
+    const { dernierRemplissage: _ignore, ...sansDepart } = base;
     expect(remplissagesDus([sansDepart], [], new Date("2026-03-15T10:00:00Z"))).toHaveLength(0);
   });
 
