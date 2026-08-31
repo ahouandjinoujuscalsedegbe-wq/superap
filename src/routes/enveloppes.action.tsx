@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Pencil, FolderTree } from "lucide-react";
+import { Plus, Pencil, FolderTree, RefreshCcw } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/enveloppes/action")({
@@ -71,6 +71,20 @@ function ActionEnveloppes() {
               <p className="font-semibold">Modifier une enveloppe existante</p>
               <p className="text-sm text-muted-foreground">
                 Renommez, changez le plafond ou supprimez.
+              </p>
+            </div>
+          </Link>
+          <Link
+            to="/enveloppes/renouvellements"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <RefreshCcw aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Détail des renouvellements</p>
+              <p className="text-sm text-muted-foreground">
+                Période, montant débité, compte source et part de revenu.
               </p>
             </div>
           </Link>
