@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
+import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { journaliser } from "./journal";
 import {
@@ -487,13 +488,78 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 
+  /**
+   * Verse un montant d'un compte vers une enveloppe : la dotation augmente et
+   * le compte source est débité d'autant (le remplissage est historisé).
+   */
+  const remplirEnveloppe = useCallback(
+    (
+      enveloppeId: string,
+      montant: number,
+      compte: string,
+      origine: Remplissage["origine"] = "manuel",
+      date = new Date().toISOString().slice(0, 10),
+    ) => {
+      const propre = assainirRemplissage({
+        id: crypto.randomUUID(),
+        enveloppeId,
+        compte,
+        montant,
+        date,
+        origine,
+      });
+      if (!propre) {
+        journaliser("avertissement", "application", "Remplissage refusé : montant ou compte invalide.");
+        return;
+      }
+      setEtat((e) => ({
+        ...e,
+        remplissages: [propre, ...e.remplissages],
+        enveloppes: e.enveloppes.map((x) =>
+          x.id === enveloppeId
+            ? {
+                ...x,
+                dotation: (x.dotation ?? x.plafond) + propre.montant,
+                ...(origine === "periode" ? { dernierRemplissage: propre.date } : {}),
+              }
+            : x,
+        ),
+      }));
+    },
+    [],
+  );
+
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
     const propre = assainirTransaction({ ...t, id: crypto.randomUUID() });
     if (!propre) {
       journaliser("avertissement", "application", "Opération refusée : montant ou date invalide.");
       return;
     }
-    setEtat((e) => ({ ...e, transactions: [propre, ...e.transactions] }));
+    setEtat((e) => {
+      const suivant: Etat = { ...e, transactions: [propre, ...e.transactions] };
+      if (propre.type !== "revenu") return suivant;
+
+      // Enveloppes alimentées par un pourcentage de chaque revenu du compte :
+      // la part est versée aussitôt et débitée du compte crédité.
+      const nouveaux: Remplissage[] = [];
+      const enveloppes = suivant.enveloppes.map((env) => {
+        if (env.modeRemplissage !== "pourcentage") return env;
+        if (env.compteSource && env.compteSource !== propre.compte) return env;
+        const part = montantSurRevenu(env, propre.montant);
+        if (part <= 0) return env;
+        nouveaux.push({
+          id: crypto.randomUUID(),
+          enveloppeId: env.id,
+          compte: env.compteSource || propre.compte,
+          montant: part,
+          date: propre.date.slice(0, 10),
+          origine: "revenu",
+        });
+        return { ...env, dotation: (env.dotation ?? env.plafond) + part };
+      });
+      if (nouveaux.length === 0) return suivant;
+      return { ...suivant, enveloppes, remplissages: [...nouveaux, ...suivant.remplissages] };
+    });
   }, []);
 
   const supprimerTransaction = useCallback((id: string) => {
@@ -1040,6 +1106,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
+      remplirEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
@@ -1084,6 +1151,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
+      remplirEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
