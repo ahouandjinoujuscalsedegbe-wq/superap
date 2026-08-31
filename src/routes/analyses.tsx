@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
+import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
