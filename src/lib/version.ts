@@ -2,8 +2,13 @@
  * Version de l'application et vérification des mises à jour.
  *
  * Tout fonctionne hors ligne : la vérification n'a lieu que si l'utilisateur
- * appuie sur le bouton « Vérifier les mises à jour ». Aucune donnée n'est
- * envoyée, on télécharge seulement un petit fichier `version.json` public.
+ * appuie sur le bouton « Vérifier les mises à jour » (ou au démarrage, au
+ * maximum toutes les 6 heures). Aucune donnée n'est envoyée, on télécharge
+ * seulement un petit fichier `version.json`.
+ *
+ * Dépôt privé : quand un jeton GitHub est disponible (intégré à la
+ * compilation ou saisi dans Paramètres), le manifeste et l'APK sont
+ * téléchargés via l'API GitHub avec authentification.
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
