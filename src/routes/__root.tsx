@@ -156,6 +156,13 @@ function RootComponent() {
   // Capture des erreurs non gérées dans le journal de diagnostic.
   useEffect(() => installerCaptureGlobale(), []);
 
+  // Une navigation doit toujours repartir avec une surface propre : aucun
+  // clavier ou panneau de la page précédente ne doit rester au-dessus.
+  useEffect(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  }, [pathname]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
