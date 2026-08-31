@@ -353,6 +353,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         // perdu ou fichier abîmé). On n'active JAMAIS l'écriture : écraser
         // reviendrait à détruire définitivement la sauvegarde de l'utilisateur.
         setIllisible(true);
+        setChargement(false);
         journaliser(
           "erreur",
           "stockage",
@@ -364,7 +365,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       if (lecture.statut === "ok") {
         try {
           const charge = assainirEtat(JSON.parse(lecture.valeur) as Partial<Etat>);
-          setEtat(charge);
+          // Fusion : on conserve ce que l'utilisateur a saisi pendant la lecture.
+          setEtat((actuel) => fusionnerPendantChargement(charge, actuel));
           // Migration immédiate : réécriture chiffrée des anciennes données en clair.
           let enClair = false;
           try {
@@ -376,6 +378,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         } catch {
           // JSON corrompu : même prudence, on ne réécrit rien.
           setIllisible(true);
+          setChargement(false);
           journaliser("erreur", "stockage", "Données locales corrompues : écriture suspendue.");
           return;
         }
@@ -384,6 +387,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       // Le drapeau ne passe à true qu'ici : aucune écriture ne peut partir
       // avant que la lecture initiale soit complètement terminée.
       pret.current = true;
+      setChargement(false);
     })();
     return () => {
       annule = true;
