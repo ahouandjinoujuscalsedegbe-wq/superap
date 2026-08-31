@@ -4,11 +4,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarRange,
-  FileText,
   LineChart,
-  MessageCircleQuestion,
-  Search,
-  Target,
+
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -17,6 +14,8 @@ import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { alertesLocales } from "@/lib/analyste-local";
+import { AccesRapidesRadial } from "@/components/AccesRapidesRadial";
+
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
 
@@ -113,23 +112,8 @@ function Accueil() {
         </div>
       </header>
 
-      <nav aria-label="Accès rapides" className="grid grid-cols-4 gap-2">
-        {[
-          { to: "/assistant", label: "Assistant", Icone: MessageCircleQuestion },
-          { to: "/recherche", label: "Recherche", Icone: Search },
-          { to: "/rapport", label: "Rapport", Icone: FileText },
-          { to: "/objectifs", label: "Objectifs", Icone: Target },
-        ].map(({ to, label, Icone }) => (
-          <Link
-            key={to}
-            to={to}
-            className="carte flex flex-col items-center gap-1 px-1 py-2.5 text-center transition-colors active:bg-accent/40"
-          >
-            <Icone className="h-5 w-5 text-primary" aria-hidden />
-            <span className="text-[0.68rem] font-medium leading-tight">{label}</span>
-          </Link>
-        ))}
-      </nav>
+
+
 
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">
@@ -153,6 +137,10 @@ function Accueil() {
           </div>
         </div>
       </section>
+
+      <AccesRapidesRadial />
+
+
 
       {rappels > 0 && (
         <section className="carte space-y-2 border-destructive/30 p-4">
