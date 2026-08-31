@@ -35,7 +35,10 @@ export function BottomNav() {
                   className="group -mt-6 flex flex-col items-center"
                 >
                   <span
+                    key={onglet.to + (actif ? "-actif" : "-inactif")}
                     className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-all duration-300 ${
+                      actif ? "pivot-y " : ""
+                    }${
                       actif
                         ? "bande-degrade"
                         : "bg-background text-muted-foreground ring-1 ring-border active:bg-accent/60"
@@ -75,7 +78,10 @@ export function BottomNav() {
                 className="group flex flex-col items-center gap-1 rounded-xl py-1"
               >
                 <span
+                  key={onglet.to + (actif ? "-actif" : "-inactif")}
                   className={`relative flex h-8 w-[3.6rem] items-center justify-center overflow-hidden rounded-full transition-all duration-300 ${
+                    actif ? "pivot-y " : ""
+                  }${
                     actif
                       ? "bande-degrade shadow-[0_8px_18px_-10px_var(--primary)]"
                       : "text-muted-foreground group-active:bg-accent/60"

@@ -452,3 +452,23 @@ textarea {
     animation: none !important;
   }
 }
+
+@keyframes pivot-vertical {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@utility pivot-y {
+  animation: pivot-vertical 0.6s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pivot-y {
+    animation: none !important;
+  }
+}
