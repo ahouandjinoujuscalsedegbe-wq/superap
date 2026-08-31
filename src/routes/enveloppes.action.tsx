@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Pencil, FolderTree, RefreshCcw, Scale } from "lucide-react";
+import { Plus, Pencil, FolderTree, RefreshCcw, Scale, LifeBuoy } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/enveloppes/action")({
@@ -99,6 +99,20 @@ function ActionEnveloppes() {
               <p className="font-semibold">Budget mensuel et dépenses réelles</p>
               <p className="text-sm text-muted-foreground">
                 Budget calculé seul depuis la période, comparé au réel.
+              </p>
+            </div>
+          </Link>
+          <Link
+            to="/enveloppes/secours"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <LifeBuoy aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Plan de secours (enveloppe épuisée)</p>
+              <p className="text-sm text-muted-foreground">
+                Analyse, explications et transferts sûrs depuis d'autres enveloppes.
               </p>
             </div>
           </Link>

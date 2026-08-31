@@ -347,6 +347,8 @@ type Contexte = Etat & {
     origine?: Remplissage["origine"],
     date?: string,
   ) => void;
+  /** Déplace une dotation d'une enveloppe vers une autre (plan de secours). */
+  transfererEntreEnveloppes: (sourceId: string, cibleId: string, montant: number) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
   deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
@@ -699,6 +701,39 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
     return propre.id;
   }, []);
+
+  /**
+   * Déplace une part de dotation d'une enveloppe vers une autre.
+   * Aucun compte n'est débité : l'argent est déjà sorti du compte au
+   * remplissage, on ne fait que le réaffecter entre enveloppes.
+   */
+  const transfererEntreEnveloppes = useCallback(
+    (sourceId: string, cibleId: string, montant: number) => {
+      if (!montantPositifOuNul(montant) || montant <= 0 || sourceId === cibleId) return;
+      setEtat((e) => {
+        const source = e.enveloppes.find((x) => x.id === sourceId);
+        const cible = e.enveloppes.find((x) => x.id === cibleId);
+        if (!source || !cible) return e;
+        const dispoSource = source.dotation ?? source.plafond;
+        const somme = Math.min(Math.round(montant), Math.round(dispoSource));
+        if (!(somme > 0)) return e;
+        journaliser(
+          "info",
+          "application",
+          `Secours : ${somme} FCFA déplacés de ${source.nom} vers ${cible.nom}.`,
+        );
+        return {
+          ...e,
+          enveloppes: e.enveloppes.map((x) => {
+            if (x.id === sourceId) return { ...x, dotation: (x.dotation ?? x.plafond) - somme };
+            if (x.id === cibleId) return { ...x, dotation: (x.dotation ?? x.plafond) + somme };
+            return x;
+          }),
+        };
+      });
+    },
+    [],
+  );
 
   const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
     if (env.plafond !== undefined && !montantPositifOuNul(env.plafond)) return;
@@ -1109,6 +1144,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerTransfert,
       ajouterEnveloppe,
       remplirEnveloppe,
+      transfererEntreEnveloppes,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
@@ -1154,6 +1190,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerTransfert,
       ajouterEnveloppe,
       remplirEnveloppe,
+      transfererEntreEnveloppes,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
