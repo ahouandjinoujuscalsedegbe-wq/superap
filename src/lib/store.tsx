@@ -17,8 +17,11 @@ import {
   assainirCategorie,
   assainirComptes,
   assainirDette,
+  assainirElementCorbeille,
   assainirEnveloppe,
   assainirListe,
+  assainirMembres,
+  assainirObjectif,
   assainirTransaction,
   assainirTransfert,
   montantPositifOuNul,
@@ -58,6 +61,26 @@ export type Transaction = {
   budgetId?: string | undefined;
   /** Dette ou créance à l'origine de cette opération, si elle vient du module Dettes. */
   detteId?: string | undefined;
+  /** Membre du foyer à l'origine de l'opération (mode couple). */
+  membre?: string | undefined;
+};
+
+/** Opération supprimée, conservée 30 jours dans la corbeille. */
+export type ElementCorbeille = Transaction & { supprimeLe: string };
+
+/** Objectif d'épargne suivi par l'application. */
+export type Objectif = {
+  id: string;
+  libelle: string;
+  /** Montant visé, en FCFA. */
+  cible: number;
+  /** Date visée (YYYY-MM-DD). */
+  dateCible: string;
+  /** Montant déjà mis de côté avant le suivi. */
+  deja: number;
+  /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
+  enveloppeId?: string | undefined;
+  creeLe: string;
 };
 
 export type Transfert = {
@@ -219,9 +242,17 @@ export type Etat = {
   transferts: Transfert[];
   budgets: Budget[];
   dettes: Dette[];
+  objectifs: Objectif[];
+  /** Opérations supprimées, récupérables pendant 30 jours. */
+  corbeille: ElementCorbeille[];
+  /** Membres du foyer (mode couple) ; vide = mode simple. */
+  membres: string[];
   transparence: number;
   nomUtilisateur?: string;
 };
+
+/** Durée de conservation d'une opération supprimée, en jours. */
+export const JOURS_CORBEILLE = 30;
 
 /**
  * Ramène un état de provenance inconnue (stockage, sauvegarde importée,
@@ -231,6 +262,7 @@ export type Etat = {
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
   const comptes = assainirComptes(brut.comptes);
+  const limite = Date.now() - JOURS_CORBEILLE * 86400000;
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
@@ -239,6 +271,11 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     transferts: assainirListe(brut.transferts, assainirTransfert),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
+    objectifs: assainirListe(brut.objectifs, assainirObjectif),
+    corbeille: assainirListe(brut.corbeille, assainirElementCorbeille).filter(
+      (c) => new Date(c.supprimeLe).getTime() >= limite,
+    ),
+    membres: assainirMembres(brut.membres),
     transparence: Math.min(100, Math.max(0, nombreSur(brut.transparence, 85))),
     nomUtilisateur: texteSur(brut.nomUtilisateur, 60),
   };
@@ -252,6 +289,9 @@ const ETAT_INITIAL: Etat = {
   transferts: [],
   budgets: [],
   dettes: [],
+  objectifs: [],
+  corbeille: [],
+  membres: [],
   transparence: 85,
   nomUtilisateur: "",
 };
@@ -288,6 +328,13 @@ type Contexte = Etat & {
   supprimerDette: (id: string) => void;
   ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => void;
   supprimerRemboursement: (detteId: string, remboursementId: string) => void;
+  restaurerTransaction: (id: string) => void;
+  supprimerDefinitivement: (id: string) => void;
+  viderCorbeille: () => void;
+  ajouterObjectif: (o: Omit<Objectif, "id" | "creeLe">) => void;
+  modifierObjectif: (id: string, o: Partial<Omit<Objectif, "id" | "creeLe">>) => void;
+  supprimerObjectif: (id: string) => void;
+  definirMembres: (noms: string[]) => void;
   definirTransparence: (v: number) => void;
   definirNomUtilisateur: (nom: string) => void;
   remplacerEtat: (e: Partial<Etat>) => void;
@@ -410,7 +457,76 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const supprimerTransaction = useCallback((id: string) => {
-    setEtat((e) => ({ ...e, transactions: e.transactions.filter((t) => t.id !== id) }));
+    setEtat((e) => {
+      const cible = e.transactions.find((t) => t.id === id);
+      if (!cible) return e;
+      const limite = Date.now() - JOURS_CORBEILLE * 86400000;
+      const corbeille = e.corbeille.filter(
+        (c) => c.id !== id && new Date(c.supprimeLe).getTime() >= limite,
+      );
+      return {
+        ...e,
+        transactions: e.transactions.filter((t) => t.id !== id),
+        corbeille: [{ ...cible, supprimeLe: new Date().toISOString() }, ...corbeille],
+      };
+    });
+  }, []);
+
+  /** Remet une opération de la corbeille dans les comptes. */
+  const restaurerTransaction = useCallback((id: string) => {
+    setEtat((e) => {
+      const cible = e.corbeille.find((c) => c.id === id);
+      if (!cible) return e;
+      const { supprimeLe: _supprimeLe, ...operation } = cible;
+      if (e.transactions.some((t) => t.id === id)) {
+        return { ...e, corbeille: e.corbeille.filter((c) => c.id !== id) };
+      }
+      return {
+        ...e,
+        transactions: [operation, ...e.transactions],
+        corbeille: e.corbeille.filter((c) => c.id !== id),
+      };
+    });
+  }, []);
+
+  const supprimerDefinitivement = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, corbeille: e.corbeille.filter((c) => c.id !== id) }));
+  }, []);
+
+  const viderCorbeille = useCallback(() => setEtat((e) => ({ ...e, corbeille: [] })), []);
+
+  const ajouterObjectif = useCallback((o: Omit<Objectif, "id" | "creeLe">) => {
+    const propre = assainirObjectif({
+      ...o,
+      id: crypto.randomUUID(),
+      creeLe: new Date().toISOString(),
+    });
+    if (!propre) {
+      journaliser("avertissement", "application", "Objectif refusé : montant ou date invalide.");
+      return;
+    }
+    setEtat((e) => ({ ...e, objectifs: [...e.objectifs, propre] }));
+  }, []);
+
+  const modifierObjectif = useCallback(
+    (id: string, o: Partial<Omit<Objectif, "id" | "creeLe">>) => {
+      setEtat((e) => ({
+        ...e,
+        objectifs: e.objectifs.map((x) => {
+          if (x.id !== id) return x;
+          return assainirObjectif({ ...x, ...o }) ?? x;
+        }),
+      }));
+    },
+    [],
+  );
+
+  const supprimerObjectif = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, objectifs: e.objectifs.filter((o) => o.id !== id) }));
+  }, []);
+
+  const definirMembres = useCallback((noms: string[]) => {
+    setEtat((e) => ({ ...e, membres: assainirMembres(noms) }));
   }, []);
 
   const ajouterCompte = useCallback((nom: string) => {
@@ -906,6 +1022,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerDette,
       ajouterRemboursement,
       supprimerRemboursement,
+      restaurerTransaction,
+      supprimerDefinitivement,
+      viderCorbeille,
+      ajouterObjectif,
+      modifierObjectif,
+      supprimerObjectif,
+      definirMembres,
       definirTransparence,
       definirNomUtilisateur,
       remplacerEtat,
@@ -943,6 +1066,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerDette,
       ajouterRemboursement,
       supprimerRemboursement,
+      restaurerTransaction,
+      supprimerDefinitivement,
+      viderCorbeille,
+      ajouterObjectif,
+      modifierObjectif,
+      supprimerObjectif,
+      definirMembres,
       definirTransparence,
       definirNomUtilisateur,
       remplacerEtat,

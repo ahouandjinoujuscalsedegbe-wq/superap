@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
 import { Route as AnalysesRouteImport } from './routes/analyses'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
@@ -20,6 +21,7 @@ import { Route as JournalRouteImport } from './routes/journal'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PlanningRouteImport } from './routes/planning'
+import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
@@ -63,6 +65,11 @@ const AnalysesRoute = AnalysesRouteImport.update({
   path: '/analyses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComptesRoute = ComptesRouteImport.update({
   id: '/comptes',
   path: '/comptes',
@@ -101,6 +108,11 @@ const ParametresRoute = ParametresRouteImport.update({
 const PlanningRoute = PlanningRouteImport.update({
   id: '/planning',
   path: '/planning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RechercheRoute = RechercheRouteImport.update({
+  id: '/recherche',
+  path: '/recherche',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevenuRoute = RevenuRouteImport.update({
@@ -244,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -252,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -284,11 +298,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -321,6 +337,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
+  '/assistant': typeof AssistantRoute
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -329,6 +346,7 @@ export interface FileRoutesById {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -363,6 +381,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -371,6 +390,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -403,11 +423,13 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/depense'
     | '/dettes'
     | '/journal'
     | '/outils'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -439,6 +461,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/analyses'
+    | '/assistant'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -447,6 +470,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -480,6 +504,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AideRoute: typeof AideRoute
   AnalysesRoute: typeof AnalysesRoute
+  AssistantRoute: typeof AssistantRoute
   ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
@@ -488,6 +513,7 @@ export interface RootRouteChildren {
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
   PlanningRoute: typeof PlanningRoute
+  RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
@@ -515,6 +541,13 @@ declare module '@tanstack/react-router' {
       path: '/analyses'
       fullPath: '/analyses'
       preLoaderRoute: typeof AnalysesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comptes': {
@@ -571,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/planning'
       fullPath: '/planning'
       preLoaderRoute: typeof PlanningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recherche': {
+      id: '/recherche'
+      path: '/recherche'
+      fullPath: '/recherche'
+      preLoaderRoute: typeof RechercheRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenu': {
@@ -853,6 +893,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
   AnalysesRoute: AnalysesRoute,
+  AssistantRoute: AssistantRoute,
   ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
@@ -861,6 +902,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRouteWithChildren,
   PlanningRoute: PlanningRoute,
+  RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,

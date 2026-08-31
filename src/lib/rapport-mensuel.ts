@@ -1,0 +1,236 @@
+/**
+ * Rapport mensuel automatique : bilan complet du mois, calculé localement.
+ */
+import type { Dette, Enveloppe, Transaction } from "./store";
+import { resteDu } from "./store";
+import { dotationDe } from "./enveloppe-etat";
+
+export type LigneEnveloppe = {
+  id: string;
+  nom: string;
+  emoji: string;
+  dotation: number;
+  depense: number;
+  ecart: number;
+  depassee: boolean;
+};
+
+export type RapportMensuel = {
+  /** Mois au format AAAA-MM. */
+  mois: string;
+  libelleMois: string;
+  revenus: number;
+  depenses: number;
+  net: number;
+  /** Taux d'épargne en pourcentage du revenu. */
+  tauxEpargne: number;
+  nbOperations: number;
+  /** Variation des dépenses par rapport au mois précédent, en pourcentage. */
+  variationDepenses: number;
+  enveloppes: LigneEnveloppe[];
+  plusGrossesDepenses: Transaction[];
+  /** Dépenses répétées qui pèsent sur le budget. */
+  fuites: { libelle: string; total: number; occurrences: number }[];
+  detteRestante: number;
+  creanceRestante: number;
+  /** Note globale sur 100. */
+  score: number;
+  conseils: string[];
+};
+
+const MOIS_FR = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+];
+
+/** Libellé lisible d'un mois AAAA-MM. */
+export function libelleMois(mois: string): string {
+  const [a, m] = mois.split("-");
+  const index = Number(m) - 1;
+  return `${MOIS_FR[index] ?? m} ${a}`;
+}
+
+/** Mois précédent au format AAAA-MM. */
+function moisPrecedent(mois: string): string {
+  const a = Number(mois.slice(0, 4));
+  const m = Number(mois.slice(5, 7));
+  const d = new Date(Date.UTC(a, m - 2, 1));
+  return d.toISOString().slice(0, 7);
+}
+
+/** Liste des mois où au moins une opération a été enregistrée, du plus récent au plus ancien. */
+export function moisDisponibles(transactions: Transaction[]): string[] {
+  const set = new Set<string>();
+  for (const t of transactions) set.add(t.date.slice(0, 7));
+  set.add(new Date().toISOString().slice(0, 7));
+  return [...set].sort().reverse();
+}
+
+function normaliser(v: string): string {
+  return v
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+/** Construit le bilan complet d'un mois donné. */
+export function construireRapport(
+  mois: string,
+  donnees: { transactions: Transaction[]; enveloppes: Enveloppe[]; dettes: Dette[] },
+): RapportMensuel {
+  const duMois = donnees.transactions.filter((t) => t.date.slice(0, 7) === mois);
+  const precedent = moisPrecedent(mois);
+  const duPrecedent = donnees.transactions.filter((t) => t.date.slice(0, 7) === precedent);
+
+  const somme = (liste: Transaction[], type: Transaction["type"]) =>
+    liste.filter((t) => t.type === type).reduce((s, t) => s + t.montant, 0);
+
+  const revenus = somme(duMois, "revenu");
+  const depenses = somme(duMois, "depense");
+  const depensesAvant = somme(duPrecedent, "depense");
+  const net = revenus - depenses;
+
+  const parEnveloppe = new Map<string, number>();
+  for (const t of duMois) {
+    if (t.type !== "depense") continue;
+    parEnveloppe.set(t.categorie, (parEnveloppe.get(t.categorie) ?? 0) + t.montant);
+  }
+
+  const enveloppes: LigneEnveloppe[] = donnees.enveloppes
+    .map((e) => {
+      const dotation = dotationDe(e);
+      const depense = parEnveloppe.get(e.id) ?? 0;
+      return {
+        id: e.id,
+        nom: e.nom,
+        emoji: e.emoji,
+        dotation,
+        depense,
+        ecart: dotation - depense,
+        depassee: depense > dotation && dotation > 0,
+      };
+    })
+    .sort((a, b) => b.depense - a.depense);
+
+  // Dépenses répétées : même libellé au moins trois fois dans le mois.
+  const groupes = new Map<string, { libelle: string; total: number; occurrences: number }>();
+  for (const t of duMois) {
+    if (t.type !== "depense" || !t.libelle.trim()) continue;
+    const cle = normaliser(t.libelle);
+    const g = groupes.get(cle) ?? { libelle: t.libelle, total: 0, occurrences: 0 };
+    g.total += t.montant;
+    g.occurrences += 1;
+    groupes.set(cle, g);
+  }
+  const fuites = [...groupes.values()]
+    .filter((g) => g.occurrences >= 3)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  const tauxEpargne = revenus > 0 ? (net / revenus) * 100 : 0;
+  const variationDepenses =
+    depensesAvant > 0 ? ((depenses - depensesAvant) / depensesAvant) * 100 : 0;
+
+  /* Score : épargne, respect des enveloppes, régularité. */
+  let score = 50;
+  score += Math.max(-30, Math.min(30, tauxEpargne * 1.2));
+  const depassees = enveloppes.filter((e) => e.depassee).length;
+  score -= depassees * 6;
+  if (net < 0) score -= 15;
+  if (revenus === 0 && depenses === 0) score = 50;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  const conseils: string[] = [];
+  if (net < 0) {
+    conseils.push(
+      `Vos dépenses dépassent vos revenus de ${Math.abs(Math.round(net)).toLocaleString("fr-FR")} FCFA : réduisez le poste le plus lourd le mois prochain.`,
+    );
+  } else if (tauxEpargne < 10 && revenus > 0) {
+    conseils.push(
+      "Votre taux d'épargne est inférieur à 10 % : visez au moins un dixième de vos revenus.",
+    );
+  } else if (revenus > 0) {
+    conseils.push(
+      `Bon mois : ${Math.round(tauxEpargne)} % de vos revenus ont été mis de côté. Gardez ce rythme.`,
+    );
+  }
+  for (const e of enveloppes.filter((x) => x.depassee).slice(0, 3)) {
+    conseils.push(
+      `${e.emoji} ${e.nom} a dépassé sa dotation de ${Math.abs(Math.round(e.ecart)).toLocaleString("fr-FR")} FCFA : revoyez son montant ou ses dépenses.`,
+    );
+  }
+  if (variationDepenses > 20 && depensesAvant > 0) {
+    conseils.push(
+      `Vos dépenses ont augmenté de ${Math.round(variationDepenses)} % par rapport à ${libelleMois(precedent)}.`,
+    );
+  }
+  for (const f of fuites.slice(0, 2)) {
+    conseils.push(
+      `« ${f.libelle} » revient ${f.occurrences} fois pour ${Math.round(f.total).toLocaleString("fr-FR")} FCFA : une petite habitude qui pèse.`,
+    );
+  }
+  if (conseils.length === 0) conseils.push("Rien à signaler ce mois-ci.");
+
+  return {
+    mois,
+    libelleMois: libelleMois(mois),
+    revenus,
+    depenses,
+    net,
+    tauxEpargne,
+    nbOperations: duMois.length,
+    variationDepenses,
+    enveloppes,
+    plusGrossesDepenses: [...duMois]
+      .filter((t) => t.type === "depense")
+      .sort((a, b) => b.montant - a.montant)
+      .slice(0, 5),
+    fuites,
+    detteRestante: donnees.dettes
+      .filter((d) => d.sens === "dette")
+      .reduce((s, d) => s + resteDu(d), 0),
+    creanceRestante: donnees.dettes
+      .filter((d) => d.sens === "creance")
+      .reduce((s, d) => s + resteDu(d), 0),
+    score,
+    conseils,
+  };
+}
+
+/** Version texte du rapport, pour l'export ou le partage. */
+export function rapportEnTexte(r: RapportMensuel): string {
+  const f = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+  const lignes = [
+    `RAPPORT MENSUEL — ${r.libelleMois.toUpperCase()}`,
+    "",
+    `Revenus       : ${f(r.revenus)}`,
+    `Dépenses      : ${f(r.depenses)}`,
+    `Solde du mois : ${f(r.net)}`,
+    `Taux d'épargne: ${Math.round(r.tauxEpargne)} %`,
+    `Score         : ${r.score}/100`,
+    `Opérations    : ${r.nbOperations}`,
+    "",
+    "ENVELOPPES",
+    ...r.enveloppes.map(
+      (e) => `- ${e.nom} : ${f(e.depense)} sur ${f(e.dotation)}${e.depassee ? "  (dépassée)" : ""}`,
+    ),
+    "",
+    "PLUS GROSSES DÉPENSES",
+    ...r.plusGrossesDepenses.map((t) => `- ${t.libelle} : ${f(t.montant)} (${t.date.slice(0, 10)})`),
+    "",
+    "CONSEILS",
+    ...r.conseils.map((c) => `- ${c}`),
+  ];
+  return lignes.join("\n");
+}
