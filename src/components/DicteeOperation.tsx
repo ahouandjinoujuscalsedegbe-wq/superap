@@ -53,6 +53,15 @@ export function DicteeOperation({
         if (enveloppes.some((e) => e.id === prediction.enveloppe)) enveloppe = prediction.enveloppe;
       }
     }
+    if (!enveloppe) {
+      // Dernier recours : le nom de l'enveloppe « sonne » comme un mot dicté.
+      const clesDites = new Set(caracteristiques(propre).map(clePhonetique));
+      const trouvee = enveloppes.find((e) =>
+        caracteristiques(e.nom).some((m) => clesDites.has(clePhonetique(m))),
+      );
+      if (trouvee) enveloppe = trouvee.id;
+    }
+
 
     onResultat({
       montant: analyse.montant,
