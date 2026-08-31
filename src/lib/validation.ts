@@ -18,6 +18,7 @@ import type {
   Enveloppe,
   Objectif,
   Remboursement,
+  Remplissage,
   Transaction,
   Transfert,
 } from "./store";
@@ -165,6 +166,24 @@ export function assainirTransfert(v: unknown): Transfert | null {
   return { id: v["id"], source, destination, montant, note: texteSur(v["note"]), date };
 }
 
+const PERIODES_VALIDES = ["jour", "semaine", "mois", "trimestre", "semestre", "annee"] as const;
+
+/** Approvisionnement d'une enveloppe depuis un compte. */
+export function assainirRemplissage(v: unknown): Remplissage | null {
+  if (!estObjet(v) || !idValide(v["id"]) || !idValide(v["enveloppeId"])) return null;
+  const montant = nombreSur(v["montant"]);
+  if (!montantValide(montant)) return null;
+  const date = dateSure(v["date"]);
+  if (!date) return null;
+  const compte = texteSur(v["compte"], 60);
+  if (!compte) return null;
+  const origine =
+    v["origine"] === "periode" || v["origine"] === "revenu" || v["origine"] === "manuel"
+      ? v["origine"]
+      : "manuel";
+  return { id: v["id"], enveloppeId: v["enveloppeId"], compte, montant, date, origine };
+}
+
 export function assainirEnveloppe(v: unknown): Enveloppe | null {
   if (!estObjet(v) || !idValide(v["id"])) return null;
   const nom = texteSur(v["nom"], 80);
@@ -179,7 +198,28 @@ export function assainirEnveloppe(v: unknown): Enveloppe | null {
     dotation,
     categorie: texteSur(v["categorie"], 80),
     sousCategorie: texteSur(v["sousCategorie"], 80),
+    ...assainirRenouvellement(v),
   };
+}
+
+/** Paramètres de renouvellement automatique d'une enveloppe. */
+function assainirRenouvellement(v: Record<string, unknown>): Partial<Enveloppe> {
+  const out: Partial<Enveloppe> = {};
+  const compteSource = texteSur(v["compteSource"], 60);
+  if (compteSource) out.compteSource = compteSource;
+  const periode = PERIODES_VALIDES.find((p) => p === v["periodeRenouvellement"]);
+  if (periode) out.periodeRenouvellement = periode;
+  if (v["modeRemplissage"] === "fixe" || v["modeRemplissage"] === "pourcentage") {
+    out.modeRemplissage = v["modeRemplissage"];
+  }
+  if (v["montantPeriode"] !== undefined) out.montantPeriode = nombreSur(v["montantPeriode"]);
+  if (v["pourcentageRevenu"] !== undefined) {
+    out.pourcentageRevenu = Math.min(100, Math.max(0, nombreSur(v["pourcentageRevenu"])));
+  }
+  if (typeof v["ajustementAuto"] === "boolean") out.ajustementAuto = v["ajustementAuto"];
+  const dernier = dateSure(v["dernierRemplissage"]);
+  if (dernier) out.dernierRemplissage = dernier;
+  return out;
 }
 
 export function assainirCategorie(v: unknown): CategorieEnveloppe | null {
@@ -192,8 +232,6 @@ export function assainirCategorie(v: unknown): CategorieEnveloppe | null {
   ).slice(0, 200);
   return { id: v["id"], nom, sousCategories };
 }
-
-const PERIODES_VALIDES = ["jour", "semaine", "mois", "trimestre", "semestre", "annee"] as const;
 
 export function assainirBudget(v: unknown): Budget | null {
   if (!estObjet(v) || !idValide(v["id"])) return null;

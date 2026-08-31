@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
+import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { journaliser } from "./journal";
 import {
@@ -22,6 +23,7 @@ import {
   assainirListe,
   assainirMembres,
   assainirObjectif,
+  assainirRemplissage,
   assainirTransaction,
   assainirTransfert,
   montantPositifOuNul,
@@ -41,6 +43,32 @@ export type Enveloppe = {
   categorie?: string;
   /** Sous-catégorie, ex. « Carburant », « Facture SBEE ». */
   sousCategorie?: string;
+  /** Compte qui alimente l'enveloppe : le remplissage y est débité. */
+  compteSource?: string;
+  /** Périodicité de renouvellement du contenu de l'enveloppe. */
+  periodeRenouvellement?: Periode;
+  /** Mode de remplissage : montant fixe par période ou % de chaque revenu. */
+  modeRemplissage?: "fixe" | "pourcentage";
+  /** Montant fixe versé à chaque période (mode « fixe »). */
+  montantPeriode?: number;
+  /** Part de chaque revenu versée à l'enveloppe, en % (mode « pourcentage »). */
+  pourcentageRevenu?: number;
+  /** true : le montant s'ajuste seul aux habitudes de dépense observées. */
+  ajustementAuto?: boolean;
+  /** Date (ISO) du dernier remplissage périodique appliqué. */
+  dernierRemplissage?: string;
+};
+
+/** Versement d'un compte vers une enveloppe (approvisionnement). */
+export type Remplissage = {
+  id: string;
+  enveloppeId: string;
+  /** Compte débité. */
+  compte: string;
+  montant: number;
+  date: string;
+  /** Origine : renouvellement de période, part d'un revenu, ou geste manuel. */
+  origine: "periode" | "revenu" | "manuel";
 };
 
 export type CategorieEnveloppe = {
@@ -240,6 +268,8 @@ export type Etat = {
   categories: CategorieEnveloppe[];
   comptes: string[];
   transferts: Transfert[];
+  /** Approvisionnements des enveloppes depuis les comptes. */
+  remplissages: Remplissage[];
   budgets: Budget[];
   dettes: Dette[];
   objectifs: Objectif[];
@@ -269,6 +299,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
     transferts: assainirListe(brut.transferts, assainirTransfert),
+    remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
     objectifs: assainirListe(brut.objectifs, assainirObjectif),
@@ -287,6 +318,7 @@ const ETAT_INITIAL: Etat = {
   categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
   transferts: [],
+  remplissages: [],
   budgets: [],
   dettes: [],
   objectifs: [],
@@ -305,7 +337,16 @@ type Contexte = Etat & {
   supprimerCompte: (nom: string) => void;
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
   supprimerTransfert: (id: string) => void;
-  ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => void;
+  /** Crée l'enveloppe et renvoie son identifiant (null si refusée). */
+  ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => string | null;
+  /** Verse un montant d'un compte vers une enveloppe (dotation + débit compte). */
+  remplirEnveloppe: (
+    enveloppeId: string,
+    montant: number,
+    compte: string,
+    origine?: Remplissage["origine"],
+    date?: string,
+  ) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
   deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
@@ -365,6 +406,7 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     ...charge,
     transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
     transferts: [...ajouts(actuel.transferts, charge.transferts), ...charge.transferts],
+    remplissages: [...ajouts(actuel.remplissages, charge.remplissages), ...charge.remplissages],
     budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
   };
@@ -447,13 +489,78 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 
+  /**
+   * Verse un montant d'un compte vers une enveloppe : la dotation augmente et
+   * le compte source est débité d'autant (le remplissage est historisé).
+   */
+  const remplirEnveloppe = useCallback(
+    (
+      enveloppeId: string,
+      montant: number,
+      compte: string,
+      origine: Remplissage["origine"] = "manuel",
+      date = new Date().toISOString().slice(0, 10),
+    ) => {
+      const propre = assainirRemplissage({
+        id: crypto.randomUUID(),
+        enveloppeId,
+        compte,
+        montant,
+        date,
+        origine,
+      });
+      if (!propre) {
+        journaliser("avertissement", "application", "Remplissage refusé : montant ou compte invalide.");
+        return;
+      }
+      setEtat((e) => ({
+        ...e,
+        remplissages: [propre, ...e.remplissages],
+        enveloppes: e.enveloppes.map((x) =>
+          x.id === enveloppeId
+            ? {
+                ...x,
+                dotation: (x.dotation ?? x.plafond) + propre.montant,
+                ...(origine === "periode" ? { dernierRemplissage: propre.date } : {}),
+              }
+            : x,
+        ),
+      }));
+    },
+    [],
+  );
+
   const ajouterTransaction = useCallback((t: Omit<Transaction, "id">) => {
     const propre = assainirTransaction({ ...t, id: crypto.randomUUID() });
     if (!propre) {
       journaliser("avertissement", "application", "Opération refusée : montant ou date invalide.");
       return;
     }
-    setEtat((e) => ({ ...e, transactions: [propre, ...e.transactions] }));
+    setEtat((e) => {
+      const suivant: Etat = { ...e, transactions: [propre, ...e.transactions] };
+      if (propre.type !== "revenu") return suivant;
+
+      // Enveloppes alimentées par un pourcentage de chaque revenu du compte :
+      // la part est versée aussitôt et débitée du compte crédité.
+      const nouveaux: Remplissage[] = [];
+      const enveloppes = suivant.enveloppes.map((env) => {
+        if (env.modeRemplissage !== "pourcentage") return env;
+        if (env.compteSource && env.compteSource !== propre.compte) return env;
+        const part = montantSurRevenu(env, propre.montant);
+        if (part <= 0) return env;
+        nouveaux.push({
+          id: crypto.randomUUID(),
+          enveloppeId: env.id,
+          compte: env.compteSource || propre.compte,
+          montant: part,
+          date: propre.date.slice(0, 10),
+          origine: "revenu",
+        });
+        return { ...env, dotation: (env.dotation ?? env.plafond) + part };
+      });
+      if (nouveaux.length === 0) return suivant;
+      return { ...suivant, enveloppes, remplissages: [...nouveaux, ...suivant.remplissages] };
+    });
   }, []);
 
   const supprimerTransaction = useCallback((id: string) => {
@@ -583,13 +690,14 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, transferts: e.transferts.filter((t) => t.id !== id) }));
   }, []);
 
-  const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">) => {
+  const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">): string | null => {
     const propre = assainirEnveloppe({ ...env, id: crypto.randomUUID() });
     if (!propre) {
       journaliser("avertissement", "application", "Enveloppe refusée : nom ou montant invalide.");
-      return;
+      return null;
     }
     setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
+    return propre.id;
   }, []);
 
   const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
@@ -1000,6 +1108,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
+      remplirEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
@@ -1044,6 +1153,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
+      remplirEnveloppe,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
@@ -1103,6 +1213,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     for (const t of etat.transferts) {
       soldesParCompte[t.source] = (soldesParCompte[t.source] ?? 0) - t.montant;
       soldesParCompte[t.destination] = (soldesParCompte[t.destination] ?? 0) + t.montant;
+    }
+    // Remplir une enveloppe sort l'argent du compte qui l'alimente.
+    for (const r of etat.remplissages) {
+      soldesParCompte[r.compte] = (soldesParCompte[r.compte] ?? 0) - r.montant;
     }
     return {
       ...etat,

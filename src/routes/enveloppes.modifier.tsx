@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
-import { useSuperApp } from "@/lib/store";
+import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -46,6 +46,12 @@ type Demande =
       dotation: number;
       categorie: string;
       sousCategorie: string;
+      compteSource: string;
+      periodeRenouvellement: Periode;
+      modeRemplissage: "fixe" | "pourcentage";
+      pourcentageRevenu: number;
+      montantPeriode: number;
+      ajustementAuto: boolean;
     }
   | { type: "suppression"; id: string; nom: string }
   | null;
@@ -57,6 +63,7 @@ function ModifierEnveloppe() {
     depensesParEnveloppe,
     modifierEnveloppe,
     supprimerEnveloppe,
+    comptes,
   } = useSuperApp();
 
   // Processus dédié : la modification se fait dans une fenêtre pop-up guidée.
@@ -67,6 +74,12 @@ function ModifierEnveloppe() {
   const [eDotation, setEDotation] = useState("");
   const [eCategorie, setECategorie] = useState("");
   const [eSousCategorie, setESousCategorie] = useState("");
+  const [eCompte, setECompte] = useState("");
+  const [ePeriode, setEPeriode] = useState<Periode>("mois");
+  const [eMode, setEMode] = useState<"fixe" | "pourcentage">("fixe");
+  const [ePart, setEPart] = useState("");
+  const [eMontantPeriode, setEMontantPeriode] = useState("");
+  const [eAjustement, setEAjustement] = useState(true);
 
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -88,6 +101,12 @@ function ModifierEnveloppe() {
     setEDotation(String(e.dotation ?? e.plafond));
     setECategorie(e.categorie ?? "");
     setESousCategorie(e.sousCategorie ?? "");
+    setECompte(e.compteSource ?? "");
+    setEPeriode(e.periodeRenouvellement ?? "mois");
+    setEMode(e.modeRemplissage ?? "fixe");
+    setEPart(e.pourcentageRevenu ? String(e.pourcentageRevenu) : "");
+    setEMontantPeriode(String(e.montantPeriode ?? e.dotation ?? e.plafond));
+    setEAjustement(e.ajustementAuto ?? true);
   }
 
   function fermerProcess() {
@@ -135,6 +154,20 @@ function ModifierEnveloppe() {
       );
       return;
     }
+    if (!eCompte.trim()) {
+      setErreur("Choisissez le compte qui alimente cette enveloppe.");
+      return;
+    }
+    const part = Number(ePart);
+    if (eMode === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100)) {
+      setErreur("Indiquez la part de chaque revenu à verser (1 à 100 %).");
+      return;
+    }
+    const parPeriode = Number(eMontantPeriode);
+    if (eMode === "fixe" && (!Number.isFinite(parPeriode) || parPeriode <= 0)) {
+      setErreur("Indiquez le montant versé à chaque période.");
+      return;
+    }
     setDemande({
       type: "modification",
       id,
@@ -144,6 +177,12 @@ function ModifierEnveloppe() {
       dotation: somme,
       categorie: eCategorie.trim(),
       sousCategorie: eSousCategorie.trim(),
+      compteSource: eCompte.trim(),
+      periodeRenouvellement: ePeriode,
+      modeRemplissage: eMode,
+      pourcentageRevenu: eMode === "pourcentage" ? part : 0,
+      montantPeriode: eMode === "fixe" ? parPeriode : 0,
+      ajustementAuto: eAjustement,
     });
   }
 
@@ -163,6 +202,12 @@ function ModifierEnveloppe() {
         dotation: demande.dotation,
         categorie: demande.categorie,
         sousCategorie: demande.sousCategorie,
+        compteSource: demande.compteSource,
+        periodeRenouvellement: demande.periodeRenouvellement,
+        modeRemplissage: demande.modeRemplissage,
+        pourcentageRevenu: demande.pourcentageRevenu,
+        montantPeriode: demande.montantPeriode,
+        ajustementAuto: demande.ajustementAuto,
       });
       setEdition(null);
       toast.success("Enveloppe modifiée.");
@@ -419,6 +464,93 @@ function ModifierEnveloppe() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2 rounded-xl border border-input p-3">
+                <p className="text-sm font-medium">Renouvellement automatique</p>
+
+                <label htmlFor="edit-compte" className="text-xs text-muted-foreground">
+                  Compte qui alimente l'enveloppe
+                </label>
+                <select
+                  id="edit-compte"
+                  value={eCompte}
+                  onChange={(ev) => setECompte(ev.target.value)}
+                  className={champ}
+                >
+                  <option value="">Choisir un compte…</option>
+                  {comptes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+
+                <label htmlFor="edit-periode" className="text-xs text-muted-foreground">
+                  Période de renouvellement
+                </label>
+                <select
+                  id="edit-periode"
+                  value={ePeriode}
+                  onChange={(ev) => setEPeriode(ev.target.value as Periode)}
+                  className={champ}
+                >
+                  {PERIODES.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { id: "fixe", label: "Montant fixe" },
+                      { id: "pourcentage", label: "% du revenu" },
+                    ] as const
+                  ).map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setEMode(m.id)}
+                      className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium ${
+                        eMode === m.id ? "border-primary bg-primary/10 text-primary" : "border-input"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+
+                {eMode === "pourcentage" ? (
+                  <input
+                    inputMode="numeric"
+                    value={ePart}
+                    onChange={(ev) => setEPart(ev.target.value.replace(/[^\d]/g, ""))}
+                    placeholder="Part de chaque revenu (%)"
+                    aria-label="Part de chaque revenu en pourcentage"
+                    className={champ}
+                  />
+                ) : (
+                  <>
+                    <input
+                      inputMode="numeric"
+                      value={eMontantPeriode}
+                      onChange={(ev) => setEMontantPeriode(ev.target.value.replace(/[^\d]/g, ""))}
+                      placeholder="Montant versé à chaque période (FCFA)"
+                      aria-label="Montant versé à chaque période"
+                      className={champ}
+                    />
+                    <label className="flex items-center justify-between gap-3 text-xs font-medium">
+                      Ajuster seul selon mes habitudes de dépense
+                      <input
+                        type="checkbox"
+                        checked={eAjustement}
+                        onChange={(ev) => setEAjustement(ev.target.checked)}
+                        className="h-5 w-5"
+                      />
+                    </label>
+                  </>
+                )}
               </div>
             </div>
 

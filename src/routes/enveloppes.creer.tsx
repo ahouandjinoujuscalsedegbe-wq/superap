@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useSuperApp } from "@/lib/store";
+import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
@@ -33,7 +33,13 @@ const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none transition-shadow focus:ring-2 focus:ring-ring";
 
 function CreerEnveloppePage() {
-  const { ajouterEnveloppe, categories: listeCategories } = useSuperApp();
+  const {
+    ajouterEnveloppe,
+    remplirEnveloppe,
+    categories: listeCategories,
+    comptes,
+    soldesParCompte,
+  } = useSuperApp();
   const navigate = useNavigate();
 
   const [nom, setNom] = useState("");
@@ -43,6 +49,11 @@ function CreerEnveloppePage() {
   const [dotation, setDotation] = useState("");
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
+  const [compteSource, setCompteSource] = useState("");
+  const [periodeRenouvellement, setPeriodeRenouvellement] = useState<Periode>("mois");
+  const [modeRemplissage, setModeRemplissage] = useState<"fixe" | "pourcentage">("fixe");
+  const [pourcentageRevenu, setPourcentageRevenu] = useState("");
+  const [ajustementAuto, setAjustementAuto] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
 
   const [confirmation, setConfirmation] = useState<{
@@ -52,6 +63,11 @@ function CreerEnveloppePage() {
     dotation: number;
     categorie: string;
     sousCategorie: string;
+    compteSource: string;
+    periodeRenouvellement: Periode;
+    modeRemplissage: "fixe" | "pourcentage";
+    pourcentageRevenu: number;
+    ajustementAuto: boolean;
   } | null>(null);
 
   // Apprentissage local : les enveloppes déjà validées nourrissent l'IA d'icônes.
@@ -123,6 +139,23 @@ function CreerEnveloppePage() {
       );
       return;
     }
+    if (!compteSource.trim()) {
+      setErreur("Choisissez le compte qui alimente cette enveloppe : les fonds en seront retirés.");
+      return;
+    }
+    const part = Number(pourcentageRevenu);
+    if (modeRemplissage === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100)) {
+      setErreur("Indiquez le pourcentage de chaque revenu à verser dans cette enveloppe (1 à 100).");
+      return;
+    }
+    if ((soldesParCompte[compteSource.trim()] ?? 0) < somme) {
+      setErreur(
+        `Le compte « ${compteSource.trim()} » ne contient que ${formatFCFA(
+          soldesParCompte[compteSource.trim()] ?? 0,
+        )} : impossible d'y prélever ${formatFCFA(somme)}.`,
+      );
+      return;
+    }
     setConfirmation({
       nom: nom.trim(),
       emoji: emoji.trim() || "💡",
@@ -130,12 +163,26 @@ function CreerEnveloppePage() {
       dotation: somme,
       categorie: categorie.trim(),
       sousCategorie: sousCategorie.trim(),
+      compteSource: compteSource.trim(),
+      periodeRenouvellement,
+      modeRemplissage,
+      pourcentageRevenu: modeRemplissage === "pourcentage" ? part : 0,
+      ajustementAuto,
     });
   }
 
   function confirmerCreation() {
     if (!confirmation) return;
-    ajouterEnveloppe(confirmation);
+    // La dotation part à 0 : le premier contenu est versé par le compte source,
+    // ce qui débite ce compte et lance le cycle de renouvellement.
+    const id = ajouterEnveloppe({
+      ...confirmation,
+      dotation: 0,
+      montantPeriode: confirmation.dotation,
+    });
+    if (id) {
+      remplirEnveloppe(id, confirmation.dotation, confirmation.compteSource, "periode");
+    }
     // L'IA locale retient l'association nom → icône pour s'améliorer.
     apprendreIcone(confirmation.nom, confirmation.emoji);
     setConfirmation(null);
@@ -278,6 +325,97 @@ function CreerEnveloppePage() {
           </p>
         </section>
 
+        <section className="carte space-y-3 p-4">
+          <p className="text-sm font-semibold">Comment cette enveloppe se remplit-elle ?</p>
+
+          <label htmlFor="e-compte" className="text-xs text-muted-foreground">
+            Compte qui alimente l'enveloppe (obligatoire)
+          </label>
+          <select
+            id="e-compte"
+            value={compteSource}
+            onChange={(ev) => setCompteSource(ev.target.value)}
+            className={champ}
+          >
+            <option value="">Choisir un compte…</option>
+            {comptes.map((c) => (
+              <option key={c} value={c}>
+                {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Chaque remplissage est retiré de ce compte.
+          </p>
+
+          <label htmlFor="e-periode" className="text-xs text-muted-foreground">
+            Période de renouvellement du contenu
+          </label>
+          <select
+            id="e-periode"
+            value={periodeRenouvellement}
+            onChange={(ev) => setPeriodeRenouvellement(ev.target.value as Periode)}
+            className={champ}
+          >
+            {PERIODES.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex gap-2">
+            {(
+              [
+                { id: "fixe", label: "Montant fixe par période" },
+                { id: "pourcentage", label: "% de chaque revenu" },
+              ] as const
+            ).map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setModeRemplissage(m.id)}
+                className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium ${
+                  modeRemplissage === m.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {modeRemplissage === "pourcentage" ? (
+            <>
+              <label htmlFor="e-part" className="text-xs text-muted-foreground">
+                Part de chaque revenu (%)
+              </label>
+              <input
+                id="e-part"
+                inputMode="numeric"
+                value={pourcentageRevenu}
+                onChange={(ev) => setPourcentageRevenu(ev.target.value.replace(/[^\d]/g, ""))}
+                placeholder="10"
+                className={champ}
+              />
+              <p className="text-xs text-muted-foreground">
+                À chaque revenu encaissé sur ce compte, cette part est versée automatiquement.
+              </p>
+            </>
+          ) : (
+            <label className="flex items-center justify-between gap-3 text-xs font-medium">
+              Ajuster seul le montant selon mes habitudes de dépense
+              <input
+                type="checkbox"
+                checked={ajustementAuto}
+                onChange={(ev) => setAjustementAuto(ev.target.checked)}
+                className="h-5 w-5"
+              />
+            </label>
+          )}
+        </section>
+
         <div className="flex gap-2">
           <button
             type="submit"
@@ -314,6 +452,17 @@ function CreerEnveloppePage() {
                 { label: "Somme attribuée", apres: formatFCFA(confirmation.dotation) },
                 { label: "Catégorie", apres: confirmation.categorie || "Sans catégorie" },
                 { label: "Sous-catégorie", apres: confirmation.sousCategorie || "Général" },
+                { label: "Compte source", apres: confirmation.compteSource },
+                {
+                  label: "Renouvellement",
+                  apres:
+                    confirmation.modeRemplissage === "pourcentage"
+                      ? `${confirmation.pourcentageRevenu}% de chaque revenu`
+                      : `${formatFCFA(confirmation.dotation)} ${
+                          PERIODES.find((p) => p.id === confirmation.periodeRenouvellement)?.label ??
+                          ""
+                        }`,
+                },
               ]
             : []
         }
