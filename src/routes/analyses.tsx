@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
+import { BoutonVocalisation } from "@/components/BoutonVocalisation";
 import { SectionBudgetAuto } from "@/components/SectionBudgetAuto";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
@@ -187,6 +188,39 @@ function Analyses() {
     ];
     return `${base}\n${extras.join("\n")}`;
   };
+  /** Résumé court, pensé pour l'oreille : chiffres clés, alertes, conseils. */
+  const resumeParle = () => {
+    const f = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} francs CFA`;
+    const lignes = [
+      `Analyse ${FENETRES.find((x) => x.id === fenetre)?.label ?? ""}.`,
+      `Votre score de santé financière est de ${diagnostic.score} sur 100, ${diagnostic.mention}.`,
+      `Revenus ${f(totaux.revenus)}, dépenses ${f(totaux.depenses)}, solde ${f(totaux.net)}.`,
+      `Projection de fin de mois : ${f(projection.projection)}.`,
+    ];
+    const top = repartition.slice(0, 3);
+    if (top.length > 0) {
+      lignes.push(
+        `Principales dépenses : ${top.map((c) => `${c.nom}, ${c.part} pour cent`).join(" ; ")}.`,
+      );
+    }
+    if (alertes.length > 0) {
+      lignes.push(`${alertes.length} alerte${alertes.length > 1 ? "s" : ""} sur vos enveloppes.`);
+      for (const a of alertes.slice(0, 4)) {
+        lignes.push(
+          a.plafondAtteint
+            ? `${a.nom} : plafond atteint, il reste ${f(a.restant)}.`
+            : `${a.nom} : ${a.pourcentage} pour cent utilisés, il reste ${f(a.restant)}${
+                a.joursRestants !== null ? `, soit environ ${a.joursRestants} jours` : ""
+              }.`,
+        );
+      }
+    } else {
+      lignes.push("Aucune alerte sur vos enveloppes.");
+    }
+    for (const c of diagnostic.conseils.slice(0, 3)) lignes.push(`Conseil : ${c.titre}. ${c.texte}`);
+    return lignes.join(" ");
+  };
+
   const tauxEpargne = totaux.revenus > 0 ? Math.round((totaux.net / totaux.revenus) * 100) : 0;
   const maxTendance = Math.max(1, ...tendance.map((m) => Math.max(m.revenus, m.depenses)));
 
@@ -815,6 +849,11 @@ function Analyses() {
       </section>
 
       <div className="space-y-2">
+        <BoutonVocalisation
+          texte={resumeParle}
+          libelle="Écouter l'analyse et les alertes"
+          className="w-full p-3"
+        />
         <button
           type="button"
           onClick={async () => {

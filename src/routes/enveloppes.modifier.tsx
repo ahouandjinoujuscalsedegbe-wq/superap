@@ -7,6 +7,8 @@ import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
+import { DicteeChamp } from "@/components/DicteeChamp";
+import { analyserEnveloppeDictee } from "@/lib/dictee-champs";
 import { grouperParCategorie } from "@/lib/categories";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { CarteEnveloppe } from "./enveloppes.details";
@@ -286,6 +288,22 @@ function ModifierEnveloppe() {
                 chaque question, puis validez la confirmation.
               </p>
             </header>
+
+            <DicteeChamp
+              titre="Dicter les nouvelles valeurs"
+              exemple="transport avec 30000 francs, plafond 25000"
+              onTexte={(texte) => {
+                const lu = analyserEnveloppeDictee(texte);
+                if (lu.nom) setENom(lu.nom);
+                if (lu.dotation !== null) setEDotation(String(lu.dotation));
+                if (lu.plafond !== null) setEPlafond(String(lu.plafond));
+                if (!lu.nom && lu.dotation === null && lu.plafond === null) {
+                  toast.warning(`« ${texte} » : rien compris, complétez à la main.`);
+                } else {
+                  toast.success("Champs remplis par la dictée.");
+                }
+              }}
+            />
 
             <div className="space-y-3">
               <div className="flex gap-2">

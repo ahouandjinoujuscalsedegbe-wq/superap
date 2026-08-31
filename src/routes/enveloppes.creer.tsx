@@ -7,6 +7,8 @@ import { formatFCFA } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
+import { DicteeChamp } from "@/components/DicteeChamp";
+import { analyserEnveloppeDictee } from "@/lib/dictee-champs";
 
 export const Route = createFileRoute("/enveloppes/creer")({
   head: () => ({
@@ -60,6 +62,26 @@ function CreerEnveloppePage() {
 
   const categorieChoisie = listeCategories.find((c) => c.nom === categorie.trim());
   const sousCategories = categorieChoisie?.sousCategories ?? [];
+
+  /** Dictée locale : remplit seul le nom, la somme placée et le plafond. */
+  function appliquerDictee(texte: string) {
+    const lu = analyserEnveloppeDictee(texte);
+    if (lu.nom) {
+      setNom(lu.nom);
+      if (!emojiManuel) setEmoji(suggererIcone(lu.nom, "enveloppe"));
+    }
+    if (lu.dotation !== null) setDotation(String(lu.dotation));
+    if (lu.plafond !== null) setPlafond(String(lu.plafond));
+    if (!lu.nom && lu.dotation === null) {
+      toast.warning(`« ${texte} » : rien compris, complétez à la main.`);
+      return;
+    }
+    toast.success(
+      `Compris : ${lu.nom || "sans nom"}${lu.dotation !== null ? ` · ${formatFCFA(lu.dotation)}` : ""}${
+        lu.plafond !== null ? ` · plafond ${formatFCFA(lu.plafond)}` : ""
+      }`,
+    );
+  }
 
   function valider(ev: React.FormEvent) {
     ev.preventDefault();
@@ -131,6 +153,12 @@ function CreerEnveloppePage() {
           Répondez aux questions ci-dessous pour créer votre enveloppe budgétaire.
         </p>
       </section>
+
+      <DicteeChamp
+        titre="Dicter l'enveloppe"
+        exemple="enveloppe transport avec 30000 francs, plafond 25000"
+        onTexte={appliquerDictee}
+      />
 
       <form onSubmit={valider} className="space-y-4">
         <section className="carte space-y-3 p-4">
