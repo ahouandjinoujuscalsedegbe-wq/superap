@@ -325,6 +325,97 @@ function CreerEnveloppePage() {
           </p>
         </section>
 
+        <section className="carte space-y-3 p-4">
+          <p className="text-sm font-semibold">Comment cette enveloppe se remplit-elle ?</p>
+
+          <label htmlFor="e-compte" className="text-xs text-muted-foreground">
+            Compte qui alimente l'enveloppe (obligatoire)
+          </label>
+          <select
+            id="e-compte"
+            value={compteSource}
+            onChange={(ev) => setCompteSource(ev.target.value)}
+            className={champ}
+          >
+            <option value="">Choisir un compte…</option>
+            {comptes.map((c) => (
+              <option key={c} value={c}>
+                {c} — {formatFCFA(soldesParCompte[c] ?? 0)}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Chaque remplissage est retiré de ce compte.
+          </p>
+
+          <label htmlFor="e-periode" className="text-xs text-muted-foreground">
+            Période de renouvellement du contenu
+          </label>
+          <select
+            id="e-periode"
+            value={periodeRenouvellement}
+            onChange={(ev) => setPeriodeRenouvellement(ev.target.value as Periode)}
+            className={champ}
+          >
+            {PERIODES.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex gap-2">
+            {(
+              [
+                { id: "fixe", label: "Montant fixe par période" },
+                { id: "pourcentage", label: "% de chaque revenu" },
+              ] as const
+            ).map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setModeRemplissage(m.id)}
+                className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium ${
+                  modeRemplissage === m.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {modeRemplissage === "pourcentage" ? (
+            <>
+              <label htmlFor="e-part" className="text-xs text-muted-foreground">
+                Part de chaque revenu (%)
+              </label>
+              <input
+                id="e-part"
+                inputMode="numeric"
+                value={pourcentageRevenu}
+                onChange={(ev) => setPourcentageRevenu(ev.target.value.replace(/[^\d]/g, ""))}
+                placeholder="10"
+                className={champ}
+              />
+              <p className="text-xs text-muted-foreground">
+                À chaque revenu encaissé sur ce compte, cette part est versée automatiquement.
+              </p>
+            </>
+          ) : (
+            <label className="flex items-center justify-between gap-3 text-xs font-medium">
+              Ajuster seul le montant selon mes habitudes de dépense
+              <input
+                type="checkbox"
+                checked={ajustementAuto}
+                onChange={(ev) => setAjustementAuto(ev.target.checked)}
+                className="h-5 w-5"
+              />
+            </label>
+          )}
+        </section>
+
         <div className="flex gap-2">
           <button
             type="submit"
@@ -361,6 +452,17 @@ function CreerEnveloppePage() {
                 { label: "Somme attribuée", apres: formatFCFA(confirmation.dotation) },
                 { label: "Catégorie", apres: confirmation.categorie || "Sans catégorie" },
                 { label: "Sous-catégorie", apres: confirmation.sousCategorie || "Général" },
+                { label: "Compte source", apres: confirmation.compteSource },
+                {
+                  label: "Renouvellement",
+                  apres:
+                    confirmation.modeRemplissage === "pourcentage"
+                      ? `${confirmation.pourcentageRevenu}% de chaque revenu`
+                      : `${formatFCFA(confirmation.dotation)} ${
+                          PERIODES.find((p) => p.id === confirmation.periodeRenouvellement)?.label ??
+                          ""
+                        }`,
+                },
               ]
             : []
         }
