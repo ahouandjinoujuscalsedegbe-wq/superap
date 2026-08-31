@@ -4,11 +4,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarRange,
-  FileText,
   LineChart,
-  MessageCircleQuestion,
-  Search,
-  Target,
+
   Sparkles,
   Wallet,
 } from "lucide-react";
