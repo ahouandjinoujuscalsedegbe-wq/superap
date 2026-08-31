@@ -3,7 +3,7 @@ import { Mic, Square } from "lucide-react";
 import { toast } from "sonner";
 import { creerDictee, dicteeDisponible } from "@/lib/dictee";
 import { analyserTexte } from "@/lib/extraction";
-import { entrainerBayes, predireEnveloppe } from "@/lib/ia-locale";
+import { caracteristiques, clePhonetique, entrainerBayes, predireEnveloppe } from "@/lib/ia-locale";
 import { useSuperApp } from "@/lib/store";
 
 export type ResultatDictee = {
