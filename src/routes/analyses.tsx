@@ -222,6 +222,10 @@ function Analyses() {
         ))}
       </div>
 
+      <SectionIaLocale transactions={transactions} enveloppes={enveloppes} solde={solde} />
+
+
+
       <section className="carte space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
