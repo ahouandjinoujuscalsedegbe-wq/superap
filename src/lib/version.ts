@@ -12,7 +12,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.8";
+export const VERSION_APPLICATION = "1.0.9";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -388,7 +388,7 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
       if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
         return {
           etat: "erreur",
-          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superapp et collez-le dans Paramètres → Mises à jour.`,
+          message: `Le jeton d'accès est refusé par GitHub (code ${echec.code}). Recréez un jeton « Contents: Read-only » sur le dépôt superap et collez-le dans Paramètres → Mises à jour.`,
         };
       }
       if (echec?.etat === "http") {
