@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BoutonRetour } from "@/components/BoutonRetour";
+import { SectionCouple } from "@/components/SectionCouple";
 import { useSuperApp } from "@/lib/store";
 
 export const Route = createFileRoute("/parametres/profil")({

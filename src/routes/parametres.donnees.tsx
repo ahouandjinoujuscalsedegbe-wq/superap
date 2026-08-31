@@ -4,6 +4,7 @@ import { useSuperApp } from "@/lib/store";
 import { SectionRestauration } from "@/components/SectionRestauration";
 import { JournalDonnees } from "@/components/JournalDonnees";
 import { SectionPurge } from "@/components/SectionPurge";
+import { SectionCorbeille } from "@/components/SectionCorbeille";
 
 export const Route = createFileRoute("/parametres/donnees")({
   head: () => ({
@@ -46,6 +47,7 @@ function PageDonnees() {
         </button>
       </section>
 
+      <SectionCorbeille />
       <SectionRestauration />
       <JournalDonnees />
       <SectionPurge />
