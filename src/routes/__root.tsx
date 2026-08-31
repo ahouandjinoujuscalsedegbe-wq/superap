@@ -172,6 +172,7 @@ function RootComponent() {
           <MiseAJourAuto />
           <SyncAuto />
           <AlerteStockage />
+          <AlarmeIntelligente />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
