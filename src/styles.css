@@ -208,11 +208,9 @@ textarea:not([data-majuscules="non"]) {
 @keyframes page-entree {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -395,11 +393,9 @@ textarea {
 @keyframes apparition-douce {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
