@@ -55,6 +55,119 @@ export function enregistrerUrlManifeste(url: string) {
   localStorage.setItem(CLE_URL, url.trim());
 }
 
+/**
+ * Jeton d'accès GitHub (lecture seule) utilisé lorsque le dépôt est privé.
+ * Priorité : jeton saisi dans Paramètres, sinon jeton intégré à la compilation.
+ */
+export function lireTokenGithub(): string {
+  if (typeof localStorage !== "undefined") {
+    const local = localStorage.getItem(CLE_TOKEN);
+    if (local?.trim()) return local.trim();
+  }
+  const integre = import.meta.env.VITE_GITHUB_UPDATE_TOKEN as string | undefined;
+  return typeof integre === "string" ? integre.trim() : "";
+}
+
+export function enregistrerTokenGithub(token: string) {
+  if (typeof localStorage === "undefined") return;
+  const valeur = token.trim();
+  if (valeur) localStorage.setItem(CLE_TOKEN, valeur);
+  else localStorage.removeItem(CLE_TOKEN);
+}
+
+/** En-têtes d'authentification pour l'API GitHub (dépôt privé). */
+function entetesGithub(accept: string): Record<string, string> {
+  return {
+    Accept: accept,
+    Authorization: `Bearer ${lireTokenGithub()}`,
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
+
+type AssetRelease = { name: string; url: string };
+
+/** Mémoire courte de la dernière Release pour éviter les appels répétés. */
+let cacheRelease: { assets: AssetRelease[] } | null = null;
+
+/**
+ * Récupère la dernière Release via l'API GitHub (fonctionne avec un dépôt
+ * privé grâce au jeton). Renvoie null en cas d'échec.
+ */
+async function lireDerniereRelease(): Promise<{ assets: AssetRelease[] } | null> {
+  if (cacheRelease) return cacheRelease;
+  const url = `https://api.github.com/repos/${DEPOT_GITHUB}/releases/latest?t=${Date.now()}`;
+  const entetes = entetesGithub("application/vnd.github+json");
+  try {
+    if (estApplicationNative()) {
+      const { CapacitorHttp } = await import("@capacitor/core");
+      const reponse = await CapacitorHttp.get({
+        url,
+        headers: entetes,
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+      if (reponse.status < 200 || reponse.status >= 300) return null;
+      const brut = reponse.data;
+      const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as { assets?: AssetRelease[] };
+      if (!Array.isArray(donnees.assets)) return null;
+      cacheRelease = { assets: donnees.assets };
+      return cacheRelease;
+    }
+    const reponse = await fetch(url, { headers: entetes, cache: "no-store" });
+    if (!reponse.ok) return null;
+    const donnees = (await reponse.json()) as { assets?: AssetRelease[] };
+    if (!Array.isArray(donnees.assets)) return null;
+    cacheRelease = { assets: donnees.assets };
+    return cacheRelease;
+  } catch {
+    return null;
+  }
+}
+
+/** Trouve un fichier (asset) de la dernière Release par son nom. */
+async function trouverAsset(nom: string): Promise<AssetRelease | null> {
+  const release = await lireDerniereRelease();
+  return release?.assets.find((a) => a.name === nom) ?? null;
+}
+
+/**
+ * Télécharge un fichier JSON d'une Release privée via l'API GitHub.
+ * L'URL d'asset de l'API renvoie le contenu brut avec l'en-tête
+ * Accept « application/octet-stream » et le jeton.
+ */
+async function telechargerAssetJson(
+  assetUrl: string,
+): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+  const entetes = entetesGithub("application/octet-stream");
+  try {
+    if (estApplicationNative()) {
+      const { CapacitorHttp } = await import("@capacitor/core");
+      const reponse = await CapacitorHttp.get({
+        url: assetUrl,
+        headers: entetes,
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+      if (reponse.status < 200 || reponse.status >= 300) {
+        return { etat: "erreur", message: `GitHub a répondu ${reponse.status}. Vérifiez le jeton d'accès.` };
+      }
+      const brut = reponse.data;
+      const donnees = (typeof brut === "string" ? JSON.parse(brut) : brut) as Partial<Manifeste>;
+      return { etat: "ok", donnees };
+    }
+    const reponse = await fetch(assetUrl, { headers: entetes, cache: "no-store" });
+    if (!reponse.ok) {
+      return { etat: "erreur", message: `GitHub a répondu ${reponse.status}. Vérifiez le jeton d'accès.` };
+    }
+    return { etat: "ok", donnees: (await reponse.json()) as Partial<Manifeste> };
+  } catch {
+    return {
+      etat: "hors-ligne",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+    };
+  }
+}
+
 /** Date de la dernière vérification réussie (texte lisible) ou null. */
 export function lireDerniereVerification(): string | null {
   if (typeof localStorage === "undefined") return null;
