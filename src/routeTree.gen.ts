@@ -22,6 +22,7 @@ import { Route as ObjectifsRouteImport } from './routes/objectifs'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PlanningRouteImport } from './routes/planning'
+import { Route as RapportRouteImport } from './routes/rapport'
 import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
@@ -114,6 +115,11 @@ const ParametresRoute = ParametresRouteImport.update({
 const PlanningRoute = PlanningRouteImport.update({
   id: '/planning',
   path: '/planning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RapportRoute = RapportRouteImport.update({
+  id: '/rapport',
+  path: '/rapport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RechercheRoute = RechercheRouteImport.update({
@@ -272,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
   '/planning': typeof PlanningRoute
+  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
     | '/objectifs'
     | '/outils'
     | '/planning'
+    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -482,6 +493,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -526,6 +538,7 @@ export interface RootRouteChildren {
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
   PlanningRoute: typeof PlanningRoute
+  RapportRoute: typeof RapportRoute
   RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
@@ -624,6 +637,13 @@ declare module '@tanstack/react-router' {
       path: '/planning'
       fullPath: '/planning'
       preLoaderRoute: typeof PlanningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rapport': {
+      id: '/rapport'
+      path: '/rapport'
+      fullPath: '/rapport'
+      preLoaderRoute: typeof RapportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recherche': {
@@ -923,6 +943,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRouteWithChildren,
   PlanningRoute: PlanningRoute,
+  RapportRoute: RapportRoute,
   RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
