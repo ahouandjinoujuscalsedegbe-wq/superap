@@ -100,6 +100,12 @@ export function BoutonFlottantGlobal() {
   function auPointerDown(e: React.PointerEvent<HTMLButtonElement>) {
     if (!position) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    // Retour tactile court : le bouton « répond » sous le doigt.
+    try {
+      navigator.vibrate?.(12);
+    } catch {
+      /* vibration indisponible */
+    }
     depart.current = { x: e.clientX, y: e.clientY, px: position.x, py: position.y, bouge: false };
   }
 
@@ -175,7 +181,7 @@ export function BoutonFlottantGlobal() {
               aria-label={label}
               tabIndex={ouvert ? 0 : -1}
               onClick={() => setOuvert(false)}
-              className="carte absolute inset-0 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full shadow-lg transition-all duration-300 ease-out"
+              className="carte absolute inset-0 flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full ring-1 ring-white/20 shadow-[0_6px_0_-2px_rgba(0,0,0,0.22),0_10px_18px_-6px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 ease-out active:translate-y-[2px]"
               style={{
                 transform: ouvert
                   ? `translate(${x}px, ${y}px) scale(1)`
