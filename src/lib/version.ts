@@ -300,6 +300,23 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
     };
   }
 
+  // Dépôt privé : avec un jeton, on passe par l'API GitHub authentifiée
+  // (l'URL publique de téléchargement répondrait 404 sur un dépôt privé).
+  if (lireTokenGithub() && adresse.includes("github.com")) {
+    const asset = await trouverAsset("version.json");
+    if (!asset) {
+      cacheRelease = null;
+      return {
+        etat: "erreur",
+        message:
+          "Impossible de lire la dernière version sur GitHub. Vérifiez le jeton d'accès et qu'une Release existe.",
+      };
+    }
+    const resultat = await telechargerAssetJson(asset.url);
+    if (resultat.etat !== "ok") return { etat: resultat.etat, message: resultat.message };
+    return interpreterManifeste(resultat.donnees);
+  }
+
   const cible = `${adresse}${adresse.includes("?") ? "&" : "?"}t=${Date.now()}`;
 
   // Dans l'application Android, `fetch` est bloqué par la politique CORS des
