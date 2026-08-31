@@ -44,7 +44,10 @@ export function BoutonFlottantGlobal() {
   const [position, setPosition] = useState<Position | null>(null);
   const [ouvert, setOuvert] = useState(false);
   const [glisse, setGlisse] = useState(false);
+  /** Angle de roulement de la boule (degrés cumulés). */
+  const [rotation, setRotation] = useState(0);
   const conteneur = useRef<HTMLDivElement>(null);
+  const dernier = useRef<{ x: number; y: number } | null>(null);
   const depart = useRef<{ x: number; y: number; px: number; py: number; bouge: boolean } | null>(
     null,
   );
