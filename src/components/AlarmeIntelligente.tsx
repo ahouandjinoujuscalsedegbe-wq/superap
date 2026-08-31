@@ -20,14 +20,15 @@ import { occurrencesEntre } from "@/lib/planning";
  * l'appareil, sans aucun envoi de données.
  */
 export function AlarmeIntelligente() {
-  const { budgets, enveloppes, transactions, solde } = useSuperApp();
+  const { budgets, enveloppes, transactions, solde, soldesParCompte, depensesParEnveloppe } =
+    useSuperApp();
   const [alarmes, setAlarmes] = useState<Alarme[]>([]);
   const [tick, setTick] = useState(0);
   const dejaSonnees = useRef<Set<string>>(new Set());
 
   const donnees = useMemo(
-    () => ({ budgets, enveloppes, transactions, solde }),
-    [budgets, enveloppes, transactions, solde],
+    () => ({ budgets, enveloppes, transactions, solde, soldesParCompte, depensesParEnveloppe }),
+    [budgets, enveloppes, transactions, solde, soldesParCompte, depensesParEnveloppe],
   );
 
   const recalculer = useCallback(() => {
@@ -137,7 +138,13 @@ export function AlarmeIntelligente() {
             <p className="truncate text-sm font-semibold">{alarme.titre}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{alarme.texte}</p>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              {alarme.type === "echeance" ? "Rappel de dépense planifiée" : "Prévision locale"}
+              {alarme.type === "echeance"
+                ? "Rappel de dépense planifiée"
+                : alarme.type === "compte"
+                  ? "Seuil de compte atteint"
+                  : alarme.type === "plafond"
+                    ? "Plafond d'enveloppe dépassé"
+                    : "Prévision locale"}
               {alarmes.length > 1 ? ` · ${alarmes.length - 1} autre(s) alarme(s)` : ""}
             </p>
             <div className="mt-2 flex flex-wrap gap-2">

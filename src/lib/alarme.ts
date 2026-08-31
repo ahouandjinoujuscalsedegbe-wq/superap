@@ -30,6 +30,10 @@ export type ReglagesAlarme = {
   avanceJours: number;
   /** Alarmes prédictives (épuisement, découvert). */
   predictions: boolean;
+  /** Alarme quand une enveloppe dépasse son plafond de dépenses. */
+  plafonds: boolean;
+  /** Seuil de solde minimal par compte (nom du compte -> montant FCFA). */
+  seuilsComptes: Record<string, number>;
 };
 
 export const REGLAGES_ALARME_DEFAUT: ReglagesAlarme = {
@@ -40,7 +44,20 @@ export const REGLAGES_ALARME_DEFAUT: ReglagesAlarme = {
   notification: true,
   avanceJours: 2,
   predictions: true,
+  plafonds: true,
+  seuilsComptes: {},
 };
+
+/** Nettoie les seuils par compte : uniquement des montants positifs. */
+function lireSeuils(brut: unknown): Record<string, number> {
+  if (!brut || typeof brut !== "object") return {};
+  const propre: Record<string, number> = {};
+  for (const [compte, valeur] of Object.entries(brut as Record<string, unknown>)) {
+    const n = Number(valeur);
+    if (Number.isFinite(n) && n > 0) propre[compte] = n;
+  }
+  return propre;
+}
 
 export function lireReglagesAlarme(): ReglagesAlarme {
   if (typeof localStorage === "undefined") return REGLAGES_ALARME_DEFAUT;
@@ -56,6 +73,8 @@ export function lireReglagesAlarme(): ReglagesAlarme {
       notification: objet.notification ?? true,
       avanceJours: Math.min(15, Math.max(0, Number(objet.avanceJours ?? 2))),
       predictions: objet.predictions ?? true,
+      plafonds: objet.plafonds ?? true,
+      seuilsComptes: lireSeuils(objet.seuilsComptes),
     };
   } catch {
     return REGLAGES_ALARME_DEFAUT;
@@ -114,7 +133,7 @@ function estReportee(id: string, reports: Reports): boolean {
 
 export type Alarme = {
   id: string;
-  type: "echeance" | "prediction";
+  type: "echeance" | "prediction" | "compte" | "plafond";
   niveau: "alerte" | "attention" | "info";
   titre: string;
   texte: string;
@@ -220,6 +239,54 @@ export function alarmesPredictives(
   return alarmes;
 }
 
+/** Alarmes de compte : le solde passe sous le seuil choisi par l'utilisateur. */
+export function alarmesComptes(
+  soldesParCompte: Record<string, number>,
+  seuils: Record<string, number>,
+  aujourdHui = new Date().toISOString().slice(0, 10),
+): Alarme[] {
+  const alarmes: Alarme[] = [];
+  for (const [compte, seuil] of Object.entries(seuils)) {
+    if (!(seuil > 0)) continue;
+    const solde = soldesParCompte[compte];
+    if (typeof solde !== "number" || solde >= seuil) continue;
+    alarmes.push({
+      id: `compte-seuil-${compte}`,
+      type: "compte",
+      niveau: solde <= 0 ? "alerte" : "attention",
+      titre: `🏦 ${compte} sous le seuil`,
+      texte: `Solde de ${fcfa(solde)} pour un seuil d'alerte fixé à ${fcfa(seuil)}.`,
+      date: aujourdHui,
+    });
+  }
+  return alarmes;
+}
+
+/** Alarmes de plafond : une enveloppe a dépassé son plafond de dépenses. */
+export function alarmesPlafonds(
+  enveloppes: Enveloppe[],
+  depensesParEnveloppe: Record<string, number>,
+  aujourdHui = new Date().toISOString().slice(0, 10),
+): Alarme[] {
+  const alarmes: Alarme[] = [];
+  for (const e of enveloppes) {
+    if (!(e.plafond > 0)) continue;
+    const utilise = depensesParEnveloppe[e.nom] ?? depensesParEnveloppe[e.id] ?? 0;
+    if (utilise < e.plafond) continue;
+    alarmes.push({
+      id: `plafond-${e.id}`,
+      type: "plafond",
+      niveau: "alerte",
+      titre: `${e.emoji} ${e.nom} : plafond dépassé`,
+      texte: `Dépenses de ${fcfa(utilise)} pour un plafond de ${fcfa(e.plafond)} (dépassement de ${fcfa(
+        utilise - e.plafond,
+      )}).`,
+      date: aujourdHui,
+    });
+  }
+  return alarmes;
+}
+
 /** Toutes les alarmes actives, hors celles mises en veille par l'utilisateur. */
 export function calculerAlarmes(
   donnees: {
@@ -227,6 +294,8 @@ export function calculerAlarmes(
     enveloppes: Enveloppe[];
     transactions: Transaction[];
     solde: number;
+    soldesParCompte?: Record<string, number>;
+    depensesParEnveloppe?: Record<string, number>;
   },
   reglages: ReglagesAlarme,
 ): Alarme[] {
@@ -236,6 +305,10 @@ export function calculerAlarmes(
     ...alarmesEcheances(donnees.budgets, donnees.enveloppes, reglages.avanceJours),
     ...(reglages.predictions
       ? alarmesPredictives(donnees.enveloppes, donnees.transactions, donnees.solde)
+      : []),
+    ...alarmesComptes(donnees.soldesParCompte ?? {}, reglages.seuilsComptes),
+    ...(reglages.plafonds
+      ? alarmesPlafonds(donnees.enveloppes, donnees.depensesParEnveloppe ?? {})
       : []),
   ];
   const rang = { alerte: 0, attention: 1, info: 2 };
