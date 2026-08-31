@@ -12,7 +12,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.9";
+export const VERSION_APPLICATION = "1.0.10";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -109,10 +109,7 @@ let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 /** Durée de validité du cache de Release. */
 const CACHE_RELEASE_MS = 60 * 1000;
 
-type ReponseGithub =
-  | { etat: "ok"; donnees: unknown }
-  | { etat: "http"; code: number }
-  | { etat: "reseau" };
+type ReponseGithub = { etat: "ok"; donnees: unknown } | { etat: "http"; code: number } | { etat: "reseau" };
 
 /** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
 async function lireJsonGithub(url: string): Promise<ReponseGithub> {
@@ -168,8 +165,7 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
     return { etat: "http", code: reponseLatest.code };
   }
 
-  const latest =
-    reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
+  const latest = reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
   if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
     return { etat: "ok", assets: latest.assets };
