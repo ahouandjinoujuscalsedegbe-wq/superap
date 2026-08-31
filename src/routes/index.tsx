@@ -65,6 +65,14 @@ function Accueil() {
   );
   const rappels = echeancesProches.length + dettesEchues.length + enveloppesRouges.length;
 
+  // Analyse locale : prévision d'épuisement des enveloppes et dépenses inhabituelles.
+  const alertesIntelligentes = useMemo(
+    () => alertesLocales(enveloppes, transactions),
+    [enveloppes, transactions],
+  );
+
+
+
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 pr-12">
