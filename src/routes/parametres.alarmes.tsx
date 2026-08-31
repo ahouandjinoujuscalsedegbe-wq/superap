@@ -12,6 +12,8 @@ import {
   type ReglagesAlarme,
 } from "@/lib/alarme";
 import { demanderPermissionNotification } from "@/lib/alarme-appareil";
+import { useSuperApp } from "@/lib/store";
+import { formatFCFA } from "@/lib/format";
 
 
 export const Route = createFileRoute("/parametres/alarmes")({
@@ -34,6 +36,7 @@ export const Route = createFileRoute("/parametres/alarmes")({
 });
 
 function PageAlarmes() {
+  const { comptes, soldesParCompte } = useSuperApp();
   const [reglages, setReglages] = useState<ReglagesAlarme>(() =>
     typeof window === "undefined" ? REGLAGES_ALARME_DEFAUT : lireReglagesAlarme(),
   );
@@ -42,6 +45,15 @@ function PageAlarmes() {
     const suivant = { ...reglages, ...partiel };
     setReglages(suivant);
     ecrireReglagesAlarme(suivant);
+  }
+
+  /** Enregistre le seuil d'alerte d'un compte (0 ou vide = pas d'alarme). */
+  function majSeuil(compte: string, valeur: string) {
+    const n = Number(valeur.replace(/[^0-9]/g, ""));
+    const seuils = { ...reglages.seuilsComptes };
+    if (Number.isFinite(n) && n > 0) seuils[compte] = n;
+    else delete seuils[compte];
+    maj({ seuilsComptes: seuils });
   }
 
   return (
@@ -144,6 +156,16 @@ function PageAlarmes() {
           />
         </label>
 
+        <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          Alarme de dépassement du plafond d'une enveloppe
+          <input
+            type="checkbox"
+            checked={reglages.plafonds}
+            onChange={(e) => maj({ plafonds: e.target.checked })}
+            className="h-5 w-5"
+          />
+        </label>
+
         <button
           type="button"
           onClick={() => {
@@ -165,6 +187,39 @@ function PageAlarmes() {
         >
           <Volume2 className="h-4 w-4" aria-hidden /> Tester l'alarme
         </button>
+      </section>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="text-base font-semibold">Alarmes par compte</h2>
+        <p className="text-xs text-muted-foreground">
+          Fixez un solde minimal par compte : l'alarme sonne dès que le solde passe en dessous.
+          Laissez vide pour désactiver.
+        </p>
+        {comptes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun compte enregistré.</p>
+        ) : (
+          <ul className="space-y-2">
+            {comptes.map((compte) => (
+              <li key={compte} className="flex items-center justify-between gap-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{compte}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    Solde : {formatFCFA(soldesParCompte[compte] ?? 0)}
+                  </span>
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  aria-label={`Seuil d'alerte pour ${compte}`}
+                  placeholder="Seuil FCFA"
+                  value={reglages.seuilsComptes[compte] ?? ""}
+                  onChange={(e) => majSeuil(compte, e.target.value)}
+                  className="w-32 rounded-xl border border-input bg-background px-3 py-2 text-right text-sm"
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
