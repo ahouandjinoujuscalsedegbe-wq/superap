@@ -238,7 +238,7 @@ async function telechargerNatif(
     if (reponse.status < 200 || reponse.status >= 300) {
       return {
         etat: "erreur",
-        message: `Le serveur a répondu ${reponse.status}. Vérifiez l'adresse du fichier version.json (le dépôt doit être public).`,
+        message: `Le serveur a répondu ${reponse.status}. Si le dépôt est privé, enregistrez un jeton d'accès dans Paramètres → Mises à jour.`,
       };
     }
     const brut = reponse.data;
