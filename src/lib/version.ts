@@ -104,8 +104,13 @@ let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 /** Durée de validité du cache de Release. */
 const CACHE_RELEASE_MS = 60 * 1000;
 
+type ReponseGithub =
+  | { etat: "ok"; donnees: unknown }
+  | { etat: "http"; code: number }
+  | { etat: "reseau" };
+
 /** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
-async function lireJsonGithub(url: string): Promise<unknown | null> {
+async function lireJsonGithub(url: string): Promise<ReponseGithub> {
   const entetes = entetesGithub("application/vnd.github+json");
   try {
     if (estApplicationNative()) {
@@ -116,15 +121,17 @@ async function lireJsonGithub(url: string): Promise<unknown | null> {
         readTimeout: 15000,
         connectTimeout: 15000,
       });
-      if (reponse.status < 200 || reponse.status >= 300) return null;
+      if (reponse.status < 200 || reponse.status >= 300) {
+        return { etat: "http", code: reponse.status };
+      }
       const brut = reponse.data;
-      return typeof brut === "string" ? JSON.parse(brut) : brut;
+      return { etat: "ok", donnees: typeof brut === "string" ? JSON.parse(brut) : brut };
     }
     const reponse = await fetch(url, { headers: entetes, cache: "no-store" });
-    if (!reponse.ok) return null;
-    return await reponse.json();
+    if (!reponse.ok) return { etat: "http", code: reponse.status };
+    return { etat: "ok", donnees: await reponse.json() };
   } catch {
-    return null;
+    return { etat: "reseau" };
   }
 }
 
