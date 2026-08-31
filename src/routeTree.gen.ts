@@ -21,6 +21,7 @@ import { Route as JournalRouteImport } from './routes/journal'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PlanningRouteImport } from './routes/planning'
+import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
@@ -107,6 +108,11 @@ const ParametresRoute = ParametresRouteImport.update({
 const PlanningRoute = PlanningRouteImport.update({
   id: '/planning',
   path: '/planning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RechercheRoute = RechercheRouteImport.update({
+  id: '/recherche',
+  path: '/recherche',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RevenuRoute = RevenuRouteImport.update({
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/journal': typeof JournalRoute
   '/outils': typeof OutilsRoute
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
+  '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/journal'
     | '/outils'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/outils'
     | '/parametres'
     | '/planning'
+    | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
@@ -501,6 +513,7 @@ export interface RootRouteChildren {
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
   PlanningRoute: typeof PlanningRoute
+  RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
@@ -591,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/planning'
       fullPath: '/planning'
       preLoaderRoute: typeof PlanningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recherche': {
+      id: '/recherche'
+      path: '/recherche'
+      fullPath: '/recherche'
+      preLoaderRoute: typeof RechercheRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/revenu': {
@@ -882,6 +902,7 @@ const rootRouteChildren: RootRouteChildren = {
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRouteWithChildren,
   PlanningRoute: PlanningRoute,
+  RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,
