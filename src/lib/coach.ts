@@ -7,13 +7,14 @@
  * taire. Tout est calculé et stocké sur l'appareil, chiffré.
  */
 
-import { resteDu, type Budget, type Dette, type Enveloppe, type Transaction } from "./store";
+import { resteDu, type Budget, type Dette, type Enveloppe, type Objectif, type Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
 import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 import { saisonDe } from "./saison";
+import { raisonner, type PoidsAppris } from "./coach-raisonnement";
 
 export { saisonDe };
 
@@ -267,6 +268,8 @@ export type DonneesCoach = {
   dettes: Dette[];
   depensesParEnveloppe: Record<string, number>;
   solde: number;
+  /** Objectifs d'épargne, utilisés par le raisonnement du coach. */
+  objectifs?: Objectif[];
 };
 
 function empreinte(texte: string): string {
@@ -653,7 +656,7 @@ export function repondreCoach(
   /* Demande de conseil : le coach parle en son nom, avec un conseil neuf,
      jamais un bilan déjà énoncé. */
   if (estDemandeConseil(question)) {
-    const c = conseilPersonnalise(memoire, donnees, cible, maintenant);
+    const c = conseilPersonnalise(memoire, donnees, cible, maintenant, question);
     return {
       reponse: { reponse: c.texte, details: c.details, incompris: false },
       ...(c.enveloppeId ? { enveloppeId: c.enveloppeId } : {}),
@@ -842,7 +845,42 @@ export function conseilPersonnalise(
   donnees: DonneesCoach,
   cible?: Enveloppe,
   maintenant = new Date(),
+  question = "",
 ): ConseilCoach {
+  /* Le coach raisonne d'abord sur l'ensemble des données : il cherche un fait
+     prouvé (habitude, dérive, charge fixe, dette, objectif, saison…) et en
+     déduit un conseil chiffré. Les pistes générales ne servent que si aucun
+     fait n'est assez solide. */
+  const appris: PoidsAppris = {
+    theme: (t) => poidsDe(memoire, t),
+    enveloppe: (id) => poidsEnveloppeDe(memoire, id),
+    motsCles: memoire.motsCles,
+    dejaDits: new Set(memoire.conseilsDits),
+  };
+  const r = raisonner(
+    {
+      transactions: donnees.transactions,
+      enveloppes: donnees.enveloppes,
+      budgets: donnees.budgets,
+      dettes: donnees.dettes,
+      depensesParEnveloppe: donnees.depensesParEnveloppe,
+      solde: donnees.solde,
+      ...(donnees.objectifs ? { objectifs: donnees.objectifs } : {}),
+    },
+    question || cible?.nom || "",
+    appris,
+    cible?.id,
+    maintenant,
+  );
+  if (r.fait) {
+    return {
+      texte: r.texte,
+      details: r.details,
+      empreinte: r.empreinte,
+      ...(r.enveloppeId ? { enveloppeId: r.enveloppeId } : {}),
+    };
+  }
+
   const b = bilanMensuel(donnees, maintenant);
   const pistes: (ConseilCoach & { poids: number })[] = [];
 
