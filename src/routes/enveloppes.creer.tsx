@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
+import { useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
@@ -51,8 +51,9 @@ function CreerEnveloppePage() {
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
   const [compteSource, setCompteSource] = useState("");
-  const [periodeRenouvellement, setPeriodeRenouvellement] = useState<Periode>("mois");
-  const [dateRenouvellement, setDateRenouvellement] = useState("");
+  // Règle unique : toutes les enveloppes se renouvellent le 1er de chaque mois.
+  const periodeRenouvellement: Periode = "mois";
+
   const [modeRemplissage, setModeRemplissage] = useState<"fixe" | "pourcentage">("fixe");
   const [pourcentageRevenu, setPourcentageRevenu] = useState("");
   const [ajustementAuto, setAjustementAuto] = useState(true);
@@ -164,16 +165,8 @@ function CreerEnveloppePage() {
         confirmation: (v) => `Compte source : ${String(v)}.`,
       },
       {
-        id: "periode",
-        question: "À quelle période l'enveloppe se renouvelle-t-elle ?",
-        type: "choix",
-        options: PERIODES.map((p) => ({ valeur: p.id, label: p.label })),
-        appliquer: (v) => setPeriodeRenouvellement(String(v) as Periode),
-        confirmation: (v) =>
-          `Renouvellement : ${PERIODES.find((p) => p.id === v)?.label ?? String(v)}.`,
-      },
-      {
         id: "mode",
+
         question:
           "L'enveloppe se remplit-elle avec un montant fixe par période, ou avec un pourcentage de chaque revenu ?",
         type: "choix",
@@ -264,12 +257,8 @@ function CreerEnveloppePage() {
       );
       return;
     }
-    if (modeRemplissage === "fixe" && !dateRenouvellement) {
-      setErreur(
-        "Précisez la date du premier renouvellement automatique de cette enveloppe.",
-      );
-      return;
-    }
+    // Le renouvellement a lieu le 1er de chaque mois : aucune date à saisir.
+
     setConfirmation({
       nom: nom.trim(),
       emoji: emoji.trim() || "💡",
@@ -279,7 +268,7 @@ function CreerEnveloppePage() {
       sousCategorie: sousCategorie.trim(),
       compteSource: compteSource.trim(),
       periodeRenouvellement,
-      dateRenouvellement: modeRemplissage === "fixe" ? dateRenouvellement : "",
+      dateRenouvellement: "",
       modeRemplissage,
       pourcentageRevenu: modeRemplissage === "pourcentage" ? part : 0,
       ajustementAuto,
@@ -470,39 +459,11 @@ function CreerEnveloppePage() {
             Seules les dépenses faites depuis l'enveloppe diminuent le compte.
           </p>
 
-          <label htmlFor="e-periode" className="text-xs text-muted-foreground">
-            Période de renouvellement du contenu
-          </label>
-          <select
-            id="e-periode"
-            value={periodeRenouvellement}
-            onChange={(ev) => setPeriodeRenouvellement(ev.target.value as Periode)}
-            className={champ}
-          >
-            {PERIODES.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+          <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
+            Renouvellement automatique : le contenu de cette enveloppe est reversé
+            le 1er de chaque mois, sans date à choisir.
+          </p>
 
-          {modeRemplissage === "fixe" && (
-            <>
-              <label htmlFor="e-date-renouv" className="text-xs text-muted-foreground">
-                Date du premier renouvellement automatique (obligatoire)
-              </label>
-              <input
-                id="e-date-renouv"
-                type="date"
-                value={dateRenouvellement}
-                onChange={(ev) => setDateRenouvellement(ev.target.value)}
-                className={champ}
-              />
-              <p className="text-xs text-muted-foreground">
-                Le renouvellement n'aura lieu qu'à cette date, puis à chaque période.
-              </p>
-            </>
-          )}
 
           <div className="flex gap-2">
             {(
@@ -598,15 +559,9 @@ function CreerEnveloppePage() {
                   apres:
                     confirmation.modeRemplissage === "pourcentage"
                       ? `${confirmation.pourcentageRevenu}% de chaque revenu`
-                      : `${formatFCFA(confirmation.dotation)} ${
-                          PERIODES.find((p) => p.id === confirmation.periodeRenouvellement)?.label ??
-                          ""
-                        }`,
+                      : `${formatFCFA(confirmation.dotation)} le 1er de chaque mois`,
                 },
-                {
-                  label: "Date de renouvellement",
-                  apres: confirmation.dateRenouvellement || "Aucune",
-                },
+
               ]
             : []
         }

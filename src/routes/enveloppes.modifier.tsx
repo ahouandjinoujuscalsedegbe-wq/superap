@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
-import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
+import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -76,8 +76,8 @@ function ModifierEnveloppe() {
   const [eCategorie, setECategorie] = useState("");
   const [eSousCategorie, setESousCategorie] = useState("");
   const [eCompte, setECompte] = useState("");
-  const [ePeriode, setEPeriode] = useState<Periode>("mois");
-  const [eDateRenouv, setEDateRenouv] = useState("");
+  // Règle unique : renouvellement le 1er de chaque mois.
+  const ePeriode: Periode = "mois";
   const [eMode, setEMode] = useState<"fixe" | "pourcentage">("fixe");
   const [ePart, setEPart] = useState("");
   const [eMontantPeriode, setEMontantPeriode] = useState("");
@@ -104,8 +104,6 @@ function ModifierEnveloppe() {
     setECategorie(e.categorie ?? "");
     setESousCategorie(e.sousCategorie ?? "");
     setECompte(e.compteSource ?? "");
-    setEPeriode(e.periodeRenouvellement ?? "mois");
-    setEDateRenouv(e.dateRenouvellement ? e.dateRenouvellement.slice(0, 10) : "");
     setEMode(e.modeRemplissage ?? "fixe");
     setEPart(e.pourcentageRevenu ? String(e.pourcentageRevenu) : "");
     setEMontantPeriode(String(e.montantPeriode ?? e.dotation ?? e.plafond));
@@ -182,7 +180,7 @@ function ModifierEnveloppe() {
       sousCategorie: eSousCategorie.trim(),
       compteSource: eCompte.trim(),
       periodeRenouvellement: ePeriode,
-      dateRenouvellement: eMode === "fixe" ? eDateRenouv : "",
+      dateRenouvellement: "",
       modeRemplissage: eMode,
       pourcentageRevenu: eMode === "pourcentage" ? part : 0,
       montantPeriode: eMode === "fixe" ? parPeriode : 0,
@@ -514,39 +512,11 @@ function ModifierEnveloppe() {
                   ))}
                 </select>
 
-                <label htmlFor="edit-periode" className="text-xs text-muted-foreground">
-                  Période de renouvellement
-                </label>
-                <select
-                  id="edit-periode"
-                  value={ePeriode}
-                  onChange={(ev) => setEPeriode(ev.target.value as Periode)}
-                  className={champ}
-                >
-                  {PERIODES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
+                  Renouvellement automatique le 1er de chaque mois, pour toutes les
+                  enveloppes : il n'y a plus de date à choisir.
+                </p>
 
-                {eMode === "fixe" && (
-                  <>
-                    <label htmlFor="edit-date-renouv" className="text-xs text-muted-foreground">
-                      Date du prochain renouvellement automatique
-                    </label>
-                    <input
-                      id="edit-date-renouv"
-                      type="date"
-                      value={eDateRenouv}
-                      onChange={(ev) => setEDateRenouv(ev.target.value)}
-                      className={champ}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Sans date, aucun renouvellement automatique n'est effectué.
-                    </p>
-                  </>
-                )}
 
                 <div className="flex gap-2">
                   {(

@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { CalendarClock, Percent, Wallet } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
-import { LABELS_PERIODE, prochainRenouvellement, totalVerse } from "@/lib/remplissage";
-import { PERIODES, useSuperApp, type Remplissage } from "@/lib/store";
+import { prochainRenouvellement, totalVerse } from "@/lib/remplissage";
+import { useSuperApp, type Remplissage } from "@/lib/store";
 
 export const Route = createFileRoute("/enveloppes/renouvellements")({
   head: () => ({
@@ -91,7 +91,6 @@ function Renouvellements() {
           </p>
         ) : (
           configurees.map((e) => {
-            const periode = e.periodeRenouvellement;
             const pourcentage = e.modeRemplissage === "pourcentage";
             const prochaine = prochainRenouvellement(e);
             const verse = totalVerse(e.id, remplissages);
@@ -110,22 +109,13 @@ function Renouvellements() {
                 <dl className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <dt className="text-muted-foreground">Période</dt>
-                    <dd className="font-medium">
-                      {periode
-                        ? `${PERIODES.find((p) => p.id === periode)?.label} (${LABELS_PERIODE[periode]})`
-                        : "Aucune"}
-                    </dd>
+                    <dd className="font-medium">Le 1er de chaque mois</dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Compte source</dt>
                     <dd className="font-medium">{e.compteSource || "Non défini"}</dd>
                   </div>
-                  <div>
-                    <dt className="text-muted-foreground">Date choisie</dt>
-                    <dd className="font-medium">
-                      {e.dateRenouvellement ? jourLisible(e.dateRenouvellement) : "Non définie"}
-                    </dd>
-                  </div>
+
                   <div>
                     <dt className="text-muted-foreground">
                       {pourcentage ? "Part de revenu" : "Montant par période"}
@@ -145,7 +135,7 @@ function Renouvellements() {
                         ? formatFCFA(Math.round((revenusSource * (e.pourcentageRevenu ?? 0)) / 100))
                         : prochaine
                           ? jourLisible(prochaine)
-                          : "Aucune date choisie"}
+                          : "Le 1er du mois prochain"}
                     </dd>
                   </div>
                   <div>
