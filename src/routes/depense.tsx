@@ -272,23 +272,7 @@ function AjouterDepense() {
         )}
 
         <section className="carte space-y-4 p-4">
-          <div>
-            <label htmlFor="compte" className="text-sm font-medium">
-              Compte débité
-            </label>
-            <select
-              id="compte"
-              value={compte}
-              onChange={(ev) => setCompte(ev.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-            >
-              {comptes.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+
 
           <div>
             <label htmlFor="libelle" className="text-sm font-medium">
