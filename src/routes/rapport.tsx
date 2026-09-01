@@ -124,10 +124,11 @@ function PageRapport() {
           Taux d'épargne : <span className="font-semibold text-foreground">
             {rapport.tauxEpargne.toFixed(0)} %
           </span>{" "}
-          · {rapport.nbOperations} opérations · dépenses{" "}
+          · {rapport.nbOperations} opérations déjà effectuées · dépenses{" "}
           {rapport.variationDepenses >= 0 ? "+" : ""}
           {rapport.variationDepenses.toFixed(0)} % vs mois précédent
         </p>
+
         <div className="flex items-center gap-3">
           <div
             className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
