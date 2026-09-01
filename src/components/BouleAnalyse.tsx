@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
 import { Sparkles, X } from "lucide-react";
-import { alertesLocales } from "@/lib/analyste-local";
-import { useSuperApp } from "@/lib/store";
+import { useCerveau } from "@/lib/cerveau/hook";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
