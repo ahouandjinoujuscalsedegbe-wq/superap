@@ -97,11 +97,11 @@ function Accueil() {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/mois"
-            aria-label="Vue globale du mois"
+            to="/dettes"
+            aria-label="Dettes & Créances"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
           >
-            <Eye className="h-5 w-5" aria-hidden />
+            <HandCoins className="h-5 w-5" aria-hidden />
           </Link>
           <Link
             to="/objectifs"
