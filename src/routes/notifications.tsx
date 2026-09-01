@@ -247,6 +247,23 @@ function PageNotifications() {
         </p>
       </header>
 
+      {vocalisationDisponible() && texteDuJour.length > 0 && (
+        <button
+          type="button"
+          onClick={() => lire("jour", texteDuJour)}
+          className="carte flex w-full items-center justify-center gap-2 p-3 text-sm font-semibold text-primary"
+        >
+          {lecture === "jour" ? (
+            <Square className="h-4 w-4" aria-hidden />
+          ) : (
+            <Volume2 className="h-4 w-4" aria-hidden />
+          )}
+          {lecture === "jour"
+            ? "Arrêter la lecture"
+            : "Écouter le bilan et les conseils du jour"}
+        </button>
+      )}
+
       <DiscussionVocaleCoach onQuestion={traiterQuestion} />
 
       {(themesAppris.length > 0 || favoris.length > 0) && (
