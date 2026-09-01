@@ -10,9 +10,20 @@ import { analyser, type Analyse } from "./index";
  * partagée, donc l'application dit partout la même chose.
  */
 export function useCerveau(): Analyse {
-  const { transactions, enveloppes, dettes, objectifs, solde } = useSuperApp();
+  const { transactions, enveloppes, dettes, objectifs, soldeDisponible, comptesExclus } =
+    useSuperApp();
   return useMemo(
-    () => analyser({ transactions, enveloppes, dettes, objectifs, solde }),
-    [transactions, enveloppes, dettes, objectifs, solde],
+    // Le cerveau raisonne sur le solde DISPONIBLE : les comptes réservés
+    // (épargne, projet, caisse…) n'entrent pas dans l'argent du quotidien.
+    () =>
+      analyser({
+        transactions,
+        enveloppes,
+        dettes,
+        objectifs,
+        solde: soldeDisponible,
+        comptesExclus,
+      }),
+    [transactions, enveloppes, dettes, objectifs, soldeDisponible, comptesExclus],
   );
 }

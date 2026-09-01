@@ -16,6 +16,7 @@ export type Constat = {
     | "enveloppe-epuisee"
     | "enveloppe-bientot-vide"
     | "enveloppe-dormante"
+    | "fonds-reserves"
     | "depense-inhabituelle"
     | "derive-categorie"
     | "rythme-mois"
@@ -42,8 +43,40 @@ export function evaluerRegles(faits: Faits): Constat[] {
   const c: Constat[] = [];
   const conf = faits.confiance;
 
+  // ---- fonds réservés : argent volontairement mis de côté
+  // Règle apprise : un compte exclu du solde disponible sert un projet, une
+  // épargne ou un usage précis. Son argent n'est pas de l'argent du quotidien,
+  // on ne le propose donc jamais pour combler une dépense courante.
+  if (faits.fondsReserves > 0) {
+    c.push({
+      id: "fonds-reserves",
+      type: "fonds-reserves",
+      gravite: "info",
+      titre: "Fonds réservés protégés",
+      detail: `${f(faits.fondsReserves)} sont réservés dans ${faits.nbEnveloppesReservees} enveloppe(s) alimentée(s) par des comptes hors solde disponible (projet, épargne ou usage précis). Cet argent est exclu des conseils du quotidien ; ${f(faits.fondsQuotidiens)} restent pour les dépenses habituelles.`,
+      confiance: 1,
+      poids: 40,
+    });
+  }
+
   // ---- enveloppes
   for (const e of faits.enveloppes) {
+    // Une enveloppe réservée suit sa propre logique : on ne l'alarme pas comme
+    // une enveloppe du quotidien, on signale seulement si elle est entamée.
+    if (e.reservee) {
+      if (e.epuisee && e.dotation > 0) {
+        c.push({
+          id: `reserve-consommee-${e.id}`,
+          type: "fonds-reserves",
+          gravite: "attention",
+          titre: `${e.emoji} ${e.nom} : réserve consommée`,
+          detail: `Cette enveloppe réservée (compte ${e.compteSource ?? "hors solde disponible"}) est entièrement utilisée : ${f(e.dotation)} affectés à son projet.`,
+          confiance: 1,
+          poids: 55,
+        });
+      }
+      continue;
+    }
     if (e.epuisee && e.dotation > 0) {
       c.push({
         id: `enveloppe-epuisee-${e.id}`,
