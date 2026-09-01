@@ -13,7 +13,12 @@ import { lireSecurise, ecrireSecurise } from "./coffre-local";
 
 export const CLE_COACH = "super-app-coach";
 
-export type CategorieCoach = Recommandation["categorie"] | "bilan" | "reponse" | "question";
+export type CategorieCoach =
+  | Recommandation["categorie"]
+  | "bilan"
+  | "reponse"
+  | "question"
+  | "enveloppe";
 
 export type MessageCoach = {
   id: string;
@@ -22,6 +27,8 @@ export type MessageCoach = {
   /** Précisions affichées sous le message. */
   details?: string[];
   categorie: CategorieCoach;
+  /** Enveloppe concernée, quand le message vient du conseiller d'enveloppe. */
+  enveloppeId?: string;
   date: string; // ISO
   lu: boolean;
   /** Retour de l'utilisateur : utile / inutile. */
@@ -32,21 +39,31 @@ export type MemoireCoach = {
   messages: MessageCoach[];
   /** Poids d'intérêt par thème, entre 0 et 2 (1 = neutre). */
   poids: Record<string, number>;
+  /** Poids d'intérêt par enveloppe, entre 0 et 2 (1 = neutre). */
+  poidsEnveloppe: Record<string, number>;
   /** Dernier jour (AAAA-MM-JJ) où le bilan quotidien a été produit. */
   dernierJour: string | null;
   /** Empreintes des messages déjà envoyés, pour ne pas se répéter. */
   vus: string[];
   /** Observations quotidiennes accumulées : dépense moyenne par jour. */
   historique: { jour: string; depense: number; revenu: number; score: number }[];
+  /** Mots-clés les plus souvent employés par l'utilisateur, avec leur compte. */
+  motsCles: Record<string, number>;
+  /** Nombre de questions posées : sert à adapter le ton du conseiller. */
+  echanges: number;
 };
 
 export const MEMOIRE_VIDE: MemoireCoach = {
   messages: [],
   poids: {},
+  poidsEnveloppe: {},
   dernierJour: null,
   vus: [],
   historique: [],
+  motsCles: {},
+  echanges: 0,
 };
+
 
 function fcfa(montant: number): string {
   return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
