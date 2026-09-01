@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Wallet, Sparkles, Landmark, Calculator } from "lucide-react";
+import { Home, Wallet, Sparkles, Landmark, MessageCircle } from "lucide-react";
 
 const ONGLETS = [
   { to: "/", label: "Accueil", icone: Home },
   { to: "/enveloppes", label: "Enveloppes", icone: Wallet },
   { to: "/saisie", label: "Saisie intelligente", icone: Sparkles, milieu: true },
   { to: "/comptes", label: "Comptes", icone: Landmark },
-  { to: "/outils", label: "Outils et simulation", icone: Calculator, tailleIcone: "h-6 w-6" },
+  { to: "/notifications", label: "Mon conseiller", icone: MessageCircle, tailleIcone: "h-6 w-6" },
 ] as const;
 
 export function BottomNav() {

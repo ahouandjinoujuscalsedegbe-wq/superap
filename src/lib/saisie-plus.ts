@@ -379,12 +379,12 @@ const COMMANDES: { motifs: string[]; chemin: string; libelle: string }[] = [
   { motifs: ["compte", "comptes"], chemin: "/comptes", libelle: "Comptes" },
   {
     motifs: ["analyse", "analyses", "conseil", "conseils"],
-    chemin: "/analyses",
+    chemin: "/notifications",
     libelle: "Analyses et conseils",
   },
   {
     motifs: ["outil", "outils", "simulation", "simulateur"],
-    chemin: "/outils",
+    chemin: "/notifications",
     libelle: "Outils et simulation",
   },
   {
