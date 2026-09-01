@@ -123,7 +123,15 @@ function PagePrevisions() {
           Entrez vos objectifs futurs : l'application prédit votre solde et vos dépenses mois par
           mois, sur votre téléphone.
         </p>
+        <Link
+          to="/suivi"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-input bg-card px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/40"
+        >
+          <Scale className="h-3.5 w-3.5 text-primary" aria-hidden />
+          Comparer avec mes dépenses réelles
+        </Link>
       </header>
+
 
       <section className="surface space-y-3 rounded-2xl border border-border p-4">
         <h2 className="text-sm font-semibold">Nouvel objectif futur</h2>
