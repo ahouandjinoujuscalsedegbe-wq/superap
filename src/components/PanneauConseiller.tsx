@@ -72,7 +72,34 @@ export function PanneauConseiller({
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+          {(
+            [
+              { id: "bilan", label: "Bilan" },
+              { id: "analyses", label: "Analyses" },
+              { id: "outils", label: "Outils & alertes" },
+            ] as const
+          ).map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => setOnglet(o.id)}
+              aria-pressed={onglet === o.id}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                onglet === o.id
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+
+        {onglet === "analyses" && <FicheAnalyses />}
+        {onglet === "outils" && <FicheOutils />}
+
+        <div className={onglet === "bilan" ? "space-y-3" : "hidden"}>
           <section className="carte space-y-2 p-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
