@@ -3,7 +3,7 @@ import { Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lu
 import { useSuperApp } from "@/lib/store";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
-import { SectionBudgetAuto } from "@/components/SectionBudgetAuto";
+import { Link } from "@tanstack/react-router";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
@@ -222,7 +222,14 @@ export function FicheAnalyses() {
         ))}
       </div>
 
-      <SectionBudgetAuto />
+      <Link
+        to="/enveloppes/budgetisation"
+        className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
+      >
+        Ouvrir la proposition de budget
+        <span aria-hidden>→</span>
+      </Link>
+
       <SectionIaLocale transactions={transactions} enveloppes={enveloppes} solde={solde} />
 
 
