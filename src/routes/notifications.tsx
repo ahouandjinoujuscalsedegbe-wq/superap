@@ -106,6 +106,7 @@ function PageNotifications() {
   const [rapides, setRapides] = useState(false);
   const [vocal, setVocal] = useState(false);
   const [enBas, setEnBas] = useState(true);
+  const [selecteur, setSelecteur] = useState(false);
 
   const bas = useRef<HTMLDivElement>(null);
   const fil = useRef<HTMLDivElement>(null);
@@ -730,6 +731,14 @@ function PageNotifications() {
             envoyer(question);
           }}
         >
+          <button
+            type="button"
+            onClick={() => setSelecteur(true)}
+            aria-label="Conseiller par enveloppe"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-card text-primary shadow-sm active:scale-95"
+          >
+            <Wallet className="h-5 w-5" aria-hidden />
+          </button>
           <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full border border-border bg-background px-2">
             <button
               type="button"
