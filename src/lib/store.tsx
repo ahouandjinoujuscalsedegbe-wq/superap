@@ -191,6 +191,15 @@ export const COMPTES = [
   "Carte virtuelle",
 ] as const;
 
+/**
+ * Comptes de mise de côté (épargne, caisse, compte diamant) : par défaut leur
+ * argent n'entre pas dans le solde disponible. L'utilisateur peut changer ce
+ * choix à la création ou à la modification du compte.
+ */
+export function estCompteNonDisponible(nom: string): boolean {
+  return /(épargne|epargne|caisse|diamant|tontine)/i.test(nom);
+}
+
 export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
   {
     id: "vitaux",
@@ -272,6 +281,11 @@ export type Etat = {
   enveloppes: Enveloppe[];
   categories: CategorieEnveloppe[];
   comptes: string[];
+  /**
+   * Comptes exclus du « solde disponible » (épargne, caisse, compte diamant…).
+   * Leur solde et les enveloppes qui en tirent leur source ne sont pas comptés.
+   */
+  comptesExclus: string[];
   transferts: Transfert[];
   /** Approvisionnements des enveloppes depuis les comptes. */
   remplissages: Remplissage[];
@@ -303,6 +317,10 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
+    comptesExclus: brut.comptesExclus
+      ? assainirComptes(brut.comptesExclus)
+      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+
     transferts: assainirListe(brut.transferts, assainirTransfert),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
@@ -322,6 +340,7 @@ const ETAT_INITIAL: Etat = {
   enveloppes: ENVELOPPES_PAR_DEFAUT,
   categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
+  comptesExclus: [],
   transferts: [],
   remplissages: [],
   budgets: [],
@@ -337,7 +356,9 @@ type Contexte = Etat & {
   sourcesRevenu: string[];
   ajouterTransaction: (t: Omit<Transaction, "id">) => void;
   supprimerTransaction: (id: string) => void;
-  ajouterCompte: (nom: string) => void;
+  ajouterCompte: (nom: string, dansDisponible?: boolean) => void;
+  /** Indique si un compte entre ou non dans le solde disponible. */
+  definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
   renommerCompte: (ancien: string, nouveau: string) => void;
   supprimerCompte: (nom: string) => void;
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
@@ -391,6 +412,8 @@ type Contexte = Etat & {
   totalRevenus: number;
   totalDepenses: number;
   solde: number;
+  /** Solde des seuls comptes comptés dans le disponible. */
+  soldeDisponible: number;
   depensesParEnveloppe: Record<string, number>;
   soldesParCompte: Record<string, number>;
   /** Part du solde de chaque compte déjà réservée aux enveloppes. */
@@ -645,16 +668,34 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, membres: assainirMembres(noms) }));
   }, []);
 
-  const ajouterCompte = useCallback((nom: string) => {
+  const ajouterCompte = useCallback((nom: string, dansDisponible = true) => {
     const propre = texteSur(nom, 60);
     if (!propre) return;
-    setEtat((e) => (e.comptes.includes(propre) ? e : { ...e, comptes: [...e.comptes, propre] }));
+    setEtat((e) => {
+      if (e.comptes.includes(propre)) return e;
+      const exclus = dansDisponible
+        ? e.comptesExclus.filter((c) => c !== propre)
+        : [...e.comptesExclus, propre];
+      return { ...e, comptes: [...e.comptes, propre], comptesExclus: exclus };
+    });
+  }, []);
+
+  const definirCompteDisponible = useCallback((nom: string, dansDisponible: boolean) => {
+    setEtat((e) => ({
+      ...e,
+      comptesExclus: dansDisponible
+        ? e.comptesExclus.filter((c) => c !== nom)
+        : e.comptesExclus.includes(nom)
+          ? e.comptesExclus
+          : [...e.comptesExclus, nom],
+    }));
   }, []);
 
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
     setEtat((e) => ({
       ...e,
       comptes: e.comptes.map((c) => (c === ancien ? nouveau : c)),
+      comptesExclus: e.comptesExclus.map((c) => (c === ancien ? nouveau : c)),
       transactions: e.transactions.map((t) =>
         t.compte === ancien ? { ...t, compte: nouveau } : t,
       ),
@@ -682,7 +723,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         );
         return e;
       }
-      return { ...e, comptes: e.comptes.filter((c) => c !== nom) };
+      return {
+        ...e,
+        comptes: e.comptes.filter((c) => c !== nom),
+        comptesExclus: e.comptesExclus.filter((c) => c !== nom),
+      };
     });
   }, []);
 
@@ -1145,6 +1190,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransaction,
       supprimerTransaction,
       ajouterCompte,
+      definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
       ajouterTransfert,
@@ -1191,6 +1237,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransaction,
       supprimerTransaction,
       ajouterCompte,
+      definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
       ajouterTransfert,
@@ -1269,6 +1316,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       const reste = Math.max(0, e.dotation ?? e.plafond);
       reservesParCompte[compte] = (reservesParCompte[compte] ?? 0) + reste;
     }
+    // Solde disponible : seuls les comptes marqués « dans le disponible »
+    // comptent. Les comptes épargne, caisse ou diamant en sont exclus, ainsi
+    // que les enveloppes qui tirent leur source de ces comptes.
+    const soldeDisponible = etat.comptes
+      .filter((c) => !etat.comptesExclus.includes(c))
+      .reduce((s, c) => s + (soldesParCompte[c] ?? 0), 0);
+
     return {
       ...etat,
       sourcesRevenu: SOURCES_REVENU,
@@ -1276,6 +1330,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       totalRevenus,
       totalDepenses,
       solde: totalRevenus - totalDepenses,
+      soldeDisponible,
       depensesParEnveloppe,
       soldesParCompte,
       reservesParCompte,

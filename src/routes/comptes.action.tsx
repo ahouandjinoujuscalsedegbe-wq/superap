@@ -11,7 +11,7 @@ import { DicteeChamp } from "@/components/DicteeChamp";
 import { analyserCompteDicte } from "@/lib/dictee-champs";
 
 type Demande =
-  | { type: "creation"; nom: string; solde: number }
+  | { type: "creation"; nom: string; solde: number; disponible: boolean }
   | { type: "renommage"; ancien: string; nom: string; ajustement: number }
   | { type: "suppression"; nom: string }
   | null;
@@ -41,6 +41,8 @@ const champ =
 function ActionComptes() {
   const {
     comptes,
+    comptesExclus,
+    definirCompteDisponible,
     transactions,
     transferts,
     soldesParCompte,
@@ -53,6 +55,7 @@ function ActionComptes() {
   const [modal, setModal] = useState<"creer" | "modifier" | null>(null);
   const [nom, setNom] = useState("");
   const [solde, setSolde] = useState("");
+  const [disponible, setDisponible] = useState(true);
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -60,6 +63,7 @@ function ActionComptes() {
   function ouvrirCreation() {
     setNom("");
     setSolde("");
+    setDisponible(true);
     setEnEdition(null);
     setModal("creer");
   }
@@ -68,6 +72,7 @@ function ActionComptes() {
     setEnEdition(compte);
     setNom(compte);
     setSolde(String(soldesParCompte[compte] ?? 0));
+    setDisponible(!comptesExclus.includes(compte));
     setModal("modifier");
   }
 
@@ -108,7 +113,7 @@ function ActionComptes() {
         setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
         return;
       }
-      setDemande({ type: "creation", nom: valeur, solde: soldeSaisi });
+      setDemande({ type: "creation", nom: valeur, solde: soldeSaisi, disponible });
       return;
     }
     if (!enEdition) return;
@@ -117,8 +122,15 @@ function ActionComptes() {
       setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
       return;
     }
+    const disponibleChange = disponible === comptesExclus.includes(enEdition);
+    if (disponibleChange) definirCompteDisponible(enEdition, disponible);
+    if (valeur === enEdition && ajustement === 0 && !disponibleChange) {
+      setErreur("Rien n'a changé : modifiez le nom, le solde ou le disponible, ou annulez.");
+      return;
+    }
     if (valeur === enEdition && ajustement === 0) {
-      setErreur("Rien n'a changé : modifiez le nom ou le solde, ou annulez.");
+      toast.success("Compte modifié.");
+      fermer();
       return;
     }
     setDemande({ type: "renommage", ancien: enEdition, nom: valeur, ajustement });
@@ -143,7 +155,7 @@ function ActionComptes() {
   function confirmer() {
     if (!demande) return;
     if (demande.type === "creation") {
-      ajouterCompte(demande.nom);
+      ajouterCompte(demande.nom, demande.disponible);
       if (demande.solde > 0) {
         ajouterTransaction({
           type: "revenu",
@@ -243,6 +255,7 @@ function ActionComptes() {
                       <p className="truncate font-medium">{c}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatFCFA(soldesParCompte[c] ?? 0)}
+                        {comptesExclus.includes(c) ? " · hors solde disponible" : ""}
                       </p>
                     </div>
                   </div>
@@ -345,6 +358,24 @@ function ActionComptes() {
                 </p>
               </div>
 
+              <label className="flex items-start gap-3 rounded-xl border border-input bg-background/60 p-3">
+                <input
+                  type="checkbox"
+                  checked={disponible}
+                  onChange={(ev) => setDisponible(ev.target.checked)}
+                  className="mt-0.5 h-4 w-4"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">
+                    Compter ce compte dans le solde disponible
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    Décochez pour une épargne, une caisse ou un compte diamant : son solde et les
+                    enveloppes alimentées par ce compte resteront hors du solde disponible.
+                  </span>
+                </span>
+              </label>
+
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -380,6 +411,10 @@ function ActionComptes() {
             ? [
                 { label: "Nom", apres: demande.nom },
                 { label: "Solde initial", apres: formatFCFA(demande.solde) },
+                {
+                  label: "Solde disponible",
+                  apres: demande.disponible ? "Compté" : "Exclu",
+                },
               ]
             : demande?.type === "renommage"
               ? [
