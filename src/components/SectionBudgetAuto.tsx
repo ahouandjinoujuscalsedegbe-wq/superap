@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { RotateCcw, TrendingDown, TrendingUp, Wand2 } from "lucide-react";
+import { Pencil, RotateCcw, TrendingDown, TrendingUp, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
@@ -13,6 +13,7 @@ import { ajusterAuRevenu, apprendreCorrections, proposerDotations } from "@/lib/
 export function SectionBudgetAuto() {
   const { transactions, enveloppes, modifierEnveloppe } = useSuperApp();
   const [ajuster, setAjuster] = useState(true);
+  const [modeEdition, setModeEdition] = useState(false);
   /** Montants retenus par l'utilisateur (chaîne brute par enveloppe). */
   const [retenus, setRetenus] = useState<Record<string, string>>({});
   const [ignorees, setIgnorees] = useState<Record<string, boolean>>({});
@@ -91,7 +92,7 @@ export function SectionBudgetAuto() {
       </h2>
       <p className="text-xs text-muted-foreground">
         Calculé sur votre téléphone à partir de vos six derniers mois : rythme récent, tendance et
-        régularité de chaque enveloppe. Vous pouvez corriger chaque montant avant d'appliquer.
+        régularité de chaque enveloppe.
         {budget.donneesInsuffisantes && " Historique encore court : proposition indicative."}
       </p>
 
@@ -133,73 +134,96 @@ export function SectionBudgetAuto() {
                 </span>
               </div>
 
-              <div className="mt-1.5 flex items-center gap-2">
-                <label className="sr-only" htmlFor={`prop-${p.enveloppeId}`}>
-                  Montant retenu pour {p.nom}
-                </label>
-                <input
-                  id={`prop-${p.enveloppeId}`}
-                  inputMode="numeric"
-                  disabled={ignoree}
-                  value={grouperMontant(retenus[p.enveloppeId] ?? String(p.proposee))}
-                  onChange={(e) =>
-                    setRetenus((r) => ({
-                      ...r,
-                      [p.enveloppeId]: e.target.value.replace(/[^\d]/g, ""),
-                    }))
-                  }
-                  className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-right text-sm font-semibold disabled:opacity-50"
-                />
-                <span className="text-xs text-muted-foreground">FCFA</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setIgnorees((g) => ({ ...g, [p.enveloppeId]: !g[p.enveloppeId] }))
-                  }
-                  className="ml-auto min-h-9 rounded-full bg-secondary px-3 text-xs font-medium text-secondary-foreground"
-                >
-                  {ignoree ? "Inclure" : "Ne pas changer"}
-                </button>
-              </div>
+              {modeEdition ? (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <label className="sr-only" htmlFor={`prop-${p.enveloppeId}`}>
+                    Montant retenu pour {p.nom}
+                  </label>
+                  <input
+                    id={`prop-${p.enveloppeId}`}
+                    inputMode="numeric"
+                    disabled={ignoree}
+                    value={grouperMontant(retenus[p.enveloppeId] ?? String(p.proposee))}
+                    onChange={(e) =>
+                      setRetenus((r) => ({
+                        ...r,
+                        [p.enveloppeId]: e.target.value.replace(/[^\d]/g, ""),
+                      }))
+                    }
+                    className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-right text-sm font-semibold disabled:opacity-50"
+                  />
+                  <span className="text-xs text-muted-foreground">FCFA</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIgnorees((g) => ({ ...g, [p.enveloppeId]: !g[p.enveloppeId] }))
+                    }
+                    className="ml-auto min-h-9 rounded-full bg-secondary px-3 text-xs font-medium text-secondary-foreground"
+                  >
+                    {ignoree ? "Inclure" : "Ne pas changer"}
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm font-semibold">
+                  {formatFCFA(p.actuelle)} → {formatFCFA(p.proposee)}
+                </p>
+              )}
 
               <p className="mt-1 text-xs text-muted-foreground">
                 {p.raison}
-                {corrige && " Montant corrigé par vous."}
+                {modeEdition && corrige && " Montant corrigé par vous."}
               </p>
             </li>
           );
         })}
       </ul>
 
-      <p className="text-xs text-muted-foreground">
-        Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)}, actuel{" "}
-        {formatFCFA(budget.totalActuel)}).
-        {budget.revenuMoyen > 0 && totalRetenu > budget.revenuMoyen && (
-          <span className="text-destructive">
-            {" "}
-            Attention : dépasse votre revenu moyen de {formatFCFA(totalRetenu - budget.revenuMoyen)}.
-          </span>
-        )}
-      </p>
+      {modeEdition && (
+        <p className="text-xs text-muted-foreground">
+          Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)}, actuel{" "}
+          {formatFCFA(budget.totalActuel)}).
+          {budget.revenuMoyen > 0 && totalRetenu > budget.revenuMoyen && (
+            <span className="text-destructive">
+              {" "}
+              Attention : dépasse votre revenu moyen de {formatFCFA(totalRetenu - budget.revenuMoyen)}.
+            </span>
+          )}
+        </p>
+      )}
 
-      <div className="flex gap-2">
-        {modifieParUtilisateur && (
+      <div className="flex flex-col gap-2">
+        {!modeEdition ? (
           <button
             type="button"
-            onClick={reinitialiser}
-            className="flex min-h-11 items-center gap-1.5 rounded-xl bg-secondary px-3 text-sm font-medium text-secondary-foreground"
+            onClick={() => setModeEdition(true)}
+            className="min-h-11 w-full rounded-xl border border-primary bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-transform active:scale-[0.99]"
           >
-            <RotateCcw className="h-4 w-4" aria-hidden />
-            Rétablir
+            <span className="flex items-center justify-center gap-2">
+              <Pencil className="h-4 w-4" aria-hidden />
+              Voulez-vous modifier ce budget ?
+            </span>
           </button>
+        ) : (
+          <div className="flex gap-2">
+            {modifieParUtilisateur && (
+              <button
+                type="button"
+                onClick={reinitialiser}
+                className="flex min-h-11 items-center gap-1.5 rounded-xl bg-secondary px-3 text-sm font-medium text-secondary-foreground"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden />
+                Rétablir
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={appliquer}
+              className="min-h-11 flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
+            >
+              Appliquer ce budget
+            </button>
+          </div>
         )}
-        <button
-          type="button"
-          onClick={appliquer}
-          className="min-h-11 flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
-        >
-          Appliquer ce budget
-        </button>
       </div>
     </section>
   );
