@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
+import { CalendarPlus, Scale, Trash2, TrendingDown, TrendingUp } from "lucide-react";
+
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
