@@ -251,66 +251,90 @@ function ModifierEnveloppe() {
                     {s.sousCategorie}
                   </p>
                   <ul className="space-y-3">
-                    {s.enveloppes.map((e) => (
-                      <li key={e.id} className="carte p-4">
-                        <div className="flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setDetail(detail === e.id ? null : e.id)}
-                            aria-expanded={detail === e.id}
-                            className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                          >
-                            <ChevronDown
-                              aria-hidden
-                              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
-                                detail === e.id ? "rotate-180" : ""
-                              }`}
-                            />
-                            <span className="min-w-0">
-                              <span className="block truncate font-semibold">
-                                <span aria-hidden>{e.emoji}</span> {e.nom}
+                    {s.enveloppes.map((e) => {
+                      const etat = etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0);
+                      const pourcentage = etat.pourcentage;
+                      const depasse = etat.plafondAtteint;
+                      const couleurBarre = depasse
+                        ? "bg-destructive"
+                        : pourcentage >= 80
+                          ? "bg-amber-500"
+                          : "bg-success";
+                      return (
+                        <li key={e.id} className="carte p-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setDetail(detail === e.id ? null : e.id)}
+                              aria-expanded={detail === e.id}
+                              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                            >
+                              <ChevronDown
+                                aria-hidden
+                                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
+                                  detail === e.id ? "rotate-180" : ""
+                                }`}
+                              />
+                              <span className="min-w-0">
+                                <span className="block truncate font-semibold">
+                                  <span aria-hidden>{e.emoji}</span> {e.nom}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatFCFA(etat.restant)} restants · plafond{" "}
+                                  {formatFCFA(e.plafond)}
+                                </span>
                               </span>
-                              <span className="text-sm text-muted-foreground">
-                                {formatFCFA(
-                                  etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).restant,
-                                )}{" "}
-                                restants · plafond {formatFCFA(e.plafond)}
-                              </span>
+                            </button>
+                            <span className="flex shrink-0 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => ouvrirProcess(e.id)}
+                                aria-label="Modifier"
+                                title="Modifier"
+                                className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium"
+                              >
+                                <Pencil aria-hidden className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => demanderSuppression(e.id)}
+                                aria-label="Supprimer"
+                                title="Supprimer"
+                                className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium text-destructive"
+                              >
+                                <Trash2 aria-hidden className="h-4 w-4" />
+                              </button>
                             </span>
-                          </button>
-                          <span className="flex shrink-0 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => ouvrirProcess(e.id)}
-                              aria-label="Modifier"
-                              title="Modifier"
-                              className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium"
-                            >
-                              <Pencil aria-hidden className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => demanderSuppression(e.id)}
-                              aria-label="Supprimer"
-                              title="Supprimer"
-                              className="flex items-center justify-center rounded-lg border border-input p-2 text-xs font-medium text-destructive"
-                            >
-                              <Trash2 aria-hidden className="h-4 w-4" />
-                            </button>
-                          </span>
-                        </div>
+                          </div>
 
-                        {detail === e.id && (
-                          <div className="mt-3 border-t border-border/70 pt-3">
-                            <CarteEnveloppe
-                              e={e}
-                              estOuverte={operations === e.id}
-                              onToggle={() => setOperations(operations === e.id ? null : e.id)}
+                          <div
+                            className="mt-2 h-2.5 w-full overflow-hidden rounded-full border border-border/40 bg-secondary"
+                            role="progressbar"
+                            aria-valuenow={Math.round(pourcentage)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={`Consommation du plafond de l'enveloppe ${e.nom} : ${Math.round(pourcentage)} %`}
+                          >
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${couleurBarre}`}
+                              style={{ width: `${pourcentage}%` }}
                             />
                           </div>
-                        )}
-                      </li>
-                    ))}
+
+
+                          {detail === e.id && (
+                            <div className="mt-3 border-t border-border/70 pt-3">
+                              <CarteEnveloppe
+                                e={e}
+                                estOuverte={operations === e.id}
+                                onToggle={() => setOperations(operations === e.id ? null : e.id)}
+                              />
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+
                   </ul>
                 </div>
               ))}
