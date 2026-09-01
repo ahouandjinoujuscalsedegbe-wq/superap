@@ -233,6 +233,63 @@ export function SectionClavier() {
         onChange={(resterOuvert) => majReglagesClavier({ resterOuvert })}
       />
 
+      <Bascule
+        titre="Suggestions de mots"
+        description="Le clavier apprend vos mots et les propose au-dessus des touches."
+        valeur={r.suggestions}
+        onChange={(suggestions) => majReglagesClavier({ suggestions })}
+      />
+
+      <Bascule
+        titre="Correction automatique"
+        description="Corrige le mot en cours dès l’appui sur la barre d’espace."
+        valeur={r.correctionAuto}
+        onChange={(correctionAuto) => majReglagesClavier({ correctionAuto })}
+      />
+
+      <Bascule
+        titre="Bulle d’aperçu"
+        description="La lettre appuyée s’affiche en grand au-dessus de la touche."
+        valeur={r.apercuTouche}
+        onChange={(apercuTouche) => majReglagesClavier({ apercuTouche })}
+      />
+
+      <Bascule
+        titre="Appui long : accents et chiffres"
+        description="Maintenez une lettre pour choisir é, è, ç… ou le chiffre caché."
+        valeur={r.appuiLong}
+        onChange={(appuiLong) => majReglagesClavier({ appuiLong })}
+      />
+
+      <Bascule
+        titre="Curseur par glissement"
+        description="Faites glisser le doigt sur la barre d’espace pour déplacer le curseur."
+        valeur={r.glissementEspace}
+        onChange={(glissementEspace) => majReglagesClavier({ glissementEspace })}
+      />
+
+      <Bascule
+        titre="Panneau d’émojis"
+        description="Ajoute un onglet émojis avec vos favoris récents."
+        valeur={r.emojis}
+        onChange={(emojis) => majReglagesClavier({ emojis })}
+      />
+
+      <Bascule
+        titre="Barre d’outils"
+        description="Émojis, flèches de curseur, copier, coller et tout effacer."
+        valeur={r.barreOutils}
+        onChange={(barreOutils) => majReglagesClavier({ barreOutils })}
+      />
+
+      <Bascule
+        titre="Clavier sombre"
+        description="Fond sombre du clavier, comme le mode nuit d’Android."
+        valeur={r.themeSombre}
+        onChange={(themeSombre) => majReglagesClavier({ themeSombre })}
+      />
+
+
       <div className="rounded-xl bg-secondary/40 p-3">
         <label className="text-sm font-medium" htmlFor="essai-clavier">
           Champ d’essai
