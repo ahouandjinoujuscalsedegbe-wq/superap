@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square } from "lucide-react";
 import { toast } from "sonner";
-import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import { creerDictee, demarrerDictee, dicteeDisponible } from "@/lib/dictee";
 
 /**
  * Bouton de dictée locale générique : capte une phrase, la renvoie brute au
@@ -53,7 +53,7 @@ export function DicteeChamp({
     reco.current = instance;
     setApercu("");
     setEcoute(true);
-    instance.start();
+    void demarrerDictee(instance);
   }
 
   function arreter() {

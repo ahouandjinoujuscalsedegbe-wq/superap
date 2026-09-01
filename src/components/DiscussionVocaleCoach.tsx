@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Volume2 } from "lucide-react";
 import { toast } from "sonner";
-import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import { creerDictee, demarrerDictee, dicteeDisponible } from "@/lib/dictee";
 import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
 import { estArret, estRepetition } from "@/lib/dialogue-vocal";
 
@@ -102,7 +102,7 @@ export function DiscussionVocaleCoach({
       return;
     }
     reco.current = instance;
-    instance.start();
+    void demarrerDictee(instance);
   }
 
   function repondreA(dit: string) {

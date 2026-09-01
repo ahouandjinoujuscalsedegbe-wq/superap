@@ -1,6 +1,7 @@
 /** Accès à la reconnaissance vocale du navigateur (Web Speech API). */
 
 import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
+import { MESSAGE_MICRO_REFUSE, assurerMicro } from "@/lib/micro";
 
 type Recognition = {
   lang: string;
@@ -65,4 +66,31 @@ export function creerDictee(
   };
   reco.onend = onFin;
   return reco;
+}
+
+/**
+ * Démarre la dictée après s'être assuré que le micro est autorisé.
+ * Sur Android, c'est cet appel qui déclenche la boîte de dialogue système.
+ */
+export async function demarrerDictee(
+  reco: Recognition | null | undefined,
+  onErreur?: (message: string) => void,
+): Promise<boolean> {
+  if (!reco) return false;
+  const autorise = await assurerMicro();
+  if (!autorise) {
+    journalAvertissement("dictee", MESSAGE_MICRO_REFUSE);
+    onErreur?.(MESSAGE_MICRO_REFUSE);
+    reco.onerror?.({ error: "not-allowed" });
+    return false;
+  }
+  try {
+    reco.start();
+    return true;
+  } catch (erreur) {
+    journalErreur("dictee", "Impossible de démarrer la dictée", {
+      nom: String((erreur as Error)?.name ?? erreur),
+    });
+    return false;
+  }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square } from "lucide-react";
 import { toast } from "sonner";
-import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import { creerDictee, demarrerDictee, dicteeDisponible } from "@/lib/dictee";
 import { analyserTexte } from "@/lib/extraction";
 import { caracteristiques, clePhonetique, entrainerBayes, predireEnveloppe } from "@/lib/ia-locale";
 import { useSuperApp } from "@/lib/store";
@@ -101,7 +101,7 @@ export function DicteeOperation({
     reco.current = instance;
     setApercu("");
     setEcoute(true);
-    instance.start();
+    void demarrerDictee(instance);
   }
 
   function arreter() {
