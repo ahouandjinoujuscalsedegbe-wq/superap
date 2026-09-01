@@ -19,10 +19,13 @@ const OUVERTURES = [
 export function DiscussionVocaleCoach({
   onQuestion,
   onArret,
+  demarrageAuto = false,
 }: {
   /** Traite la question comprise et renvoie la réponse à lire à voix haute. */
   onQuestion: (question: string) => string;
   onArret?: () => void;
+  /** Démarre la boucle vocale dès l'affichage, sans bouton supplémentaire. */
+  demarrageAuto?: boolean;
 }) {
   const [actif, setActif] = useState(false);
   const [phase, setPhase] = useState<"parle" | "ecoute" | "attente">("attente");
