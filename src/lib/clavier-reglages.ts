@@ -40,6 +40,22 @@ export type ReglagesClavier = {
   toucheToutEffacer: boolean;
   /** Le clavier reste ouvert après validation d'un champ. */
   resterOuvert: boolean;
+  /** Barre de suggestions de mots (dictionnaire local qui apprend). */
+  suggestions: boolean;
+  /** Correction du mot en cours dès l'appui sur espace. */
+  correctionAuto: boolean;
+  /** Bulle d'aperçu au-dessus de la touche appuyée. */
+  apercuTouche: boolean;
+  /** Appui long sur une lettre : accents et chiffres cachés. */
+  appuiLong: boolean;
+  /** Glisser sur la barre d'espace pour déplacer le curseur. */
+  glissementEspace: boolean;
+  /** Panneau d'émojis intégré au clavier. */
+  emojis: boolean;
+  /** Rangée d'outils : émojis, presse-papiers, curseurs, dictée. */
+  barreOutils: boolean;
+  /** Thème sombre du clavier (sinon suit l'application). */
+  themeSombre: boolean;
 };
 
 export const REGLAGES_PAR_DEFAUT: ReglagesClavier = {
@@ -58,7 +74,16 @@ export const REGLAGES_PAR_DEFAUT: ReglagesClavier = {
   effacementContinu: true,
   toucheToutEffacer: true,
   resterOuvert: false,
+  suggestions: true,
+  correctionAuto: true,
+  apercuTouche: true,
+  appuiLong: true,
+  glissementEspace: true,
+  emojis: true,
+  barreOutils: true,
+  themeSombre: false,
 };
+
 
 const CLE = "superapp.clavier.reglages";
 
