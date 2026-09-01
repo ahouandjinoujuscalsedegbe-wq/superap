@@ -39,6 +39,15 @@ export type MessageCoach = {
   lu: boolean;
   /** Retour de l'utilisateur : utile / inutile. */
   avis?: "utile" | "inutile";
+  /** Réactions emoji posées sur le message (style WhatsApp). */
+  reactions?: string[];
+  /** Identifiant du message cité en réponse. */
+  reponseA?: string;
+  /** Message supprimé par l'utilisateur (le bloc reste, le texte disparaît). */
+  supprime?: boolean;
+  /** Message épinglé en haut de la discussion. */
+  epingle?: boolean;
+
 };
 
 export type MemoireCoach = {
