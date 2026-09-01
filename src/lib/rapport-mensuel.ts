@@ -302,8 +302,18 @@ export function rapportEnTexte(r: RapportMensuel): string {
     "PLUS GROSSES DÉPENSES",
     ...r.plusGrossesDepenses.map((t) => `- ${t.libelle} : ${f(t.montant)} (${t.date.slice(0, 10)})`),
     "",
+    ...(r.enRetard.length > 0
+      ? [
+          "DÉPENSES PRÉVUES NON EFFECTUÉES (ÉCHÉANCE PASSÉE)",
+          ...r.enRetard.map(
+            (d) => `- ${d.libelle} : ${f(d.montant)} — dû le ${d.echeance} (${d.joursRetard} j)`,
+          ),
+          "",
+        ]
+      : []),
     "CONSEILS",
     ...r.conseils.map((c) => `- ${c}`),
+
   ];
   return lignes.join("\n");
 }
