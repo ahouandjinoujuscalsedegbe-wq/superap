@@ -51,21 +51,30 @@ function AjouterDepense() {
       ? enveloppeChoisie.compteSource
       : (comptes[0] ?? COMPTES[0]);
 
-  // Regroupement par catégorie + recherche : liste lisible même avec beaucoup d'enveloppes.
-  const groupes = useMemo(() => {
+  // Arborescence catégorie → sous-catégorie → enveloppes, filtrée par la recherche.
+  const arbre = useMemo(() => {
     const q = recherche.trim().toLowerCase();
     const filtrees = q
       ? enveloppes.filter((e) =>
           `${e.nom} ${e.categorie ?? ""} ${e.sousCategorie ?? ""}`.toLowerCase().includes(q),
         )
       : enveloppes;
-    const map = new Map<string, typeof enveloppes>();
+    const map = new Map<string, Map<string, typeof enveloppes>>();
     for (const e of filtrees) {
-      const cle = e.categorie?.trim() || "Sans catégorie";
-      map.set(cle, [...(map.get(cle) ?? []), e]);
+      const cat = e.categorie?.trim() || "Sans catégorie";
+      const sous = e.sousCategorie?.trim() || "Général";
+      const sousMap = map.get(cat) ?? new Map<string, typeof enveloppes>();
+      sousMap.set(sous, [...(sousMap.get(sous) ?? []), e]);
+      map.set(cat, sousMap);
     }
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"));
+    return [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], "fr"))
+      .map(
+        ([cat, sousMap]) =>
+          [cat, [...sousMap.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"))] as const,
+      );
   }, [enveloppes, recherche]);
+
 
   // Opérations répétées repérées localement : ressaisie en un seul appui.
   const favoris = useMemo(
