@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { ChevronRight, FileText } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronRight, FileText, SlidersHorizontal, X } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
