@@ -7,6 +7,7 @@
  * simple) qui tiennent en quelques millisecondes, même avec des milliers
  * d'opérations.
  */
+import { analyser } from "./cerveau";
 import { dotationDe, etatEnveloppe } from "./enveloppe-etat";
 import type { Enveloppe, Transaction } from "./store";
 
