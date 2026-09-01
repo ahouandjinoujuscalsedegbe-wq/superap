@@ -182,11 +182,12 @@ function Accueil() {
         <div className="flex flex-col gap-3">
           <Link
             to="/revenu"
-            className="carte flex flex-col gap-1 bg-success/15 p-4 text-left text-success transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <ArrowUpRight className="h-5 w-5" aria-hidden />
-            <span className="font-semibold">Ajouter un revenu</span>
-            <span className="text-xs text-success/80">Salaire, activité, aide…</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <ArrowUpRight className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Ajouter un revenu</span>
+            <span className="relative text-xs opacity-85">Salaire, activité, aide…</span>
           </Link>
           <Link
             to="/enveloppes/budgetisation"
@@ -208,11 +209,12 @@ function Accueil() {
         <div className="flex flex-col gap-3">
           <Link
             to="/depense"
-            className="carte flex flex-col gap-1 bg-destructive/15 p-4 text-left text-destructive transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-depense relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <ArrowDownRight className="h-5 w-5" aria-hidden />
-            <span className="font-semibold">Ajouter une dépense</span>
-            <span className="text-xs text-destructive/80">En 2 secondes</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <ArrowDownRight className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Ajouter une dépense</span>
+            <span className="relative text-xs opacity-85">En 2 secondes</span>
           </Link>
           <Link
             to="/mois"
