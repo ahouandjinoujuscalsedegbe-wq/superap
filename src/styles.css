@@ -721,3 +721,42 @@ textarea {
   to { transform: translateY(0); opacity: 1; }
 }
 .animate-montee { animation: montee-bas 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ===== Boule flottante « Analyse intelligente » ===== */
+@keyframes boule-halo-pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.35; }
+  50% { transform: scale(1.15); opacity: 0; }
+}
+
+@keyframes boule-orbite-tour {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes boule-eclat-glisse {
+  0%, 100% { transform: translate3d(-12%, -8%, 0); opacity: 0.75; }
+  50% { transform: translate3d(12%, 8%, 0); opacity: 1; }
+}
+
+@utility boule-halo {
+  background: radial-gradient(circle, color-mix(in oklab, var(--primary) 55%, transparent) 0%, transparent 70%);
+  animation: boule-halo-pulse 2.6s ease-in-out infinite;
+}
+
+@utility boule-orbite {
+  border: 1.5px dashed color-mix(in oklab, var(--primary) 45%, transparent);
+  animation: boule-orbite-tour 7s linear infinite;
+}
+
+@utility boule-eclat {
+  background: radial-gradient(circle at 30% 24%, color-mix(in oklab, white 70%, transparent) 0%, transparent 45%);
+  animation: boule-eclat-glisse 3.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boule-halo,
+  .boule-orbite,
+  .boule-eclat {
+    animation: none !important;
+  }
+}

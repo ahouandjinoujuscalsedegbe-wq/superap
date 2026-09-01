@@ -10,12 +10,9 @@ import {
   Target,
   Wallet,
 } from "lucide-react";
-import { useMemo } from "react";
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
-import { alertesLocales } from "@/lib/analyste-local";
-import { BouleAnalyse } from "@/components/BouleAnalyse";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
@@ -71,10 +68,6 @@ function Accueil() {
   const rappels = echeancesProches.length + dettesEchues.length + enveloppesRouges.length;
 
   // Analyse locale : prévision d'épuisement des enveloppes et dépenses inhabituelles.
-  const alertesIntelligentes = useMemo(
-    () => alertesLocales(enveloppes, transactions),
-    [enveloppes, transactions],
-  );
 
 
 
@@ -184,7 +177,6 @@ function Accueil() {
         </section>
       )}
 
-      <BouleAnalyse alertes={alertesIntelligentes} />
 
       <section className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-3">
