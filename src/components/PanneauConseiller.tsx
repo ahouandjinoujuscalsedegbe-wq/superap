@@ -7,7 +7,7 @@ import { poidsEnveloppeDe, texteBilanMensuel } from "@/lib/coach";
 import {
   texteBilanSaisonnier,
   texteProjection,
-  type BilanSaison,
+  type BilanSaisonnier,
   type MoisProjete,
 } from "@/lib/saison";
 
@@ -34,7 +34,7 @@ export function PanneauConseiller({
   ouvert: boolean;
   onFermer: () => void;
   mensuel: BilanMensuel;
-  saison: BilanSaison;
+  saison: BilanSaisonnier;
   projection: MoisProjete[];
   bilans: BilanEnveloppe[];
   memoire: MemoireCoach;
