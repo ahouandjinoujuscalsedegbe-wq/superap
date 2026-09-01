@@ -5,6 +5,8 @@ import {
   ArrowUpRight,
   CalendarCheck,
   Eye,
+  FileText,
+  Layers,
   Sparkles,
   Target,
   Wallet,
@@ -232,6 +234,14 @@ function Accueil() {
             <span className="font-semibold">Budgétisation</span>
             <span className="text-xs text-muted-foreground">Planifier vos enveloppes</span>
           </Link>
+          <Link
+            to="/enveloppes/details"
+            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <Layers className="h-5 w-5 text-primary" aria-hidden />
+            <span className="font-semibold">Tous mes enveloppes</span>
+            <span className="text-xs text-muted-foreground">Toutes les enveloppes et leur état</span>
+          </Link>
         </div>
         <div className="flex flex-col gap-3">
           <Link
@@ -249,6 +259,14 @@ function Accueil() {
             <CalendarCheck className="h-5 w-5 text-primary" aria-hidden />
             <span className="font-semibold">Vue globale du mois</span>
             <span className="text-xs text-muted-foreground">Bilan et conseils</span>
+          </Link>
+          <Link
+            to="/rapport"
+            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <FileText className="h-5 w-5 text-primary" aria-hidden />
+            <span className="font-semibold">Rapport mensuel</span>
+            <span className="text-xs text-muted-foreground">Bilan du mois terminé</span>
           </Link>
         </div>
       </section>
