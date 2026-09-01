@@ -15,6 +15,7 @@ import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 import { saisonDe } from "./saison";
 import { raisonner, type PoidsAppris } from "./coach-raisonnement";
+import { calculerFaits } from "./cerveau/faits";
 
 export { saisonDe };
 
