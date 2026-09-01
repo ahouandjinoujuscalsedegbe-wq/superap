@@ -12,7 +12,7 @@
  * Tout est calculé sur l'appareil, sans aucun réseau.
  */
 
-import { avancerDate } from "./periodes";
+
 import { coefficientSaisonEnveloppe } from "./saison";
 import type { Enveloppe, Periode, Remplissage, Transaction } from "./store";
 
