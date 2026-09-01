@@ -139,11 +139,11 @@ function Renouvellements() {
                         ? formatFCFA(Math.round((revenusSource * (e.pourcentageRevenu ?? 0)) / 100))
                         : prochaine
                           ? jourLisible(prochaine)
-                          : "Après le premier versement"}
+                          : "Aucune date choisie"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Total débité du compte</dt>
+                    <dt className="text-muted-foreground">Total réservé sur le compte</dt>
                     <dd className="font-medium">{formatFCFA(verse)}</dd>
                   </div>
                   <div>
@@ -172,7 +172,7 @@ function Renouvellements() {
           <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
             Historique des remplissages
           </h2>
-          <span className="text-xs text-muted-foreground">{formatFCFA(totalDebite)} débités</span>
+          <span className="text-xs text-muted-foreground">{formatFCFA(totalDebite)} réservés</span>
         </div>
 
         {historique.length === 0 ? (
