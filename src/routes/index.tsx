@@ -5,6 +5,8 @@ import {
   ArrowUpRight,
   CalendarCheck,
   Eye,
+  FileText,
+  Layers,
   Sparkles,
   Target,
   Wallet,
