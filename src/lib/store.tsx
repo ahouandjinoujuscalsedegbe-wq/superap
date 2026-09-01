@@ -1256,9 +1256,16 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       soldesParCompte[t.source] = (soldesParCompte[t.source] ?? 0) - t.montant;
       soldesParCompte[t.destination] = (soldesParCompte[t.destination] ?? 0) + t.montant;
     }
-    // Remplir une enveloppe sort l'argent du compte qui l'alimente.
-    for (const r of etat.remplissages) {
-      soldesParCompte[r.compte] = (soldesParCompte[r.compte] ?? 0) - r.montant;
+    // Remplir une enveloppe ne sort PAS l'argent du compte : c'est une simple
+    // réservation d'une partie du solde. Seules les dépenses appauvrissent le
+    // compte. On calcule donc la part réservée, à titre indicatif.
+    const reservesParCompte: Record<string, number> = {};
+    for (const c of etat.comptes) reservesParCompte[c] = 0;
+    for (const e of etat.enveloppes) {
+      const compte = e.compteSource;
+      if (!compte) continue;
+      const reste = Math.max(0, e.dotation ?? e.plafond);
+      reservesParCompte[compte] = (reservesParCompte[compte] ?? 0) + reste;
     }
     return {
       ...etat,
