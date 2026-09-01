@@ -7,7 +7,6 @@ import {
   FileText,
   HandCoins,
   Layers,
-  Sparkles,
   Target,
   Wallet,
 } from "lucide-react";
