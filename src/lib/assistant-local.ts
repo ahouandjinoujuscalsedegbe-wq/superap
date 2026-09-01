@@ -313,4 +313,11 @@ export const EXEMPLES_QUESTIONS = [
   "Répartition de mes dépenses ce mois",
   "Combien je dois ?",
   "Combien j'ai économisé le mois dernier ?",
+  "Combien je dépense en moyenne par jour ?",
+  "Combien j'ai reçu ce mois ?",
+  "Combien il reste dans mon enveloppe nourriture ?",
+  "Combien j'ai dépensé pour le transport cette semaine ?",
+  "Combien j'ai dépensé hier ?",
+  "Quels sont mes principaux postes de dépense ?",
 ];
+

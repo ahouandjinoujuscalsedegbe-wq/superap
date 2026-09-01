@@ -94,6 +94,8 @@ function PageNotifications() {
   const [memoire, setMemoire] = useState<MemoireCoach>(MEMOIRE_VIDE);
   const [prete, setPrete] = useState(false);
   const [question, setQuestion] = useState("");
+  const [toutesQuestions, setToutesQuestions] = useState(false);
+
   const [ouverte, setOuverte] = useState<string | null>(null);
   const [lecture, setLecture] = useState<string | null>(null);
   const bas = useRef<HTMLDivElement>(null);
@@ -641,9 +643,22 @@ function PageNotifications() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">Questions rapides</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground">Questions rapides</h2>
+          <button
+            type="button"
+            onClick={() => setToutesQuestions((v) => !v)}
+            className="text-xs font-medium text-primary"
+          >
+            {toutesQuestions ? "Voir moins" : "Toutes les questions"}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          L'assistant est intégré ici : soldes, dépenses par période, enveloppes, dettes, revenus,
+          moyennes et répartition, calculés sur votre téléphone.
+        </p>
         <div className="flex flex-wrap gap-2">
-          {EXEMPLES_QUESTIONS.slice(0, 6).map((q) => (
+          {(toutesQuestions ? EXEMPLES_QUESTIONS : EXEMPLES_QUESTIONS.slice(0, 6)).map((q) => (
             <button
               key={q}
               type="button"
@@ -655,6 +670,7 @@ function PageNotifications() {
           ))}
         </div>
       </section>
+
 
       <form
         className="carte sticky bottom-[calc(var(--app-nav-height,4.5rem)+0.5rem)] flex items-center gap-2 p-2"
