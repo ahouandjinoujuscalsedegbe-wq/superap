@@ -139,7 +139,7 @@ function AjouterDepense() {
                   setMontant(String(f.montant));
                   setLibelle(f.libelle);
                   if (enveloppes.some((e) => e.id === f.categorie)) setEnveloppe(f.categorie);
-                  if (comptes.includes(f.compte)) setCompte(f.compte);
+                  // Le compte suit automatiquement l'enveloppe choisie.
                 }}
                 className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
               >
