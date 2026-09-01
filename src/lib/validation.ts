@@ -219,6 +219,8 @@ function assainirRenouvellement(v: Record<string, unknown>): Partial<Enveloppe> 
   if (typeof v["ajustementAuto"] === "boolean") out.ajustementAuto = v["ajustementAuto"];
   const dernier = dateSure(v["dernierRemplissage"]);
   if (dernier) out.dernierRemplissage = dernier;
+  const dateRenouvellement = dateSure(v["dateRenouvellement"]);
+  if (dateRenouvellement) out.dateRenouvellement = dateRenouvellement;
   return out;
 }
 
