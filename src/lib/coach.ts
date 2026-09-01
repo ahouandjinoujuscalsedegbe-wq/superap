@@ -256,6 +256,91 @@ function empreinte(texte: string): string {
   return texte.slice(0, 80).toLowerCase();
 }
 
+export type LigneEnveloppeBilan = {
+  nom: string;
+  dotation: number;
+  utilise: number;
+  restant: number;
+  manque: number;
+  pourcentage: number;
+};
+
+export type BilanMensuel = {
+  revenus: number;
+  depenses: number;
+  solde: number;
+  /** Écart de dépenses avec le mois précédent (positif = hausse). */
+  ecart: number;
+  ecartPct: number;
+  rythmeJour: number;
+  projection: number;
+  epuisees: LigneEnveloppeBilan[];
+  surplus: LigneEnveloppeBilan[];
+};
+
+/** Calcule le bilan chiffré du mois en cours à partir des données réelles. */
+export function bilanMensuel(
+  donnees: DonneesCoach,
+  maintenant = new Date(),
+): BilanMensuel {
+  const an = maintenant.getFullYear();
+  const mo = maintenant.getMonth();
+  const dansMois = (iso: string, decalage: number) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return false;
+    const ref = new Date(an, mo - decalage, 1);
+    return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+  };
+  const somme = (decalage: number, type: "revenu" | "depense") =>
+    donnees.transactions
+      .filter((t) => t.type === type && dansMois(t.date, decalage))
+      .reduce((s, t) => s + Math.abs(t.montant), 0);
+
+  const revenus = somme(0, "revenu");
+  const depenses = somme(0, "depense");
+  const depensesVeille = somme(1, "depense");
+  const ecart = depenses - depensesVeille;
+  const ecartPct =
+    depensesVeille > 0 ? Math.round((ecart / depensesVeille) * 100) : 0;
+
+  const jour = Math.max(1, maintenant.getDate());
+  const joursMois = new Date(an, mo + 1, 0).getDate();
+  const rythmeJour = Math.round(depenses / jour);
+  const projection = rythmeJour * joursMois;
+
+  const epuisees: LigneEnveloppeBilan[] = [];
+  const surplus: LigneEnveloppeBilan[] = [];
+  for (const e of donnees.enveloppes) {
+    const utilise = donnees.depensesParEnveloppe[e.id] ?? 0;
+    const etat = etatEnveloppe(e, utilise);
+    const ligne: LigneEnveloppeBilan = {
+      nom: e.nom,
+      dotation: etat.dotation,
+      utilise: etat.utilise,
+      restant: etat.restant,
+      manque: Math.max(0, etat.utilise - etat.dotation) || Math.round(etat.dotation * 0.2),
+      pourcentage: Math.round(etat.pourcentage),
+    };
+    if (etat.epuisee) epuisees.push(ligne);
+    else if (etat.dotation > 0 && etat.restant / etat.dotation >= 0.6)
+      surplus.push(ligne);
+  }
+  epuisees.sort((a, b) => b.manque - a.manque);
+  surplus.sort((a, b) => b.restant - a.restant);
+
+  return {
+    revenus,
+    depenses,
+    solde: revenus - depenses,
+    ecart,
+    ecartPct,
+    rythmeJour,
+    projection,
+    epuisees: epuisees.slice(0, 5),
+    surplus: surplus.slice(0, 5),
+  };
+}
+
 /**
  * Produit les messages du conseiller pour aujourd'hui.
  * Les thèmes rejetés (poids < 0,4) sont écartés, les thèmes appréciés passent
