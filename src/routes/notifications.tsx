@@ -426,7 +426,6 @@ function PageNotifications() {
                       <button
                         type="button"
                         onClick={() => noter(m.id, "utile")}
-
                         aria-label="Ce conseil m'est utile"
                         aria-pressed={m.avis === "utile"}
                         className={`rounded-full p-1.5 transition-colors ${
