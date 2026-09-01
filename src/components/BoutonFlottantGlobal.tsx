@@ -17,8 +17,8 @@ const ACCES = [
 ] as const;
 
 const CLE_POSITION = "SA_BOUTON_FLOTTANT_POS_V1";
-const TAILLE = 44;
-const RAYON = 78;
+const TAILLE = 56;
+const RAYON = 96;
 /** Périmètre de la boule : sert à convertir le déplacement en rotation. */
 const PERIMETRE = Math.PI * TAILLE;
 const MARGE = 8;
