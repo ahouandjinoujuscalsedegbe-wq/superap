@@ -1,7 +1,12 @@
 /**
  * Rapport mensuel automatique : bilan complet du mois, calculé localement.
+ *
+ * Règle métier : le rapport ne compte QUE les opérations déjà effectuées
+ * (date passée ou du jour). Les dépenses planifiées non encore réalisées
+ * n'entrent pas dans les totaux ; celles dont l'échéance est dépassée sont
+ * listées à part comme « dépenses prévues en retard ».
  */
-import type { Dette, Enveloppe, Transaction } from "./store";
+import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { resteDu } from "./store";
 import { dotationDe } from "./enveloppe-etat";
 
@@ -13,6 +18,18 @@ export type LigneEnveloppe = {
   depense: number;
   ecart: number;
   depassee: boolean;
+};
+
+/** Dépense planifiée dont l'échéance est passée sans qu'elle soit effectuée. */
+export type DepenseEnRetard = {
+  id: string;
+  libelle: string;
+  montant: number;
+  echeance: string;
+  emoji: string;
+  enveloppe: string;
+  /** Nombre de jours de retard. */
+  joursRetard: number;
 };
 
 export type RapportMensuel = {
@@ -31,12 +48,16 @@ export type RapportMensuel = {
   plusGrossesDepenses: Transaction[];
   /** Dépenses répétées qui pèsent sur le budget. */
   fuites: { libelle: string; total: number; occurrences: number }[];
+  /** Dépenses prévues, non effectuées, dont l'échéance est déjà passée. */
+  enRetard: DepenseEnRetard[];
+  totalEnRetard: number;
   detteRestante: number;
   creanceRestante: number;
   /** Note globale sur 100. */
   score: number;
   conseils: string[];
 };
+
 
 const MOIS_FR = [
   "janvier",
@@ -87,11 +108,54 @@ function normaliser(v: string): string {
 /** Construit le bilan complet d'un mois donné. */
 export function construireRapport(
   mois: string,
-  donnees: { transactions: Transaction[]; enveloppes: Enveloppe[]; dettes: Dette[] },
+  donnees: {
+    transactions: Transaction[];
+    enveloppes: Enveloppe[];
+    dettes: Dette[];
+    budgets?: Budget[];
+  },
 ): RapportMensuel {
-  const duMois = donnees.transactions.filter((t) => t.date.slice(0, 7) === mois);
+  // Aujourd'hui : borne au-delà de laquelle une opération n'est pas encore effectuée.
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const effectuees = donnees.transactions.filter((t) => t.date.slice(0, 10) <= aujourdHui);
+  const duMois = effectuees.filter((t) => t.date.slice(0, 7) === mois);
   const precedent = moisPrecedent(mois);
-  const duPrecedent = donnees.transactions.filter((t) => t.date.slice(0, 7) === precedent);
+  const duPrecedent = effectuees.filter((t) => t.date.slice(0, 7) === precedent);
+
+  // Dépenses planifiées dont l'échéance est passée et qui n'ont pas d'opération
+  // correspondante déjà enregistrée dans l'enveloppe concernée.
+  const enRetard: DepenseEnRetard[] = (donnees.budgets ?? [])
+    .filter((b) => b.actif && b.prochaine.slice(0, 10) < aujourdHui)
+    .map((b) => {
+      const env = donnees.enveloppes.find((e) => e.id === b.enveloppeId);
+      const jours = Math.max(
+        0,
+        Math.round(
+          (Date.parse(aujourdHui) - Date.parse(b.prochaine.slice(0, 10))) / 86400000,
+        ),
+      );
+      return {
+        id: b.id,
+        libelle: b.libelle,
+        montant: b.montant,
+        echeance: b.prochaine.slice(0, 10),
+        emoji: env?.emoji ?? "🗓️",
+        enveloppe: env?.nom ?? "Sans enveloppe",
+        joursRetard: jours,
+      };
+    })
+    .filter((r) => {
+      // Écarte celles déjà payées : même enveloppe, même montant, depuis l'échéance.
+      return !effectuees.some(
+        (t) =>
+          t.type === "depense" &&
+          t.date.slice(0, 10) >= r.echeance &&
+          Math.abs(t.montant - r.montant) < 1 &&
+          (t.categorie === (donnees.budgets ?? []).find((b) => b.id === r.id)?.enveloppeId),
+      );
+    })
+    .sort((a, b) => b.joursRetard - a.joursRetard);
+
 
   const somme = (liste: Transaction[], type: Transaction["type"]) =>
     liste.filter((t) => t.type === type).reduce((s, t) => s + t.montant, 0);
@@ -180,6 +244,12 @@ export function construireRapport(
       `« ${f.libelle} » revient ${f.occurrences} fois pour ${Math.round(f.total).toLocaleString("fr-FR")} FCFA : une petite habitude qui pèse.`,
     );
   }
+  const totalEnRetard = enRetard.reduce((s, r) => s + r.montant, 0);
+  if (enRetard.length > 0) {
+    conseils.push(
+      `${enRetard.length} dépense(s) prévue(s) non effectuée(s) pour ${Math.round(totalEnRetard).toLocaleString("fr-FR")} FCFA : leur échéance est déjà passée.`,
+    );
+  }
   if (conseils.length === 0) conseils.push("Rien à signaler ce mois-ci.");
 
   return {
@@ -197,6 +267,9 @@ export function construireRapport(
       .sort((a, b) => b.montant - a.montant)
       .slice(0, 5),
     fuites,
+    enRetard,
+    totalEnRetard,
+
     detteRestante: donnees.dettes
       .filter((d) => d.sens === "dette")
       .reduce((s, d) => s + resteDu(d), 0),
@@ -229,8 +302,18 @@ export function rapportEnTexte(r: RapportMensuel): string {
     "PLUS GROSSES DÉPENSES",
     ...r.plusGrossesDepenses.map((t) => `- ${t.libelle} : ${f(t.montant)} (${t.date.slice(0, 10)})`),
     "",
+    ...(r.enRetard.length > 0
+      ? [
+          "DÉPENSES PRÉVUES NON EFFECTUÉES (ÉCHÉANCE PASSÉE)",
+          ...r.enRetard.map(
+            (d) => `- ${d.libelle} : ${f(d.montant)} — dû le ${d.echeance} (${d.joursRetard} j)`,
+          ),
+          "",
+        ]
+      : []),
     "CONSEILS",
     ...r.conseils.map((c) => `- ${c}`),
+
   ];
   return lignes.join("\n");
 }

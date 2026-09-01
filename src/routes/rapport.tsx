@@ -34,16 +34,17 @@ export const Route = createFileRoute("/rapport")({
 });
 
 function PageRapport() {
-  const { transactions, enveloppes, dettes } = useSuperApp();
+  const { transactions, enveloppes, dettes, budgets } = useSuperApp();
   const mois = useMemo(() => moisDisponibles(transactions), [transactions]);
   const [choisi, setChoisi] = useState<string>(
     () => mois[0] ?? new Date().toISOString().slice(0, 7),
   );
 
   const rapport = useMemo(
-    () => construireRapport(choisi, { transactions, enveloppes, dettes }),
-    [choisi, transactions, enveloppes, dettes],
+    () => construireRapport(choisi, { transactions, enveloppes, dettes, budgets }),
+    [choisi, transactions, enveloppes, dettes, budgets],
   );
+
 
   const partager = async () => {
     const texte = rapportEnTexte(rapport);
@@ -123,10 +124,11 @@ function PageRapport() {
           Taux d'épargne : <span className="font-semibold text-foreground">
             {rapport.tauxEpargne.toFixed(0)} %
           </span>{" "}
-          · {rapport.nbOperations} opérations · dépenses{" "}
+          · {rapport.nbOperations} opérations déjà effectuées · dépenses{" "}
           {rapport.variationDepenses >= 0 ? "+" : ""}
           {rapport.variationDepenses.toFixed(0)} % vs mois précédent
         </p>
+
         <div className="flex items-center gap-3">
           <div
             className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
@@ -142,12 +144,42 @@ function PageRapport() {
         </div>
       </section>
 
-      {rapport.enveloppes.length > 0 && (
-        <section className="carte space-y-2 p-4">
-          <h2 className="text-sm font-semibold">Enveloppes du mois</h2>
+      {rapport.enRetard.length > 0 && (
+        <section className="carte space-y-2 border-destructive/40 p-4">
+          <h2 className="text-sm font-semibold">
+            Dépenses prévues non effectuées ({rapport.enRetard.length})
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Échéance déjà passée · total {formatFCFA(rapport.totalEnRetard)}
+          </p>
           <ul className="space-y-1.5 text-sm">
-            {rapport.enveloppes.map((e) => (
+            {rapport.enRetard.map((d) => (
+              <li key={d.id} className="flex items-start justify-between gap-2">
+                <span className="min-w-0">
+                  <span className="block truncate">
+                    {d.emoji} {d.libelle}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {d.enveloppe} · dû le {d.echeance} ({d.joursRetard} j de retard)
+                  </span>
+                </span>
+                <span className="shrink-0 font-semibold text-destructive">
+                  {formatFCFA(d.montant)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {rapport.enveloppes.some((e) => e.depense > 0) && (
+
+        <section className="carte space-y-2 p-4">
+          <h2 className="text-sm font-semibold">Enveloppes dépensées ce mois</h2>
+          <ul className="space-y-1.5 text-sm">
+            {rapport.enveloppes.filter((e) => e.depense > 0).map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-2">
+
                 <span className="truncate">
                   {e.emoji} {e.nom}
                 </span>
