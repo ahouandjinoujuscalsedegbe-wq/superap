@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
-import { formatFCFA, formatDateFr } from "@/lib/format";
+import { formatFCFA, formatDateFr, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -569,7 +569,7 @@ function Budgetisation() {
                 <input
                   id="b-montant"
                   inputMode="numeric"
-                  value={bMontant}
+                  value={grouperMontant(bMontant)}
                   onChange={(ev) => setBMontant(ev.target.value.replace(/[^\d]/g, ""))}
                   placeholder="50000"
                   className={champ}

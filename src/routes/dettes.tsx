@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { resteDu, useSuperApp, type Dette } from "@/lib/store";
-import { formatDateFr, formatFCFA } from "@/lib/format";
+import { formatDateFr, formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 
@@ -540,7 +540,7 @@ function PageDettes() {
               <input
                 id="montant"
                 inputMode="numeric"
-                value={form.montant}
+                value={grouperMontant(form.montant)}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, montant: e.target.value.replace(/[^0-9]/g, "") }))
                 }
@@ -646,7 +646,7 @@ function PageDettes() {
               <input
                 id="montant-remb"
                 inputMode="numeric"
-                value={montantRemb}
+                value={grouperMontant(montantRemb)}
                 onChange={(e) => setMontantRemb(e.target.value.replace(/[^0-9]/g, ""))}
                 placeholder="Montant en FCFA"
                 className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"

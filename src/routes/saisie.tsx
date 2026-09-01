@@ -19,7 +19,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { COMPTES, useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
   empreinteTicket,
@@ -648,7 +648,7 @@ function SaisieIntelligente() {
                   <input
                     id={`montant-${b.id}`}
                     inputMode="numeric"
-                    value={b.montant}
+                    value={grouperMontant(b.montant)}
                     onChange={(e) =>
                       majBrouillon(b.id, { montant: e.target.value.replace(/[^\d]/g, "") })
                     }

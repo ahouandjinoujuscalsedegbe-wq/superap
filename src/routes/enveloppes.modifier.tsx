@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
@@ -412,7 +412,7 @@ function ModifierEnveloppe() {
                 <input
                   id="edit-plafond"
                   inputMode="numeric"
-                  value={ePlafond}
+                  value={grouperMontant(ePlafond)}
                   onChange={(ev) => setEPlafond(ev.target.value.replace(/[^\d]/g, ""))}
                   className={champ}
                 />
@@ -425,7 +425,7 @@ function ModifierEnveloppe() {
                 <input
                   id="edit-dotation"
                   inputMode="numeric"
-                  value={eDotation}
+                  value={grouperMontant(eDotation)}
                   onChange={(ev) => setEDotation(ev.target.value.replace(/[^\d]/g, ""))}
                   className={champ}
                 />
@@ -571,7 +571,7 @@ function ModifierEnveloppe() {
                 {eMode === "pourcentage" ? (
                   <input
                     inputMode="numeric"
-                    value={ePart}
+                    value={grouperMontant(ePart)}
                     onChange={(ev) => setEPart(ev.target.value.replace(/[^\d]/g, ""))}
                     placeholder="Part de chaque revenu (%)"
                     aria-label="Part de chaque revenu en pourcentage"
@@ -581,7 +581,7 @@ function ModifierEnveloppe() {
                   <>
                     <input
                       inputMode="numeric"
-                      value={eMontantPeriode}
+                      value={grouperMontant(eMontantPeriode)}
                       onChange={(ev) => setEMontantPeriode(ev.target.value.replace(/[^\d]/g, ""))}
                       placeholder="Montant versé à chaque période (FCFA)"
                       aria-label="Montant versé à chaque période"

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowRight, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { ErreurPopup } from "@/components/ErreurPopup";
@@ -172,7 +172,7 @@ function NouveauTransfert() {
               <input
                 id="montant-transfert"
                 inputMode="numeric"
-                value={montant}
+                value={grouperMontant(montant)}
                 onChange={(ev) => setMontant(ev.target.value.replace(/[^\d]/g, ""))}
                 placeholder="25000"
                 className={champ}
