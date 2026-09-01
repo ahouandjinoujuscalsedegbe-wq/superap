@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
 import { DicteeChamp } from "@/components/DicteeChamp";
 import { analyserObjectifDicte } from "@/lib/dictee-champs";
@@ -161,8 +161,8 @@ function PageObjectifs() {
               Montant visé (FCFA)
               <input
                 inputMode="numeric"
-                value={cible}
-                onChange={(e) => setCible(e.target.value)}
+                value={grouperMontant(cible)}
+                onChange={(e) => setCible(deGrouperMontant(e.target.value))}
                 placeholder="500000"
                 className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               />
@@ -171,8 +171,8 @@ function PageObjectifs() {
               Déjà de côté
               <input
                 inputMode="numeric"
-                value={deja}
-                onChange={(e) => setDeja(e.target.value)}
+                value={grouperMontant(deja)}
+                onChange={(e) => setDeja(deGrouperMontant(e.target.value))}
                 placeholder="0"
                 className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               />

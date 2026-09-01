@@ -5,7 +5,7 @@ import { useCerveau } from "@/lib/cerveau/hook";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
 import { Link } from "@tanstack/react-router";
-import { formatDateFr, formatFCFA } from "@/lib/format";
+import { formatDateFr, formatFCFA, grouperMontant } from "@/lib/format";
 import {
   FENETRES,
   comparerCategories,
@@ -790,7 +790,7 @@ export function FicheAnalyses() {
         <input
           id="objectif-epargne"
           inputMode="numeric"
-          value={objectif === 0 ? "" : String(objectif)}
+          value={grouperMontant(objectif === 0 ? "" : String(objectif))}
           onChange={(e) => enregistrerObjectif(Number(e.target.value.replace(/\D/g, "")) || 0)}
           placeholder="Ex. 50000"
           className="w-full rounded-xl border border-border bg-background p-3 text-sm"

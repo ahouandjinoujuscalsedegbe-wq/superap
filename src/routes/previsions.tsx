@@ -4,7 +4,7 @@ import { CalendarPlus, Scale, Trash2, TrendingDown, TrendingUp } from "lucide-re
 
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import {
   ecrireProjets,
@@ -144,8 +144,8 @@ function PagePrevisions() {
         />
         <div className="grid grid-cols-2 gap-2">
           <input
-            value={montant}
-            onChange={(e) => setMontant(e.target.value)}
+            value={grouperMontant(montant)}
+            onChange={(e) => setMontant(e.target.value.replace(/[^\d]/g, ""))}
             inputMode="numeric"
             placeholder="Montant FCFA"
             className="rounded-xl border border-border bg-background px-3 py-2 text-sm"

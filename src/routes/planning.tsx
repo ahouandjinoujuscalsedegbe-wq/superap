@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { telechargerFichier } from "@/lib/journal";
 import {
   alarmesComptes,
@@ -700,8 +700,8 @@ function PagePlanning() {
           <Champ label="Montant (FCFA)">
             <input
               inputMode="numeric"
-              value={rMontant}
-              onChange={(e) => setRMontant(e.target.value)}
+              value={grouperMontant(rMontant)}
+              onChange={(e) => setRMontant(deGrouperMontant(e.target.value))}
               className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
             />
           </Champ>
@@ -736,8 +736,8 @@ function PagePlanning() {
           <Champ label="Montant (FCFA)">
             <input
               inputMode="numeric"
-              value={dMontant}
-              onChange={(e) => setDMontant(e.target.value)}
+              value={grouperMontant(dMontant)}
+              onChange={(e) => setDMontant(deGrouperMontant(e.target.value))}
               className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
             />
           </Champ>

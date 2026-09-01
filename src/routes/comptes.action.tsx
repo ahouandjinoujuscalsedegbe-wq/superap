@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PencilLine, Plus, Trash2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
@@ -346,8 +346,8 @@ function ActionComptes() {
                 <input
                   id="c-solde"
                   inputMode="numeric"
-                  value={solde}
-                  onChange={(ev) => setSolde(ev.target.value)}
+                  value={grouperMontant(solde)}
+                  onChange={(ev) => setSolde(deGrouperMontant(ev.target.value))}
                   placeholder="0"
                   className={champ}
                 />

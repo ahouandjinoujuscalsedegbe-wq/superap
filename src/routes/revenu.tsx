@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { operationsFrequentes } from "@/lib/favoris";
 import { DicteeOperation } from "@/components/DicteeOperation";
 
@@ -134,7 +134,7 @@ function AjouterRevenu() {
           <input
             id="montant"
             inputMode="numeric"
-            value={montant}
+            value={grouperMontant(montant)}
             onChange={(ev) => setMontant(ev.target.value.replace(/[^\d]/g, ""))}
             placeholder="0"
             className="mt-2 w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-2xl font-bold text-primary outline-none focus:ring-2 focus:ring-ring"
