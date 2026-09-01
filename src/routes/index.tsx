@@ -95,23 +95,23 @@ function Accueil() {
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link
-            to="/dettes"
-            aria-label="Dettes & Créances"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
-          >
-            <HandCoins className="h-5 w-5" aria-hidden />
-          </Link>
-          <Link
-            to="/objectifs"
-            aria-label="Objectifs"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
-          >
-            <Target className="h-5 w-5" aria-hidden />
-          </Link>
-        </div>
+        <Link
+          to="/dettes"
+          aria-label="Dettes & Créances"
+          className="flex max-w-[10rem] items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
+        >
+          <HandCoins className="h-5 w-5 shrink-0" aria-hidden />
+          <span className="truncate">Dettes & Créances</span>
+        </Link>
       </header>
+
+      <Link
+        to="/objectifs"
+        aria-label="Objectifs"
+        className="surface fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+6rem)] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+      >
+        <Target className="h-5 w-5" aria-hidden />
+      </Link>
 
 
 
