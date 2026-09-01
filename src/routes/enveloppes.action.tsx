@@ -45,40 +45,20 @@ function ActionEnveloppes() {
             </div>
           </Link>
 
-          <div className="carte space-y-3 p-4">
-            <p className="font-semibold">Gérer les enveloppes</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                to="/enveloppes/creer"
-                className="carte flex flex-col items-start gap-2 p-3 text-left transition-colors hover:bg-accent/40"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Plus aria-hidden className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">Créer</p>
-                  <p className="text-xs text-muted-foreground">
-                    Nouvelle enveloppe.
-                  </p>
-                </div>
-              </Link>
-
-              <Link
-                to="/enveloppes/modifier"
-                className="carte flex flex-col items-start gap-2 p-3 text-left transition-colors hover:bg-accent/40"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Pencil aria-hidden className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">Modifier</p>
-                  <p className="text-xs text-muted-foreground">
-                    Renommer, plafond, supprimer.
-                  </p>
-                </div>
-              </Link>
+          <Link
+            to="/enveloppes/gerer"
+            className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <FolderTree aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold">Gérer les enveloppes</p>
+              <p className="text-sm text-muted-foreground">
+                Créer ou modifier une enveloppe existante.
+              </p>
             </div>
-          </div>
+          </Link>
           <Link
             to="/enveloppes/renouvellements"
             className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
