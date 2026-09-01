@@ -39,6 +39,8 @@ function AjouterDepense() {
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [recherche, setRecherche] = useState("");
   const [panneauOuvert, setPanneauOuvert] = useState(false);
+  const [categorieChoisie, setCategorieChoisie] = useState<string | null>(null);
+  const [sousCategorieChoisie, setSousCategorieChoisie] = useState<string | null>(null);
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
