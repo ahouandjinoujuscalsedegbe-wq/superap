@@ -7,6 +7,7 @@ import { formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
 import { DicteeOperation } from "@/components/DicteeOperation";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
   head: () => ({
