@@ -13,6 +13,7 @@ const base: Enveloppe = {
   periodeRenouvellement: "mois",
   modeRemplissage: "fixe",
   montantPeriode: 25000,
+  dateRenouvellement: "2026-02-10",
   dernierRemplissage: "2026-01-10",
 };
 
@@ -23,8 +24,8 @@ describe("remplissage", () => {
     expect(dus[0]?.compte).toBe("CAISSE");
   });
 
-  it("ne renouvelle pas sans première période saisie", () => {
-    const { dernierRemplissage: _ignore, ...sansDepart } = base;
+  it("ne renouvelle pas sans date choisie par l'utilisateur", () => {
+    const { dateRenouvellement: _ignore, ...sansDepart } = base;
     expect(remplissagesDus([sansDepart], [], new Date("2026-03-15T10:00:00Z"))).toHaveLength(0);
   });
 
