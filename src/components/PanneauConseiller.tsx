@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
+import { FicheAnalyses } from "@/components/FicheAnalyses";
+import { FicheOutils } from "@/components/FicheOutils";
 import { vocalisationDisponible } from "@/lib/vocalisation";
 import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
