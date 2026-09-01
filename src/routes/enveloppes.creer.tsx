@@ -165,16 +165,8 @@ function CreerEnveloppePage() {
         confirmation: (v) => `Compte source : ${String(v)}.`,
       },
       {
-        id: "periode",
-        question: "À quelle période l'enveloppe se renouvelle-t-elle ?",
-        type: "choix",
-        options: PERIODES.map((p) => ({ valeur: p.id, label: p.label })),
-        appliquer: (v) => setPeriodeRenouvellement(String(v) as Periode),
-        confirmation: (v) =>
-          `Renouvellement : ${PERIODES.find((p) => p.id === v)?.label ?? String(v)}.`,
-      },
-      {
         id: "mode",
+
         question:
           "L'enveloppe se remplit-elle avec un montant fixe par période, ou avec un pourcentage de chaque revenu ?",
         type: "choix",
