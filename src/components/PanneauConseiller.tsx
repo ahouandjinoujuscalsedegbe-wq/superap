@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
+import { Brain, CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
 import { FicheAnalyses } from "@/components/FicheAnalyses";
 import { FicheOutils } from "@/components/FicheOutils";
 import { vocalisationDisponible } from "@/lib/vocalisation";
+import { useCerveau } from "@/lib/cerveau/hook";
+import { enTexteVocal } from "@/lib/cerveau";
 import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
   texteBilanSaisonnier,
@@ -10,6 +12,9 @@ import {
   type BilanSaisonnier,
   type MoisProjete,
 } from "@/lib/saison";
+
+/** Pastille de gravité des constats du cerveau local. */
+const PUCE_CONSTAT = { alerte: "🚨", attention: "⚠️", info: "💡", bravo: "✅" } as const;
 
 function fcfa(montant: number): string {
   return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
@@ -37,6 +42,7 @@ export function PanneauConseiller({
   onLire: (cle: string, texte: string) => void;
 }) {
   const [onglet, setOnglet] = useState<"bilan" | "analyses" | "outils">("bilan");
+  const cerveau = useCerveau();
 
   if (!ouvert) return null;
 
