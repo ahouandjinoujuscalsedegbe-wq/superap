@@ -319,15 +319,17 @@ function AjouterDepense() {
 
           <div>
             <label htmlFor="libelle" className="text-sm font-medium">
-              Libellé (facultatif)
+              Libellé (obligatoire)
             </label>
             <input
               id="libelle"
+              required
               value={libelle}
               onChange={(ev) => setLibelle(ev.target.value)}
               placeholder="Pain, taxi, recharge téléphonique…"
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             />
+
           </div>
 
           <div>
