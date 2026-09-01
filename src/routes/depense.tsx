@@ -37,6 +37,8 @@ function AjouterDepense() {
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [recherche, setRecherche] = useState("");
+  const [panneauOuvert, setPanneauOuvert] = useState(false);
+
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
 
@@ -51,21 +53,30 @@ function AjouterDepense() {
       ? enveloppeChoisie.compteSource
       : (comptes[0] ?? COMPTES[0]);
 
-  // Regroupement par catégorie + recherche : liste lisible même avec beaucoup d'enveloppes.
-  const groupes = useMemo(() => {
+  // Arborescence catégorie → sous-catégorie → enveloppes, filtrée par la recherche.
+  const arbre = useMemo(() => {
     const q = recherche.trim().toLowerCase();
     const filtrees = q
       ? enveloppes.filter((e) =>
           `${e.nom} ${e.categorie ?? ""} ${e.sousCategorie ?? ""}`.toLowerCase().includes(q),
         )
       : enveloppes;
-    const map = new Map<string, typeof enveloppes>();
+    const map = new Map<string, Map<string, typeof enveloppes>>();
     for (const e of filtrees) {
-      const cle = e.categorie?.trim() || "Sans catégorie";
-      map.set(cle, [...(map.get(cle) ?? []), e]);
+      const cat = e.categorie?.trim() || "Sans catégorie";
+      const sous = e.sousCategorie?.trim() || "Général";
+      const sousMap = map.get(cat) ?? new Map<string, typeof enveloppes>();
+      sousMap.set(sous, [...(sousMap.get(sous) ?? []), e]);
+      map.set(cat, sousMap);
     }
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"));
+    return [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], "fr"))
+      .map(
+        ([cat, sousMap]) =>
+          [cat, [...sousMap.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"))] as const,
+      );
   }, [enveloppes, recherche]);
+
 
   // Opérations répétées repérées localement : ressaisie en un seul appui.
   const favoris = useMemo(
@@ -82,6 +93,11 @@ function AjouterDepense() {
       toast.error("Veuillez saisir un montant valide.");
       return;
     }
+    if (!libelle.trim()) {
+      toast.error("Le libellé est obligatoire.");
+      return;
+    }
+
     const env = enveloppes.find((x) => x.id === enveloppe);
     ajouterTransaction({
       type: "depense",
@@ -179,73 +195,100 @@ function AjouterDepense() {
         </section>
 
         <section className="carte space-y-3 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Enveloppe</p>
-            <span className="truncate text-xs text-muted-foreground">
-              {enveloppes.length} disponibles
+          <p className="text-sm font-medium">Enveloppe</p>
+
+          <button
+            type="button"
+            aria-expanded={panneauOuvert}
+            onClick={() => setPanneauOuvert((v) => !v)}
+            className="flex w-full min-w-0 items-center gap-2 rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm"
+          >
+            <span aria-hidden className="shrink-0 text-base">
+              {enveloppeChoisie?.emoji ?? "🔍"}
             </span>
-          </div>
+            <span className="min-w-0 flex-1 truncate font-semibold">
+              {enveloppeChoisie?.nom ?? "Choisir une enveloppe"}
+            </span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {panneauOuvert ? "▲" : "▼"}
+            </span>
+          </button>
 
-          <input
-            value={recherche}
-            onChange={(ev) => setRecherche(ev.target.value)}
-            placeholder="Rechercher une enveloppe…"
-            aria-label="Rechercher une enveloppe"
-            className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
+          {panneauOuvert && (
+            <div className="space-y-3 rounded-xl border border-input bg-background/40 p-3">
+              <input
+                value={recherche}
+                onChange={(ev) => setRecherche(ev.target.value)}
+                placeholder="Rechercher une enveloppe…"
+                aria-label="Rechercher une enveloppe"
+                className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
 
-          {enveloppeChoisie && (
-            <div className="flex items-center gap-2 rounded-xl border border-primary bg-accent px-3 py-2.5 text-sm font-semibold text-accent-foreground">
-              <span aria-hidden className="text-base">
-                {enveloppeChoisie.emoji}
-              </span>
-              <span className="truncate">{enveloppeChoisie.nom}</span>
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {arbre.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
+                )}
+                {arbre.map(([categorie, sousGroupes]) => (
+                  <details
+                    key={categorie}
+                    open={
+                      !!recherche ||
+                      sousGroupes.some(([, l]) => l.some((e) => e.id === enveloppe))
+                    }
+                  >
+                    <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
+                      {categorie}
+                    </summary>
+                    <div className="mt-2 space-y-2 pl-2">
+                      {sousGroupes.map(([sous, liste]) => (
+                        <details
+                          key={sous}
+                          open={!!recherche || liste.some((e) => e.id === enveloppe)}
+                        >
+                          <summary className="cursor-pointer list-none rounded-lg border border-input px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+                            {sous} · {liste.length}
+                          </summary>
+                          <div className="mt-2 grid gap-2 pl-2">
+                            {liste.map((e) => {
+                              const actif = e.id === enveloppe;
+                              return (
+                                <button
+                                  key={e.id}
+                                  type="button"
+                                  aria-pressed={actif}
+                                  onClick={() => {
+                                    setEnveloppe(e.id);
+                                    setRecherche("");
+                                    setPanneauOuvert(false);
+                                  }}
+                                  className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                                    actif
+                                      ? "border-primary bg-accent font-semibold text-accent-foreground"
+                                      : "border-input bg-background/60 text-muted-foreground"
+                                  }`}
+                                >
+                                  <span aria-hidden className="shrink-0 text-base">
+                                    {e.emoji}
+                                  </span>
+                                  <span className="truncate">{e.nom}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
             </div>
           )}
-
-          <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
-            {groupes.length === 0 && (
-              <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
-            )}
-            {groupes.map(([categorie, liste]) => (
-              <details key={categorie} open={liste.some((e) => e.id === enveloppe) || !!recherche}>
-                <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
-                  {categorie} · {liste.length}
-                </summary>
-                <div className="mt-2 grid gap-2">
-                  {liste.map((e) => {
-                    const actif = e.id === enveloppe;
-                    return (
-                      <button
-                        key={e.id}
-                        type="button"
-                        aria-pressed={actif}
-                        onClick={() => setEnveloppe(e.id)}
-                        className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
-                          actif
-                            ? "border-primary bg-accent font-semibold text-accent-foreground"
-                            : "border-input bg-background/60 text-muted-foreground"
-                        }`}
-                      >
-                        <span aria-hidden className="shrink-0 text-base">
-                          {e.emoji}
-                        </span>
-                        <span className="truncate">{e.nom}</span>
-                        <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-                          {e.compteSource ?? ""}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </details>
-            ))}
-          </div>
 
           <p className="rounded-xl bg-secondary px-3 py-2.5 text-xs text-secondary-foreground">
             Compte débité automatiquement : <strong>{compte}</strong>
           </p>
         </section>
+
 
 
         {membres.length > 0 && (
@@ -276,15 +319,17 @@ function AjouterDepense() {
 
           <div>
             <label htmlFor="libelle" className="text-sm font-medium">
-              Libellé (facultatif)
+              Libellé (obligatoire)
             </label>
             <input
               id="libelle"
+              required
               value={libelle}
               onChange={(ev) => setLibelle(ev.target.value)}
               placeholder="Pain, taxi, recharge téléphonique…"
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             />
+
           </div>
 
           <div>
