@@ -135,9 +135,17 @@ export function remplissagesDus(
     const periode = e.periodeRenouvellement;
     if (!periode || !e.compteSource) continue;
     if ((e.modeRemplissage ?? "fixe") !== "fixe") continue;
-    if (!e.dernierRemplissage) continue; // la première période est saisie à la main
+    // Règle : le renouvellement automatique n'a lieu qu'à partir de la date
+    // précisée par l'utilisateur dans les paramètres de l'enveloppe.
+    const depart = e.dateRenouvellement ? jour(e.dateRenouvellement) : null;
+    if (!depart) continue;
 
-    let date = jour(avancerDate(e.dernierRemplissage, periode));
+    // On repart de la date choisie, ou de la période suivant le dernier
+    // remplissage déjà appliqué s'il est postérieur.
+    let date = depart;
+    if (e.dernierRemplissage && jour(e.dernierRemplissage) >= depart) {
+      date = jour(avancerDate(e.dernierRemplissage, periode));
+    }
     let tours = 0;
     while (date <= aujourdHui && tours < RATTRAPAGE_MAX) {
       const montant = montantPeriodeSuivante(e, transactions, date);
