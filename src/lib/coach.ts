@@ -385,6 +385,32 @@ export function bilanMensuel(
   };
 }
 
+/** Met le bilan mensuel en phrases, pour la lecture à voix haute. */
+export function texteBilanMensuel(b: BilanMensuel): string {
+  const lignes = [
+    `Bilan du mois. Revenus : ${fcfa(b.revenus)}. Dépenses : ${fcfa(b.depenses)}. Solde du mois : ${fcfa(b.solde)}.`,
+    `Solde global de vos comptes : ${fcfa(b.soldeGlobal)}. Taux d'épargne : ${b.tauxEpargne} pour cent, sur ${b.nbOperations} opérations.`,
+    b.ecart === 0
+      ? "Vos dépenses sont au même niveau que le mois dernier."
+      : b.ecart > 0
+        ? `Vous dépensez ${fcfa(Math.abs(b.ecart))} de plus que le mois dernier.`
+        : `Vous dépensez ${fcfa(Math.abs(b.ecart))} de moins que le mois dernier.`,
+    `Rythme actuel : ${fcfa(b.rythmeJour)} par jour, projection de fin de mois ${fcfa(b.projection)}.`,
+    b.moyenneSaison > 0
+      ? `Nous sommes en ${b.saison} : d'habitude vous dépensez ${fcfa(b.moyenneSaison)} à cette période.`
+      : `Nous sommes en ${b.saison}.`,
+  ];
+  if (b.epuisees.length > 0)
+    lignes.push(
+      `Enveloppes épuisées : ${b.epuisees.map((e) => `${e.nom} pour ${fcfa(e.utilise)}`).join(", ")}.`,
+    );
+  if (b.surplus.length > 0)
+    lignes.push(
+      `Enveloppes en surplus : ${b.surplus.map((e) => `${e.nom}, ${fcfa(e.restant)} disponibles`).join(", ")}.`,
+    );
+  return lignes.join(" ");
+}
+
 /**
  * Produit les messages du conseiller pour aujourd'hui.
  * Les thèmes rejetés (poids < 0,4) sont écartés, les thèmes appréciés passent
