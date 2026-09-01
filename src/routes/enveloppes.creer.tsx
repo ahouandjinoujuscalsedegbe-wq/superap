@@ -51,8 +51,9 @@ function CreerEnveloppePage() {
   const [categorie, setCategorie] = useState("");
   const [sousCategorie, setSousCategorie] = useState("");
   const [compteSource, setCompteSource] = useState("");
-  const [periodeRenouvellement, setPeriodeRenouvellement] = useState<Periode>("mois");
-  const [dateRenouvellement, setDateRenouvellement] = useState("");
+  // Règle unique : toutes les enveloppes se renouvellent le 1er de chaque mois.
+  const periodeRenouvellement: Periode = "mois";
+
   const [modeRemplissage, setModeRemplissage] = useState<"fixe" | "pourcentage">("fixe");
   const [pourcentageRevenu, setPourcentageRevenu] = useState("");
   const [ajustementAuto, setAjustementAuto] = useState(true);
