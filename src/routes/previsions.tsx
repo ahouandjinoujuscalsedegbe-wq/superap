@@ -144,8 +144,8 @@ function PagePrevisions() {
         />
         <div className="grid grid-cols-2 gap-2">
           <input
-            value={montant}
-            onChange={(e) => setMontant(e.target.value)}
+            value={grouperMontant(montant)}
+            onChange={(e) => setMontant(e.target.value.replace(/[^\d]/g, ""))}
             inputMode="numeric"
             placeholder="Montant FCFA"
             className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
