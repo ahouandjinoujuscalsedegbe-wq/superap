@@ -55,7 +55,7 @@ function RapportEnveloppes() {
 
   return (
     <div className="space-y-4 pb-28 pt-3">
-      <BoutonRetour />
+      <BoutonRetour to="/" label="Retour à l'accueil" />
 
       <header className="flex items-start gap-3">
         <span className="rounded-2xl bg-primary/10 p-2 text-primary">
