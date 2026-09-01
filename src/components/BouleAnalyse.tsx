@@ -19,7 +19,7 @@ const FACES = [
 ];
 
 export function BouleAnalyse() {
-  const { enveloppes, transactions } = useSuperApp();
+  const { alertes: toutesAlertes } = useCerveau();
   const [ouvert, setOuvert] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [glisse, setGlisse] = useState(false);
