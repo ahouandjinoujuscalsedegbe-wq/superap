@@ -308,7 +308,10 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
-    comptesExclus: assainirComptes(brut.comptesExclus),
+    comptesExclus: brut.comptesExclus
+      ? assainirComptes(brut.comptesExclus)
+      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+
     transferts: assainirListe(brut.transferts, assainirTransfert),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
