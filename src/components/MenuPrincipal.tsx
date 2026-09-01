@@ -14,7 +14,6 @@ import {
   Scale,
   TrendingUp,
   CalendarCheck,
-  BellRing,
   Search,
 } from "lucide-react";
 
