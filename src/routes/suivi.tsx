@@ -317,7 +317,6 @@ function PageSuivi() {
                       ))}
                     </div>
                   )}
-                  </div>
                 </div>
               )}
             </article>
