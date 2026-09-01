@@ -74,7 +74,7 @@ export function BouleAnalyse({ alertes }: { alertes: AlerteLocale[] }) {
         onClick={() => setOuvert((v) => !v)}
         aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
         aria-expanded={ouvert}
-        className="boule-levitation fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-[67] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
+        className="boule-levite fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-[67] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
       >
         <Sparkles className="h-6 w-6" aria-hidden />
         <span
