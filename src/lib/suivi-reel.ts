@@ -27,6 +27,19 @@ export type EcartEnveloppe = {
   ecart: number;
 };
 
+export type EcartCategorie = {
+  /** Catégorie de dépense (Alimentation, Transport, Loisirs...). */
+  categorie: string;
+  emoji: string;
+  prevu: number;
+  reel: number;
+  ecart: number;
+  /** Part de la catégorie dans les dépenses réelles du mois, en %. */
+  part: number;
+  /** Enveloppes rattachées à la catégorie. */
+  enveloppes: EcartEnveloppe[];
+};
+
 export type MoisSuivi = {
   mois: string;
   libelle: string;
@@ -47,6 +60,8 @@ export type MoisSuivi = {
   /** Mois encore en cours : la comparaison est partielle. */
   enCours: boolean;
   ecartsEnveloppes: EcartEnveloppe[];
+  /** Même comparaison, regroupée par catégorie de dépense. */
+  ecartsCategories: EcartCategorie[];
 };
 
 export type SuiviReel = {
@@ -59,6 +74,72 @@ export type SuiviReel = {
 };
 
 const SEUIL = 0.1;
+
+/** Icône par catégorie usuelle ; repli sur une étiquette neutre. */
+const EMOJI_CATEGORIE: Record<string, string> = {
+  alimentation: "🍚",
+  transport: "🚌",
+  loisirs: "🎉",
+  logement: "🏠",
+  factures: "🧾",
+  sante: "💊",
+  education: "🎓",
+  epargne: "🏦",
+  famille: "👪",
+  vetements: "👕",
+  communication: "📱",
+  divers: "📦",
+};
+
+function cleCategorie(nom: string): string {
+  return nom
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function emojiCategorie(nom: string): string {
+  return EMOJI_CATEGORIE[cleCategorie(nom)] ?? "🗂️";
+}
+
+/** Regroupe les écarts d'enveloppes par catégorie de dépense. */
+export function regrouperParCategorie(
+  ecarts: EcartEnveloppe[],
+  enveloppes: Enveloppe[],
+): EcartCategorie[] {
+  const categorieDe = new Map(
+    enveloppes.map((e) => [e.id, (e.categorie ?? "").trim() || "Non classé"]),
+  );
+  const groupes = new Map<string, EcartCategorie>();
+  for (const e of ecarts) {
+    const nom = categorieDe.get(e.enveloppeId) ?? "Non classé";
+    const g =
+      groupes.get(nom) ??
+      ({
+        categorie: nom,
+        emoji: emojiCategorie(nom),
+        prevu: 0,
+        reel: 0,
+        ecart: 0,
+        part: 0,
+        enveloppes: [],
+      } satisfies EcartCategorie);
+    g.prevu += e.prevu;
+    g.reel += e.reel;
+    g.ecart += e.ecart;
+    g.enveloppes.push(e);
+    groupes.set(nom, g);
+  }
+  const total = [...groupes.values()].reduce((s, g) => s + g.reel, 0);
+  return [...groupes.values()]
+    .map((g) => ({
+      ...g,
+      part: total > 0 ? Math.round((g.reel / total) * 100) : 0,
+      enveloppes: [...g.enveloppes].sort((a, b) => b.reel - a.reel),
+    }))
+    .sort((a, b) => b.reel - a.reel || Math.abs(b.ecart) - Math.abs(a.ecart));
+}
 
 function moisDe(date: string): string {
   return date.slice(0, 7);
@@ -175,6 +256,7 @@ export function suivreDepensesReelles(args: {
             : "sous",
       enCours: m === moisCourant,
       ecartsEnveloppes,
+      ecartsCategories: regrouperParCategorie(ecartsEnveloppes, args.enveloppes),
     });
   }
 
