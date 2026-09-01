@@ -443,7 +443,7 @@ function PageNotifications() {
           const el = e.currentTarget;
           setEnBas(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
-        className="fond-discussion flex-1 space-y-1.5 overflow-y-auto px-3 py-3"
+        className="fond-discussion flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 py-3"
       >
         {!prete && (
           <p className="py-8 text-center text-xs text-muted-foreground">
