@@ -30,11 +30,11 @@ export function assurerMicro(): Promise<boolean> {
       // On libère immédiatement le micro : seule l'autorisation nous intéresse.
       flux.getTracks().forEach((piste) => piste.stop());
       autorisationAccordee = true;
-      journalInfo("micro", "Autorisation micro accordée");
+      journalInfo("dictee", "Autorisation micro accordée");
       return true;
     })
     .catch((erreur) => {
-      journalAvertissement("micro", "Autorisation micro refusée", {
+      journalAvertissement("dictee", "Autorisation micro refusée", {
         nom: String((erreur as Error)?.name ?? erreur),
       });
       return false;
