@@ -7,6 +7,7 @@ import { formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
 import { DicteeOperation } from "@/components/DicteeOperation";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
   head: () => ({
@@ -38,6 +39,8 @@ function AjouterDepense() {
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [recherche, setRecherche] = useState("");
   const [panneauOuvert, setPanneauOuvert] = useState(false);
+  const [categorieChoisie, setCategorieChoisie] = useState<string | null>(null);
+  const [sousCategorieChoisie, setSousCategorieChoisie] = useState<string | null>(null);
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
@@ -200,7 +203,14 @@ function AjouterDepense() {
           <button
             type="button"
             aria-expanded={panneauOuvert}
-            onClick={() => setPanneauOuvert((v) => !v)}
+            onClick={() => {
+              setPanneauOuvert((v) => !v);
+              if (panneauOuvert) {
+                setCategorieChoisie(null);
+                setSousCategorieChoisie(null);
+                setRecherche("");
+              }
+            }}
             className="flex w-full min-w-0 items-center gap-2 rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm"
           >
             <span aria-hidden className="shrink-0 text-base">
@@ -216,9 +226,63 @@ function AjouterDepense() {
 
           {panneauOuvert && (
             <div className="space-y-3 rounded-xl border border-input bg-background/40 p-3">
+              {/* Fil d'Ariane pour revenir en arrière */}
+              {(categorieChoisie || sousCategorieChoisie) && !recherche.trim() && (
+                <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                  {categorieChoisie && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCategorieChoisie(null);
+                        setSousCategorieChoisie(null);
+                      }}
+                      className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-secondary"
+                    >
+                      {categorieChoisie}
+                    </button>
+                  )}
+                  {sousCategorieChoisie && (
+                    <>
+                      <ChevronRight className="h-3 w-3" />
+                      <button
+                        type="button"
+                        onClick={() => setSousCategorieChoisie(null)}
+                        className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-secondary"
+                      >
+                        {sousCategorieChoisie}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Bouton retour visible dès qu'on a choisi une catégorie */}
+              {categorieChoisie && !recherche.trim() && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (sousCategorieChoisie) {
+                      setSousCategorieChoisie(null);
+                    } else {
+                      setCategorieChoisie(null);
+                    }
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs font-medium text-secondary-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  {sousCategorieChoisie ? "Retour aux sous-catégories" : "Retour aux catégories"}
+                </button>
+              )}
+
               <input
                 value={recherche}
-                onChange={(ev) => setRecherche(ev.target.value)}
+                onChange={(ev) => {
+                  setRecherche(ev.target.value);
+                  if (!ev.target.value.trim()) {
+                    setCategorieChoisie(null);
+                    setSousCategorieChoisie(null);
+                  }
+                }}
                 placeholder="Rechercher une enveloppe…"
                 aria-label="Rechercher une enveloppe"
                 className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -228,58 +292,106 @@ function AjouterDepense() {
                 {arbre.length === 0 && (
                   <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
                 )}
-                {arbre.map(([categorie, sousGroupes]) => (
-                  <details
-                    key={categorie}
-                    open={
-                      !!recherche ||
-                      sousGroupes.some(([, l]) => l.some((e) => e.id === enveloppe))
-                    }
-                  >
-                    <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
-                      {categorie}
-                    </summary>
-                    <div className="mt-2 space-y-2 pl-2">
-                      {sousGroupes.map(([sous, liste]) => (
-                        <details
-                          key={sous}
-                          open={!!recherche || liste.some((e) => e.id === enveloppe)}
+
+                {/* Mode recherche : affiche directement les enveloppes filtrées */}
+                {recherche.trim() ? (
+                  <div className="grid gap-2">
+                    {arbre.flatMap(([, sousGroupes]) =>
+                      sousGroupes.flatMap(([, liste]) => liste),
+                    ).map((e) => {
+                      const actif = e.id === enveloppe;
+                      return (
+                        <button
+                          key={e.id}
+                          type="button"
+                          aria-pressed={actif}
+                          onClick={() => {
+                            setEnveloppe(e.id);
+                            setRecherche("");
+                            setCategorieChoisie(null);
+                            setSousCategorieChoisie(null);
+                            setPanneauOuvert(false);
+                          }}
+                          className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                            actif
+                              ? "border-primary bg-accent font-semibold text-accent-foreground"
+                              : "border-input bg-background/60 text-muted-foreground"
+                          }`}
                         >
-                          <summary className="cursor-pointer list-none rounded-lg border border-input px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
-                            {sous} · {liste.length}
-                          </summary>
-                          <div className="mt-2 grid gap-2 pl-2">
-                            {liste.map((e) => {
-                              const actif = e.id === enveloppe;
-                              return (
-                                <button
-                                  key={e.id}
-                                  type="button"
-                                  aria-pressed={actif}
-                                  onClick={() => {
-                                    setEnveloppe(e.id);
-                                    setRecherche("");
-                                    setPanneauOuvert(false);
-                                  }}
-                                  className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
-                                    actif
-                                      ? "border-primary bg-accent font-semibold text-accent-foreground"
-                                      : "border-input bg-background/60 text-muted-foreground"
-                                  }`}
-                                >
-                                  <span aria-hidden className="shrink-0 text-base">
-                                    {e.emoji}
-                                  </span>
-                                  <span className="truncate">{e.nom}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </details>
+                          <span aria-hidden className="shrink-0 text-base">{e.emoji}</span>
+                          <span className="truncate">{e.nom}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : !categorieChoisie ? (
+                  // Étape 1 : choix de la catégorie
+                  <div className="grid gap-2">
+                    {arbre.map(([categorie]) => (
+                      <button
+                        key={categorie}
+                        type="button"
+                        onClick={() => setCategorieChoisie(categorie)}
+                        className="flex w-full items-center justify-between rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-accent"
+                      >
+                        <span>{categorie}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    ))}
+                  </div>
+                ) : !sousCategorieChoisie ? (
+                  // Étape 2 : choix de la sous-catégorie (une seule catégorie visible)
+                  <div className="grid gap-2">
+                    {arbre
+                      .filter(([categorie]) => categorie === categorieChoisie)
+                      .flatMap(([, sousGroupes]) => sousGroupes)
+                      .map(([sous, liste]) => (
+                        <button
+                          key={sous}
+                          type="button"
+                          onClick={() => setSousCategorieChoisie(sous)}
+                          className="flex w-full items-center justify-between rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm transition-colors hover:bg-accent"
+                        >
+                          <span className="font-medium">{sous}</span>
+                          <span className="text-xs text-muted-foreground">{liste.length} enveloppe{liste.length > 1 ? "s" : ""}</span>
+                        </button>
                       ))}
-                    </div>
-                  </details>
-                ))}
+                  </div>
+                ) : (
+                  // Étape 3 : choix de l'enveloppe (une seule sous-catégorie visible)
+                  <div className="grid gap-2">
+                    {arbre
+                      .filter(([categorie]) => categorie === categorieChoisie)
+                      .flatMap(([, sousGroupes]) => sousGroupes)
+                      .filter(([sous]) => sous === sousCategorieChoisie)
+                      .flatMap(([, liste]) => liste)
+                      .map((e) => {
+                        const actif = e.id === enveloppe;
+                        return (
+                          <button
+                            key={e.id}
+                            type="button"
+                            aria-pressed={actif}
+                            onClick={() => {
+                              setEnveloppe(e.id);
+                              setRecherche("");
+                              setCategorieChoisie(null);
+                              setSousCategorieChoisie(null);
+                              setPanneauOuvert(false);
+                            }}
+                            className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                              actif
+                                ? "border-primary bg-accent font-semibold text-accent-foreground"
+                                : "border-input bg-background/60 text-muted-foreground"
+                            }`}
+                          >
+                            <span aria-hidden className="shrink-0 text-base">{e.emoji}</span>
+                            <span className="truncate">{e.nom}</span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
               </div>
             </div>
           )}
