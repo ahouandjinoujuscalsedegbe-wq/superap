@@ -197,7 +197,7 @@ export function BoutonFlottantGlobal() {
               aria-label={label}
               tabIndex={ouvert ? 0 : -1}
               onClick={() => setOuvert(false)}
-              className="absolute inset-0 flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-300 ease-out active:scale-90 active:bg-accent"
+              className="absolute inset-0 flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-300 ease-out active:scale-90 active:bg-accent"
               style={{
                 transform: ouvert
                   ? `translate(${x}px, ${y}px) scale(1)`
@@ -207,8 +207,8 @@ export function BoutonFlottantGlobal() {
                 transitionDelay: `${ouvert ? i * 45 : (ACCES.length - i) * 25}ms`,
               }}
             >
-              <Icone className="h-4 w-4 text-primary" aria-hidden />
-              <span className="text-[0.45rem] font-medium leading-none">{label}</span>
+              <Icone className="h-5 w-5 text-primary" aria-hidden />
+              <span className="text-[0.55rem] font-medium leading-none">{label}</span>
             </Link>
           );
         })}
