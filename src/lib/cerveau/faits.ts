@@ -47,7 +47,7 @@ export type FaitEnveloppe = {
   /** Aucune dépense depuis 60 jours alors qu'une dotation existe. */
   dormante: boolean;
   /** Compte qui alimente l'enveloppe. */
-  compteSource?: string;
+  compteSource?: string | undefined;
   /**
    * Enveloppe alimentée par un compte hors solde disponible : son argent est
    * réservé à un projet, une épargne ou un usage précis, pas au quotidien.
