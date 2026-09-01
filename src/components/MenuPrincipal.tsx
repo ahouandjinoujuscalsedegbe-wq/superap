@@ -13,6 +13,7 @@ import {
   RefreshCw,
   TrendingUp,
   CalendarCheck,
+  BellRing,
 } from "lucide-react";
 
 const ENTREES = [
