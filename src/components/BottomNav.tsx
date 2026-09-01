@@ -35,28 +35,25 @@ export function BottomNav() {
                   aria-label={onglet.label}
                   className="group -mt-6 flex flex-col items-center"
                 >
-                  <span
-                    key={onglet.to + (actif ? "-actif" : "-inactif")}
-                    className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-all duration-300 ${
-                      actif ? "pivot-y " : ""
-                    }${
-                      actif
-                        ? "bande-degrade"
-                        : "bg-background text-muted-foreground ring-1 ring-border active:bg-accent/60"
-                    }`}
-                  >
-                    {actif && (
-                      <span
-                        key={onglet.to + "-pastille"}
-                        className="pastille-anim bande-degrade absolute inset-0 rounded-full"
-                        aria-hidden
-                      />
-                    )}
-                    <Icone
-                      className={`boule-roule relative h-7 w-7 ${actif ? "scale-110" : ""}`}
-                      strokeWidth={actif ? 2.4 : 1.9}
+                  <span className="relative flex h-16 w-16 items-end justify-center">
+                    {/* ombre au sol : respire avec la lévitation */}
+                    <span
+                      className="boule-ombre absolute bottom-0 h-1.5 w-9 rounded-[50%] bg-foreground/50 blur-[3px]"
                       aria-hidden
                     />
+                    <span className="boule-levite absolute inset-x-0 top-0 flex justify-center">
+                      <span
+                        className={`boule-3d-tournante relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-transform duration-300 ${
+                          actif ? "scale-105 ring-2 ring-primary/40" : "group-active:scale-95"
+                        }`}
+                      >
+                        <Icone
+                          className="relative h-7 w-7 text-primary-foreground drop-shadow"
+                          strokeWidth={2.2}
+                          aria-hidden
+                        />
+                      </span>
+                    </span>
                   </span>
 
                   <span
@@ -70,6 +67,7 @@ export function BottomNav() {
               </li>
             );
           }
+
 
           return (
             <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">

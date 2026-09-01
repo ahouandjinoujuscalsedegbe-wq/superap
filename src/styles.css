@@ -611,6 +611,81 @@ textarea {
   }
 }
 
+/* ===== Bouton « Saisie intelligente » : boule 3D en lévitation, rotation perpétuelle ===== */
+@keyframes boule-levitation {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes boule-ombre-sol {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scaleX(0.66);
+    opacity: 0.16;
+  }
+}
+
+/* Défilement de la texture : donne l'illusion d'une sphère qui tourne sans fin. */
+@keyframes boule-rotation-texture {
+  from {
+    background-position: 0% 50%, 32% 26%;
+  }
+  to {
+    background-position: 200% 50%, 32% 26%;
+  }
+}
+
+@utility boule-levite {
+  animation: boule-levitation 3.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+@utility boule-ombre {
+  animation: boule-ombre-sol 3.2s ease-in-out infinite;
+}
+
+@utility boule-3d-tournante {
+  background-image:
+    repeating-linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--primary) 88%, black) 0 8%,
+      color-mix(in oklab, var(--primary) 55%, white) 12%,
+      color-mix(in oklab, var(--primary) 88%, black) 20%
+    ),
+    radial-gradient(
+      circle at 32% 26%,
+      color-mix(in oklab, white 78%, transparent) 0%,
+      transparent 42%
+    );
+  background-size: 200% 100%, 100% 100%;
+  background-blend-mode: normal, screen;
+  box-shadow:
+    inset 0 3px 6px color-mix(in oklab, white 45%, transparent),
+    inset -6px -8px 14px color-mix(in oklab, black 45%, transparent),
+    inset 6px 6px 12px color-mix(in oklab, white 18%, transparent),
+    0 10px 18px -8px color-mix(in oklab, var(--primary) 70%, transparent);
+  animation: boule-rotation-texture 4.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boule-levite,
+  .boule-ombre,
+  .boule-3d-tournante {
+    animation: none !important;
+  }
+}
+
+
+
 
 /* ===== Discussion « Mon conseiller » : rendu messagerie ===== */
 .fond-discussion {
