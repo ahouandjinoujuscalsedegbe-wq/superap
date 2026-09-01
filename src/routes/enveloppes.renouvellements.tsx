@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { CalendarClock, Percent, Wallet } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
-import { LABELS_PERIODE, prochainRenouvellement, totalVerse } from "@/lib/remplissage";
-import { PERIODES, useSuperApp, type Remplissage } from "@/lib/store";
+import { prochainRenouvellement, totalVerse } from "@/lib/remplissage";
+import { useSuperApp, type Remplissage } from "@/lib/store";
 
 export const Route = createFileRoute("/enveloppes/renouvellements")({
   head: () => ({
@@ -91,7 +91,6 @@ function Renouvellements() {
           </p>
         ) : (
           configurees.map((e) => {
-            const periode = e.periodeRenouvellement;
             const pourcentage = e.modeRemplissage === "pourcentage";
             const prochaine = prochainRenouvellement(e);
             const verse = totalVerse(e.id, remplissages);
@@ -136,7 +135,7 @@ function Renouvellements() {
                         ? formatFCFA(Math.round((revenusSource * (e.pourcentageRevenu ?? 0)) / 100))
                         : prochaine
                           ? jourLisible(prochaine)
-                          : "Aucune date choisie"}
+                          : "Le 1er du mois prochain"}
                     </dd>
                   </div>
                   <div>
