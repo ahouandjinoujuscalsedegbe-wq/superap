@@ -6,8 +6,10 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Square,
   ThumbsDown,
   ThumbsUp,
+  Volume2,
   Wallet,
 } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
