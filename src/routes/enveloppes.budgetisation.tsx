@@ -135,6 +135,7 @@ function Budgetisation() {
   const [demande, setDemande] = useState<Demande>(null);
 
   const [popupOuvert, setPopupOuvert] = useState(false);
+  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">("plan");
   const [ouverte, setOuverte] = useState<string | null>(null);
   const [calendrierOuvert, setCalendrierOuvert] = useState(false);
 
