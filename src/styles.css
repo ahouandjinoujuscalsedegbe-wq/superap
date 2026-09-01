@@ -575,3 +575,32 @@ textarea {
   }
 }
 
+
+/* ===== Discussion « Mon conseiller » : rendu messagerie ===== */
+.fond-discussion {
+  background-color: color-mix(in oklab, var(--muted) 55%, var(--background));
+  background-image:
+    radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--primary) 8%, transparent) 0 6px, transparent 7px),
+    radial-gradient(circle at 62% 42%, color-mix(in oklab, var(--success) 7%, transparent) 0 5px, transparent 6px),
+    radial-gradient(circle at 34% 78%, color-mix(in oklab, var(--accent) 9%, transparent) 0 7px, transparent 8px);
+  background-size: 140px 140px, 180px 180px, 160px 160px;
+}
+
+.bulle-coach {
+  background-color: var(--card);
+  border-bottom-left-radius: 0.25rem;
+}
+.bulle-moi {
+  background-color: color-mix(in oklab, var(--primary) 22%, var(--card));
+  border-bottom-right-radius: 0.25rem;
+}
+
+.point-ecrit {
+  animation: point-ecrit 1.2s infinite ease-in-out;
+}
+.point-ecrit:nth-child(2) { animation-delay: 0.15s; }
+.point-ecrit:nth-child(3) { animation-delay: 0.3s; }
+@keyframes point-ecrit {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
