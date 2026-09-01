@@ -83,6 +83,7 @@ function PageNotifications() {
   const [prete, setPrete] = useState(false);
   const [question, setQuestion] = useState("");
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [lecture, setLecture] = useState<string | null>(null);
   const bas = useRef<HTMLDivElement>(null);
   const champ = useRef<HTMLInputElement>(null);
   const memoireRef = useRef(memoire);
