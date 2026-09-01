@@ -19,11 +19,13 @@ import {
   ThumbsUp,
   Trash2,
   Volume2,
+  Wallet,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { PanneauConseiller } from "@/components/PanneauConseiller";
+import { SelecteurEnveloppes } from "@/components/SelecteurEnveloppes";
 import { useSuperApp } from "@/lib/store";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
@@ -105,6 +107,7 @@ function PageNotifications() {
   const [rapides, setRapides] = useState(false);
   const [vocal, setVocal] = useState(false);
   const [enBas, setEnBas] = useState(true);
+  const [selecteur, setSelecteur] = useState(false);
 
   const bas = useRef<HTMLDivElement>(null);
   const fil = useRef<HTMLDivElement>(null);
@@ -729,6 +732,14 @@ function PageNotifications() {
             envoyer(question);
           }}
         >
+          <button
+            type="button"
+            onClick={() => setSelecteur(true)}
+            aria-label="Conseiller par enveloppe"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-card text-primary shadow-sm active:scale-95"
+          >
+            <Wallet className="h-5 w-5" aria-hidden />
+          </button>
           <div className="flex min-w-0 flex-1 items-center gap-1 rounded-full border border-border bg-background px-2">
             <button
               type="button"
@@ -784,10 +795,14 @@ function PageNotifications() {
         mensuel={mensuel}
         saison={saison}
         projection={projection}
-        bilans={bilans}
-        memoire={memoire}
         lecture={lecture}
         onLire={lire}
+      />
+
+      <SelecteurEnveloppes
+        ouvert={selecteur}
+        onFermer={() => setSelecteur(false)}
+        bilans={bilans}
         onDemander={envoyer}
       />
     </div>

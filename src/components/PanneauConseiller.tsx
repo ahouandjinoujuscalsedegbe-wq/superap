@@ -1,9 +1,6 @@
-import { useState } from "react";
-import { CalendarRange, ChevronDown, LineChart, Sun, Volume2, Square, Wallet, X } from "lucide-react";
+import { CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
 import { vocalisationDisponible } from "@/lib/vocalisation";
-import type { BilanEnveloppe } from "@/lib/coach-enveloppe";
-import type { BilanMensuel, MemoireCoach } from "@/lib/coach";
-import { poidsEnveloppeDe, texteBilanMensuel } from "@/lib/coach";
+import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
   texteBilanSaisonnier,
   texteProjection,
@@ -25,24 +22,17 @@ export function PanneauConseiller({
   mensuel,
   saison,
   projection,
-  bilans,
-  memoire,
   lecture,
   onLire,
-  onDemander,
 }: {
   ouvert: boolean;
   onFermer: () => void;
   mensuel: BilanMensuel;
   saison: BilanSaisonnier;
   projection: MoisProjete[];
-  bilans: BilanEnveloppe[];
-  memoire: MemoireCoach;
   lecture: string | null;
   onLire: (cle: string, texte: string) => void;
-  onDemander: (question: string) => void;
 }) {
-  const [enveloppeOuverte, setEnveloppeOuverte] = useState<string | null>(null);
   if (!ouvert) return null;
 
   const boutonLecture = (cle: string, texte: string, label: string) =>
@@ -181,86 +171,6 @@ export function PanneauConseiller({
             </ul>
           </section>
 
-          {bilans.length > 0 && (
-            <section className="space-y-2">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                <Wallet className="h-4 w-4 text-primary" aria-hidden />
-                Conseiller par enveloppe
-              </h3>
-              {bilans.map((b) => {
-                const ouvertEnv = enveloppeOuverte === b.enveloppe.id;
-                const interet = poidsEnveloppeDe(memoire, b.enveloppe.id);
-                return (
-                  <article key={b.enveloppe.id} className="carte overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setEnveloppeOuverte(ouvertEnv ? null : b.enveloppe.id)}
-                      aria-expanded={ouvertEnv}
-                      className="flex w-full items-center gap-3 p-3 text-left"
-                    >
-                      <span aria-hidden className="text-lg">
-                        {b.enveloppe.emoji}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{b.enveloppe.nom}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{b.resume}</span>
-                      </span>
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-semibold ${
-                          b.score >= 70
-                            ? "bg-success/15 text-success"
-                            : b.score >= 40
-                              ? "bg-accent/30 text-foreground"
-                              : "bg-destructive/15 text-destructive"
-                        }`}
-                      >
-                        {b.score}/100
-                      </span>
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-                          ouvertEnv ? "rotate-180" : ""
-                        }`}
-                        aria-hidden
-                      />
-                    </button>
-                    {ouvertEnv && (
-                      <div className="space-y-2 border-t border-border/60 p-3 text-xs">
-                        <ul className="space-y-1 text-muted-foreground">
-                          <li>• Dépensé sur 30 jours : {fcfa(b.depense30)}</li>
-                          <li>
-                            • Mois précédent : {fcfa(b.depense30Avant)}
-                            {b.tendance !== 0 &&
-                              ` (${b.tendance > 0 ? "+" : ""}${Math.round(b.tendance)} %)`}
-                          </li>
-                          <li>• Rythme observé : {fcfa(b.rythmeJour)} par jour</li>
-                          <li>• Opérations analysées : {b.operations}</li>
-                        </ul>
-                        {b.conseils.map((c) => (
-                          <div key={c.id} className="rounded-xl bg-muted/50 p-2">
-                            <p className="font-medium text-foreground">{c.texte}</p>
-                            <p className="mt-1 text-muted-foreground">À faire : {c.action}</p>
-                          </div>
-                        ))}
-                        <p className="text-[0.7rem] text-muted-foreground">
-                          Intérêt appris pour cette enveloppe : {Math.round(interet * 100)} %
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onDemander(`Où en est mon enveloppe ${b.enveloppe.nom} ?`);
-                            onFermer();
-                          }}
-                          className="rounded-full border border-input px-3 py-1.5 text-[0.7rem]"
-                        >
-                          En parler dans la discussion
-                        </button>
-                      </div>
-                    )}
-                  </article>
-                );
-              })}
-            </section>
-          )}
         </div>
       </div>
     </div>
