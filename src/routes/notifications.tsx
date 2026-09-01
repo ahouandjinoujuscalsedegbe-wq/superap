@@ -6,8 +6,10 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Square,
   ThumbsDown,
   ThumbsUp,
+  Volume2,
   Wallet,
 } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
@@ -15,6 +17,7 @@ import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { useSuperApp } from "@/lib/store";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
+import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
 import {
   apprendreAvis,
   apprendreQuestion,
@@ -81,6 +84,7 @@ function PageNotifications() {
   const [prete, setPrete] = useState(false);
   const [question, setQuestion] = useState("");
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [lecture, setLecture] = useState<string | null>(null);
   const bas = useRef<HTMLDivElement>(null);
   const champ = useRef<HTMLInputElement>(null);
   const memoireRef = useRef(memoire);
@@ -194,6 +198,32 @@ function PageNotifications() {
     enregistrer(apprendreAvis(memoireRef.current, id, avis));
   };
 
+  /* Lecture à voix haute : un message précis, ou tout le point du jour. */
+  const lire = (cle: string, texte: string) => {
+    if (lecture === cle) {
+      arreterLecture();
+      setLecture(null);
+      return;
+    }
+    arreterLecture();
+    setLecture(cle);
+    lireAVoixHaute(texte, {
+      onFin: () => setLecture(null),
+      onErreur: () => setLecture(null),
+    });
+  };
+
+  const texteMessage = (m: { texte: string; details?: string[] }) =>
+    [m.texte, ...(m.details ?? [])].join(". ");
+
+  const messagesDuCoachAujourdhui = memoire.messages.filter(
+    (m) =>
+      m.auteur === "coach" &&
+      new Date(m.date).toDateString() === new Date().toDateString(),
+  );
+  const texteDuJour = messagesDuCoachAujourdhui.map(texteMessage).join(". ");
+
+
   const themesAppris = Object.entries(memoire.poids)
     .filter(([, p]) => p !== 1)
     .sort((a, b) => b[1] - a[1])
@@ -216,6 +246,23 @@ function PageNotifications() {
           Messages, réponses et historique chiffrés sur votre téléphone, sans connexion.
         </p>
       </header>
+
+      {vocalisationDisponible() && texteDuJour.length > 0 && (
+        <button
+          type="button"
+          onClick={() => lire("jour", texteDuJour)}
+          className="carte flex w-full items-center justify-center gap-2 p-3 text-sm font-semibold text-primary"
+        >
+          {lecture === "jour" ? (
+            <Square className="h-4 w-4" aria-hidden />
+          ) : (
+            <Volume2 className="h-4 w-4" aria-hidden />
+          )}
+          {lecture === "jour"
+            ? "Arrêter la lecture"
+            : "Écouter le bilan et les conseils du jour"}
+        </button>
+      )}
 
       <DiscussionVocaleCoach onQuestion={traiterQuestion} />
 
@@ -373,6 +420,26 @@ function PageNotifications() {
                   </span>
                   {duCoach && (
                     <span className="flex items-center gap-1">
+                      {vocalisationDisponible() && (
+                        <button
+                          type="button"
+                          onClick={() => lire(m.id, texteMessage(m))}
+                          aria-label={
+                            lecture === m.id
+                              ? "Arrêter la lecture"
+                              : "Écouter ce message"
+                          }
+                          className={`rounded-full p-1.5 transition-colors ${
+                            lecture === m.id ? "bg-primary/15 text-primary" : "text-muted-foreground"
+                          }`}
+                        >
+                          {lecture === m.id ? (
+                            <Square className="h-3.5 w-3.5" aria-hidden />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" aria-hidden />
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => noter(m.id, "utile")}

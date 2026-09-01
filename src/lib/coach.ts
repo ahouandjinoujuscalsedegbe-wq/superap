@@ -11,6 +11,7 @@ import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
+import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 
 export const CLE_COACH = "super-app-coach";
@@ -256,6 +257,91 @@ function empreinte(texte: string): string {
   return texte.slice(0, 80).toLowerCase();
 }
 
+export type LigneEnveloppeBilan = {
+  nom: string;
+  dotation: number;
+  utilise: number;
+  restant: number;
+  manque: number;
+  pourcentage: number;
+};
+
+export type BilanMensuel = {
+  revenus: number;
+  depenses: number;
+  solde: number;
+  /** Écart de dépenses avec le mois précédent (positif = hausse). */
+  ecart: number;
+  ecartPct: number;
+  rythmeJour: number;
+  projection: number;
+  epuisees: LigneEnveloppeBilan[];
+  surplus: LigneEnveloppeBilan[];
+};
+
+/** Calcule le bilan chiffré du mois en cours à partir des données réelles. */
+export function bilanMensuel(
+  donnees: DonneesCoach,
+  maintenant = new Date(),
+): BilanMensuel {
+  const an = maintenant.getFullYear();
+  const mo = maintenant.getMonth();
+  const dansMois = (iso: string, decalage: number) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return false;
+    const ref = new Date(an, mo - decalage, 1);
+    return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth();
+  };
+  const somme = (decalage: number, type: "revenu" | "depense") =>
+    donnees.transactions
+      .filter((t) => t.type === type && dansMois(t.date, decalage))
+      .reduce((s, t) => s + Math.abs(t.montant), 0);
+
+  const revenus = somme(0, "revenu");
+  const depenses = somme(0, "depense");
+  const depensesVeille = somme(1, "depense");
+  const ecart = depenses - depensesVeille;
+  const ecartPct =
+    depensesVeille > 0 ? Math.round((ecart / depensesVeille) * 100) : 0;
+
+  const jour = Math.max(1, maintenant.getDate());
+  const joursMois = new Date(an, mo + 1, 0).getDate();
+  const rythmeJour = Math.round(depenses / jour);
+  const projection = rythmeJour * joursMois;
+
+  const epuisees: LigneEnveloppeBilan[] = [];
+  const surplus: LigneEnveloppeBilan[] = [];
+  for (const e of donnees.enveloppes) {
+    const utilise = donnees.depensesParEnveloppe[e.id] ?? 0;
+    const etat = etatEnveloppe(e, utilise);
+    const ligne: LigneEnveloppeBilan = {
+      nom: e.nom,
+      dotation: etat.dotation,
+      utilise: etat.utilise,
+      restant: etat.restant,
+      manque: Math.max(0, etat.utilise - etat.dotation) || Math.round(etat.dotation * 0.2),
+      pourcentage: Math.round(etat.pourcentage),
+    };
+    if (etat.epuisee) epuisees.push(ligne);
+    else if (etat.dotation > 0 && etat.restant / etat.dotation >= 0.6)
+      surplus.push(ligne);
+  }
+  epuisees.sort((a, b) => b.manque - a.manque);
+  surplus.sort((a, b) => b.restant - a.restant);
+
+  return {
+    revenus,
+    depenses,
+    solde: revenus - depenses,
+    ecart,
+    ecartPct,
+    rythmeJour,
+    projection,
+    epuisees: epuisees.slice(0, 5),
+    surplus: surplus.slice(0, 5),
+  };
+}
+
 /**
  * Produit les messages du conseiller pour aujourd'hui.
  * Les thèmes rejetés (poids < 0,4) sont écartés, les thèmes appréciés passent
@@ -310,6 +396,70 @@ export function messagesDuJour(
     date: horodater(0),
     lu: false,
   });
+
+  /* Bilan du mois en cours, comparé au mois précédent : chiffres réels. */
+  const mois = bilanMensuel(donnees, maintenant);
+  sortie.push({
+    id: id(),
+    auteur: "coach",
+    texte:
+      `Bilan du mois : ${fcfa(mois.revenus)} encaissés, ${fcfa(mois.depenses)} dépensés, ` +
+      `soit un solde de ${fcfa(mois.solde)}. ` +
+      (mois.ecart === 0
+        ? "Vos dépenses sont au même niveau que le mois dernier."
+        : mois.ecart > 0
+          ? `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de plus que le mois dernier (${mois.ecartPct} %).`
+          : `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de moins que le mois dernier (${mois.ecartPct} %). Bravo.`),
+    details: [
+      `Revenus du mois : ${fcfa(mois.revenus)}`,
+      `Dépenses du mois : ${fcfa(mois.depenses)}`,
+      `Solde du mois : ${fcfa(mois.solde)}`,
+      `Rythme actuel : ${fcfa(mois.rythmeJour)} par jour · projection fin de mois ${fcfa(mois.projection)}`,
+    ],
+    categorie: "bilan",
+    date: horodater(0),
+    lu: false,
+  });
+
+  /* Enveloppes épuisées : alarme chiffrée. */
+  if (mois.epuisees.length > 0) {
+    const total = mois.epuisees.reduce((s, e) => s + e.manque, 0);
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte:
+        `Alarme : ${mois.epuisees.length} enveloppe(s) épuisée(s) — ` +
+        mois.epuisees.map((e) => e.nom).join(", ") +
+        `. Il faudrait ${fcfa(total)} pour les remettre à flot.`,
+      details: mois.epuisees.map(
+        (e) => `${e.nom} : dépensé ${fcfa(e.utilise)} sur ${fcfa(e.dotation)} · manque ${fcfa(e.manque)}`,
+      ),
+      categorie: "enveloppe",
+      date: horodater(0),
+      lu: false,
+    });
+  }
+
+  /* Enveloppes en surplus : source de financement chiffrée. */
+  if (mois.surplus.length > 0) {
+    const dispo = mois.surplus.reduce((s, e) => s + e.restant, 0);
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte:
+        `${mois.surplus.length} enveloppe(s) en surplus totalisent ${fcfa(dispo)} inutilisés. ` +
+        (mois.epuisees.length > 0
+          ? `Transférez-en une partie vers ${mois.epuisees[0]!.nom}.`
+          : "Vous pouvez les basculer vers l'épargne."),
+      details: mois.surplus.map(
+        (e) => `${e.nom} : ${fcfa(e.restant)} restants sur ${fcfa(e.dotation)} (${e.pourcentage} % utilisés)`,
+      ),
+      categorie: "enveloppe",
+      date: horodater(0),
+      lu: false,
+    });
+  }
+
 
   /* Conseils du jour, triés par intérêt appris puis par gain. */
   const classees = recos
