@@ -36,9 +36,36 @@ function AjouterDepense() {
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
-  const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
+  const [recherche, setRecherche] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
+
+  const enveloppeChoisie = useMemo(
+    () => enveloppes.find((e) => e.id === enveloppe),
+    [enveloppes, enveloppe],
+  );
+
+  // Le compte est déduit de l'enveloppe : chaque enveloppe est rattachée à un compte source.
+  const compte =
+    enveloppeChoisie?.compteSource && comptes.includes(enveloppeChoisie.compteSource)
+      ? enveloppeChoisie.compteSource
+      : (comptes[0] ?? COMPTES[0]);
+
+  // Regroupement par catégorie + recherche : liste lisible même avec beaucoup d'enveloppes.
+  const groupes = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
+    const filtrees = q
+      ? enveloppes.filter((e) =>
+          `${e.nom} ${e.categorie ?? ""} ${e.sousCategorie ?? ""}`.toLowerCase().includes(q),
+        )
+      : enveloppes;
+    const map = new Map<string, typeof enveloppes>();
+    for (const e of filtrees) {
+      const cle = e.categorie?.trim() || "Sans catégorie";
+      map.set(cle, [...(map.get(cle) ?? []), e]);
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"));
+  }, [enveloppes, recherche]);
 
   // Opérations répétées repérées localement : ressaisie en un seul appui.
   const favoris = useMemo(
@@ -47,6 +74,7 @@ function AjouterDepense() {
   );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
+
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
