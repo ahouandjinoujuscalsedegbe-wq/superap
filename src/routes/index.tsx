@@ -4,6 +4,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarCheck,
+  CalendarDays,
   FileText,
   HandCoins,
   Layers,
@@ -95,6 +96,15 @@ function Accueil() {
         >
           <HandCoins className="h-5 w-5 shrink-0" aria-hidden />
           <span className="truncate">Dettes & Créances</span>
+        </Link>
+
+        <Link
+          to="/rapport-enveloppes"
+          aria-label="Utilisation quotidienne des enveloppes"
+          title="Utilisation quotidienne des enveloppes"
+          className="flex shrink-0 items-center justify-center rounded-full border border-border bg-card p-2 text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
+        >
+          <CalendarDays className="h-5 w-5" aria-hidden />
         </Link>
       </header>
 
