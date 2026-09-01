@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
+import { useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
