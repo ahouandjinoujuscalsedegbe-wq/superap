@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { PanneauConseiller } from "@/components/PanneauConseiller";
+import { SelecteurEnveloppes } from "@/components/SelecteurEnveloppes";
 import { useSuperApp } from "@/lib/store";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
