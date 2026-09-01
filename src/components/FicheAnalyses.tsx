@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
+import { useCerveau } from "@/lib/cerveau/hook";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
 import { Link } from "@tanstack/react-router";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
-  alertesEnveloppes,
   comparerCategories,
-  detecterAnomalies,
   diagnostiquer,
   filtrerFenetre,
   filtrerFenetrePrecedente,
@@ -46,8 +45,19 @@ const COULEUR_NIVEAU = {
 
 const ICONE_NIVEAU = { alerte: "🚨", attention: "⚠️", bon: "✅" } as const;
 
+/** Habillage des constats du cerveau local (alerte, attention, info, bravo). */
+const COULEUR_CONSTAT = {
+  alerte: "border-destructive/40 bg-destructive/10",
+  attention: "border-primary/40 bg-primary/10",
+  info: "border-border bg-muted/40",
+  bravo: "border-success/40 bg-success/10",
+} as const;
+
+const ICONE_CONSTAT = { alerte: "🚨", attention: "⚠️", info: "💡", bravo: "✅" } as const;
+
 export function FicheAnalyses() {
   const { transactions, enveloppes, depensesParEnveloppe, dettes, budgets, solde } = useSuperApp();
+  const cerveau = useCerveau();
   const [fenetre, setFenetre] = useState<Fenetre>("mois");
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
@@ -99,11 +109,35 @@ export function FicheAnalyses() {
     () => prevuContreReel(budgets, transactions, enveloppes),
     [budgets, transactions, enveloppes],
   );
-  const anomalies = useMemo(() => detecterAnomalies(periode, enveloppes), [periode, enveloppes]);
-  const alertes = useMemo(
-    () => alertesEnveloppes(enveloppes, depensesParEnveloppe, transactions),
-    [enveloppes, depensesParEnveloppe, transactions],
+  // Anomalies et enveloppes à surveiller : fournies par le noyau unique
+  // (src/lib/cerveau) pour que tous les écrans annoncent les mêmes chiffres.
+  const anomalies = useMemo(
+    () =>
+      cerveau.faits.inhabituelles.slice(0, 5).map((a) => ({
+        transaction: a.transaction,
+        enveloppe:
+          enveloppes.find((e) => e.id === a.transaction.categorie) !== undefined
+            ? `${enveloppes.find((e) => e.id === a.transaction.categorie)?.emoji} ${enveloppes.find((e) => e.id === a.transaction.categorie)?.nom}`
+            : a.transaction.categorie,
+        moyenne: a.habituel,
+        facteur: a.facteur,
+      })),
+    [cerveau, enveloppes],
   );
+  const alertes = useMemo(
+    () =>
+      cerveau.faits.enveloppes
+        .filter(
+          (e) =>
+            e.plafondAtteint ||
+            e.pourcentage >= 70 ||
+            (e.joursAvantEpuisement !== null && e.joursAvantEpuisement <= 15),
+        )
+        .sort((a, b) => b.pourcentage - a.pourcentage)
+        .map((e) => ({ ...e, joursRestants: e.joursAvantEpuisement })),
+    [cerveau],
+  );
+
 
   const douzeMois = useMemo(() => comparaisonMensuelle(transactions, 12), [transactions]);
   const joursSemaine = useMemo(() => analyseJoursSemaine(periode), [periode]);
@@ -808,15 +842,26 @@ export function FicheAnalyses() {
 
       <section className="space-y-2">
         <h2 className="px-1 font-semibold">Conseils personnalisés</h2>
-        {diagnostic.conseils.map((c) => (
-          <article key={c.id} className={`rounded-xl border p-3 ${COULEUR_NIVEAU[c.niveau]}`}>
+        {cerveau.constats.map((c) => (
+          <article key={c.id} className={`rounded-xl border p-3 ${COULEUR_CONSTAT[c.gravite]}`}>
             <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <span aria-hidden>{ICONE_NIVEAU[c.niveau]}</span>
+              <span aria-hidden>{ICONE_CONSTAT[c.gravite]}</span>
               {c.titre}
             </h3>
-            <p className="mt-1 text-sm text-muted-foreground">{c.texte}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{c.detail}</p>
+            {c.confiance < 0.5 && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Lecture à confirmer : encore peu d'historique.
+              </p>
+            )}
           </article>
         ))}
+        {cerveau.constats.length === 0 && (
+          <p className="px-1 text-sm text-muted-foreground">
+            Rien à signaler pour le moment : continuez à enregistrer vos opérations.
+          </p>
+        )}
+
       </section>
 
       <div className="space-y-2">

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
+import { Brain, CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
 import { FicheAnalyses } from "@/components/FicheAnalyses";
 import { FicheOutils } from "@/components/FicheOutils";
 import { vocalisationDisponible } from "@/lib/vocalisation";
+import { useCerveau } from "@/lib/cerveau/hook";
+import { enTexteVocal } from "@/lib/cerveau";
 import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
   texteBilanSaisonnier,
@@ -10,6 +12,9 @@ import {
   type BilanSaisonnier,
   type MoisProjete,
 } from "@/lib/saison";
+
+/** Pastille de gravité des constats du cerveau local. */
+const PUCE_CONSTAT = { alerte: "🚨", attention: "⚠️", info: "💡", bravo: "✅" } as const;
 
 function fcfa(montant: number): string {
   return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
@@ -37,6 +42,7 @@ export function PanneauConseiller({
   onLire: (cle: string, texte: string) => void;
 }) {
   const [onglet, setOnglet] = useState<"bilan" | "analyses" | "outils">("bilan");
+  const cerveau = useCerveau();
 
   if (!ouvert) return null;
 
@@ -135,6 +141,38 @@ export function PanneauConseiller({
               </div>
             </dl>
           </section>
+
+          <section className="carte space-y-2 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Brain className="h-4 w-4 text-primary" aria-hidden />
+                Ce que je constate
+              </h3>
+              {boutonLecture(
+                "constats",
+                cerveau.constats.slice(0, 5).map(enTexteVocal).join(" ") || cerveau.resume,
+                "Écouter les constats",
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">{cerveau.resume}</p>
+            {cerveau.constats.length > 0 ? (
+              <ul className="space-y-1.5 text-xs">
+                {cerveau.constats.slice(0, 6).map((c) => (
+                  <li key={c.id} className="rounded-lg border border-border/70 p-2">
+                    <p className="font-semibold">
+                      <span aria-hidden>{PUCE_CONSTAT[c.gravite]}</span> {c.titre}
+                    </p>
+                    <p className="text-muted-foreground">{c.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Rien d'anormal détecté pour l'instant.
+              </p>
+            )}
+          </section>
+
 
           <section className="carte space-y-2 p-3">
             <div className="flex items-center justify-between gap-2">

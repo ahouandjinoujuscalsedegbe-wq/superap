@@ -6,8 +6,18 @@ import {
   rapportEnTexte,
   type RapportMensuel,
 } from "@/lib/rapport-mensuel";
+import { useCerveau } from "@/lib/cerveau/hook";
 
 export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
+  const cerveau = useCerveau();
+  // Pour le mois en cours, les conseils viennent du noyau unique afin qu'ils
+  // soient identiques à ceux du conseiller ; les mois passés gardent le bilan
+  // figé calculé au moment du rapport.
+  const moisEnCours = rapport.mois === cerveau.faits.moisCourant.mois;
+  const conseils = moisEnCours
+    ? cerveau.constats.slice(0, 6).map((c) => `${c.titre} — ${c.detail}`)
+    : rapport.conseils;
+
   const partager = async () => {
     const texte = rapportEnTexte(rapport);
     try {
@@ -182,11 +192,11 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
         </section>
       )}
 
-      {rapport.conseils.length > 0 && (
+      {conseils.length > 0 && (
         <section className="carte space-y-2 p-4">
           <h2 className="text-sm font-semibold">Conseils</h2>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
-            {rapport.conseils.map((c, i) => (
+            {conseils.map((c, i) => (
               <li key={i} className="rounded-lg bg-muted/50 px-3 py-2">
                 {c}
               </li>
@@ -194,6 +204,7 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
           </ul>
         </section>
       )}
+
     </div>
   );
 }
