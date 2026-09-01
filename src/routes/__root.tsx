@@ -163,6 +163,9 @@ function RootComponent() {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   }, [pathname]);
 
+  // Plein écran pour les conversations immersives (coach, discussion vocale).
+  const pleinEcran = pathname === "/notifications";
+
   return (
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
@@ -177,7 +180,7 @@ function RootComponent() {
           <EcheancesAuto />
           <RemplissageAuto />
           <MenuPrincipal />
-          <BottomNav />
+          {!pleinEcran && <BottomNav />}
           <ClavierInterne />
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
@@ -186,7 +189,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
-          <BoutonFlottantGlobal />
+          {!pleinEcran && <BoutonFlottantGlobal />}
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
