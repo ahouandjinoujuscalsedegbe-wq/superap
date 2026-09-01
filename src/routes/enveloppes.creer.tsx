@@ -264,12 +264,8 @@ function CreerEnveloppePage() {
       );
       return;
     }
-    if (modeRemplissage === "fixe" && !dateRenouvellement) {
-      setErreur(
-        "Précisez la date du premier renouvellement automatique de cette enveloppe.",
-      );
-      return;
-    }
+    // Le renouvellement a lieu le 1er de chaque mois : aucune date à saisir.
+
     setConfirmation({
       nom: nom.trim(),
       emoji: emoji.trim() || "💡",
