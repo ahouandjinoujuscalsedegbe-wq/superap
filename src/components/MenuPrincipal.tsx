@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 
 const ENTREES = [
-  { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
