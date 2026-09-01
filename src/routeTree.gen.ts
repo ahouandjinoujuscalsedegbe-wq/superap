@@ -56,6 +56,7 @@ import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mi
 import { Route as ParametresProfilRouteImport } from './routes/parametres.profil'
 import { Route as ParametresSecuriteRouteImport } from './routes/parametres.securite'
 import { Route as RapportIndexRouteImport } from './routes/rapport.index'
+import { Route as RapportMoisRouteImport } from './routes/rapport.$mois'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -296,6 +297,11 @@ const RapportIndexRoute = RapportIndexRouteImport.update({
   path: '/rapport/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RapportMoisRoute = RapportMoisRouteImport.update({
+  id: '/rapport/$mois',
+  path: '/rapport/$mois',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -357,6 +363,7 @@ export interface FileRoutesByFullPath {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -405,6 +412,7 @@ export interface FileRoutesByTo {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
@@ -458,6 +466,7 @@ export interface FileRoutesById {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -560,6 +570,7 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes'
     | '/enveloppes'
     | '/parametres'
@@ -612,6 +623,7 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -644,6 +656,7 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
 }
 
@@ -978,6 +991,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RapportIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rapport/$mois': {
+      id: '/rapport/$mois'
+      path: '/rapport/$mois'
+      fullPath: '/rapport/$mois'
+      preLoaderRoute: typeof RapportMoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -1117,6 +1137,7 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
+  RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
 }
 export const routeTree = rootRouteImport
