@@ -1,6 +1,7 @@
 import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { resteDu } from "./store";
 import { etatEnveloppe } from "./enveloppe-etat";
+import { calculerFaits } from "./cerveau/faits";
 
 /** Fenêtres d'analyse proposées à l'utilisateur. */
 export type Fenetre = "mois" | "trimestre" | "annee" | "tout";
