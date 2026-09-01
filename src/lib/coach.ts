@@ -311,6 +311,70 @@ export function messagesDuJour(
     lu: false,
   });
 
+  /* Bilan du mois en cours, comparé au mois précédent : chiffres réels. */
+  const mois = bilanMensuel(donnees, maintenant);
+  sortie.push({
+    id: id(),
+    auteur: "coach",
+    texte:
+      `Bilan du mois : ${fcfa(mois.revenus)} encaissés, ${fcfa(mois.depenses)} dépensés, ` +
+      `soit un solde de ${fcfa(mois.solde)}. ` +
+      (mois.ecart === 0
+        ? "Vos dépenses sont au même niveau que le mois dernier."
+        : mois.ecart > 0
+          ? `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de plus que le mois dernier (${mois.ecartPct} %).`
+          : `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de moins que le mois dernier (${mois.ecartPct} %). Bravo.`),
+    details: [
+      `Revenus du mois : ${fcfa(mois.revenus)}`,
+      `Dépenses du mois : ${fcfa(mois.depenses)}`,
+      `Solde du mois : ${fcfa(mois.solde)}`,
+      `Rythme actuel : ${fcfa(mois.rythmeJour)} par jour · projection fin de mois ${fcfa(mois.projection)}`,
+    ],
+    categorie: "bilan",
+    date: horodater(0),
+    lu: false,
+  });
+
+  /* Enveloppes épuisées : alarme chiffrée. */
+  if (mois.epuisees.length > 0) {
+    const total = mois.epuisees.reduce((s, e) => s + e.manque, 0);
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte:
+        `Alarme : ${mois.epuisees.length} enveloppe(s) épuisée(s) — ` +
+        mois.epuisees.map((e) => e.nom).join(", ") +
+        `. Il faudrait ${fcfa(total)} pour les remettre à flot.`,
+      details: mois.epuisees.map(
+        (e) => `${e.nom} : dépensé ${fcfa(e.utilise)} sur ${fcfa(e.dotation)} · manque ${fcfa(e.manque)}`,
+      ),
+      categorie: "enveloppe",
+      date: horodater(0),
+      lu: false,
+    });
+  }
+
+  /* Enveloppes en surplus : source de financement chiffrée. */
+  if (mois.surplus.length > 0) {
+    const dispo = mois.surplus.reduce((s, e) => s + e.restant, 0);
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte:
+        `${mois.surplus.length} enveloppe(s) en surplus totalisent ${fcfa(dispo)} inutilisés. ` +
+        (mois.epuisees.length > 0
+          ? `Transférez-en une partie vers ${mois.epuisees[0]!.nom}.`
+          : "Vous pouvez les basculer vers l'épargne."),
+      details: mois.surplus.map(
+        (e) => `${e.nom} : ${fcfa(e.restant)} restants sur ${fcfa(e.dotation)} (${e.pourcentage} % utilisés)`,
+      ),
+      categorie: "enveloppe",
+      date: horodater(0),
+      lu: false,
+    });
+  }
+
+
   /* Conseils du jour, triés par intérêt appris puis par gain. */
   const classees = recos
     .filter((r) => poidsDe(memoire, r.categorie) >= 0.4)
