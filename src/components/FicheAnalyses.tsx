@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
+import { useCerveau } from "@/lib/cerveau/hook";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
 import { Link } from "@tanstack/react-router";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
-  alertesEnveloppes,
   comparerCategories,
-  detecterAnomalies,
   diagnostiquer,
   filtrerFenetre,
   filtrerFenetrePrecedente,
@@ -48,6 +47,7 @@ const ICONE_NIVEAU = { alerte: "🚨", attention: "⚠️", bon: "✅" } as cons
 
 export function FicheAnalyses() {
   const { transactions, enveloppes, depensesParEnveloppe, dettes, budgets, solde } = useSuperApp();
+  const cerveau = useCerveau();
   const [fenetre, setFenetre] = useState<Fenetre>("mois");
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
