@@ -30,6 +30,7 @@ import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
+import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
@@ -161,6 +162,11 @@ const SaisieRoute = SaisieRouteImport.update({
 const SauvegardeRoute = SauvegardeRouteImport.update({
   id: '/sauvegarde',
   path: '/sauvegarde',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuiviRoute = SuiviRouteImport.update({
+  id: '/suivi',
+  path: '/suivi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SynchronisationRoute = SynchronisationRouteImport.update({
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
+  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
+  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
+  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
+    | '/suivi'
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
+    | '/suivi'
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
+    | '/suivi'
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
+  SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
 }
 
@@ -769,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/sauvegarde'
       fullPath: '/sauvegarde'
       preLoaderRoute: typeof SauvegardeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suivi': {
+      id: '/suivi'
+      path: '/suivi'
+      fullPath: '/suivi'
+      preLoaderRoute: typeof SuiviRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/synchronisation': {
@@ -1075,6 +1095,7 @@ const rootRouteChildren: RootRouteChildren = {
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,
+  SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
 }
 export const routeTree = rootRouteImport
