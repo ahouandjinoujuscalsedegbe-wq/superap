@@ -1,7 +1,12 @@
 /**
  * Rapport mensuel automatique : bilan complet du mois, calculé localement.
+ *
+ * Règle métier : le rapport ne compte QUE les opérations déjà effectuées
+ * (date passée ou du jour). Les dépenses planifiées non encore réalisées
+ * n'entrent pas dans les totaux ; celles dont l'échéance est dépassée sont
+ * listées à part comme « dépenses prévues en retard ».
  */
-import type { Dette, Enveloppe, Transaction } from "./store";
+import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { resteDu } from "./store";
 import { dotationDe } from "./enveloppe-etat";
 
@@ -13,6 +18,18 @@ export type LigneEnveloppe = {
   depense: number;
   ecart: number;
   depassee: boolean;
+};
+
+/** Dépense planifiée dont l'échéance est passée sans qu'elle soit effectuée. */
+export type DepenseEnRetard = {
+  id: string;
+  libelle: string;
+  montant: number;
+  echeance: string;
+  emoji: string;
+  enveloppe: string;
+  /** Nombre de jours de retard. */
+  joursRetard: number;
 };
 
 export type RapportMensuel = {
@@ -31,12 +48,16 @@ export type RapportMensuel = {
   plusGrossesDepenses: Transaction[];
   /** Dépenses répétées qui pèsent sur le budget. */
   fuites: { libelle: string; total: number; occurrences: number }[];
+  /** Dépenses prévues, non effectuées, dont l'échéance est déjà passée. */
+  enRetard: DepenseEnRetard[];
+  totalEnRetard: number;
   detteRestante: number;
   creanceRestante: number;
   /** Note globale sur 100. */
   score: number;
   conseils: string[];
 };
+
 
 const MOIS_FR = [
   "janvier",
