@@ -189,7 +189,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
-          {!pleinEcran && <BoutonFlottantGlobal />}
+          
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
