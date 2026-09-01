@@ -144,7 +144,36 @@ function PageRapport() {
         </div>
       </section>
 
+      {rapport.enRetard.length > 0 && (
+        <section className="carte space-y-2 border-destructive/40 p-4">
+          <h2 className="text-sm font-semibold">
+            Dépenses prévues non effectuées ({rapport.enRetard.length})
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Échéance déjà passée · total {formatFCFA(rapport.totalEnRetard)}
+          </p>
+          <ul className="space-y-1.5 text-sm">
+            {rapport.enRetard.map((d) => (
+              <li key={d.id} className="flex items-start justify-between gap-2">
+                <span className="min-w-0">
+                  <span className="block truncate">
+                    {d.emoji} {d.libelle}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {d.enveloppe} · dû le {d.echeance} ({d.joursRetard} j de retard)
+                  </span>
+                </span>
+                <span className="shrink-0 font-semibold text-destructive">
+                  {formatFCFA(d.montant)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {rapport.enveloppes.length > 0 && (
+
         <section className="carte space-y-2 p-4">
           <h2 className="text-sm font-semibold">Enveloppes du mois</h2>
           <ul className="space-y-1.5 text-sm">
