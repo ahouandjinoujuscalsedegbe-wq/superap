@@ -7,7 +7,7 @@
  * taire. Tout est calculé et stocké sur l'appareil, chiffré.
  */
 
-import type { Budget, Dette, Enveloppe, Transaction } from "./store";
+import { resteDu, type Budget, type Dette, type Enveloppe, type Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
@@ -66,6 +66,8 @@ export type MemoireCoach = {
   motsCles: Record<string, number>;
   /** Nombre de questions posées : sert à adapter le ton du conseiller. */
   echanges: number;
+  /** Empreintes des conseils déjà donnés en réponse, pour ne jamais se répéter. */
+  conseilsDits: string[];
 };
 
 export const MEMOIRE_VIDE: MemoireCoach = {
@@ -77,6 +79,7 @@ export const MEMOIRE_VIDE: MemoireCoach = {
   historique: [],
   motsCles: {},
   echanges: 0,
+  conseilsDits: [],
 };
 
 
@@ -110,6 +113,7 @@ export function assainirMemoire(brut: unknown): MemoireCoach {
     historique: Array.isArray(o.historique) ? o.historique.slice(-120) : [],
     motsCles: o.motsCles && typeof o.motsCles === "object" ? o.motsCles : {},
     echanges: typeof o.echanges === "number" && Number.isFinite(o.echanges) ? o.echanges : 0,
+    conseilsDits: Array.isArray(o.conseilsDits) ? o.conseilsDits.slice(-60) : [],
   };
 }
 
@@ -643,12 +647,24 @@ export function repondreCoach(
   donneesAssistant: DonneesAssistant,
   donnees: DonneesCoach,
   maintenant = new Date(),
-): { reponse: ReponseAssistant; enveloppeId?: string } {
+): { reponse: ReponseAssistant; enveloppeId?: string; conseilDit?: string } {
+  const cible = enveloppeCitee(question, donnees.enveloppes);
+
+  /* Demande de conseil : le coach parle en son nom, avec un conseil neuf,
+     jamais un bilan déjà énoncé. */
+  if (estDemandeConseil(question)) {
+    const c = conseilPersonnalise(memoire, donnees, cible, maintenant);
+    return {
+      reponse: { reponse: c.texte, details: c.details, incompris: false },
+      ...(c.enveloppeId ? { enveloppeId: c.enveloppeId } : {}),
+      conseilDit: c.empreinte,
+    };
+  }
+
   const base = repondre(question, donneesAssistant, maintenant);
   const details = [...base.details];
 
   /* L'enveloppe citée reçoit son mini-bilan, calculé sur les dépenses réelles. */
-  const cible = enveloppeCitee(question, donnees.enveloppes);
   if (cible) {
     const b = bilanEnveloppe(
       cible,
@@ -677,6 +693,190 @@ export function repondreCoach(
   return {
     reponse: { ...base, reponse, details },
     ...(cible ? { enveloppeId: cible.id } : {}),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Conseils propres au coach                                            */
+/* ------------------------------------------------------------------ */
+
+const MOTS_CONSEIL = [
+  "conseil",
+  "conseille",
+  "conseillez",
+  "que faire",
+  "quoi faire",
+  "aide moi",
+  "aide-moi",
+  "recommande",
+  "recommandation",
+  "suggere",
+  "suggestion",
+  "comment economiser",
+  "economiser",
+  "epargner",
+  "ameliorer",
+  "optimiser",
+  "je fais quoi",
+  "ton avis",
+  "votre avis",
+  "astuce",
+];
+
+/** Vrai si l'utilisateur demande un conseil plutôt qu'un chiffre. */
+export function estDemandeConseil(question: string): boolean {
+  const t = question
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return MOTS_CONSEIL.some((m) => t.includes(m));
+}
+
+export type ConseilCoach = {
+  texte: string;
+  details: string[];
+  empreinte: string;
+  enveloppeId?: string;
+};
+
+/**
+ * Construit un conseil neuf à partir des données de l'utilisateur.
+ * Aucun bilan n'est réénoncé : uniquement une action chiffrée, choisie
+ * parmi les pistes que le coach n'a pas encore données.
+ */
+export function conseilPersonnalise(
+  memoire: MemoireCoach,
+  donnees: DonneesCoach,
+  cible?: Enveloppe,
+  maintenant = new Date(),
+): ConseilCoach {
+  const b = bilanMensuel(donnees, maintenant);
+  const pistes: (ConseilCoach & { poids: number })[] = [];
+
+  const pousser = (
+    texte: string,
+    details: string[],
+    poids: number,
+    enveloppeId?: string,
+  ) => {
+    pistes.push({
+      texte,
+      details,
+      empreinte: empreinte(texte),
+      poids,
+      ...(enveloppeId ? { enveloppeId } : {}),
+    });
+  };
+
+  /* 1. Enveloppe explicitement citée : conseil ciblé, sans redire son bilan. */
+  if (cible) {
+    const be = bilanEnveloppe(
+      cible,
+      donnees.transactions,
+      donnees.depensesParEnveloppe[cible.id] ?? 0,
+      maintenant,
+    );
+    const principal = be.conseils[0];
+    if (principal) {
+      pousser(
+        `Pour ${cible.emoji} ${cible.nom}, je vous propose ceci : ${principal.action}`,
+        [`Pourquoi : ${principal.texte}`],
+        6,
+        cible.id,
+      );
+    }
+  }
+
+  /* 2. Recommandations issues du moteur de conseil, pondérées par l'intérêt. */
+  for (const r of conseiller({
+    transactions: donnees.transactions,
+    enveloppes: donnees.enveloppes,
+    budgets: donnees.budgets,
+    dettes: donnees.dettes,
+    depensesParEnveloppe: donnees.depensesParEnveloppe,
+    solde: donnees.solde,
+  })) {
+    pousser(
+      `${r.action}`,
+      [r.explication, `Gain estimé : ${fcfa(r.gainMensuel)} par mois · ${r.horizon}`],
+      (r.priorite === "haute" ? 4 : r.priorite === "moyenne" ? 3 : 2) *
+        poidsDe(memoire, r.categorie),
+    );
+  }
+
+  /* 3. Pistes chiffrées propres au coach, tirées du mois en cours. */
+  if (b.projection > b.revenus && b.revenus > 0) {
+    const trop = Math.round(b.projection - b.revenus);
+    pousser(
+      `Au rythme actuel, coupez ${fcfa(Math.ceil(trop / 30))} par jour pour finir le mois à l'équilibre.`,
+      [`Rythme observé : ${fcfa(b.rythmeJour)} par jour.`],
+      5,
+    );
+  }
+  if (b.tauxEpargne < 10 && b.revenus > 0) {
+    const cible10 = Math.round(b.revenus * 0.1);
+    pousser(
+      `Mettez ${fcfa(cible10)} de côté dès l'entrée du revenu : c'est 10 % gardés avant toute dépense.`,
+      [`Votre taux d'épargne du mois est de ${b.tauxEpargne} %.`],
+      4,
+    );
+  }
+  const plusGrosse = [...b.epuisees].sort((x, y) => y.manque - x.manque)[0];
+  if (plusGrosse && plusGrosse.manque > 0) {
+    pousser(
+      `Relevez la dotation de ${plusGrosse.nom} de ${fcfa(plusGrosse.manque)} ou plafonnez ses sorties : elle vous met en tension chaque mois.`,
+      [`Utilisé : ${fcfa(plusGrosse.utilise)} pour ${fcfa(plusGrosse.dotation)} prévus.`],
+      4.5,
+    );
+  }
+  const surplus = [...b.surplus].sort((x, y) => y.restant - x.restant)[0];
+  if (surplus && surplus.restant > 0) {
+    pousser(
+      `Déplacez ${fcfa(Math.round(surplus.restant / 2))} depuis ${surplus.nom} vers votre épargne : cette enveloppe dort.`,
+      [`Restant non utilisé : ${fcfa(surplus.restant)}.`],
+      3.5,
+    );
+  }
+  const detteChere = [...donnees.dettes]
+    .filter((d) => d.sens === "dette" && resteDu(d) > 0)
+    .sort((x, y) => resteDu(y) - resteDu(x))[0];
+  if (detteChere) {
+    pousser(
+      `Affectez chaque mois un montant fixe à la dette envers ${detteChere.personne} : même ${fcfa(Math.max(5000, Math.round(resteDu(detteChere) * 0.1)))} raccourcissent nettement le remboursement (reste ${fcfa(resteDu(detteChere))}).`,
+      ["Une dette réglée libère du budget durable, plus qu'une coupe ponctuelle."],
+      3 * poidsDe(memoire, "dette"),
+    );
+  }
+  if (b.ecartSaison > 0 && b.moyenneSaison > 0) {
+    pousser(
+      `Cette saison (${b.saison}) vous coûte ${fcfa(b.ecartSaison)} de plus que d'habitude : provisionnez ce surcoût dès maintenant pour le mois prochain.`,
+      [`Moyenne habituelle de la saison : ${fcfa(b.moyenneSaison)}.`],
+      3.5,
+    );
+  }
+  pousser(
+    "Fixez-vous une seule règle ce mois-ci : aucune dépense hors enveloppe. C'est la mesure qui tient le budget le plus sûrement.",
+    ["Chaque sortie doit être imputée à une enveloppe au moment où elle a lieu."],
+    1,
+  );
+
+  /* Rotation : on écarte ce qui a déjà été dit, sauf si tout a servi. */
+  const dits = new Set(memoire.conseilsDits);
+  const neufs = pistes.filter((p) => !dits.has(p.empreinte));
+  const retenus = neufs.length > 0 ? neufs : pistes;
+  retenus.sort((x, y) => y.poids - x.poids);
+  const choisi = retenus[0]!;
+
+  const intro =
+    memoire.echanges >= 5
+      ? "Voici ce que je ferais à votre place :"
+      : "Mon conseil, à partir de vos chiffres :";
+
+  return {
+    texte: `${intro} ${choisi.texte}`,
+    details: choisi.details,
+    empreinte: choisi.empreinte,
+    ...(choisi.enveloppeId ? { enveloppeId: choisi.enveloppeId } : {}),
   };
 }
 
