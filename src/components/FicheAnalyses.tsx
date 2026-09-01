@@ -222,7 +222,14 @@ export function FicheAnalyses() {
         ))}
       </div>
 
-      <SectionBudgetAuto />
+      <Link
+        to="/enveloppes/budgetisation"
+        className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
+      >
+        Ouvrir la proposition de budget
+        <span aria-hidden>→</span>
+      </Link>
+
       <SectionIaLocale transactions={transactions} enveloppes={enveloppes} solde={solde} />
 
 
