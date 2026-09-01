@@ -34,16 +34,17 @@ export const Route = createFileRoute("/rapport")({
 });
 
 function PageRapport() {
-  const { transactions, enveloppes, dettes } = useSuperApp();
+  const { transactions, enveloppes, dettes, budgets } = useSuperApp();
   const mois = useMemo(() => moisDisponibles(transactions), [transactions]);
   const [choisi, setChoisi] = useState<string>(
     () => mois[0] ?? new Date().toISOString().slice(0, 7),
   );
 
   const rapport = useMemo(
-    () => construireRapport(choisi, { transactions, enveloppes, dettes }),
-    [choisi, transactions, enveloppes, dettes],
+    () => construireRapport(choisi, { transactions, enveloppes, dettes, budgets }),
+    [choisi, transactions, enveloppes, dettes, budgets],
   );
+
 
   const partager = async () => {
     const texte = rapportEnTexte(rapport);
