@@ -393,6 +393,8 @@ type Contexte = Etat & {
   solde: number;
   depensesParEnveloppe: Record<string, number>;
   soldesParCompte: Record<string, number>;
+  /** Part du solde de chaque compte déjà réservée aux enveloppes. */
+  reservesParCompte: Record<string, number>;
   /** true quand des données existent mais n'ont pas pu être déchiffrées. */
   stockageIllisible: boolean;
   /** true tant que la lecture chiffrée initiale n'est pas terminée. */
