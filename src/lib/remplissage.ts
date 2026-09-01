@@ -128,10 +128,25 @@ export function montantSurRevenu(enveloppe: Enveloppe, revenu: number): number {
   return Math.round((revenu * part) / 100);
 }
 
+/** Premier jour du mois contenant la date donnée (AAAA-MM-01). */
+function premierDuMois(dateIso: string): string {
+  return `${jour(dateIso).slice(0, 7)}-01`;
+}
+
+/** Premier jour du mois suivant. */
+function premierDuMoisSuivant(dateIso: string): string {
+  const d = new Date(`${premierDuMois(dateIso)}T12:00:00`);
+  d.setMonth(d.getMonth() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
 /**
  * Renouvellements arrivés à échéance et pas encore appliqués.
- * Une enveloppe sans période, sans compte source ou en mode pourcentage
- * n'est jamais renouvelée par le temps.
+ *
+ * Règle unique voulue par l'utilisateur : le contenu de chaque enveloppe se
+ * renouvelle le premier jour de chaque mois, sans exception et sans date à
+ * préciser. Seules les enveloppes alimentées par un pourcentage de revenu
+ * gardent leur propre mécanique (elles se remplissent à chaque revenu).
  */
 export function remplissagesDus(
   enveloppes: Enveloppe[],
@@ -142,39 +157,37 @@ export function remplissagesDus(
   const dus: RemplissageDu[] = [];
 
   for (const e of enveloppes) {
-    const periode = e.periodeRenouvellement;
-    if (!periode || !e.compteSource) continue;
+    if (!e.compteSource) continue;
     if ((e.modeRemplissage ?? "fixe") !== "fixe") continue;
-    // Règle : le renouvellement automatique n'a lieu qu'à partir de la date
-    // précisée par l'utilisateur dans les paramètres de l'enveloppe.
-    const depart = e.dateRenouvellement ? jour(e.dateRenouvellement) : null;
-    if (!depart) continue;
 
-    // On repart de la date choisie, ou de la période suivant le dernier
-    // remplissage déjà appliqué s'il est postérieur.
-    let date = depart;
-    if (e.dernierRemplissage && jour(e.dernierRemplissage) >= depart) {
-      date = jour(avancerDate(e.dernierRemplissage, periode));
-    }
+    // Départ : le 1er du mois en cours, ou le 1er du mois suivant le dernier
+    // remplissage déjà appliqué.
+    let date = e.dernierRemplissage
+      ? premierDuMoisSuivant(e.dernierRemplissage)
+      : premierDuMois(aujourdHui);
+
     let tours = 0;
     while (date <= aujourdHui && tours < RATTRAPAGE_MAX) {
       const montant = montantPeriodeSuivante(e, transactions, date);
       if (montant > 0) dus.push({ enveloppe: e, compte: e.compteSource, montant, date });
-      date = jour(avancerDate(`${date}T12:00:00`, periode));
+      date = premierDuMoisSuivant(date);
       tours += 1;
     }
   }
   return dus;
 }
 
-/** Prochaine date de renouvellement d'une enveloppe, si elle en a une. */
+/** Prochaine date de renouvellement : toujours le 1er du mois suivant. */
 export function prochainRenouvellement(e: Enveloppe): string | null {
-  const periode = e.periodeRenouvellement;
-  if (!periode || !e.dateRenouvellement) return null;
-  const depart = jour(e.dateRenouvellement);
-  if (!e.dernierRemplissage || jour(e.dernierRemplissage) < depart) return depart;
-  return jour(avancerDate(e.dernierRemplissage, periode));
+  if (!e.compteSource || (e.modeRemplissage ?? "fixe") !== "fixe") return null;
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  if (!e.dernierRemplissage) {
+    const premier = premierDuMois(aujourdHui);
+    return premier <= aujourdHui ? premier : premierDuMoisSuivant(aujourdHui);
+  }
+  return premierDuMoisSuivant(e.dernierRemplissage);
 }
+
 
 /** Total déjà versé dans une enveloppe depuis sa création. */
 export function totalVerse(enveloppeId: string, remplissages: Remplissage[]): number {
