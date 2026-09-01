@@ -97,28 +97,24 @@ export function repartitionParCategorie(
     .sort((a, b) => b.montant - a.montant);
 }
 
-/** Dépense moyenne par jour et projection de fin de mois. */
+/**
+ * Dépense moyenne par jour et projection de fin de mois.
+ * Simple façade : le calcul vient du noyau unique (cerveau/faits) pour que
+ * tous les écrans affichent exactement la même projection.
+ */
 export function projectionFinDeMois(transactions: Transaction[]): {
   moyenneJour: number;
   dejaDepense: number;
   joursRestants: number;
   projection: number;
 } {
-  const maintenant = new Date();
-  const debutMois = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1)
-    .toISOString()
-    .slice(0, 10);
-  const duMois = transactions.filter((t) => t.type === "depense" && jour(t.date) >= debutMois);
-  const dejaDepense = duMois.reduce((s, t) => s + t.montant, 0);
-  const jourActuel = maintenant.getDate();
-  const joursDuMois = new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 0).getDate();
-  const moyenneJour = Math.round(dejaDepense / jourActuel);
-  const joursRestants = joursDuMois - jourActuel;
+  const faits = calculerFaits({ transactions, enveloppes: [] });
   return {
-    moyenneJour,
-    dejaDepense,
-    joursRestants,
-    projection: dejaDepense + moyenneJour * joursRestants,
+    moyenneJour:
+      faits.joursEcoules > 0 ? Math.round(faits.moisCourant.depenses / faits.joursEcoules) : 0,
+    dejaDepense: faits.moisCourant.depenses,
+    joursRestants: faits.joursRestants,
+    projection: faits.projectionFinDeMois,
   };
 }
 
