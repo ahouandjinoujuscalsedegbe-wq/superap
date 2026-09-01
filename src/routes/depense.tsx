@@ -93,6 +93,11 @@ function AjouterDepense() {
       toast.error("Veuillez saisir un montant valide.");
       return;
     }
+    if (!libelle.trim()) {
+      toast.error("Le libellé est obligatoire.");
+      return;
+    }
+
     const env = enveloppes.find((x) => x.id === enveloppe);
     ajouterTransaction({
       type: "depense",
