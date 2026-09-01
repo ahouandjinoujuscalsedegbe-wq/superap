@@ -22,6 +22,12 @@ export type DonneesCerveau = {
   solde?: number;
   /** Date de référence (tests). */
   maintenant?: Date;
+  /**
+   * Comptes dont le solde n'entre PAS dans le solde disponible.
+   * Sens métier : ces fonds sont réservés (épargne, projet, usage précis) et
+   * ne doivent jamais être considérés comme de l'argent du quotidien.
+   */
+  comptesExclus?: string[];
 };
 
 export type FaitEnveloppe = {
@@ -40,6 +46,13 @@ export type FaitEnveloppe = {
   joursAvantEpuisement: number | null;
   /** Aucune dépense depuis 60 jours alors qu'une dotation existe. */
   dormante: boolean;
+  /** Compte qui alimente l'enveloppe. */
+  compteSource?: string;
+  /**
+   * Enveloppe alimentée par un compte hors solde disponible : son argent est
+   * réservé à un projet, une épargne ou un usage précis, pas au quotidien.
+   */
+  reservee: boolean;
 };
 
 export type FaitMois = {
@@ -86,6 +99,12 @@ export type Faits = {
   detteTotale: number;
   creanceTotale: number;
   objectifsEnRetard: { libelle: string; manque: number; joursRestants: number }[];
+  /** Somme dormant dans les enveloppes réservées (projet, épargne, usage précis). */
+  fondsReserves: number;
+  /** Somme disponible dans les enveloppes du quotidien. */
+  fondsQuotidiens: number;
+  /** Nombre d'enveloppes réservées. */
+  nbEnveloppesReservees: number;
   /** Confiance globale des analyses (0-1), basée sur le volume de données. */
   confiance: number;
 };
@@ -188,6 +207,10 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
     }
   }
 
+  const comptesReserves = new Set((donnees.comptesExclus ?? []).map((c) => c.trim().toLowerCase()));
+  const estReservee = (e: Enveloppe) =>
+    !!e.compteSource && comptesReserves.has(e.compteSource.trim().toLowerCase());
+
   const faitsEnveloppes: FaitEnveloppe[] = enveloppes.map((e) => {
     const etat = etatEnveloppe(e, depensesParEnveloppe.get(e.id) ?? 0);
     const rythmeJour = Math.round((recentesParEnveloppe.get(e.id) ?? 0) / 30);
@@ -204,7 +227,12 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
       epuisee: etat.epuisee,
       rythmeJour,
       joursAvantEpuisement: rythmeJour > 0 ? Math.floor(etat.restant / rythmeJour) : null,
-      dormante: dotationDe(e) > 0 && (!derniere || derniere < limite60),
+      // Une enveloppe réservée n'est jamais « dormante » : ne rien y dépenser
+      // est exactement son rôle (projet, épargne, usage précis).
+      dormante:
+        !estReservee(e) && dotationDe(e) > 0 && (!derniere || derniere < limite60),
+      compteSource: e.compteSource,
+      reservee: estReservee(e),
     };
   });
 
