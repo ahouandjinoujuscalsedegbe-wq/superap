@@ -15,6 +15,7 @@ import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 import { saisonDe } from "./saison";
 import { raisonner, type PoidsAppris } from "./coach-raisonnement";
+import { calculerFaits } from "./cerveau/faits";
 
 export { saisonDe };
 
@@ -330,17 +331,27 @@ export function bilanMensuel(
       .filter((t) => t.type === type && dansMois(t.date, decalage))
       .reduce((s, t) => s + Math.abs(t.montant), 0);
 
-  const revenus = somme(0, "revenu");
-  const depenses = somme(0, "depense");
+  /* Chiffres du mois : ils viennent du noyau unique, pour que le conseiller,
+     l'accueil et les analyses annoncent exactement les mêmes montants. */
+  const faits = calculerFaits({
+    transactions: donnees.transactions,
+    enveloppes: donnees.enveloppes,
+    dettes: donnees.dettes,
+    ...(donnees.objectifs ? { objectifs: donnees.objectifs } : {}),
+    solde: donnees.solde,
+    maintenant,
+  });
+
+  const revenus = faits.moisCourant.revenus;
+  const depenses = faits.moisCourant.depenses;
   const depensesVeille = somme(1, "depense");
   const ecart = depenses - depensesVeille;
   const ecartPct =
     depensesVeille > 0 ? Math.round((ecart / depensesVeille) * 100) : 0;
 
-  const jour = Math.max(1, maintenant.getDate());
-  const joursMois = new Date(an, mo + 1, 0).getDate();
+  const jour = Math.max(1, faits.joursEcoules);
   const rythmeJour = Math.round(depenses / jour);
-  const projection = rythmeJour * joursMois;
+  const projection = faits.projectionFinDeMois;
 
   const epuisees: LigneEnveloppeBilan[] = [];
   const surplus: LigneEnveloppeBilan[] = [];
