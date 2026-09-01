@@ -800,32 +800,101 @@ const MOTS_BUDGET = [
 /** Mots qui montrent que l'utilisateur parle de ses enveloppes en général. */
 const MOTS_ENVELOPPE = ["enveloppe", "enveloppes", "poche", "poches"];
 
+/**
+ * Met la phrase à plat pour la comparer : accents, apostrophes, élisions et
+ * ponctuation retirés, tournures familières ramenées à leur forme courante.
+ */
 function normaliser(texte: string): string {
-  return texte
+  let t = texte
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’`]/g, " ")
+    .replace(/[.,;:!?()]/g, " ");
+  const TOURNURES: [RegExp, string][] = [
+    [/\bqu\s*est\s*ce\s*que?\b|\bkeske?\b/g, "que"],
+    [/\best\s*ce\s*que\b/g, ""],
+    [/\bj\s+ai\b|\bjai\b/g, "je"],
+    [/\bch?uis?\b/g, "je suis"],
+    [/\bya\b/g, "il y a"],
+    [/\bstp\b|\bs\s*il\s*te\s*plait\b|\bs\s*il\s*vous\s*plait\b/g, ""],
+    [/\bpeux\s*tu\b|\bpourrais\s*tu\b|\btu\s*peux\b/g, ""],
+    [/\bdis\s*moi\b|\bdonne\s*moi\b|\bmontre\s*moi\b|\bexplique\s*moi\b/g, "dis moi"],
+    [/\bmes?\s+sous\b|\bmon\s+argent\b|\bmes\s+finances?\b/g, "budget"],
+    [/\bpoches?\b|\bcaisses?\b/g, "enveloppe"],
+    [/\bthune\b|\bblé\b|\bble\b/g, "argent"],
+  ];
+  for (const [motif, remplacement] of TOURNURES) t = t.replace(motif, remplacement);
+  return t.replace(/\s+/g, " ").trim();
 }
+
+/** Tournures courantes qui expriment une demande de conseil. */
+const TOURNURES_CONSEIL = [
+  "je fais comment",
+  "comment faire",
+  "comment je fais",
+  "je dois faire quoi",
+  "quoi faire",
+  "tu en penses quoi",
+  "tu penses quoi",
+  "t en penses quoi",
+  "a ton avis",
+  "tu me conseilles",
+  "j y arrive pas",
+  "je n y arrive pas",
+  "je galere",
+  "je suis serre",
+  "je suis dans le rouge",
+  "comment mieux gerer",
+  "comment gerer",
+  "comment faire des economies",
+  "comment mettre de cote",
+  "mettre de cote",
+  "aide",
+];
+
+/** Tournures courantes qui expriment une demande de bilan / budget. */
+const TOURNURES_BUDGET = [
+  "combien je",
+  "combien il me reste",
+  "combien me reste",
+  "il me reste combien",
+  "ca donne quoi",
+  "ca va comment",
+  "ou j en suis",
+  "ou en suis je",
+  "quoi de neuf",
+  "fais le point",
+  "le point du mois",
+  "recap",
+  "recapitulatif",
+  "ce mois ci",
+  "j ai depense combien",
+  "je depense combien",
+];
 
 /** Vrai si la phrase porte sur le budget global du mois. */
 export function estDemandeBudget(question: string): boolean {
   const t = normaliser(question);
-  return MOTS_BUDGET.some((m) => t.includes(m));
+  return (
+    MOTS_BUDGET.some((m) => t.includes(normaliser(m))) ||
+    TOURNURES_BUDGET.some((m) => t.includes(m))
+  );
 }
 
 /** Vrai si la phrase porte sur les enveloppes sans en nommer une précise. */
 export function estDemandeEnveloppes(question: string): boolean {
   const t = normaliser(question);
-  return MOTS_ENVELOPPE.some((m) => t.includes(m));
+  return MOTS_ENVELOPPE.some((m) => t.includes(normaliser(m)));
 }
 
 /** Vrai si l'utilisateur demande un conseil plutôt qu'un chiffre. */
 export function estDemandeConseil(question: string): boolean {
-  const t = question
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  return MOTS_CONSEIL.some((m) => t.includes(m));
+  const t = normaliser(question);
+  return (
+    MOTS_CONSEIL.some((m) => t.includes(normaliser(m))) ||
+    TOURNURES_CONSEIL.some((m) => t.includes(m))
+  );
 }
 
 export type ConseilCoach = {
