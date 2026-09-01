@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   MoreVertical,
   X,
-  LineChart,
   Settings,
   HelpCircle,
   HandCoins,
