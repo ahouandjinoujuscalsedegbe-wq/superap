@@ -17,8 +17,8 @@ const ACCES = [
 ] as const;
 
 const CLE_POSITION = "SA_BOUTON_FLOTTANT_POS_V1";
-const TAILLE = 44;
-const RAYON = 78;
+const TAILLE = 56;
+const RAYON = 96;
 /** Périmètre de la boule : sert à convertir le déplacement en rotation. */
 const PERIMETRE = Math.PI * TAILLE;
 const MARGE = 8;
@@ -197,7 +197,7 @@ export function BoutonFlottantGlobal() {
               aria-label={label}
               tabIndex={ouvert ? 0 : -1}
               onClick={() => setOuvert(false)}
-              className="absolute inset-0 flex h-11 w-11 flex-col items-center justify-center gap-0.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-300 ease-out active:scale-90 active:bg-accent"
+              className="absolute inset-0 flex h-12 w-12 flex-col items-center justify-center gap-0.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-xl transition-all duration-300 ease-out active:scale-90 active:bg-accent"
               style={{
                 transform: ouvert
                   ? `translate(${x}px, ${y}px) scale(1)`
@@ -207,8 +207,8 @@ export function BoutonFlottantGlobal() {
                 transitionDelay: `${ouvert ? i * 45 : (ACCES.length - i) * 25}ms`,
               }}
             >
-              <Icone className="h-4 w-4 text-primary" aria-hidden />
-              <span className="text-[0.45rem] font-medium leading-none">{label}</span>
+              <Icone className="h-5 w-5 text-primary" aria-hidden />
+              <span className="text-[0.55rem] font-medium leading-none">{label}</span>
             </Link>
           );
         })}
@@ -225,14 +225,14 @@ export function BoutonFlottantGlobal() {
               ? "Fermer les accès rapides"
               : "Ouvrir les accès rapides (maintenez pour déplacer la boule)"
           }
-          className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden sphere-3d sphere-vivante rounded-full bg-primary text-primary-foreground backdrop-blur-xl transition-[opacity] duration-150 ease-out will-change-transform active:opacity-80 active:[animation:none] active:scale-[0.88] ${
+          className={`group relative flex h-14 w-14 items-center justify-center overflow-hidden sphere-3d sphere-vivante rounded-full bg-primary text-primary-foreground backdrop-blur-xl transition-[opacity] duration-150 ease-out will-change-transform active:opacity-80 active:[animation:none] active:scale-[0.88] ${
             glisse ? "opacity-95 [animation:none]" : ""
           }`}
 
         >
           {/* Reflet lumineux animé : la lumière glisse sur la sphère. */}
           <span
-            className="sphere-reflet-anime pointer-events-none absolute left-[18%] top-[12%] h-3.5 w-3.5 rounded-full bg-white/70 blur-[3px]"
+            className="sphere-reflet-anime pointer-events-none absolute left-[18%] top-[12%] h-[18px] w-[18px] rounded-full bg-white/70 blur-[3px]"
             aria-hidden
           />
 
@@ -246,7 +246,7 @@ export function BoutonFlottantGlobal() {
             aria-hidden
           >
             <Plus
-              className={`h-6 w-6 transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
+              className={`h-7 w-7 transition-transform duration-300 ${ouvert ? "rotate-45" : ""}`}
             />
           </span>
         </button>
