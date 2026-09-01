@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BellRing,
+  CalendarRange,
   ChevronDown,
+  LineChart,
+  Sun,
   Send,
   ShieldCheck,
   Sparkles,
@@ -19,14 +22,22 @@ import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
 import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
 import {
+  bilanSaisonnier,
+  projectionSaisonniere,
+  texteBilanSaisonnier,
+  texteProjection,
+} from "@/lib/saison";
+import {
   apprendreAvis,
   apprendreQuestion,
   ecrireMemoire,
   lireMemoire,
   mettreAJourJournee,
   MEMOIRE_VIDE,
+  bilanMensuel,
   poidsEnveloppeDe,
   repondreCoach,
+  texteBilanMensuel,
   sujetsFavoris,
   type MemoireCoach,
   type MessageCoach,
@@ -115,6 +126,17 @@ function PageNotifications() {
   const bilans = useMemo(
     () => bilansEnveloppes(enveloppes, transactions, depensesParEnveloppe),
     [enveloppes, transactions, depensesParEnveloppe],
+  );
+
+  /* Bilan mensuel chiffré, bilan de saison et projection des mois à venir. */
+  const mensuel = useMemo(() => bilanMensuel(donneesCoach), [donneesCoach]);
+  const saison = useMemo(
+    () => bilanSaisonnier(enveloppes, transactions),
+    [enveloppes, transactions],
+  );
+  const projection = useMemo(
+    () => projectionSaisonniere(transactions, solde, 6),
+    [transactions, solde],
   );
 
   // Chargement de la mémoire chiffrée, puis bilan du jour si nécessaire.
@@ -263,6 +285,152 @@ function PageNotifications() {
             : "Écouter le bilan et les conseils du jour"}
         </button>
       )}
+
+      {/* Bilan mensuel du coach, écoutable partout. */}
+      <section className="carte space-y-2 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <CalendarRange className="h-4 w-4 text-primary" aria-hidden />
+            Bilan mensuel du coach
+          </h2>
+          {vocalisationDisponible() && (
+            <button
+              type="button"
+              onClick={() => lire("mensuel", texteBilanMensuel(mensuel))}
+              aria-label="Écouter le bilan mensuel"
+              className="rounded-full p-1.5 text-primary"
+            >
+              {lecture === "mensuel" ? (
+                <Square className="h-4 w-4" aria-hidden />
+              ) : (
+                <Volume2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
+        </div>
+        <dl className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <dt className="text-muted-foreground">Revenus</dt>
+            <dd className="font-semibold text-success">{fcfa(mensuel.revenus)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Dépenses</dt>
+            <dd className="font-semibold text-destructive">{fcfa(mensuel.depenses)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Solde du mois</dt>
+            <dd className="font-semibold">{fcfa(mensuel.solde)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Solde global</dt>
+            <dd className="font-semibold">{fcfa(mensuel.soldeGlobal)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Épargne</dt>
+            <dd className="font-semibold">{mensuel.tauxEpargne} %</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Projection fin de mois</dt>
+            <dd className="font-semibold">{fcfa(mensuel.projection)}</dd>
+          </div>
+        </dl>
+      </section>
+
+      {/* Bilan saisonnier : ce mois-ci face à la même saison l'an dernier. */}
+      <section className="carte space-y-2 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <Sun className="h-4 w-4 text-primary" aria-hidden />
+            Bilan saisonnier · {saison.mois}
+          </h2>
+          {vocalisationDisponible() && (
+            <button
+              type="button"
+              onClick={() => lire("saison", texteBilanSaisonnier(saison))}
+              aria-label="Écouter le bilan saisonnier"
+              className="rounded-full p-1.5 text-primary"
+            >
+              {lecture === "saison" ? (
+                <Square className="h-4 w-4" aria-hidden />
+              ) : (
+                <Volume2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">{saison.saison}</p>
+        <p className="text-xs">
+          Ce mois-ci&nbsp;: <strong>{fcfa(saison.depenses)}</strong> · même saison l'an dernier&nbsp;:{" "}
+          <strong>{fcfa(saison.depensesAnneePrecedente)}</strong>
+          {saison.historique && (
+            <span className={saison.ecart > 0 ? "text-destructive" : "text-success"}>
+              {" "}
+              ({saison.ecart > 0 ? "+" : ""}
+              {saison.ecartPct} %)
+            </span>
+          )}
+        </p>
+        {saison.enveloppes.length > 0 && (
+          <ul className="space-y-1 text-xs">
+            {saison.enveloppes.map((l) => (
+              <li key={l.id} className="flex items-center justify-between gap-2">
+                <span className="truncate">
+                  {l.emoji} {l.nom}
+                </span>
+                <span className="shrink-0 text-muted-foreground">
+                  {fcfa(l.actuel)} vs {fcfa(l.anneePrecedente)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ul className="space-y-1 text-xs text-muted-foreground">
+          {saison.conseils.map((c) => (
+            <li key={c}>• {c}</li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Projection des mois à venir, ajustée à la saison. */}
+      <section className="carte space-y-2 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <LineChart className="h-4 w-4 text-primary" aria-hidden />
+            Projection des 6 prochains mois
+          </h2>
+          {vocalisationDisponible() && (
+            <button
+              type="button"
+              onClick={() => lire("projection", texteProjection(projection))}
+              aria-label="Écouter la projection"
+              className="rounded-full p-1.5 text-primary"
+            >
+              {lecture === "projection" ? (
+                <Square className="h-4 w-4" aria-hidden />
+              ) : (
+                <Volume2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
+        </div>
+        <ul className="space-y-2">
+          {projection.map((m) => (
+            <li key={m.cle} className="rounded-lg bg-muted/40 p-2 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-semibold capitalize">{m.libelle}</span>
+                <span className={m.solde < 0 ? "text-destructive" : "text-success"}>
+                  {fcfa(m.solde)}
+                </span>
+              </div>
+              <p className="text-muted-foreground">
+                {fcfa(m.revenus)} entrées · {fcfa(m.depenses)} sorties · cumul{" "}
+                {fcfa(m.soldeCumule)}
+              </p>
+              <p className="mt-0.5 text-muted-foreground">{m.conseil}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <DiscussionVocaleCoach onQuestion={traiterQuestion} />
 
