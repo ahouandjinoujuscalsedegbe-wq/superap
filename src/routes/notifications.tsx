@@ -19,6 +19,7 @@ import {
   ThumbsUp,
   Trash2,
   Volume2,
+  Wallet,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
