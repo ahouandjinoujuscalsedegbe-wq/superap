@@ -8,6 +8,8 @@ import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } fro
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
+import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
+import { SectionBudgetAuto } from "@/components/SectionBudgetAuto";
 
 export const Route = createFileRoute("/enveloppes/budgetisation")({
   head: () => ({
