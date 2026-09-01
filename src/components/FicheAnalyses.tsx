@@ -45,6 +45,16 @@ const COULEUR_NIVEAU = {
 
 const ICONE_NIVEAU = { alerte: "🚨", attention: "⚠️", bon: "✅" } as const;
 
+/** Habillage des constats du cerveau local (alerte, attention, info, bravo). */
+const COULEUR_CONSTAT = {
+  alerte: "border-destructive/40 bg-destructive/10",
+  attention: "border-primary/40 bg-primary/10",
+  info: "border-border bg-muted/40",
+  bravo: "border-success/40 bg-success/10",
+} as const;
+
+const ICONE_CONSTAT = { alerte: "🚨", attention: "⚠️", info: "💡", bravo: "✅" } as const;
+
 export function FicheAnalyses() {
   const { transactions, enveloppes, depensesParEnveloppe, dettes, budgets, solde } = useSuperApp();
   const cerveau = useCerveau();
