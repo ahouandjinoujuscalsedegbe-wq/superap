@@ -1,6 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Wallet, Sparkles, Landmark, MessageCircle } from "lucide-react";
 
+const RAYON_SAISIE = 26;
+const FACES_SAISIE = [
+  `rotateY(0deg) translateZ(${RAYON_SAISIE}px)`,
+  `rotateY(90deg) translateZ(${RAYON_SAISIE}px)`,
+  `rotateY(180deg) translateZ(${RAYON_SAISIE}px)`,
+  `rotateY(270deg) translateZ(${RAYON_SAISIE}px)`,
+  `rotateX(90deg) translateZ(${RAYON_SAISIE}px)`,
+  `rotateX(-90deg) translateZ(${RAYON_SAISIE}px)`,
+];
+
 const ONGLETS = [
   { to: "/", label: "Accueil", icone: Home },
   { to: "/enveloppes", label: "Enveloppes", icone: Wallet },
@@ -38,20 +48,33 @@ export function BottomNav() {
                   <span className="relative flex h-16 w-16 items-end justify-center">
                     {/* ombre au sol : respire avec la lévitation */}
                     <span
-                      className="boule-ombre absolute bottom-0 h-1.5 w-9 rounded-[50%] bg-foreground/50 blur-[3px]"
+                      className="boule-ombre boule-ombre-rose absolute bottom-0 h-2 w-10 rounded-[50%]"
                       aria-hidden
                     />
                     <span className="boule-levite absolute inset-x-0 top-0 flex justify-center">
                       <span
-                        className={`boule-3d-tournante relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-transform duration-300 ${
-                          actif ? "scale-105 ring-2 ring-primary/40" : "group-active:scale-95"
+                        className={`boule-rose-3d relative flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-300 ${
+                          actif ? "scale-105 ring-2 ring-[rgba(255,158,203,0.7)]" : "group-active:scale-95"
                         }`}
                       >
-                        <Icone
-                          className="relative h-7 w-7 text-primary-foreground drop-shadow"
-                          strokeWidth={2.2}
-                          aria-hidden
-                        />
+                        <span className="boule-scene absolute inset-0" aria-hidden>
+                          <span className="boule-axe-x absolute inset-0">
+                            <span className="boule-axe-y absolute inset-0">
+                              {FACES_SAISIE.map((f, i) => (
+                                <span
+                                  key={i}
+                                  className="absolute left-1/2 top-1/2 -ml-[9px] -mt-[9px] flex h-[18px] w-[18px] items-center justify-center"
+                                  style={{ transform: f }}
+                                >
+                                  <Icone
+                                    className="h-[18px] w-[18px] text-white drop-shadow-[0_1px_2px_rgba(214,90,150,0.6)]"
+                                    strokeWidth={2.2}
+                                  />
+                                </span>
+                              ))}
+                            </span>
+                          </span>
+                        </span>
                       </span>
                     </span>
                   </span>
