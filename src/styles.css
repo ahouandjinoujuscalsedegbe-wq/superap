@@ -760,3 +760,48 @@ textarea {
     animation: none !important;
   }
 }
+
+/* ===== Boule flottante rose : sphère 3D claire, ombre teintée (jamais noire) ===== */
+@utility boule-rose-3d {
+  background-image:
+    radial-gradient(circle at 32% 26%, #ffffff 0%, #ffd9ec 18%, #ff9ecb 46%, #ff77b6 70%, #ff9ecb 100%),
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.32) 0 8%,
+      rgba(255, 255, 255, 0) 14%,
+      rgba(255, 255, 255, 0.32) 20%
+    );
+  background-size: 100% 100%, 200% 100%;
+  background-blend-mode: normal, soft-light;
+  box-shadow:
+    inset 0 4px 8px rgba(255, 255, 255, 0.85),
+    inset -6px -8px 16px rgba(255, 120, 180, 0.55),
+    inset 6px 8px 14px rgba(255, 255, 255, 0.45),
+    0 12px 22px -8px rgba(255, 140, 195, 0.75);
+  animation: boule-rotation-texture 5s linear infinite;
+}
+
+@utility boule-halo-rose {
+  background: radial-gradient(circle, rgba(255, 158, 203, 0.55) 0%, transparent 70%);
+  animation: boule-halo-pulse 2.6s ease-in-out infinite;
+}
+
+@utility boule-orbite-rose {
+  border: 1.5px dashed rgba(255, 158, 203, 0.7);
+  animation: boule-orbite-tour 7s linear infinite;
+}
+
+@utility boule-ombre-rose {
+  background: radial-gradient(ellipse, rgba(255, 158, 203, 0.55) 0%, transparent 75%);
+  filter: blur(3px);
+  animation: boule-ombre-sol 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boule-rose-3d,
+  .boule-halo-rose,
+  .boule-orbite-rose,
+  .boule-ombre-rose {
+    animation: none !important;
+  }
+}
