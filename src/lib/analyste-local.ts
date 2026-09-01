@@ -7,6 +7,7 @@
  * simple) qui tiennent en quelques millisecondes, même avec des milliers
  * d'opérations.
  */
+import { analyser } from "./cerveau";
 import { dotationDe, etatEnveloppe } from "./enveloppe-etat";
 import type { Enveloppe, Transaction } from "./store";
 
@@ -168,44 +169,26 @@ export type AlerteLocale = {
 };
 
 /**
- * Synthèse des signaux à montrer à l'utilisateur : enveloppes bientôt vides,
- * dépenses inhabituelles et rythme global du mois.
+ * Synthèse des signaux à montrer à l'utilisateur.
+ *
+ * Façade : les détections ne sont plus refaites ici, elles proviennent du
+ * noyau unique `src/lib/cerveau` afin que tous les écrans annoncent exactement
+ * les mêmes chiffres et les mêmes alertes.
  */
 export function alertesLocales(
   enveloppes: Enveloppe[],
   transactions: Transaction[],
   limite = 5,
 ): AlerteLocale[] {
-  const alertes: AlerteLocale[] = [];
-
-  for (const p of previsionEnveloppes(enveloppes, transactions)) {
-    if (p.niveau === "bon") continue;
-    if (p.restant <= 0) {
-      alertes.push({
-        id: `env-vide-${p.enveloppe.id}`,
-        niveau: "alerte",
-        titre: `${p.enveloppe.emoji} ${p.enveloppe.nom} épuisée`,
-        texte: `La dotation de ${dotationDe(p.enveloppe).toLocaleString("fr-FR")} FCFA est entièrement consommée.`,
-      });
-    } else if (p.joursAvantEpuisement !== null) {
-      alertes.push({
-        id: `env-prev-${p.enveloppe.id}`,
-        niveau: p.niveau === "alerte" ? "alerte" : "attention",
-        titre: `${p.enveloppe.emoji} ${p.enveloppe.nom}`,
-        texte: `Au rythme actuel (${p.rythmeJour.toLocaleString("fr-FR")} FCFA/jour), il reste environ ${p.joursAvantEpuisement} jour(s).`,
-      });
-    }
-  }
-
-  for (const a of detecterAnomalies(transactions).slice(0, 3)) {
-    alertes.push({
-      id: `anomalie-${a.id}`,
-      niveau: a.niveau === "alerte" ? "alerte" : "attention",
-      titre: "Dépense inhabituelle",
-      texte: `${a.texte} Habituellement ${a.habituel.toLocaleString("fr-FR")} FCFA.`,
-    });
-  }
-
-  const ordre = { alerte: 0, attention: 1, info: 2 } as const;
-  return alertes.sort((a, b) => ordre[a.niveau] - ordre[b.niveau]).slice(0, limite);
+  const { alertes } = analyser({ enveloppes, transactions });
+  return alertes
+    .filter((a) => a.niveau !== "bravo")
+    .slice(0, limite)
+    .map((a) => ({
+      id: a.id,
+      niveau: a.niveau as AlerteLocale["niveau"],
+      titre: a.titre,
+      texte: a.texte,
+    }));
 }
+
