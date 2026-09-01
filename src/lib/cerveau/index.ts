@@ -38,6 +38,7 @@ function signature(d: DonneesCerveau): string {
     d.dettes?.length ?? 0,
     d.objectifs?.length ?? 0,
     d.solde ?? "",
+    (d.comptesExclus ?? []).join(","),
     new Date(d.maintenant ?? Date.now()).toISOString().slice(0, 13),
   ].join("|");
 }

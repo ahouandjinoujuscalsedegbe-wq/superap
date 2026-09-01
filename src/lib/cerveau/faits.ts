@@ -348,6 +348,13 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
     detteTotale,
     creanceTotale,
     objectifsEnRetard,
+    fondsReserves: faitsEnveloppes
+      .filter((e) => e.reservee)
+      .reduce((t, e) => t + Math.max(0, e.restant), 0),
+    fondsQuotidiens: faitsEnveloppes
+      .filter((e) => !e.reservee)
+      .reduce((t, e) => t + Math.max(0, e.restant), 0),
+    nbEnveloppesReservees: faitsEnveloppes.filter((e) => e.reservee).length,
     confiance: Math.round(confiance * 100) / 100,
   };
 }
