@@ -159,8 +159,11 @@ export function remplissagesDus(
 
 /** Prochaine date de renouvellement d'une enveloppe, si elle en a une. */
 export function prochainRenouvellement(e: Enveloppe): string | null {
-  if (!e.periodeRenouvellement || !e.dernierRemplissage) return null;
-  return jour(avancerDate(e.dernierRemplissage, e.periodeRenouvellement));
+  const periode = e.periodeRenouvellement;
+  if (!periode || !e.dateRenouvellement) return null;
+  const depart = jour(e.dateRenouvellement);
+  if (!e.dernierRemplissage || jour(e.dernierRemplissage) < depart) return depart;
+  return jour(avancerDate(e.dernierRemplissage, periode));
 }
 
 /** Total déjà versé dans une enveloppe depuis sa création. */
