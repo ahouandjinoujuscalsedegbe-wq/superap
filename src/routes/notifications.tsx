@@ -785,10 +785,14 @@ function PageNotifications() {
         mensuel={mensuel}
         saison={saison}
         projection={projection}
-        bilans={bilans}
-        memoire={memoire}
         lecture={lecture}
         onLire={lire}
+      />
+
+      <SelecteurEnveloppes
+        ouvert={selecteur}
+        onFermer={() => setSelecteur(false)}
+        bilans={bilans}
         onDemander={envoyer}
       />
     </div>

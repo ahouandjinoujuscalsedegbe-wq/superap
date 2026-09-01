@@ -1,8 +1,6 @@
 import { CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
 import { vocalisationDisponible } from "@/lib/vocalisation";
-import type { BilanEnveloppe } from "@/lib/coach-enveloppe";
-import type { BilanMensuel, MemoireCoach } from "@/lib/coach";
-import { texteBilanMensuel } from "@/lib/coach";
+import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
   texteBilanSaisonnier,
   texteProjection,
