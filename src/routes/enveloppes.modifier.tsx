@@ -48,6 +48,7 @@ type Demande =
       sousCategorie: string;
       compteSource: string;
       periodeRenouvellement: Periode;
+      dateRenouvellement: string;
       modeRemplissage: "fixe" | "pourcentage";
       pourcentageRevenu: number;
       montantPeriode: number;
@@ -76,6 +77,7 @@ function ModifierEnveloppe() {
   const [eSousCategorie, setESousCategorie] = useState("");
   const [eCompte, setECompte] = useState("");
   const [ePeriode, setEPeriode] = useState<Periode>("mois");
+  const [eDateRenouv, setEDateRenouv] = useState("");
   const [eMode, setEMode] = useState<"fixe" | "pourcentage">("fixe");
   const [ePart, setEPart] = useState("");
   const [eMontantPeriode, setEMontantPeriode] = useState("");
@@ -103,6 +105,7 @@ function ModifierEnveloppe() {
     setESousCategorie(e.sousCategorie ?? "");
     setECompte(e.compteSource ?? "");
     setEPeriode(e.periodeRenouvellement ?? "mois");
+    setEDateRenouv(e.dateRenouvellement ? e.dateRenouvellement.slice(0, 10) : "");
     setEMode(e.modeRemplissage ?? "fixe");
     setEPart(e.pourcentageRevenu ? String(e.pourcentageRevenu) : "");
     setEMontantPeriode(String(e.montantPeriode ?? e.dotation ?? e.plafond));
@@ -179,6 +182,7 @@ function ModifierEnveloppe() {
       sousCategorie: eSousCategorie.trim(),
       compteSource: eCompte.trim(),
       periodeRenouvellement: ePeriode,
+      dateRenouvellement: eMode === "fixe" ? eDateRenouv : "",
       modeRemplissage: eMode,
       pourcentageRevenu: eMode === "pourcentage" ? part : 0,
       montantPeriode: eMode === "fixe" ? parPeriode : 0,
@@ -204,6 +208,7 @@ function ModifierEnveloppe() {
         sousCategorie: demande.sousCategorie,
         compteSource: demande.compteSource,
         periodeRenouvellement: demande.periodeRenouvellement,
+        dateRenouvellement: demande.dateRenouvellement,
         modeRemplissage: demande.modeRemplissage,
         pourcentageRevenu: demande.pourcentageRevenu,
         montantPeriode: demande.montantPeriode,
@@ -500,6 +505,24 @@ function ModifierEnveloppe() {
                     </option>
                   ))}
                 </select>
+
+                {eMode === "fixe" && (
+                  <>
+                    <label htmlFor="edit-date-renouv" className="text-xs text-muted-foreground">
+                      Date du prochain renouvellement automatique
+                    </label>
+                    <input
+                      id="edit-date-renouv"
+                      type="date"
+                      value={eDateRenouv}
+                      onChange={(ev) => setEDateRenouv(ev.target.value)}
+                      className={champ}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Sans date, aucun renouvellement automatique n'est effectué.
+                    </p>
+                  </>
+                )}
 
                 <div className="flex gap-2">
                   {(
