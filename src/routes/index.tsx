@@ -4,9 +4,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarCheck,
-  CalendarRange,
-  LineChart,
   Sparkles,
+  Target,
   Wallet,
 } from "lucide-react";
 import { useMemo } from "react";
