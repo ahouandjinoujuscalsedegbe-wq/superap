@@ -13,9 +13,11 @@ import {
   RefreshCw,
   TrendingUp,
   CalendarCheck,
+  BellRing,
 } from "lucide-react";
 
 const ENTREES = [
+  { to: "/notifications", label: "Mon conseiller", icone: BellRing },
   { to: "/dettes", label: "Dettes & Créances", icone: HandCoins },
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },

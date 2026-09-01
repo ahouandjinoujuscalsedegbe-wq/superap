@@ -19,6 +19,7 @@ import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as MoisRouteImport } from './routes/mois'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ObjectifsRouteImport } from './routes/objectifs'
 import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
@@ -105,6 +106,11 @@ const JournalRoute = JournalRouteImport.update({
 const MoisRoute = MoisRouteImport.update({
   id: '/mois',
   path: '/mois',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ObjectifsRoute = ObjectifsRouteImport.update({
@@ -306,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/mois': typeof MoisRoute
+  '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/mois': typeof MoisRoute
+  '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
   '/planning': typeof PlanningRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/mois': typeof MoisRoute
+  '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/journal'
     | '/mois'
+    | '/notifications'
     | '/objectifs'
     | '/outils'
     | '/parametres'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/dettes'
     | '/journal'
     | '/mois'
+    | '/notifications'
     | '/objectifs'
     | '/outils'
     | '/planning'
@@ -546,6 +557,7 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/journal'
     | '/mois'
+    | '/notifications'
     | '/objectifs'
     | '/outils'
     | '/parametres'
@@ -596,6 +608,7 @@ export interface RootRouteChildren {
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
   JournalRoute: typeof JournalRoute
   MoisRoute: typeof MoisRoute
+  NotificationsRoute: typeof NotificationsRoute
   ObjectifsRoute: typeof ObjectifsRoute
   OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
@@ -679,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/mois'
       fullPath: '/mois'
       preLoaderRoute: typeof MoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/objectifs': {
@@ -1044,6 +1064,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnveloppesRoute: EnveloppesRouteWithChildren,
   JournalRoute: JournalRoute,
   MoisRoute: MoisRoute,
+  NotificationsRoute: NotificationsRoute,
   ObjectifsRoute: ObjectifsRoute,
   OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRouteWithChildren,
