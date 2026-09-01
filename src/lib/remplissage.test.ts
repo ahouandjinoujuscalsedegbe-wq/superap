@@ -13,20 +13,20 @@ const base: Enveloppe = {
   periodeRenouvellement: "mois",
   modeRemplissage: "fixe",
   montantPeriode: 25000,
-  dateRenouvellement: "2026-02-10",
-  dernierRemplissage: "2026-01-10",
+  dernierRemplissage: "2026-01-01",
 };
 
 describe("remplissage", () => {
-  it("rattrape les périodes écoulées", () => {
+  it("renouvelle le premier de chaque mois écoulé", () => {
     const dus = remplissagesDus([base], [], new Date("2026-03-15T10:00:00Z"));
-    expect(dus.map((d) => d.date)).toEqual(["2026-02-10", "2026-03-10"]);
+    expect(dus.map((d) => d.date)).toEqual(["2026-02-01", "2026-03-01"]);
     expect(dus[0]?.compte).toBe("CAISSE");
   });
 
-  it("ne renouvelle pas sans date choisie par l'utilisateur", () => {
-    const { dateRenouvellement: _ignore, ...sansDepart } = base;
-    expect(remplissagesDus([sansDepart], [], new Date("2026-03-15T10:00:00Z"))).toHaveLength(0);
+  it("démarre au 1er du mois en cours sans historique", () => {
+    const { dernierRemplissage: _ignore, ...neuve } = base;
+    const dus = remplissagesDus([neuve], [], new Date("2026-03-15T10:00:00Z"));
+    expect(dus.map((d) => d.date)).toEqual(["2026-03-01"]);
   });
 
   it("calcule la part d'un revenu", () => {
