@@ -4,9 +4,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarCheck,
-  CalendarRange,
-  LineChart,
   Sparkles,
+  Target,
   Wallet,
 } from "lucide-react";
 import { useMemo } from "react";
@@ -95,18 +94,18 @@ function Accueil() {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/planning"
-            aria-label="Planning 14 semaines"
+            to="/mois"
+            aria-label="Vue globale du mois"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
           >
-            <CalendarRange className="h-5 w-5" aria-hidden />
+            <CalendarCheck className="h-5 w-5" aria-hidden />
           </Link>
           <Link
-            to="/analyses"
-            aria-label="Analyses et Conseils"
+            to="/objectifs"
+            aria-label="Objectifs"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
           >
-            <LineChart className="h-5 w-5" aria-hidden />
+            <Target className="h-5 w-5" aria-hidden />
           </Link>
         </div>
       </header>
