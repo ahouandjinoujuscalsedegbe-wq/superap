@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
@@ -134,9 +134,18 @@ function Budgetisation() {
     | null;
   const [demande, setDemande] = useState<Demande>(null);
 
+  const search = useSearch({ from: Route.id }) as { onglet?: "plan" | "suivi" | "auto" };
   const [popupOuvert, setPopupOuvert] = useState(false);
-  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">("plan");
+  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">(
+    search.onglet ?? "plan",
+  );
   const [ouverte, setOuverte] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (search.onglet && ["plan", "suivi", "auto"].includes(search.onglet)) {
+      setOnglet(search.onglet);
+    }
+  }, [search.onglet]);
   const [calendrierOuvert, setCalendrierOuvert] = useState(false);
 
   // Réponses du questionnaire
