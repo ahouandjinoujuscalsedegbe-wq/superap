@@ -661,6 +661,54 @@ export function repondreCoach(
     };
   }
 
+  /* « Budget », « bilan », « où j'en suis » : le coach donne ses chiffres du mois. */
+  if (!cible && estDemandeBudget(question)) {
+    const b = bilanMensuel(donnees, maintenant);
+    const details = [
+      `Solde global : ${fcfa(b.soldeGlobal)} — taux d'épargne ${b.tauxEpargne} %.`,
+      b.ecart === 0
+        ? "Dépenses au même niveau que le mois dernier."
+        : `${b.ecart > 0 ? "Hausse" : "Baisse"} de ${fcfa(Math.abs(b.ecart))} par rapport au mois dernier (${Math.abs(b.ecartPct)} %).`,
+      `Rythme : ${fcfa(b.rythmeJour)} par jour, projection de fin de mois ${fcfa(b.projection)}.`,
+    ];
+    if (b.epuisees.length > 0)
+      details.push(
+        `Enveloppes épuisées : ${b.epuisees.map((e) => e.nom).join(", ")}.`,
+      );
+    return {
+      reponse: {
+        reponse: `Votre budget du mois : ${fcfa(b.revenus)} de revenus, ${fcfa(b.depenses)} de dépenses, soit ${fcfa(b.solde)} de solde sur ${b.nbOperations} opérations.`,
+        details,
+        incompris: false,
+      },
+    };
+  }
+
+  /* « Enveloppe » sans nom précis : le coach fait le point sur toutes. */
+  if (!cible && estDemandeEnveloppes(question)) {
+    const b = bilanMensuel(donnees, maintenant);
+    const details: string[] = [];
+    if (b.epuisees.length > 0)
+      details.push(
+        `À renflouer : ${b.epuisees.map((e) => `${e.nom} (${fcfa(e.utilise)} utilisés)`).join(", ")}.`,
+      );
+    if (b.surplus.length > 0)
+      details.push(
+        `Encore disponibles : ${b.surplus.map((e) => `${e.nom} (${fcfa(e.restant)})`).join(", ")}.`,
+      );
+    details.push("Dites-moi le nom d'une enveloppe pour son bilan détaillé.");
+    return {
+      reponse: {
+        reponse:
+          donnees.enveloppes.length === 0
+            ? "Vous n'avez encore aucune enveloppe. Créez-en une et je la suivrai pour vous."
+            : `Vous avez ${donnees.enveloppes.length} enveloppes : ${b.epuisees.length} épuisée(s) et ${b.surplus.length} en surplus.`,
+        details,
+        incompris: false,
+      },
+    };
+  }
+
   const base = repondre(question, donneesAssistant, maintenant);
   const details = [...base.details];
 
@@ -721,7 +769,52 @@ const MOTS_CONSEIL = [
   "ton avis",
   "votre avis",
   "astuce",
+  "conseil",
+  "conseille moi",
+  "conseille-moi",
+  "que me conseilles",
+  "que dois je faire",
+  "que dois-je faire",
+  "guide moi",
+  "propose moi",
+  "idee",
+  "strategie",
 ];
+
+/** Mots qui montrent que l'utilisateur parle de son budget global. */
+const MOTS_BUDGET = [
+  "budget",
+  "budgetaire",
+  "budgetisation",
+  "bilan",
+  "ou en suis je",
+  "ou j en suis",
+  "mes chiffres",
+  "resume du mois",
+  "situation",
+];
+
+/** Mots qui montrent que l'utilisateur parle de ses enveloppes en général. */
+const MOTS_ENVELOPPE = ["enveloppe", "enveloppes", "poche", "poches"];
+
+function normaliser(texte: string): string {
+  return texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+/** Vrai si la phrase porte sur le budget global du mois. */
+export function estDemandeBudget(question: string): boolean {
+  const t = normaliser(question);
+  return MOTS_BUDGET.some((m) => t.includes(m));
+}
+
+/** Vrai si la phrase porte sur les enveloppes sans en nommer une précise. */
+export function estDemandeEnveloppes(question: string): boolean {
+  const t = normaliser(question);
+  return MOTS_ENVELOPPE.some((m) => t.includes(m));
+}
 
 /** Vrai si l'utilisateur demande un conseil plutôt qu'un chiffre. */
 export function estDemandeConseil(question: string): boolean {
