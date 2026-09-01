@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { RapportMensuelVue } from "@/components/RapportMensuelVue";
+import { UtilisationQuotidienneEnveloppes } from "@/components/UtilisationQuotidienneEnveloppes";
 import { useSuperApp } from "@/lib/store";
 import { construireRapport } from "@/lib/rapport-mensuel";
 
@@ -36,9 +37,10 @@ function PageRapportMois() {
   );
 
   return (
-    <div className="space-y-4 pt-4">
+    <div className="space-y-4 pb-28 pt-4">
       <BoutonRetour to="/rapport" label="Tous les mois" />
       <RapportMensuelVue rapport={rapport} />
+      <UtilisationQuotidienneEnveloppes mois={mois} />
     </div>
   );
 }
