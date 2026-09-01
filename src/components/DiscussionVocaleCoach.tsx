@@ -19,10 +19,13 @@ const OUVERTURES = [
 export function DiscussionVocaleCoach({
   onQuestion,
   onArret,
+  demarrageAuto = false,
 }: {
   /** Traite la question comprise et renvoie la réponse à lire à voix haute. */
   onQuestion: (question: string) => string;
   onArret?: () => void;
+  /** Démarre la boucle vocale dès l'affichage, sans bouton supplémentaire. */
+  demarrageAuto?: boolean;
 }) {
   const [actif, setActif] = useState(false);
   const [phase, setPhase] = useState<"parle" | "ecoute" | "attente">("attente");
@@ -42,6 +45,16 @@ export function DiscussionVocaleCoach({
     },
     [],
   );
+
+  // Démarrage direct quand le composant s'ouvre en mode « mains libres ».
+  const lance = useRef(false);
+  useEffect(() => {
+    if (demarrageAuto && !lance.current) {
+      lance.current = true;
+      demarrer();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demarrageAuto]);
 
   function parler(texte: string, apres: () => void) {
     setPhase("parle");

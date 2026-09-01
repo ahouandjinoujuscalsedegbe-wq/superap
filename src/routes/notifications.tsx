@@ -443,7 +443,7 @@ function PageNotifications() {
           const el = e.currentTarget;
           setEnBas(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
-        className="fond-discussion flex-1 space-y-1.5 overflow-y-auto px-3 py-3"
+        className="fond-discussion flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 py-3"
       >
         {!prete && (
           <p className="py-8 text-center text-xs text-muted-foreground">
@@ -487,7 +487,7 @@ function PageNotifications() {
                     if (appui.current) window.clearTimeout(appui.current);
                   }}
                   onDoubleClick={() => setCitation(m)}
-                  className={`relative max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                  className={`relative max-w-[88%] rounded-2xl px-3 py-2 text-[0.95rem] leading-snug shadow-sm sm:max-w-[75%] ${
                     duCoach ? "bulle-coach" : "bulle-moi"
                   } ${selection === m.id ? "ring-2 ring-primary" : ""}`}
                 >
@@ -688,7 +688,11 @@ function PageNotifications() {
 
       {vocal && (
         <div className="border-t border-border bg-card p-2">
-          <DiscussionVocaleCoach onQuestion={traiterQuestion} onArret={() => setVocal(false)} />
+          <DiscussionVocaleCoach
+            demarrageAuto
+            onQuestion={traiterQuestion}
+            onArret={() => setVocal(false)}
+          />
         </div>
       )}
 
@@ -755,7 +759,9 @@ function PageNotifications() {
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Message"
               aria-label="Message pour votre conseiller"
-              className="min-w-0 flex-1 bg-transparent py-2.5 text-sm outline-none"
+              enterKeyHint="send"
+              autoComplete="off"
+              className="min-w-0 flex-1 bg-transparent py-2.5 text-base outline-none"
             />
             <button
               type="button"
