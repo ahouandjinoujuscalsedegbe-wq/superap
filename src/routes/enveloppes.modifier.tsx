@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
-import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
+import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -76,8 +76,8 @@ function ModifierEnveloppe() {
   const [eCategorie, setECategorie] = useState("");
   const [eSousCategorie, setESousCategorie] = useState("");
   const [eCompte, setECompte] = useState("");
-  const [ePeriode, setEPeriode] = useState<Periode>("mois");
-  const [eDateRenouv, setEDateRenouv] = useState("");
+  // Règle unique : renouvellement le 1er de chaque mois.
+  const ePeriode: Periode = "mois";
   const [eMode, setEMode] = useState<"fixe" | "pourcentage">("fixe");
   const [ePart, setEPart] = useState("");
   const [eMontantPeriode, setEMontantPeriode] = useState("");
@@ -104,8 +104,6 @@ function ModifierEnveloppe() {
     setECategorie(e.categorie ?? "");
     setESousCategorie(e.sousCategorie ?? "");
     setECompte(e.compteSource ?? "");
-    setEPeriode(e.periodeRenouvellement ?? "mois");
-    setEDateRenouv(e.dateRenouvellement ? e.dateRenouvellement.slice(0, 10) : "");
     setEMode(e.modeRemplissage ?? "fixe");
     setEPart(e.pourcentageRevenu ? String(e.pourcentageRevenu) : "");
     setEMontantPeriode(String(e.montantPeriode ?? e.dotation ?? e.plafond));
@@ -182,7 +180,7 @@ function ModifierEnveloppe() {
       sousCategorie: eSousCategorie.trim(),
       compteSource: eCompte.trim(),
       periodeRenouvellement: ePeriode,
-      dateRenouvellement: eMode === "fixe" ? eDateRenouv : "",
+      dateRenouvellement: "",
       modeRemplissage: eMode,
       pourcentageRevenu: eMode === "pourcentage" ? part : 0,
       montantPeriode: eMode === "fixe" ? parPeriode : 0,
