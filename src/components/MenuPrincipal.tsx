@@ -11,6 +11,7 @@ import {
   CalendarRange,
   ShieldCheck,
   RefreshCw,
+  Scale,
   TrendingUp,
   CalendarCheck,
   BellRing,
@@ -22,7 +23,9 @@ const ENTREES = [
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
+  { to: "/suivi", label: "Suivi réel / prévu", icone: Scale },
   { to: "/mois", label: "Vue globale du mois", icone: CalendarCheck },
+
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
   { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
