@@ -186,6 +186,42 @@
   overscroll-behavior: contain;
 }
 
+/* Clavier interne façon Android 16 (Material 3 Expressive) */
+.clavier-m3 {
+  background: color-mix(in oklab, var(--card) 96%, var(--primary) 4%);
+  border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.clavier-m3[data-theme-clavier="sombre"] {
+  background: oklch(0.22 0.02 300);
+  color: oklch(0.97 0 0);
+}
+
+.touche-m3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--secondary) 88%, var(--card) 12%);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--border) 60%, transparent);
+  transition:
+    transform 0.09s cubic-bezier(0.2, 0, 0, 1),
+    background-color 0.12s ease,
+    border-radius 0.12s ease;
+}
+
+.touche-m3:active {
+  border-radius: 0.6rem;
+}
+
+.touche-fonction {
+  background: color-mix(in oklab, var(--muted) 85%, var(--card) 15%);
+}
+
+
 body[data-clavier-ouvert="true"] .app-bottom-nav {
   visibility: hidden;
   pointer-events: none;
