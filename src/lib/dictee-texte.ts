@@ -132,6 +132,12 @@ export function chiffrerNombres(texte: string): string {
   const vider = () => {
     if (tampon.length === 0) return;
     const mots = tampon.map((m) => sansAccent(m).replace(/[.,;:!?]/g, ""));
+    // « un »/« une » seuls restent des articles, pas le chiffre 1.
+    if (mots.length === 1 && (mots[0] === "un" || mots[0] === "une")) {
+      sortie.push(tampon.join(" "));
+      tampon = [];
+      return;
+    }
     const valeur = valeurNombre(mots);
     sortie.push(valeur === null ? tampon.join(" ") : String(valeur));
     tampon = [];
