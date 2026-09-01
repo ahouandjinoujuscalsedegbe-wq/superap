@@ -3,9 +3,9 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
+  CalendarCheck,
   CalendarRange,
   LineChart,
-
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -215,22 +215,42 @@ function Accueil() {
 
 
       <section className="grid grid-cols-2 gap-3">
-        <Link
-          to="/revenu"
-          className="carte flex flex-col gap-1 bg-success/15 p-4 text-left text-success transition-transform active:scale-[0.98]"
-        >
-          <ArrowUpRight className="h-5 w-5" aria-hidden />
-          <span className="font-semibold">Ajouter un revenu</span>
-          <span className="text-xs text-success/80">Salaire, activité, aide…</span>
-        </Link>
-        <Link
-          to="/depense"
-          className="carte flex flex-col gap-1 bg-destructive/15 p-4 text-left text-destructive transition-transform active:scale-[0.98]"
-        >
-          <ArrowDownRight className="h-5 w-5" aria-hidden />
-          <span className="font-semibold">Ajouter une dépense</span>
-          <span className="text-xs text-destructive/80">En 2 secondes</span>
-        </Link>
+        <div className="flex flex-col gap-3">
+          <Link
+            to="/revenu"
+            className="carte flex flex-col gap-1 bg-success/15 p-4 text-left text-success transition-transform active:scale-[0.98]"
+          >
+            <ArrowUpRight className="h-5 w-5" aria-hidden />
+            <span className="font-semibold">Ajouter un revenu</span>
+            <span className="text-xs text-success/80">Salaire, activité, aide…</span>
+          </Link>
+          <Link
+            to="/enveloppes/budgetisation"
+            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <Wallet className="h-5 w-5 text-primary" aria-hidden />
+            <span className="font-semibold">Budgétisation</span>
+            <span className="text-xs text-muted-foreground">Planifier vos enveloppes</span>
+          </Link>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Link
+            to="/depense"
+            className="carte flex flex-col gap-1 bg-destructive/15 p-4 text-left text-destructive transition-transform active:scale-[0.98]"
+          >
+            <ArrowDownRight className="h-5 w-5" aria-hidden />
+            <span className="font-semibold">Ajouter une dépense</span>
+            <span className="text-xs text-destructive/80">En 2 secondes</span>
+          </Link>
+          <Link
+            to="/mois"
+            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <CalendarCheck className="h-5 w-5 text-primary" aria-hidden />
+            <span className="font-semibold">Vue globale du mois</span>
+            <span className="text-xs text-muted-foreground">Bilan et conseils</span>
+          </Link>
+        </div>
       </section>
 
       <section className="carte p-4">
