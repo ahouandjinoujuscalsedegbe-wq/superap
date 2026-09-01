@@ -172,13 +172,14 @@ function PageRapport() {
         </section>
       )}
 
-      {rapport.enveloppes.length > 0 && (
+      {rapport.enveloppes.some((e) => e.depense > 0) && (
 
         <section className="carte space-y-2 p-4">
-          <h2 className="text-sm font-semibold">Enveloppes du mois</h2>
+          <h2 className="text-sm font-semibold">Enveloppes dépensées ce mois</h2>
           <ul className="space-y-1.5 text-sm">
-            {rapport.enveloppes.map((e) => (
+            {rapport.enveloppes.filter((e) => e.depense > 0).map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-2">
+
                 <span className="truncate">
                   {e.emoji} {e.nom}
                 </span>
