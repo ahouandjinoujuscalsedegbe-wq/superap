@@ -15,6 +15,7 @@ import {
   TrendingUp,
   CalendarCheck,
   BellRing,
+  Search,
 } from "lucide-react";
 
 const ENTREES = [
