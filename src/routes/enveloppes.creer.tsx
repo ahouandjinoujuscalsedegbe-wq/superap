@@ -466,39 +466,11 @@ function CreerEnveloppePage() {
             Seules les dépenses faites depuis l'enveloppe diminuent le compte.
           </p>
 
-          <label htmlFor="e-periode" className="text-xs text-muted-foreground">
-            Période de renouvellement du contenu
-          </label>
-          <select
-            id="e-periode"
-            value={periodeRenouvellement}
-            onChange={(ev) => setPeriodeRenouvellement(ev.target.value as Periode)}
-            className={champ}
-          >
-            {PERIODES.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+          <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
+            Renouvellement automatique : le contenu de cette enveloppe est reversé
+            le 1er de chaque mois, sans date à choisir.
+          </p>
 
-          {modeRemplissage === "fixe" && (
-            <>
-              <label htmlFor="e-date-renouv" className="text-xs text-muted-foreground">
-                Date du premier renouvellement automatique (obligatoire)
-              </label>
-              <input
-                id="e-date-renouv"
-                type="date"
-                value={dateRenouvellement}
-                onChange={(ev) => setDateRenouvellement(ev.target.value)}
-                className={champ}
-              />
-              <p className="text-xs text-muted-foreground">
-                Le renouvellement n'aura lieu qu'à cette date, puis à chaque période.
-              </p>
-            </>
-          )}
 
           <div className="flex gap-2">
             {(
