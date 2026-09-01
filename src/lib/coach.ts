@@ -275,9 +275,30 @@ export type BilanMensuel = {
   ecartPct: number;
   rythmeJour: number;
   projection: number;
+  /** Nombre d'opérations du mois (même chiffre que la vue globale du mois). */
+  nbOperations: number;
+  /** Taux d'épargne du mois, en pourcentage. */
+  tauxEpargne: number;
+  /** Solde global de tous les comptes, comme sur la vue globale du mois. */
+  soldeGlobal: number;
+  /** Saison en cours (climat ouest-africain), pour adapter les conseils. */
+  saison: string;
+  /** Moyenne des dépenses du même mois les années précédentes (0 si inconnue). */
+  moyenneSaison: number;
+  /** Écart de dépenses avec cette moyenne saisonnière. */
+  ecartSaison: number;
+  ecartSaisonPct: number;
   epuisees: LigneEnveloppeBilan[];
   surplus: LigneEnveloppeBilan[];
 };
+
+/** Saison ouest-africaine du mois donné (0 = janvier). */
+export function saisonDe(moisIndex: number): string {
+  if ([10, 11, 0, 1, 2].includes(moisIndex)) return "grande saison sèche (harmattan, fêtes)";
+  if ([3, 4, 5, 6].includes(moisIndex)) return "grande saison des pluies (rentrée agricole)";
+  if ([7, 8].includes(moisIndex)) return "petite saison sèche (rentrée scolaire)";
+  return "petite saison des pluies";
+}
 
 /** Calcule le bilan chiffré du mois en cours à partir des données réelles. */
 export function bilanMensuel(
@@ -329,6 +350,25 @@ export function bilanMensuel(
   epuisees.sort((a, b) => b.manque - a.manque);
   surplus.sort((a, b) => b.restant - a.restant);
 
+  /* Saisonnalité : on compare le mois en cours au même mois des années
+     précédentes, pour distinguer une dérive réelle d'un simple effet de saison. */
+  const memeMois = donnees.transactions.filter((t) => {
+    if (t.type !== "depense") return false;
+    const d = new Date(t.date);
+    if (Number.isNaN(d.getTime())) return false;
+    return d.getMonth() === mo && d.getFullYear() < an;
+  });
+  const annees = new Set(memeMois.map((t) => new Date(t.date).getFullYear()));
+  const moyenneSaison =
+    annees.size > 0
+      ? Math.round(memeMois.reduce((s, t) => s + Math.abs(t.montant), 0) / annees.size)
+      : 0;
+  const ecartSaison = moyenneSaison > 0 ? depenses - moyenneSaison : 0;
+  const ecartSaisonPct =
+    moyenneSaison > 0 ? Math.round((ecartSaison / moyenneSaison) * 100) : 0;
+
+  const nbOperations = donnees.transactions.filter((t) => dansMois(t.date, 0)).length;
+
   return {
     revenus,
     depenses,
@@ -337,6 +377,13 @@ export function bilanMensuel(
     ecartPct,
     rythmeJour,
     projection,
+    nbOperations,
+    tauxEpargne: revenus > 0 ? Math.round(((revenus - depenses) / revenus) * 100) : 0,
+    soldeGlobal: donnees.solde,
+    saison: saisonDe(mo),
+    moyenneSaison,
+    ecartSaison,
+    ecartSaisonPct,
     epuisees: epuisees.slice(0, 5),
     surplus: surplus.slice(0, 5),
   };
