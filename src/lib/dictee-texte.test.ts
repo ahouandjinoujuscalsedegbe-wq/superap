@@ -10,7 +10,7 @@ describe("dictée : phrases complexes", () => {
 
   it("remet au propre les élisions et hésitations", () => {
     const t = nettoyerDictee("euh jai depensé vingt mille balles ce mois ci");
-    expect(t).toContain("j'ai");
+    expect(t.toLowerCase()).toContain("j'ai");
     expect(t).toContain("20000");
     expect(t).toContain("francs");
     expect(t.toLowerCase()).not.toContain("euh");

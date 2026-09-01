@@ -127,6 +127,12 @@ function valeurNombre(mots: string[]): number | null {
       vu = true;
       continue;
     }
+    if ((mot === "vingt" || mot === "vingts") && courant === 4) {
+      // « quatre-vingt(s) » = 80
+      courant = 80;
+      vu = true;
+      continue;
+    }
     const v = UNITES[mot];
     if (v === undefined) return null;
     courant += v;
