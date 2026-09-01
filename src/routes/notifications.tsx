@@ -196,6 +196,32 @@ function PageNotifications() {
     enregistrer(apprendreAvis(memoireRef.current, id, avis));
   };
 
+  /* Lecture à voix haute : un message précis, ou tout le point du jour. */
+  const lire = (cle: string, texte: string) => {
+    if (lecture === cle) {
+      arreterLecture();
+      setLecture(null);
+      return;
+    }
+    arreterLecture();
+    setLecture(cle);
+    lireAVoixHaute(texte, {
+      onFin: () => setLecture(null),
+      onErreur: () => setLecture(null),
+    });
+  };
+
+  const texteMessage = (m: { texte: string; details?: string[] }) =>
+    [m.texte, ...(m.details ?? [])].join(". ");
+
+  const messagesDuCoachAujourdhui = memoire.messages.filter(
+    (m) =>
+      m.auteur === "coach" &&
+      new Date(m.date).toDateString() === new Date().toDateString(),
+  );
+  const texteDuJour = messagesDuCoachAujourdhui.map(texteMessage).join(". ");
+
+
   const themesAppris = Object.entries(memoire.poids)
     .filter(([, p]) => p !== 1)
     .sort((a, b) => b[1] - a[1])
