@@ -179,7 +179,7 @@ function PageNotifications() {
     const propre = texte.trim();
     if (!propre) return "";
     const courante = memoireRef.current;
-    const { reponse, enveloppeId } = repondreCoach(
+    const { reponse, enveloppeId, conseilDit } = repondreCoach(
       courante,
       propre,
       donneesAssistantRef.current,
@@ -209,6 +209,9 @@ function PageNotifications() {
     const apprise = apprendreQuestion(courante, propre, enveloppeId);
     enregistrer({
       ...apprise,
+      conseilsDits: conseilDit
+        ? [...apprise.conseilsDits.filter((c) => c !== conseilDit), conseilDit].slice(-60)
+        : apprise.conseilsDits,
       messages: [...apprise.messages, messageUtilisateur, messageCoach].slice(-400),
     });
     return reponse.reponse;
