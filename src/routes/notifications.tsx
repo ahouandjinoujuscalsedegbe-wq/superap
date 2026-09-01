@@ -91,6 +91,7 @@ function PageNotifications() {
     soldesParCompte,
     depensesParEnveloppe,
     solde,
+    objectifs,
   } = useSuperApp();
 
   const [memoire, setMemoire] = useState<MemoireCoach>(MEMOIRE_VIDE);
@@ -117,8 +118,8 @@ function PageNotifications() {
   memoireRef.current = memoire;
 
   const donneesCoach = useMemo(
-    () => ({ transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde }),
-    [transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde],
+    () => ({ transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde, objectifs }),
+    [transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde, objectifs],
   );
   const donneesCoachRef = useRef(donneesCoach);
   donneesCoachRef.current = donneesCoach;
