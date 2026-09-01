@@ -255,29 +255,8 @@ export function CarteEnveloppe({
 
       {estOuverte && (
         <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
-          <div className="rounded-lg border border-border/70 bg-card p-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs text-muted-foreground">Solde restant</span>
-              <span
-                className={`text-base font-bold ${
-                  etat.epuisee || depasse ? "text-destructive" : "text-foreground"
-                }`}
-              >
-                {formatFCFA(etat.restant)}
-              </span>
-            </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary">
-              <div
-                className={`h-full rounded-full ${depasse ? "bg-destructive" : "bg-primary"}`}
-                style={{ width: `${pourcentage}%` }}
-              />
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Plafond consommé à {Math.round(pourcentage)} % ({formatFCFA(utilise)} /{" "}
-              {formatFCFA(e.plafond)})
-            </p>
-          </div>
           <div>
+
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Opérations réelles
             </h3>
