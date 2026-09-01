@@ -1,95 +1,39 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronDown } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
-import {
-  construireRapportMois,
-  libelleMois,
-  lireArchives,
-  moisCourant,
-  moisDisponibles,
-} from "@/lib/rapport-enveloppes";
+import { construireRapportMois, libelleMois, lireArchives, moisCourant } from "@/lib/rapport-enveloppes";
 
-export const Route = createFileRoute("/rapport-enveloppes")({
-  head: () => ({
-    meta: [
-      { title: "Utilisation quotidienne des enveloppes — SUPER APP" },
-      {
-        name: "description",
-        content:
-          "Relevé jour par jour de chaque enveloppe : montant versé, dépenses quotidiennes, cumul et reste, mois par mois, en FCFA.",
-      },
-      { property: "og:title", content: "Utilisation quotidienne des enveloppes — SUPER APP" },
-      {
-        property: "og:description",
-        content:
-          "Rapport classé, jour par jour, de l'utilisation de chaque enveloppe avant chaque renouvellement.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: RapportEnveloppes,
-});
-
-function RapportEnveloppes() {
+/**
+ * Relevé jour par jour de chaque enveloppe pour un mois donné.
+ * Les mois écoulés sont lus dans le classement figé avant renouvellement ;
+ * le mois en cours est recalculé en direct.
+ */
+export function UtilisationQuotidienneEnveloppes({ mois }: { mois: string }) {
   const { enveloppes, transactions, remplissages } = useSuperApp();
-  const [mois, setMois] = useState(() => moisCourant());
   const [ouverte, setOuverte] = useState<string | null>(null);
 
-  const listeMois = useMemo(
-    () => moisDisponibles(transactions, remplissages),
-    [transactions, remplissages],
-  );
-
-  // Les mois écoulés sont lus dans le classement figé avant renouvellement ;
-  // le mois en cours est recalculé en direct.
   const rapport = useMemo(() => {
-    const archives = lireArchives();
-    const archive = archives[mois];
+    const archive = lireArchives()[mois];
     if (archive && mois !== moisCourant()) return archive;
     return construireRapportMois(mois, enveloppes, transactions, remplissages);
   }, [mois, enveloppes, transactions, remplissages]);
 
   return (
-    <div className="space-y-4 pb-28 pt-3">
-      <BoutonRetour to="/" label="Retour à l'accueil" />
-
+    <section className="space-y-3">
       <header className="flex items-start gap-3">
         <span className="rounded-2xl bg-primary/10 p-2 text-primary">
-          <CalendarDays className="h-6 w-6" aria-hidden />
+          <CalendarDays className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight">Utilisation quotidienne</h1>
+          <h2 className="text-base font-bold tracking-tight">Utilisation quotidienne</h2>
           <p className="text-xs text-muted-foreground">
-            Relevé jour par jour de chaque enveloppe, classé avant chaque renouvellement du 1er du
-            mois.
+            Relevé jour par jour de chaque enveloppe pour {libelleMois(mois)}.
           </p>
         </div>
       </header>
 
-      <label className="block text-xs font-medium text-muted-foreground">
-        Mois du rapport
-        <select
-          value={mois}
-          onChange={(e) => {
-            setMois(e.target.value);
-            setOuverte(null);
-          }}
-          className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm font-semibold text-foreground"
-        >
-          {listeMois.map((m) => (
-            <option key={m} value={m}>
-              {libelleMois(m)}
-              {m === moisCourant() ? " (en cours)" : ""}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <section className="carte grid grid-cols-2 gap-3 p-4 text-sm">
+      <div className="carte grid grid-cols-2 gap-3 p-4 text-sm">
         <div>
           <p className="text-xs text-muted-foreground">Total versé</p>
           <p className="text-lg font-bold text-primary">{formatFCFA(rapport.totalVerse)}</p>
@@ -98,7 +42,7 @@ function RapportEnveloppes() {
           <p className="text-xs text-muted-foreground">Total dépensé</p>
           <p className="text-lg font-bold">{formatFCFA(rapport.totalDepense)}</p>
         </div>
-      </section>
+      </div>
 
       {rapport.enveloppes.length === 0 ? (
         <p className="carte p-4 text-sm text-muted-foreground">
@@ -182,6 +126,6 @@ function RapportEnveloppes() {
           })}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
