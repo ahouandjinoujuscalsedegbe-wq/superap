@@ -244,6 +244,12 @@ export function construireRapport(
       `« ${f.libelle} » revient ${f.occurrences} fois pour ${Math.round(f.total).toLocaleString("fr-FR")} FCFA : une petite habitude qui pèse.`,
     );
   }
+  const totalEnRetard = enRetard.reduce((s, r) => s + r.montant, 0);
+  if (enRetard.length > 0) {
+    conseils.push(
+      `${enRetard.length} dépense(s) prévue(s) non effectuée(s) pour ${Math.round(totalEnRetard).toLocaleString("fr-FR")} FCFA : leur échéance est déjà passée.`,
+    );
+  }
   if (conseils.length === 0) conseils.push("Rien à signaler ce mois-ci.");
 
   return {
@@ -261,6 +267,9 @@ export function construireRapport(
       .sort((a, b) => b.montant - a.montant)
       .slice(0, 5),
     fuites,
+    enRetard,
+    totalEnRetard,
+
     detteRestante: donnees.dettes
       .filter((d) => d.sens === "dette")
       .reduce((s, d) => s + resteDu(d), 0),
