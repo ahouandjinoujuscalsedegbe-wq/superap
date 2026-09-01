@@ -337,7 +337,7 @@ export function bilanMensuel(
     transactions: donnees.transactions,
     enveloppes: donnees.enveloppes,
     dettes: donnees.dettes,
-    objectifs: donnees.objectifs,
+    ...(donnees.objectifs ? { objectifs: donnees.objectifs } : {}),
     solde: donnees.solde,
     maintenant,
   });
