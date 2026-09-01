@@ -13,13 +13,13 @@ export const Route = createFileRoute("/enveloppes/renouvellements")({
       {
         name: "description",
         content:
-          "Vue détaillée des renouvellements d'enveloppes : période, montant débité, compte source et pourcentage de revenu utilisé, en FCFA.",
+          "Vue détaillée des renouvellements d'enveloppes : période, montant réservé, compte source et pourcentage de revenu utilisé, en FCFA.",
       },
       { property: "og:title", content: "Renouvellements des enveloppes — SUPER APP" },
       {
         property: "og:description",
         content:
-          "Suivez chaque remplissage d'enveloppe : période, montant débité, compte source et part de revenu prélevée.",
+          "Suivez chaque remplissage d'enveloppe : période, montant réservé, compte source et part de revenu prélevée.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -76,7 +76,7 @@ function Renouvellements() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Détail des renouvellements</h1>
         <p className="text-sm text-muted-foreground">
-          Période de chaque enveloppe, montant débité, compte source et part de revenu utilisée.
+          Période de chaque enveloppe, montant réservé, compte source et part de revenu utilisée.
         </p>
       </header>
 
@@ -121,6 +121,12 @@ function Renouvellements() {
                     <dd className="font-medium">{e.compteSource || "Non défini"}</dd>
                   </div>
                   <div>
+                    <dt className="text-muted-foreground">Date choisie</dt>
+                    <dd className="font-medium">
+                      {e.dateRenouvellement ? jourLisible(e.dateRenouvellement) : "Non définie"}
+                    </dd>
+                  </div>
+                  <div>
                     <dt className="text-muted-foreground">
                       {pourcentage ? "Part de revenu" : "Montant par période"}
                     </dt>
@@ -139,11 +145,11 @@ function Renouvellements() {
                         ? formatFCFA(Math.round((revenusSource * (e.pourcentageRevenu ?? 0)) / 100))
                         : prochaine
                           ? jourLisible(prochaine)
-                          : "Après le premier versement"}
+                          : "Aucune date choisie"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Total débité du compte</dt>
+                    <dt className="text-muted-foreground">Total réservé sur le compte</dt>
                     <dd className="font-medium">{formatFCFA(verse)}</dd>
                   </div>
                   <div>
@@ -172,7 +178,7 @@ function Renouvellements() {
           <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
             Historique des remplissages
           </h2>
-          <span className="text-xs text-muted-foreground">{formatFCFA(totalDebite)} débités</span>
+          <span className="text-xs text-muted-foreground">{formatFCFA(totalDebite)} réservés</span>
         </div>
 
         {historique.length === 0 ? (

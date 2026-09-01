@@ -57,6 +57,11 @@ export type Enveloppe = {
   ajustementAuto?: boolean;
   /** Date (ISO) du dernier remplissage périodique appliqué. */
   dernierRemplissage?: string;
+  /**
+   * Date (AAAA-MM-JJ) choisie par l'utilisateur pour le premier renouvellement
+   * automatique. Sans elle, aucun renouvellement automatique n'a lieu.
+   */
+  dateRenouvellement?: string;
 };
 
 /** Versement d'un compte vers une enveloppe (approvisionnement). */
@@ -388,6 +393,8 @@ type Contexte = Etat & {
   solde: number;
   depensesParEnveloppe: Record<string, number>;
   soldesParCompte: Record<string, number>;
+  /** Part du solde de chaque compte déjà réservée aux enveloppes. */
+  reservesParCompte: Record<string, number>;
   /** true quand des données existent mais n'ont pas pu être déchiffrées. */
   stockageIllisible: boolean;
   /** true tant que la lecture chiffrée initiale n'est pas terminée. */
@@ -1251,9 +1258,16 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       soldesParCompte[t.source] = (soldesParCompte[t.source] ?? 0) - t.montant;
       soldesParCompte[t.destination] = (soldesParCompte[t.destination] ?? 0) + t.montant;
     }
-    // Remplir une enveloppe sort l'argent du compte qui l'alimente.
-    for (const r of etat.remplissages) {
-      soldesParCompte[r.compte] = (soldesParCompte[r.compte] ?? 0) - r.montant;
+    // Remplir une enveloppe ne sort PAS l'argent du compte : c'est une simple
+    // réservation d'une partie du solde. Seules les dépenses appauvrissent le
+    // compte. On calcule donc la part réservée, à titre indicatif.
+    const reservesParCompte: Record<string, number> = {};
+    for (const c of etat.comptes) reservesParCompte[c] = 0;
+    for (const e of etat.enveloppes) {
+      const compte = e.compteSource;
+      if (!compte) continue;
+      const reste = Math.max(0, e.dotation ?? e.plafond);
+      reservesParCompte[compte] = (reservesParCompte[compte] ?? 0) + reste;
     }
     return {
       ...etat,
@@ -1264,6 +1278,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       solde: totalRevenus - totalDepenses,
       depensesParEnveloppe,
       soldesParCompte,
+      reservesParCompte,
       stockageIllisible: illisible,
       chargement,
     };
