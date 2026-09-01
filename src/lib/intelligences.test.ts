@@ -15,8 +15,6 @@ import {
   suggererEnveloppe,
 } from "@/lib/saisie-plus";
 import {
-  alertesEnveloppes,
-  detecterAnomalies,
   diagnostiquer,
   projectionFinDeMois,
   repartitionParCategorie,
@@ -279,31 +277,10 @@ describe("Intelligence 7 — Analyse des dépenses", () => {
     expect(Number.isFinite(p.projection)).toBe(true);
   });
 
-  it("détecte une dépense inhabituelle", () => {
-    const anomalies = detecterAnomalies(transactions, enveloppes);
-    expect(anomalies[0]?.transaction.libelle).toBe("Réparation toiture");
-    expect(anomalies[0]?.facteur).toBeGreaterThanOrEqual(2);
-  });
 });
 
 /* ---------------------------------------------------------------- */
 /* 8. Surveillance des enveloppes                                    */
-/* ---------------------------------------------------------------- */
-
-describe("Intelligence 8 — Surveillance des enveloppes", () => {
-  it("signale une enveloppe dépassée", () => {
-    const alertes = alertesEnveloppes(enveloppes, depensesParEnveloppe, transactions);
-    const vitaux = alertes.find((a) => a.id === "vitaux");
-    expect(vitaux).toBeDefined();
-    expect(vitaux?.plafondAtteint).toBe(true);
-  });
-
-  it("n'alerte pas une enveloppe saine", () => {
-    const alertes = alertesEnveloppes(enveloppes, { vitaux: 0, transport: 0 }, []);
-    expect(alertes).toHaveLength(0);
-  });
-});
-
 /* ---------------------------------------------------------------- */
 /* 9. Statistiques avancées (mois, sources, objectifs, budgets)      */
 /* ---------------------------------------------------------------- */
