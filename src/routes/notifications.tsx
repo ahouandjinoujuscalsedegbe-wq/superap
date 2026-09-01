@@ -94,6 +94,8 @@ function PageNotifications() {
   const [memoire, setMemoire] = useState<MemoireCoach>(MEMOIRE_VIDE);
   const [prete, setPrete] = useState(false);
   const [question, setQuestion] = useState("");
+  const [toutesQuestions, setToutesQuestions] = useState(false);
+
   const [ouverte, setOuverte] = useState<string | null>(null);
   const [lecture, setLecture] = useState<string | null>(null);
   const bas = useRef<HTMLDivElement>(null);
