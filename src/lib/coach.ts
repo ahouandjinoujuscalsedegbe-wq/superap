@@ -334,12 +334,47 @@ export function messagesDuJour(
     });
   });
 
-  if (classees.length === 0) {
+  /* Conseils par enveloppe : les enveloppes les plus tendues, pondérées par
+     l'intérêt que l'utilisateur leur porte (questions posées, pouces). */
+  const bilans = bilansEnveloppes(
+    donnees.enveloppes,
+    donnees.transactions,
+    donnees.depensesParEnveloppe,
+    maintenant,
+  )
+    .filter((b) => poidsEnveloppeDe(memoire, b.enveloppe.id) >= 0.4)
+    .filter((b) => b.conseils.some((c) => c.gravite > 0))
+    .map((b) => ({
+      b,
+      note: (100 - b.score) * poidsEnveloppeDe(memoire, b.enveloppe.id),
+    }))
+    .sort((a, x) => x.note - a.note)
+    .map((x) => x.b)
+    .slice(0, 2);
+
+  bilans.forEach((b, i) => {
+    const principal = b.conseils.find((c) => c.gravite === 2) ?? b.conseils[0]!;
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte: `${b.enveloppe.emoji} ${b.enveloppe.nom} : ${principal.texte}`,
+      details: [`À faire : ${principal.action}`, b.resume, `Tenue de l'enveloppe : ${b.score}/100`],
+      categorie: "enveloppe",
+      enveloppeId: b.enveloppe.id,
+      date: horodater(classees.length + i + 1),
+      lu: false,
+    });
+  });
+
+  if (classees.length === 0 && bilans.length === 0) {
+    const favoris = sujetsFavoris(memoire, 3);
     sortie.push({
       id: id(),
       auteur: "coach",
       texte:
-        "Rien d'urgent aujourd'hui : vos indicateurs tiennent. Posez-moi une question quand vous voulez, je réponds à partir de vos propres chiffres.",
+        favoris.length > 0
+          ? `Rien d'urgent aujourd'hui. Je garde un œil sur ce qui vous intéresse : ${favoris.join(", ")}. Posez-moi une question quand vous voulez.`
+          : "Rien d'urgent aujourd'hui : vos indicateurs tiennent. Posez-moi une question quand vous voulez, je réponds à partir de vos propres chiffres.",
       categorie: "bilan",
       date: horodater(1),
       lu: false,
@@ -349,6 +384,93 @@ export function messagesDuJour(
   void jour;
   return sortie;
 }
+
+/* ------------------------------------------------------------------ */
+/* Réponse personnalisée                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Répond à une question en s'appuyant sur l'assistant local (chiffres réels)
+ * puis en ajoutant ce que le coach a appris de l'utilisateur : enveloppe
+ * citée, sujets récurrents, ton adapté au nombre d'échanges.
+ */
+export function repondreCoach(
+  memoire: MemoireCoach,
+  question: string,
+  donneesAssistant: DonneesAssistant,
+  donnees: DonneesCoach,
+  maintenant = new Date(),
+): { reponse: ReponseAssistant; enveloppeId?: string } {
+  const base = repondre(question, donneesAssistant, maintenant);
+  const details = [...base.details];
+
+  /* L'enveloppe citée reçoit son mini-bilan, calculé sur les dépenses réelles. */
+  const cible = enveloppeCitee(question, donnees.enveloppes);
+  if (cible) {
+    const b = bilanEnveloppe(
+      cible,
+      donnees.transactions,
+      donnees.depensesParEnveloppe[cible.id] ?? 0,
+      maintenant,
+    );
+    details.push(`${cible.emoji} ${cible.nom} — ${b.resume}`);
+    const conseil = b.conseils[0];
+    if (conseil) details.push(`Conseil enveloppe : ${conseil.action}`);
+  }
+
+  /* Le coach relie la réponse aux sujets que l'utilisateur ramène souvent. */
+  const favoris = sujetsFavoris(memoire, 3);
+  let reponse = base.reponse;
+  if (base.incompris) {
+    reponse =
+      favoris.length > 0
+        ? `${base.reponse} Vous me parlez souvent de ${favoris.join(", ")} : voulez-vous qu'on regarde de ce côté ?`
+        : base.reponse;
+  } else if (memoire.echanges >= 5) {
+    const theme = themeDominant(memoire);
+    if (theme) details.push(`Je continue à suivre votre priorité : ${theme}.`);
+  }
+
+  return {
+    reponse: { ...base, reponse, details },
+    ...(cible ? { enveloppeId: cible.id } : {}),
+  };
+}
+
+/** Thème sur lequel l'utilisateur montre le plus d'intérêt. */
+export function themeDominant(memoire: MemoireCoach): string | null {
+  const entrees = Object.entries(memoire.poids).filter(([, p]) => p > 1.1);
+  if (entrees.length === 0) return null;
+  entrees.sort((a, b) => b[1] - a[1]);
+  return entrees[0]![0];
+}
+
+/** Enveloppe explicitement nommée dans une phrase. */
+export function enveloppeCitee(
+  texte: string,
+  enveloppes: Enveloppe[],
+): Enveloppe | undefined {
+  const t = texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  let trouvee: Enveloppe | undefined;
+  let longueur = 0;
+  for (const e of enveloppes) {
+    for (const terme of [e.nom, e.categorie ?? "", e.sousCategorie ?? ""]) {
+      const cle = terme
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (cle.length >= 4 && t.includes(cle) && cle.length > longueur) {
+        trouvee = e;
+        longueur = cle.length;
+      }
+    }
+  }
+  return trouvee;
+}
+
 
 /** Ajoute les messages du jour à la mémoire, une seule fois par journée. */
 export function mettreAJourJournee(
