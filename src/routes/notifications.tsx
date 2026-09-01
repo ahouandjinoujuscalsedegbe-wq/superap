@@ -403,9 +403,30 @@ function PageNotifications() {
                   </span>
                   {duCoach && (
                     <span className="flex items-center gap-1">
+                      {vocalisationDisponible() && (
+                        <button
+                          type="button"
+                          onClick={() => lire(m.id, texteMessage(m))}
+                          aria-label={
+                            lecture === m.id
+                              ? "Arrêter la lecture"
+                              : "Écouter ce message"
+                          }
+                          className={`rounded-full p-1.5 transition-colors ${
+                            lecture === m.id ? "bg-primary/15 text-primary" : "text-muted-foreground"
+                          }`}
+                        >
+                          {lecture === m.id ? (
+                            <Square className="h-3.5 w-3.5" aria-hidden />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" aria-hidden />
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => noter(m.id, "utile")}
+
                         aria-label="Ce conseil m'est utile"
                         aria-pressed={m.avis === "utile"}
                         className={`rounded-full p-1.5 transition-colors ${
