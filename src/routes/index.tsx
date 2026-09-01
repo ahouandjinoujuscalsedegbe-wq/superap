@@ -10,7 +10,6 @@ import {
   Target,
   Wallet,
 } from "lucide-react";
-import { useMemo } from "react";
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
