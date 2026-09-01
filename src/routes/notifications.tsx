@@ -17,6 +17,7 @@ import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { useSuperApp } from "@/lib/store";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
+import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
 import {
   apprendreAvis,
   apprendreQuestion,
