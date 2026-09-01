@@ -11,6 +11,7 @@ import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
+import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 
 export const CLE_COACH = "super-app-coach";
