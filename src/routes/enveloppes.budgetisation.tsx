@@ -322,7 +322,35 @@ function Budgetisation() {
         </button>
       </div>
 
-      <section className="carte space-y-4 p-4">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {(
+          [
+            { id: "plan", label: "Plan" },
+            { id: "suivi", label: "Suivi du mois" },
+            { id: "auto", label: "Proposition auto" },
+          ] as const
+        ).map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => setOnglet(o.id)}
+            aria-pressed={onglet === o.id}
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+              onglet === o.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground"
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {onglet === "suivi" && <FicheSuiviBudget />}
+      {onglet === "auto" && <SectionBudgetAuto />}
+
+      <section className={onglet === "plan" ? "carte space-y-4 p-4" : "hidden"}>
+
         <div>
           <h2 className="text-lg font-semibold">Budgétisation</h2>
           <p className="text-sm text-muted-foreground">
