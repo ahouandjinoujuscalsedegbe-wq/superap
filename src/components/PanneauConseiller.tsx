@@ -36,6 +36,8 @@ export function PanneauConseiller({
   lecture: string | null;
   onLire: (cle: string, texte: string) => void;
 }) {
+  const [onglet, setOnglet] = useState<"bilan" | "analyses" | "outils">("bilan");
+
   if (!ouvert) return null;
 
   const boutonLecture = (cle: string, texte: string, label: string) =>
