@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
 import { Sparkles, X } from "lucide-react";
 import { alertesLocales } from "@/lib/analyste-local";
 import { useSuperApp } from "@/lib/store";
@@ -27,7 +27,7 @@ export function BouleAnalyse() {
     }
   }, []);
 
-  const debutGlisse = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+  const debutGlisse = useCallback((e: PointerEventReact<HTMLButtonElement>) => {
     const r = refBoule.current?.getBoundingClientRect();
     if (!r) return;
     decalage.current = { x: e.clientX - r.left, y: e.clientY - r.top };
