@@ -101,11 +101,12 @@ export function montantPeriodeSuivante(
       Math.min(base * (1 + VARIATION_MAX), Math.max(base * (1 - VARIATION_MAX), montant)),
     );
 
-  if (!enveloppe.ajustementAuto || !enveloppe.periodeRenouvellement)
+  if (!enveloppe.ajustementAuto)
     return saison === 1 ? Math.round(base) : borner(base * saison);
 
-  // Habitude de dépense : moyenne des 3 dernières périodes réellement vécues.
-  const periode = enveloppe.periodeRenouvellement;
+  // Habitude de dépense : moyenne des 3 derniers mois réellement vécus.
+  const periode: Periode = "mois";
+
   let fin = finPeriode;
   const observees: number[] = [];
   for (let i = 0; i < 3; i += 1) {
