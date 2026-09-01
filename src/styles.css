@@ -805,3 +805,36 @@ textarea {
     animation: none !important;
   }
 }
+
+/* ===== Logos posés sur la sphère 3D (rotation verticale + horizontale) ===== */
+@keyframes boule-tour-y {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+@keyframes boule-tour-x {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(360deg); }
+}
+
+@utility boule-scene {
+  perspective: 200px;
+  transform-style: preserve-3d;
+}
+
+@utility boule-axe-x {
+  transform-style: preserve-3d;
+  animation: boule-tour-x 11s linear infinite;
+}
+
+@utility boule-axe-y {
+  transform-style: preserve-3d;
+  animation: boule-tour-y 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boule-axe-x,
+  .boule-axe-y {
+    animation: none !important;
+  }
+}

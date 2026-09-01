@@ -8,6 +8,17 @@ import { useSuperApp } from "@/lib/store";
  * une véritable sphère en lévitation perpétuelle, un appui déroule les constats
  * calculés localement sur le téléphone.
  */
+/** Positions des six logos sur la sphère (ceinture + pôles). */
+const RAYON = 26;
+const FACES = [
+  `rotateY(0deg) translateZ(${RAYON}px)`,
+  `rotateY(90deg) translateZ(${RAYON}px)`,
+  `rotateY(180deg) translateZ(${RAYON}px)`,
+  `rotateY(270deg) translateZ(${RAYON}px)`,
+  `rotateX(90deg) translateZ(${RAYON}px)`,
+  `rotateX(-90deg) translateZ(${RAYON}px)`,
+];
+
 export function BouleAnalyse() {
   const { enveloppes, transactions } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
@@ -162,7 +173,22 @@ export function BouleAnalyse() {
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
           <span className="boule-rose-3d absolute inset-0 flex items-center justify-center rounded-full">
             <span className="boule-eclat absolute inset-0 rounded-full" aria-hidden />
-            <Sparkles className="relative h-6 w-6 text-white/90" aria-hidden />
+            {/* Six logos posés sur la sphère : 4 en ceinture + 1 en haut + 1 en bas. */}
+            <span className="boule-scene absolute inset-0" aria-hidden>
+              <span className="boule-axe-x absolute inset-0">
+                <span className="boule-axe-y absolute inset-0">
+                  {FACES.map((f, i) => (
+                    <span
+                      key={i}
+                      className="absolute left-1/2 top-1/2 -ml-[10px] -mt-[10px] flex h-5 w-5 items-center justify-center"
+                      style={{ transform: f }}
+                    >
+                      <Sparkles className="h-5 w-5 text-white/95 drop-shadow" />
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </span>
           </span>
           <span
             className={`absolute -right-1 -top-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold ${
