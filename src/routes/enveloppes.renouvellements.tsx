@@ -13,13 +13,13 @@ export const Route = createFileRoute("/enveloppes/renouvellements")({
       {
         name: "description",
         content:
-          "Vue détaillée des renouvellements d'enveloppes : période, montant débité, compte source et pourcentage de revenu utilisé, en FCFA.",
+          "Vue détaillée des renouvellements d'enveloppes : période, montant réservé, compte source et pourcentage de revenu utilisé, en FCFA.",
       },
       { property: "og:title", content: "Renouvellements des enveloppes — SUPER APP" },
       {
         property: "og:description",
         content:
-          "Suivez chaque remplissage d'enveloppe : période, montant débité, compte source et part de revenu prélevée.",
+          "Suivez chaque remplissage d'enveloppe : période, montant réservé, compte source et part de revenu prélevée.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -76,7 +76,7 @@ function Renouvellements() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Détail des renouvellements</h1>
         <p className="text-sm text-muted-foreground">
-          Période de chaque enveloppe, montant débité, compte source et part de revenu utilisée.
+          Période de chaque enveloppe, montant réservé, compte source et part de revenu utilisée.
         </p>
       </header>
 
@@ -119,6 +119,12 @@ function Renouvellements() {
                   <div>
                     <dt className="text-muted-foreground">Compte source</dt>
                     <dd className="font-medium">{e.compteSource || "Non défini"}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Date choisie</dt>
+                    <dd className="font-medium">
+                      {e.dateRenouvellement ? jourLisible(e.dateRenouvellement) : "Non définie"}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">
