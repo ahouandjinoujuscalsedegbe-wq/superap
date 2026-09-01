@@ -456,12 +456,25 @@ export function messagesDuJour(
         ? "Vos dépenses sont au même niveau que le mois dernier."
         : mois.ecart > 0
           ? `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de plus que le mois dernier (${mois.ecartPct} %).`
-          : `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de moins que le mois dernier (${mois.ecartPct} %). Bravo.`),
+          : `Vous dépensez ${fcfa(Math.abs(mois.ecart))} de moins que le mois dernier (${mois.ecartPct} %). Bravo.`) +
+      ` Nous sommes en ${mois.saison} : ` +
+      (mois.moyenneSaison === 0
+        ? "je n'ai pas encore d'historique pour ce mois, je le mémorise pour l'an prochain."
+        : mois.ecartSaison > 0
+          ? `vous dépensez ${fcfa(Math.abs(mois.ecartSaison))} de plus (${mois.ecartSaisonPct} %) que d'habitude à cette période.`
+          : mois.ecartSaison < 0
+            ? `vous dépensez ${fcfa(Math.abs(mois.ecartSaison))} de moins (${mois.ecartSaisonPct} %) que d'habitude à cette période.`
+            : "vous êtes exactement dans votre habitude de saison."),
     details: [
       `Revenus du mois : ${fcfa(mois.revenus)}`,
       `Dépenses du mois : ${fcfa(mois.depenses)}`,
       `Solde du mois : ${fcfa(mois.solde)}`,
+      `Solde global des comptes : ${fcfa(mois.soldeGlobal)}`,
+      `Épargne du mois : ${mois.tauxEpargne} % · ${mois.nbOperations} opérations`,
       `Rythme actuel : ${fcfa(mois.rythmeJour)} par jour · projection fin de mois ${fcfa(mois.projection)}`,
+      mois.moyenneSaison > 0
+        ? `Habitude de saison (${mois.saison}) : ${fcfa(mois.moyenneSaison)} dépensés en moyenne ce mois-ci les années passées`
+        : `Saison en cours : ${mois.saison}`,
     ],
     categorie: "bilan",
     date: horodater(0),
