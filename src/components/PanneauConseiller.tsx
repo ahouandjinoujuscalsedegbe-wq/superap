@@ -41,7 +41,6 @@ export function PanneauConseiller({
   onLire: (cle: string, texte: string) => void;
   onDemander: (question: string) => void;
 }) {
-  const [enveloppeOuverte, setEnveloppeOuverte] = useState<string | null>(null);
   if (!ouvert) return null;
 
   const boutonLecture = (cle: string, texte: string, label: string) =>
