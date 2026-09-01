@@ -1,9 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BellRing, Send, ShieldCheck, ThumbsDown, ThumbsUp, Sparkles } from "lucide-react";
+import {
+  BellRing,
+  ChevronDown,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  Wallet,
+} from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
+import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { useSuperApp } from "@/lib/store";
-import { EXEMPLES_QUESTIONS, repondre } from "@/lib/assistant-local";
+import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
+import { bilansEnveloppes } from "@/lib/coach-enveloppe";
 import {
   apprendreAvis,
   apprendreQuestion,
@@ -11,7 +22,9 @@ import {
   lireMemoire,
   mettreAJourJournee,
   MEMOIRE_VIDE,
-  poidsDe,
+  poidsEnveloppeDe,
+  repondreCoach,
+  sujetsFavoris,
   type MemoireCoach,
   type MessageCoach,
 } from "@/lib/coach";
@@ -23,7 +36,7 @@ export const Route = createFileRoute("/notifications")({
       {
         name: "description",
         content:
-          "Votre conseiller financier vous écrit chaque jour et répond à vos questions, à partir de vos données, sans connexion.",
+          "Votre conseiller financier vous écrit chaque jour, répond à vos questions écrites ou parlées et suit chaque enveloppe, sans connexion.",
       },
       { property: "og:title", content: "Messages du conseiller — SUPER APP" },
       {
@@ -44,9 +57,12 @@ function heure(iso: string): string {
 function jourLisible(iso: string): string {
   const d = new Date(iso);
   const aujourdhui = new Date();
-  const memeJour = d.toDateString() === aujourdhui.toDateString();
-  if (memeJour) return "Aujourd'hui";
+  if (d.toDateString() === aujourdhui.toDateString()) return "Aujourd'hui";
   return d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long" });
+}
+
+function fcfa(montant: number): string {
+  return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
 }
 
 function PageNotifications() {
@@ -64,13 +80,18 @@ function PageNotifications() {
   const [memoire, setMemoire] = useState<MemoireCoach>(MEMOIRE_VIDE);
   const [prete, setPrete] = useState(false);
   const [question, setQuestion] = useState("");
+  const [ouverte, setOuverte] = useState<string | null>(null);
   const bas = useRef<HTMLDivElement>(null);
   const champ = useRef<HTMLInputElement>(null);
+  const memoireRef = useRef(memoire);
+  memoireRef.current = memoire;
 
   const donneesCoach = useMemo(
     () => ({ transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde }),
     [transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde],
   );
+  const donneesCoachRef = useRef(donneesCoach);
+  donneesCoachRef.current = donneesCoach;
 
   const donneesAssistant = useMemo(
     () => ({
@@ -84,14 +105,21 @@ function PageNotifications() {
     }),
     [transactions, enveloppes, dettes, comptes, soldesParCompte, depensesParEnveloppe, solde],
   );
+  const donneesAssistantRef = useRef(donneesAssistant);
+  donneesAssistantRef.current = donneesAssistant;
 
-  // Chargement de la mémoire, puis bilan du jour si nécessaire.
+  const bilans = useMemo(
+    () => bilansEnveloppes(enveloppes, transactions, depensesParEnveloppe),
+    [enveloppes, transactions, depensesParEnveloppe],
+  );
+
+  // Chargement de la mémoire chiffrée, puis bilan du jour si nécessaire.
   useEffect(() => {
     let vivant = true;
     void (async () => {
       const chargee = await lireMemoire();
       if (!vivant) return;
-      const aJour = mettreAJourJournee(chargee, donneesCoach);
+      const aJour = mettreAJourJournee(chargee, donneesCoachRef.current);
       const lue: MemoireCoach = {
         ...aJour,
         messages: aJour.messages.map((m) => ({ ...m, lu: true })),
@@ -113,13 +141,21 @@ function PageNotifications() {
 
   const enregistrer = (suivante: MemoireCoach) => {
     setMemoire(suivante);
+    memoireRef.current = suivante;
     void ecrireMemoire(suivante);
   };
 
-  const envoyer = (texte: string) => {
+  /** Traite une question (écrite ou parlée) et renvoie le texte de la réponse. */
+  const traiterQuestion = (texte: string): string => {
     const propre = texte.trim();
-    if (!propre) return;
-    const reponse = repondre(propre, donneesAssistant);
+    if (!propre) return "";
+    const courante = memoireRef.current;
+    const { reponse, enveloppeId } = repondreCoach(
+      courante,
+      propre,
+      donneesAssistantRef.current,
+      donneesCoachRef.current,
+    );
     const maintenant = new Date();
     const messageUtilisateur: MessageCoach = {
       id: crypto.randomUUID(),
@@ -135,26 +171,34 @@ function PageNotifications() {
       texte: reponse.reponse,
       details: reponse.details,
       categorie: "reponse",
+      ...(enveloppeId ? { enveloppeId } : {}),
       date: new Date(maintenant.getTime() + 500).toISOString(),
       lu: true,
     };
-    const apprise = apprendreQuestion(memoire, propre);
+    const apprise = apprendreQuestion(courante, propre, enveloppeId);
     enregistrer({
       ...apprise,
       messages: [...apprise.messages, messageUtilisateur, messageCoach].slice(-400),
     });
+    return reponse.reponse;
+  };
+
+  const envoyer = (texte: string) => {
+    if (!texte.trim()) return;
+    traiterQuestion(texte);
     setQuestion("");
     champ.current?.focus();
   };
 
   const noter = (id: string, avis: "utile" | "inutile") => {
-    enregistrer(apprendreAvis(memoire, id, avis));
+    enregistrer(apprendreAvis(memoireRef.current, id, avis));
   };
 
   const themesAppris = Object.entries(memoire.poids)
     .filter(([, p]) => p !== 1)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
+  const favoris = sujetsFavoris(memoire, 4);
 
   let dernierJour = "";
 
@@ -169,15 +213,18 @@ function PageNotifications() {
         </h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-success" aria-hidden />
-          Messages et réponses calculés sur votre téléphone, sans connexion.
+          Messages, réponses et historique chiffrés sur votre téléphone, sans connexion.
         </p>
       </header>
 
-      {themesAppris.length > 0 && (
+      <DiscussionVocaleCoach onQuestion={traiterQuestion} />
+
+      {(themesAppris.length > 0 || favoris.length > 0) && (
         <section className="carte flex flex-wrap items-center gap-2 p-3">
           <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-            Ce que j'ai appris de vous
+            Ce que j'ai appris de vous ({memoire.echanges} échange
+            {memoire.echanges > 1 ? "s" : ""})
           </span>
           {themesAppris.map(([theme, p]) => (
             <span
@@ -189,6 +236,96 @@ function PageNotifications() {
               {theme} {p >= 1 ? "· vous suivez" : "· moins de messages"}
             </span>
           ))}
+          {favoris.map((mot) => (
+            <span key={mot} className="rounded-full bg-accent/30 px-2.5 py-1 text-[0.7rem]">
+              {mot}
+            </span>
+          ))}
+        </section>
+      )}
+
+      {/* Conseiller par enveloppe : un bilan propre à chaque enveloppe. */}
+      {bilans.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <Wallet className="h-4 w-4 text-primary" aria-hidden />
+            Conseiller par enveloppe
+          </h2>
+          <div className="space-y-2">
+            {bilans.map((b) => {
+              const ouvert = ouverte === b.enveloppe.id;
+              const interet = poidsEnveloppeDe(memoire, b.enveloppe.id);
+              return (
+                <article key={b.enveloppe.id} className="carte overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setOuverte(ouvert ? null : b.enveloppe.id)}
+                    aria-expanded={ouvert}
+                    className="flex w-full items-center gap-3 p-3 text-left"
+                  >
+                    <span aria-hidden className="text-lg">
+                      {b.enveloppe.emoji}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">
+                        {b.enveloppe.nom}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {b.resume}
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[0.7rem] font-semibold ${
+                        b.score >= 70
+                          ? "bg-success/15 text-success"
+                          : b.score >= 40
+                            ? "bg-accent/30 text-foreground"
+                            : "bg-destructive/15 text-destructive"
+                      }`}
+                    >
+                      {b.score}/100
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                        ouvert ? "rotate-180" : ""
+                      }`}
+                      aria-hidden
+                    />
+                  </button>
+
+                  {ouvert && (
+                    <div className="space-y-2 border-t border-border/60 p-3 text-xs">
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• Dépensé sur 30 jours : {fcfa(b.depense30)}</li>
+                        <li>
+                          • Mois précédent : {fcfa(b.depense30Avant)}
+                          {b.tendance !== 0 && ` (${b.tendance > 0 ? "+" : ""}${Math.round(b.tendance)} %)`}
+                        </li>
+                        <li>• Rythme observé : {fcfa(b.rythmeJour)} par jour</li>
+                        <li>• Opérations analysées : {b.operations}</li>
+                      </ul>
+                      {b.conseils.map((c) => (
+                        <div key={c.id} className="rounded-xl bg-muted/50 p-2">
+                          <p className="font-medium text-foreground">{c.texte}</p>
+                          <p className="mt-1 text-muted-foreground">À faire : {c.action}</p>
+                        </div>
+                      ))}
+                      <p className="text-[0.7rem] text-muted-foreground">
+                        Intérêt appris pour cette enveloppe : {Math.round(interet * 100)} %
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => envoyer(`Où en est mon enveloppe ${b.enveloppe.nom} ?`)}
+                        className="rounded-full border border-input px-3 py-1.5 text-[0.7rem] transition-colors hover:bg-accent/40"
+                      >
+                        En parler au conseiller
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         </section>
       )}
 
@@ -234,7 +371,7 @@ function PageNotifications() {
                   >
                     {heure(m.date)}
                   </span>
-                  {duCoach && m.categorie !== "reponse" && (
+                  {duCoach && (
                     <span className="flex items-center gap-1">
                       <button
                         type="button"
@@ -301,10 +438,12 @@ function PageNotifications() {
         />
         <button
           type="submit"
-          aria-label="Envoyer le message"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform active:scale-95"
+          disabled={!question.trim()}
+          aria-label="Envoyer mon message au conseiller"
+          className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground transition-transform active:scale-95 disabled:opacity-40"
         >
           <Send className="h-4 w-4" aria-hidden />
+          Envoyer
         </button>
       </form>
     </div>
