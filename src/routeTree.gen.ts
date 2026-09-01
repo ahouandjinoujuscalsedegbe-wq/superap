@@ -55,6 +55,7 @@ import { Route as ParametresDonneesRouteImport } from './routes/parametres.donne
 import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mises-a-jour'
 import { Route as ParametresProfilRouteImport } from './routes/parametres.profil'
 import { Route as ParametresSecuriteRouteImport } from './routes/parametres.securite'
+import { Route as RapportIndexRouteImport } from './routes/rapport.index'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -290,6 +291,11 @@ const ParametresSecuriteRoute = ParametresSecuriteRouteImport.update({
   path: '/securite',
   getParentRoute: () => ParametresRoute,
 } as any)
+const RapportIndexRoute = RapportIndexRouteImport.update({
+  id: '/rapport/',
+  path: '/rapport/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -354,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
+  '/rapport/': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -401,6 +408,7 @@ export interface FileRoutesByTo {
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
+  '/rapport': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
@@ -453,6 +461,7 @@ export interface FileRoutesById {
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
+  '/rapport/': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
+    | '/rapport/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -553,6 +563,7 @@ export interface FileRouteTypes {
     | '/comptes'
     | '/enveloppes'
     | '/parametres'
+    | '/rapport'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts'
@@ -604,6 +615,7 @@ export interface FileRouteTypes {
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
+    | '/rapport/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -632,6 +644,7 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  RapportIndexRoute: typeof RapportIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -958,6 +971,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresSecuriteRouteImport
       parentRoute: typeof ParametresRoute
     }
+    '/rapport/': {
+      id: '/rapport/'
+      path: '/rapport'
+      fullPath: '/rapport/'
+      preLoaderRoute: typeof RapportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -1097,6 +1117,7 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
+  RapportIndexRoute: RapportIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
