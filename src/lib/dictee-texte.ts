@@ -167,6 +167,12 @@ export function chiffrerNombres(texte: string): string {
       continue;
     }
     const nu = sansAccent(jeton).replace(/[.,;:!?]/g, "");
+    // Nombres composés dictés avec traits d'union : « quatre-vingt-dix », « dix-sept ».
+    const parties = nu.split("-").filter(Boolean);
+    if (parties.length > 1 && parties.every((p) => MOTS_NOMBRE.has(p))) {
+      for (const p of parties) tampon.push(p);
+      continue;
+    }
     if (MOTS_NOMBRE.has(nu)) {
       // « et » n'est un mot-nombre que s'il suit déjà un nombre.
       if (nu === "et" && tampon.length === 0) {
