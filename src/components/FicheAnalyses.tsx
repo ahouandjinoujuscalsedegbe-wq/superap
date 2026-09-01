@@ -99,11 +99,35 @@ export function FicheAnalyses() {
     () => prevuContreReel(budgets, transactions, enveloppes),
     [budgets, transactions, enveloppes],
   );
-  const anomalies = useMemo(() => detecterAnomalies(periode, enveloppes), [periode, enveloppes]);
-  const alertes = useMemo(
-    () => alertesEnveloppes(enveloppes, depensesParEnveloppe, transactions),
-    [enveloppes, depensesParEnveloppe, transactions],
+  // Anomalies et enveloppes à surveiller : fournies par le noyau unique
+  // (src/lib/cerveau) pour que tous les écrans annoncent les mêmes chiffres.
+  const anomalies = useMemo(
+    () =>
+      cerveau.faits.inhabituelles.slice(0, 5).map((a) => ({
+        transaction: a.transaction,
+        enveloppe:
+          enveloppes.find((e) => e.id === a.transaction.categorie) !== undefined
+            ? `${enveloppes.find((e) => e.id === a.transaction.categorie)?.emoji} ${enveloppes.find((e) => e.id === a.transaction.categorie)?.nom}`
+            : a.transaction.categorie,
+        moyenne: a.habituel,
+        facteur: a.facteur,
+      })),
+    [cerveau, enveloppes],
   );
+  const alertes = useMemo(
+    () =>
+      cerveau.faits.enveloppes
+        .filter(
+          (e) =>
+            e.plafondAtteint ||
+            e.pourcentage >= 70 ||
+            (e.joursAvantEpuisement !== null && e.joursAvantEpuisement <= 15),
+        )
+        .sort((a, b) => b.pourcentage - a.pourcentage)
+        .map((e) => ({ ...e, joursRestants: e.joursAvantEpuisement })),
+    [cerveau],
+  );
+
 
   const douzeMois = useMemo(() => comparaisonMensuelle(transactions, 12), [transactions]);
   const joursSemaine = useMemo(() => analyseJoursSemaine(periode), [periode]);
