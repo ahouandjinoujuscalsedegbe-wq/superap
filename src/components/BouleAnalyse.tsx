@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
 import { Sparkles, X } from "lucide-react";
 import { alertesLocales } from "@/lib/analyste-local";
 import { useSuperApp } from "@/lib/store";
@@ -11,6 +11,65 @@ import { useSuperApp } from "@/lib/store";
 export function BouleAnalyse() {
   const { enveloppes, transactions } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [glisse, setGlisse] = useState(false);
+  const refBoule = useRef<HTMLButtonElement | null>(null);
+  const aGlisse = useRef(false);
+  const decalage = useRef({ x: 0, y: 0 });
+
+  // Position mémorisée : la boule reste où l'utilisateur l'a posée, sur toutes les pages.
+  useEffect(() => {
+    try {
+      const brut = localStorage.getItem("boule-analyse-position");
+      if (brut) setPos(JSON.parse(brut));
+    } catch {
+      /* position par défaut */
+    }
+  }, []);
+
+  const debutGlisse = useCallback((e: PointerEventReact<HTMLButtonElement>) => {
+    const r = refBoule.current?.getBoundingClientRect();
+    if (!r) return;
+    decalage.current = { x: e.clientX - r.left, y: e.clientY - r.top };
+    aGlisse.current = false;
+    setGlisse(true);
+
+    const bouger = (ev: PointerEvent) => {
+      const taille = r.width;
+      const x = Math.min(
+        Math.max(4, ev.clientX - decalage.current.x),
+        window.innerWidth - taille - 4,
+      );
+      const y = Math.min(
+        Math.max(4, ev.clientY - decalage.current.y),
+        window.innerHeight - taille - 4,
+      );
+      if (Math.abs(ev.clientX - (r.left + decalage.current.x)) > 4 || Math.abs(ev.clientY - (r.top + decalage.current.y)) > 4) {
+        aGlisse.current = true;
+      }
+      setPos({ x, y });
+    };
+    const fin = () => {
+      setGlisse(false);
+      window.removeEventListener("pointermove", bouger);
+      window.removeEventListener("pointerup", fin);
+      setPos((p) => {
+        if (p) {
+          try {
+            localStorage.setItem("boule-analyse-position", JSON.stringify(p));
+          } catch {
+            /* stockage indisponible */
+          }
+        }
+        return p;
+      });
+      setTimeout(() => {
+        aGlisse.current = false;
+      }, 0);
+    };
+    window.addEventListener("pointermove", bouger);
+    window.addEventListener("pointerup", fin);
+  }, []);
 
   const alertes = useMemo(
     () => alertesLocales(enveloppes, transactions),
@@ -78,23 +137,35 @@ export function BouleAnalyse() {
         </section>
       )}
 
-      {/* Sphère flottante : lévitation + rotation + halo, sans arrêt. */}
-      <div className="pointer-events-none fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-4 z-[67] flex flex-col items-center">
+      {/* Sphère 3D rose, déplaçable à la main, en lévitation permanente. */}
+      <div
+        className="fixed z-[67] flex flex-col items-center"
+        style={
+          pos
+            ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+            : { right: 16, bottom: "calc(5.25rem + env(safe-area-inset-bottom))" }
+        }
+      >
         <button
+          ref={refBoule}
           type="button"
-          onClick={() => setOuvert((v) => !v)}
+          onPointerDown={debutGlisse}
+          onClick={() => {
+            if (aGlisse.current) return;
+            setOuvert((v) => !v);
+          }}
           aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
-          className="boule-levite pointer-events-auto relative h-16 w-16 rounded-full transition-transform active:scale-95"
+          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          <span className="boule-halo absolute -inset-2 rounded-full" aria-hidden />
-          <span className="boule-orbite absolute -inset-1 rounded-full" aria-hidden />
-          <span className="boule-3d-tournante absolute inset-0 flex items-center justify-center rounded-full text-primary-foreground">
+          <span className="boule-halo-rose absolute -inset-2 rounded-full" aria-hidden />
+          <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
+          <span className="boule-rose-3d absolute inset-0 flex items-center justify-center rounded-full">
             <span className="boule-eclat absolute inset-0 rounded-full" aria-hidden />
-            <Sparkles className="relative h-6 w-6 drop-shadow" aria-hidden />
+            <Sparkles className="relative h-6 w-6 text-white/90" aria-hidden />
           </span>
           <span
-            className={`absolute -right-1 -top-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold shadow ${
+            className={`absolute -right-1 -top-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold ${
               urgentes > 0
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-card text-foreground"
@@ -103,11 +174,9 @@ export function BouleAnalyse() {
             {alertes.length}
           </span>
         </button>
-        <span
-          className="boule-ombre mt-1 h-2 w-10 rounded-[50%] bg-foreground/25 blur-[3px]"
-          aria-hidden
-        />
+        <span className="boule-ombre-rose mt-1 h-2 w-10 rounded-[50%]" aria-hidden />
       </div>
+
     </>
   );
 }
