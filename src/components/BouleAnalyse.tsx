@@ -166,9 +166,9 @@ export function BouleAnalyse() {
           }}
           aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
-          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          <span className="boule-halo-rose absolute -inset-2 rounded-full" aria-hidden />
+          <span className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`} aria-hidden />
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
           <span className="boule-rose-3d absolute inset-0 flex items-center justify-center rounded-full">
             <span className="boule-eclat absolute inset-0 rounded-full" aria-hidden />
