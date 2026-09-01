@@ -13,6 +13,7 @@
  */
 
 import { avancerDate } from "./periodes";
+import { coefficientSaisonEnveloppe } from "./saison";
 import type { Enveloppe, Periode, Remplissage, Transaction } from "./store";
 
 /** Nombre maximal de périodes rattrapées d'un coup (application restée fermée). */
@@ -90,7 +91,18 @@ export function montantPeriodeSuivante(
 ): number {
   const base = enveloppe.montantPeriode ?? enveloppe.dotation ?? enveloppe.plafond;
   if (!(base > 0)) return 0;
-  if (!enveloppe.ajustementAuto || !enveloppe.periodeRenouvellement) return Math.round(base);
+
+  /* Ajustement de saison : les périodes d'activité (rentrée, fêtes, pluies)
+     reçoivent plus, les mois calmes moins. Coefficient appris sur l'historique
+     des années précédentes, 1 quand il n'y en a pas encore. */
+  const saison = coefficientSaisonEnveloppe(enveloppe, transactions, finPeriode);
+  const borner = (montant: number) =>
+    Math.round(
+      Math.min(base * (1 + VARIATION_MAX), Math.max(base * (1 - VARIATION_MAX), montant)),
+    );
+
+  if (!enveloppe.ajustementAuto || !enveloppe.periodeRenouvellement)
+    return saison === 1 ? Math.round(base) : borner(base * saison);
 
   // Habitude de dépense : moyenne des 3 dernières périodes réellement vécues.
   const periode = enveloppe.periodeRenouvellement;
@@ -102,12 +114,10 @@ export function montantPeriodeSuivante(
     if (depense > 0) observees.push(depense);
     fin = debut;
   }
-  if (observees.length === 0) return Math.round(base);
+  if (observees.length === 0) return borner(base * saison);
 
   const moyenne = observees.reduce((s, x) => s + x, 0) / observees.length;
-  const plancher = base * (1 - VARIATION_MAX);
-  const plafond = base * (1 + VARIATION_MAX);
-  return Math.round(Math.min(plafond, Math.max(plancher, moyenne)));
+  return borner(moyenne * saison);
 }
 
 /** Montant versé à l'enveloppe quand un revenu arrive (mode pourcentage). */

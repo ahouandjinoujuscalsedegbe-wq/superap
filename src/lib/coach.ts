@@ -13,6 +13,9 @@ import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
 import { etatEnveloppe } from "./enveloppe-etat";
 import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
+import { saisonDe } from "./saison";
+
+export { saisonDe };
 
 export const CLE_COACH = "super-app-coach";
 
@@ -292,13 +295,6 @@ export type BilanMensuel = {
   surplus: LigneEnveloppeBilan[];
 };
 
-/** Saison ouest-africaine du mois donné (0 = janvier). */
-export function saisonDe(moisIndex: number): string {
-  if ([10, 11, 0, 1, 2].includes(moisIndex)) return "grande saison sèche (harmattan, fêtes)";
-  if ([3, 4, 5, 6].includes(moisIndex)) return "grande saison des pluies (rentrée agricole)";
-  if ([7, 8].includes(moisIndex)) return "petite saison sèche (rentrée scolaire)";
-  return "petite saison des pluies";
-}
 
 /** Calcule le bilan chiffré du mois en cours à partir des données réelles. */
 export function bilanMensuel(
@@ -387,6 +383,32 @@ export function bilanMensuel(
     epuisees: epuisees.slice(0, 5),
     surplus: surplus.slice(0, 5),
   };
+}
+
+/** Met le bilan mensuel en phrases, pour la lecture à voix haute. */
+export function texteBilanMensuel(b: BilanMensuel): string {
+  const lignes = [
+    `Bilan du mois. Revenus : ${fcfa(b.revenus)}. Dépenses : ${fcfa(b.depenses)}. Solde du mois : ${fcfa(b.solde)}.`,
+    `Solde global de vos comptes : ${fcfa(b.soldeGlobal)}. Taux d'épargne : ${b.tauxEpargne} pour cent, sur ${b.nbOperations} opérations.`,
+    b.ecart === 0
+      ? "Vos dépenses sont au même niveau que le mois dernier."
+      : b.ecart > 0
+        ? `Vous dépensez ${fcfa(Math.abs(b.ecart))} de plus que le mois dernier.`
+        : `Vous dépensez ${fcfa(Math.abs(b.ecart))} de moins que le mois dernier.`,
+    `Rythme actuel : ${fcfa(b.rythmeJour)} par jour, projection de fin de mois ${fcfa(b.projection)}.`,
+    b.moyenneSaison > 0
+      ? `Nous sommes en ${b.saison} : d'habitude vous dépensez ${fcfa(b.moyenneSaison)} à cette période.`
+      : `Nous sommes en ${b.saison}.`,
+  ];
+  if (b.epuisees.length > 0)
+    lignes.push(
+      `Enveloppes épuisées : ${b.epuisees.map((e) => `${e.nom} pour ${fcfa(e.utilise)}`).join(", ")}.`,
+    );
+  if (b.surplus.length > 0)
+    lignes.push(
+      `Enveloppes en surplus : ${b.surplus.map((e) => `${e.nom}, ${fcfa(e.restant)} disponibles`).join(", ")}.`,
+    );
+  return lignes.join(" ");
 }
 
 /**
