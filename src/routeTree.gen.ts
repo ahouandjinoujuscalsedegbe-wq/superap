@@ -45,6 +45,7 @@ import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.c
 import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.classer'
 import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
+import { Route as EnveloppesGererRouteImport } from './routes/enveloppes.gerer'
 import { Route as EnveloppesModifierRouteImport } from './routes/enveloppes.modifier'
 import { Route as EnveloppesRenouvellementsRouteImport } from './routes/enveloppes.renouvellements'
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
@@ -239,6 +240,11 @@ const EnveloppesDetailsRoute = EnveloppesDetailsRouteImport.update({
   path: '/details',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const EnveloppesGererRoute = EnveloppesGererRouteImport.update({
+  id: '/gerer',
+  path: '/gerer',
+  getParentRoute: () => EnveloppesRoute,
+} as any)
 const EnveloppesModifierRoute = EnveloppesModifierRouteImport.update({
   id: '/modifier',
   path: '/modifier',
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
@@ -389,6 +396,7 @@ export interface FileRoutesByTo {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
@@ -441,6 +449,7 @@ export interface FileRoutesById {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
+  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/modifier': typeof EnveloppesModifierRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
@@ -494,6 +503,7 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
+    | '/enveloppes/gerer'
     | '/enveloppes/modifier'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
+    | '/enveloppes/gerer'
     | '/enveloppes/modifier'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
@@ -592,6 +603,7 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
+    | '/enveloppes/gerer'
     | '/enveloppes/modifier'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
@@ -889,6 +901,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesDetailsRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/enveloppes/gerer': {
+      id: '/enveloppes/gerer'
+      path: '/gerer'
+      fullPath: '/enveloppes/gerer'
+      preLoaderRoute: typeof EnveloppesGererRouteImport
+      parentRoute: typeof EnveloppesRoute
+    }
     '/enveloppes/modifier': {
       id: '/enveloppes/modifier'
       path: '/modifier'
@@ -1022,6 +1041,7 @@ interface EnveloppesRouteChildren {
   EnveloppesClasserRoute: typeof EnveloppesClasserRoute
   EnveloppesCreerRoute: typeof EnveloppesCreerRoute
   EnveloppesDetailsRoute: typeof EnveloppesDetailsRoute
+  EnveloppesGererRoute: typeof EnveloppesGererRoute
   EnveloppesModifierRoute: typeof EnveloppesModifierRoute
   EnveloppesRenouvellementsRoute: typeof EnveloppesRenouvellementsRoute
   EnveloppesSecoursRoute: typeof EnveloppesSecoursRoute
@@ -1038,6 +1058,7 @@ const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesClasserRoute: EnveloppesClasserRoute,
   EnveloppesCreerRoute: EnveloppesCreerRoute,
   EnveloppesDetailsRoute: EnveloppesDetailsRoute,
+  EnveloppesGererRoute: EnveloppesGererRoute,
   EnveloppesModifierRoute: EnveloppesModifierRoute,
   EnveloppesRenouvellementsRoute: EnveloppesRenouvellementsRoute,
   EnveloppesSecoursRoute: EnveloppesSecoursRoute,
