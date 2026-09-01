@@ -3,9 +3,9 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
+  CalendarCheck,
   CalendarRange,
   LineChart,
-
   Sparkles,
   Wallet,
 } from "lucide-react";
