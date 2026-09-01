@@ -82,8 +82,8 @@ export function BouleAnalyse() {
   }, []);
 
   const alertes = useMemo(
-    () => alertesLocales(enveloppes, transactions),
-    [enveloppes, transactions],
+    () => toutesAlertes.filter((a) => a.niveau !== "bravo").slice(0, 6),
+    [toutesAlertes],
   );
 
   if (alertes.length === 0) return null;
