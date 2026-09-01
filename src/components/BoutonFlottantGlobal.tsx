@@ -1,16 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, MessageCircleQuestion, Plus, Search, Target } from "lucide-react";
+import { BellRing, FileText, MessageCircleQuestion, Plus, Search, Target } from "lucide-react";
 
 /**
  * Bouton circulaire flottant, déplaçable partout sur l'écran et présent dans
  * tous les onglets. Sa position est retenue localement d'une session à l'autre.
- * Un appui déploie les quatre accès rapides en éventail circulaire.
+ * Un appui déploie les cinq accès rapides en éventail circulaire.
  */
 
 const ACCES = [
   { to: "/assistant", label: "Assistant", Icone: MessageCircleQuestion },
   { to: "/recherche", label: "Recherche", Icone: Search },
+  { to: "/notifications", label: "Conseiller", Icone: BellRing },
   { to: "/rapport", label: "Rapport", Icone: FileText },
   { to: "/objectifs", label: "Objectifs", Icone: Target },
 ] as const;
@@ -163,7 +164,7 @@ export function BoutonFlottantGlobal() {
   const versGauche = centreX > window.innerWidth / 2;
   const versHaut = centreY > window.innerHeight / 2;
   const angleBase = Math.atan2(versHaut ? -1 : 1, versGauche ? -1 : 1) * (180 / Math.PI);
-  const angles = [-52, -18, 18, 52].map((delta) => angleBase + delta);
+  const angles = [-60, -30, 0, 30, 60].map((delta) => angleBase + delta);
 
   return (
     <>
