@@ -52,6 +52,7 @@ function CreerEnveloppePage() {
   const [sousCategorie, setSousCategorie] = useState("");
   const [compteSource, setCompteSource] = useState("");
   const [periodeRenouvellement, setPeriodeRenouvellement] = useState<Periode>("mois");
+  const [dateRenouvellement, setDateRenouvellement] = useState("");
   const [modeRemplissage, setModeRemplissage] = useState<"fixe" | "pourcentage">("fixe");
   const [pourcentageRevenu, setPourcentageRevenu] = useState("");
   const [ajustementAuto, setAjustementAuto] = useState(true);
@@ -66,6 +67,7 @@ function CreerEnveloppePage() {
     sousCategorie: string;
     compteSource: string;
     periodeRenouvellement: Periode;
+    dateRenouvellement: string;
     modeRemplissage: "fixe" | "pourcentage";
     pourcentageRevenu: number;
     ajustementAuto: boolean;
@@ -244,7 +246,9 @@ function CreerEnveloppePage() {
       return;
     }
     if (!compteSource.trim()) {
-      setErreur("Choisissez le compte qui alimente cette enveloppe : les fonds en seront retirés.");
+      setErreur(
+        "Choisissez le compte qui alimente cette enveloppe : son contenu y est réservé.",
+      );
       return;
     }
     const part = Number(pourcentageRevenu);
@@ -256,7 +260,13 @@ function CreerEnveloppePage() {
       setErreur(
         `Le compte « ${compteSource.trim()} » ne contient que ${formatFCFA(
           soldesParCompte[compteSource.trim()] ?? 0,
-        )} : impossible d'y prélever ${formatFCFA(somme)}.`,
+        )} : impossible d'y réserver ${formatFCFA(somme)}.`,
+      );
+      return;
+    }
+    if (modeRemplissage === "fixe" && !dateRenouvellement) {
+      setErreur(
+        "Précisez la date du premier renouvellement automatique de cette enveloppe.",
       );
       return;
     }
@@ -269,6 +279,7 @@ function CreerEnveloppePage() {
       sousCategorie: sousCategorie.trim(),
       compteSource: compteSource.trim(),
       periodeRenouvellement,
+      dateRenouvellement: modeRemplissage === "fixe" ? dateRenouvellement : "",
       modeRemplissage,
       pourcentageRevenu: modeRemplissage === "pourcentage" ? part : 0,
       ajustementAuto,
@@ -455,7 +466,8 @@ function CreerEnveloppePage() {
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            Chaque remplissage est retiré de ce compte.
+            Le contenu de l'enveloppe reste dans ce compte : il y est seulement réservé.
+            Seules les dépenses faites depuis l'enveloppe diminuent le compte.
           </p>
 
           <label htmlFor="e-periode" className="text-xs text-muted-foreground">
@@ -473,6 +485,24 @@ function CreerEnveloppePage() {
               </option>
             ))}
           </select>
+
+          {modeRemplissage === "fixe" && (
+            <>
+              <label htmlFor="e-date-renouv" className="text-xs text-muted-foreground">
+                Date du premier renouvellement automatique (obligatoire)
+              </label>
+              <input
+                id="e-date-renouv"
+                type="date"
+                value={dateRenouvellement}
+                onChange={(ev) => setDateRenouvellement(ev.target.value)}
+                className={champ}
+              />
+              <p className="text-xs text-muted-foreground">
+                Le renouvellement n'aura lieu qu'à cette date, puis à chaque période.
+              </p>
+            </>
+          )}
 
           <div className="flex gap-2">
             {(
@@ -572,6 +602,10 @@ function CreerEnveloppePage() {
                           PERIODES.find((p) => p.id === confirmation.periodeRenouvellement)?.label ??
                           ""
                         }`,
+                },
+                {
+                  label: "Date de renouvellement",
+                  apres: confirmation.dateRenouvellement || "Aucune",
                 },
               ]
             : []
