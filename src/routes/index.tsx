@@ -191,19 +191,21 @@ function Accueil() {
           </Link>
           <Link
             to="/enveloppes/budgetisation"
-            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-budget relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <Wallet className="h-5 w-5 text-primary" aria-hidden />
-            <span className="font-semibold">Budgétisation</span>
-            <span className="text-xs text-muted-foreground">Planifier vos enveloppes</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <Wallet className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Budgétisation</span>
+            <span className="relative text-xs opacity-85">Planifier vos enveloppes</span>
           </Link>
           <Link
             to="/enveloppes/details"
-            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-enveloppes relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <Layers className="h-5 w-5 text-primary" aria-hidden />
-            <span className="font-semibold">Les enveloppes</span>
-            <span className="text-xs text-muted-foreground">Toutes les enveloppes et leur état</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <Layers className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Les enveloppes</span>
+            <span className="relative text-xs opacity-85">Toutes les enveloppes et leur état</span>
           </Link>
         </div>
         <div className="flex flex-col gap-3">
@@ -218,19 +220,21 @@ function Accueil() {
           </Link>
           <Link
             to="/mois"
-            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <CalendarCheck className="h-5 w-5 text-primary" aria-hidden />
-            <span className="font-semibold">Vue globale du mois</span>
-            <span className="text-xs text-muted-foreground">Bilan et conseils</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <CalendarCheck className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Vue globale du mois</span>
+            <span className="relative text-xs opacity-85">Bilan et conseils</span>
           </Link>
           <Link
             to="/rapport"
-            className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
+            className="bouton-3d bouton-3d-rapport relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
-            <FileText className="h-5 w-5 text-primary" aria-hidden />
-            <span className="font-semibold">Rapport mensuel</span>
-            <span className="text-xs text-muted-foreground">Bilan du mois terminé</span>
+            <span className="bouton-3d-brillance" aria-hidden />
+            <FileText className="relative h-5 w-5" aria-hidden />
+            <span className="relative font-semibold">Rapport mensuel</span>
+            <span className="relative text-xs opacity-85">Bilan du mois terminé</span>
           </Link>
         </div>
       </section>
