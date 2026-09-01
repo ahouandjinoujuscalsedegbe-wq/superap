@@ -13,7 +13,6 @@ import {
   RefreshCw,
   Scale,
   TrendingUp,
-  CalendarCheck,
   Search,
 } from "lucide-react";
 
@@ -23,7 +22,6 @@ const ENTREES = [
   { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
   { to: "/suivi", label: "Suivi réel / prévu", icone: Scale },
-  { to: "/mois", label: "Vue globale du mois", icone: CalendarCheck },
 
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
