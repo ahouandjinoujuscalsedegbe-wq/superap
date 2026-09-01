@@ -174,7 +174,7 @@ export function CarteEnveloppe({
         </span>
       </div>
       <div
-        className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-secondary"
+        className="mt-3 h-2.5 w-full overflow-hidden rounded-full border border-border/40 bg-secondary"
         role="progressbar"
         aria-valuenow={Math.round(pourcentage)}
         aria-valuemin={0}
@@ -186,6 +186,7 @@ export function CarteEnveloppe({
           style={{ width: `${pourcentage}%` }}
         />
       </div>
+
 
       {depasse && (
 
