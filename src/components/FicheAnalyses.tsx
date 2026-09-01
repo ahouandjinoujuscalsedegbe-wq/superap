@@ -3,7 +3,7 @@ import { Check, ChevronDown, Copy, FileDown, TrendingDown, TrendingUp } from "lu
 import { useSuperApp } from "@/lib/store";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
-import { SectionBudgetAuto } from "@/components/SectionBudgetAuto";
+import { Link } from "@tanstack/react-router";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import {
   FENETRES,
