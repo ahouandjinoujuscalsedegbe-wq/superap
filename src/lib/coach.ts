@@ -7,7 +7,7 @@
  * taire. Tout est calculé et stocké sur l'appareil, chiffré.
  */
 
-import type { Budget, Dette, Enveloppe, Transaction } from "./store";
+import { resteDu, type Budget, type Dette, type Enveloppe, type Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
@@ -838,11 +838,11 @@ export function conseilPersonnalise(
     );
   }
   const detteChere = [...donnees.dettes]
-    .filter((d) => (d.montant ?? 0) > 0)
-    .sort((x, y) => (y.montant ?? 0) - (x.montant ?? 0))[0];
+    .filter((d) => d.sens === "dette" && resteDu(d) > 0)
+    .sort((x, y) => resteDu(y) - resteDu(x))[0];
   if (detteChere) {
     pousser(
-      `Affectez chaque mois un montant fixe à la dette « ${detteChere.libelle ?? "en cours"} » : même ${fcfa(Math.max(5000, Math.round((detteChere.montant ?? 0) * 0.1)))} raccourcissent nettement le remboursement.`,
+      `Affectez chaque mois un montant fixe à la dette envers ${detteChere.personne} : même ${fcfa(Math.max(5000, Math.round(resteDu(detteChere) * 0.1)))} raccourcissent nettement le remboursement (reste ${fcfa(resteDu(detteChere))}).`,
       ["Une dette réglée libère du budget durable, plus qu'une coupe ponctuelle."],
       3 * poidsDe(memoire, "dette"),
     );
