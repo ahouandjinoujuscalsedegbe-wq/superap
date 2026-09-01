@@ -10,10 +10,17 @@
 import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
+import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
+import { repondre, type DonneesAssistant, type ReponseAssistant } from "./assistant-local";
 
 export const CLE_COACH = "super-app-coach";
 
-export type CategorieCoach = Recommandation["categorie"] | "bilan" | "reponse" | "question";
+export type CategorieCoach =
+  | Recommandation["categorie"]
+  | "bilan"
+  | "reponse"
+  | "question"
+  | "enveloppe";
 
 export type MessageCoach = {
   id: string;
@@ -22,6 +29,8 @@ export type MessageCoach = {
   /** Précisions affichées sous le message. */
   details?: string[];
   categorie: CategorieCoach;
+  /** Enveloppe concernée, quand le message vient du conseiller d'enveloppe. */
+  enveloppeId?: string;
   date: string; // ISO
   lu: boolean;
   /** Retour de l'utilisateur : utile / inutile. */
@@ -32,21 +41,31 @@ export type MemoireCoach = {
   messages: MessageCoach[];
   /** Poids d'intérêt par thème, entre 0 et 2 (1 = neutre). */
   poids: Record<string, number>;
+  /** Poids d'intérêt par enveloppe, entre 0 et 2 (1 = neutre). */
+  poidsEnveloppe: Record<string, number>;
   /** Dernier jour (AAAA-MM-JJ) où le bilan quotidien a été produit. */
   dernierJour: string | null;
   /** Empreintes des messages déjà envoyés, pour ne pas se répéter. */
   vus: string[];
   /** Observations quotidiennes accumulées : dépense moyenne par jour. */
   historique: { jour: string; depense: number; revenu: number; score: number }[];
+  /** Mots-clés les plus souvent employés par l'utilisateur, avec leur compte. */
+  motsCles: Record<string, number>;
+  /** Nombre de questions posées : sert à adapter le ton du conseiller. */
+  echanges: number;
 };
 
 export const MEMOIRE_VIDE: MemoireCoach = {
   messages: [],
   poids: {},
+  poidsEnveloppe: {},
   dernierJour: null,
   vus: [],
   historique: [],
+  motsCles: {},
+  echanges: 0,
 };
+
 
 function fcfa(montant: number): string {
   return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
@@ -71,9 +90,13 @@ export function assainirMemoire(brut: unknown): MemoireCoach {
   return {
     messages: Array.isArray(o.messages) ? o.messages.slice(-400) : [],
     poids: o.poids && typeof o.poids === "object" ? o.poids : {},
+    poidsEnveloppe:
+      o.poidsEnveloppe && typeof o.poidsEnveloppe === "object" ? o.poidsEnveloppe : {},
     dernierJour: typeof o.dernierJour === "string" ? o.dernierJour : null,
     vus: Array.isArray(o.vus) ? o.vus.slice(-200) : [],
     historique: Array.isArray(o.historique) ? o.historique.slice(-120) : [],
+    motsCles: o.motsCles && typeof o.motsCles === "object" ? o.motsCles : {},
+    echanges: typeof o.echanges === "number" && Number.isFinite(o.echanges) ? o.echanges : 0,
   };
 }
 
@@ -100,6 +123,15 @@ export function poidsDe(memoire: MemoireCoach, categorie: string): number {
   return typeof p === "number" && Number.isFinite(p) ? p : 1;
 }
 
+export function poidsEnveloppeDe(memoire: MemoireCoach, enveloppeId: string): number {
+  const p = memoire.poidsEnveloppe[enveloppeId];
+  return typeof p === "number" && Number.isFinite(p) ? p : 1;
+}
+
+function borne(v: number): number {
+  return Math.max(0, Math.min(2, v));
+}
+
 /** Un avis fait monter ou descendre l'intérêt pour le thème du message. */
 export function apprendreAvis(
   memoire: MemoireCoach,
@@ -110,19 +142,59 @@ export function apprendreAvis(
   if (!message) return memoire;
   const poids = { ...memoire.poids };
   const actuel = poidsDe(memoire, message.categorie);
-  poids[message.categorie] = Math.max(
-    0,
-    Math.min(2, avis === "utile" ? actuel + 0.25 : actuel - 0.35),
-  );
+  poids[message.categorie] = borne(avis === "utile" ? actuel + 0.25 : actuel - 0.35);
+
+  const poidsEnveloppe = { ...memoire.poidsEnveloppe };
+  if (message.enveloppeId) {
+    const courant = poidsEnveloppeDe(memoire, message.enveloppeId);
+    poidsEnveloppe[message.enveloppeId] = borne(
+      avis === "utile" ? courant + 0.3 : courant - 0.4,
+    );
+  }
+
+  // Les mots du message noté renforcent (ou affaiblissent) le vocabulaire suivi.
+  const motsCles = { ...memoire.motsCles };
+  for (const mot of motsUtiles(message.texte)) {
+    const n = motsCles[mot] ?? 0;
+    motsCles[mot] = Math.max(0, n + (avis === "utile" ? 1 : -1));
+  }
+
   return {
     ...memoire,
     poids,
+    poidsEnveloppe,
+    motsCles,
     messages: memoire.messages.map((m) => (m.id === messageId ? { ...m, avis } : m)),
   };
 }
 
-/** Une question posée renforce doucement le thème abordé. */
-export function apprendreQuestion(memoire: MemoireCoach, question: string): MemoireCoach {
+const MOTS_VIDES = new Set([
+  "avec","dans","pour","vous","cette","votre","mais","plus","moins","chez","tout","tous",
+  "sont","cela","donc","alors","quand","comme","fait","faire","sans","leur","elle","nous",
+  "combien","est-ce","quel","quelle","mois","jour","francs","fcfa",
+]);
+
+/** Mots significatifs d'une phrase, sans accents ni mots vides. */
+export function motsUtiles(texte: string): string[] {
+  return texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((m) => m.length >= 4 && !MOTS_VIDES.has(m))
+    .slice(0, 12);
+}
+
+/**
+ * Une question posée renforce le thème abordé, l'enveloppe citée et le
+ * vocabulaire de l'utilisateur : les conseils suivants s'y adaptent.
+ */
+export function apprendreQuestion(
+  memoire: MemoireCoach,
+  question: string,
+  enveloppeId?: string,
+): MemoireCoach {
   const q = question
     .toLowerCase()
     .normalize("NFD")
@@ -137,10 +209,35 @@ export function apprendreQuestion(memoire: MemoireCoach, question: string): Memo
   ];
   const poids = { ...memoire.poids };
   for (const [regex, theme] of themes) {
-    if (regex.test(q)) poids[theme] = Math.min(2, poidsDe(memoire, theme) + 0.15);
+    if (regex.test(q)) poids[theme] = borne(poidsDe(memoire, theme) + 0.15);
   }
-  return { ...memoire, poids };
+
+  const poidsEnveloppe = { ...memoire.poidsEnveloppe };
+  if (enveloppeId) {
+    poidsEnveloppe[enveloppeId] = borne(poidsEnveloppeDe(memoire, enveloppeId) + 0.2);
+  }
+
+  const motsCles = { ...memoire.motsCles };
+  for (const mot of motsUtiles(question)) motsCles[mot] = (motsCles[mot] ?? 0) + 1;
+
+  return {
+    ...memoire,
+    poids,
+    poidsEnveloppe,
+    motsCles,
+    echanges: memoire.echanges + 1,
+  };
 }
+
+/** Les sujets que l'utilisateur ramène le plus souvent, du plus fréquent au moins. */
+export function sujetsFavoris(memoire: MemoireCoach, combien = 5): string[] {
+  return Object.entries(memoire.motsCles)
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, combien)
+    .map(([mot]) => mot);
+}
+
 
 /* ------------------------------------------------------------------ */
 /* Génération des messages du jour                                      */
@@ -239,12 +336,47 @@ export function messagesDuJour(
     });
   });
 
-  if (classees.length === 0) {
+  /* Conseils par enveloppe : les enveloppes les plus tendues, pondérées par
+     l'intérêt que l'utilisateur leur porte (questions posées, pouces). */
+  const bilans = bilansEnveloppes(
+    donnees.enveloppes,
+    donnees.transactions,
+    donnees.depensesParEnveloppe,
+    maintenant,
+  )
+    .filter((b) => poidsEnveloppeDe(memoire, b.enveloppe.id) >= 0.4)
+    .filter((b) => b.conseils.some((c) => c.gravite > 0))
+    .map((b) => ({
+      b,
+      note: (100 - b.score) * poidsEnveloppeDe(memoire, b.enveloppe.id),
+    }))
+    .sort((a, x) => x.note - a.note)
+    .map((x) => x.b)
+    .slice(0, 2);
+
+  bilans.forEach((b, i) => {
+    const principal = b.conseils.find((c) => c.gravite === 2) ?? b.conseils[0]!;
+    sortie.push({
+      id: id(),
+      auteur: "coach",
+      texte: `${b.enveloppe.emoji} ${b.enveloppe.nom} : ${principal.texte}`,
+      details: [`À faire : ${principal.action}`, b.resume, `Tenue de l'enveloppe : ${b.score}/100`],
+      categorie: "enveloppe",
+      enveloppeId: b.enveloppe.id,
+      date: horodater(classees.length + i + 1),
+      lu: false,
+    });
+  });
+
+  if (classees.length === 0 && bilans.length === 0) {
+    const favoris = sujetsFavoris(memoire, 3);
     sortie.push({
       id: id(),
       auteur: "coach",
       texte:
-        "Rien d'urgent aujourd'hui : vos indicateurs tiennent. Posez-moi une question quand vous voulez, je réponds à partir de vos propres chiffres.",
+        favoris.length > 0
+          ? `Rien d'urgent aujourd'hui. Je garde un œil sur ce qui vous intéresse : ${favoris.join(", ")}. Posez-moi une question quand vous voulez.`
+          : "Rien d'urgent aujourd'hui : vos indicateurs tiennent. Posez-moi une question quand vous voulez, je réponds à partir de vos propres chiffres.",
       categorie: "bilan",
       date: horodater(1),
       lu: false,
@@ -254,6 +386,93 @@ export function messagesDuJour(
   void jour;
   return sortie;
 }
+
+/* ------------------------------------------------------------------ */
+/* Réponse personnalisée                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Répond à une question en s'appuyant sur l'assistant local (chiffres réels)
+ * puis en ajoutant ce que le coach a appris de l'utilisateur : enveloppe
+ * citée, sujets récurrents, ton adapté au nombre d'échanges.
+ */
+export function repondreCoach(
+  memoire: MemoireCoach,
+  question: string,
+  donneesAssistant: DonneesAssistant,
+  donnees: DonneesCoach,
+  maintenant = new Date(),
+): { reponse: ReponseAssistant; enveloppeId?: string } {
+  const base = repondre(question, donneesAssistant, maintenant);
+  const details = [...base.details];
+
+  /* L'enveloppe citée reçoit son mini-bilan, calculé sur les dépenses réelles. */
+  const cible = enveloppeCitee(question, donnees.enveloppes);
+  if (cible) {
+    const b = bilanEnveloppe(
+      cible,
+      donnees.transactions,
+      donnees.depensesParEnveloppe[cible.id] ?? 0,
+      maintenant,
+    );
+    details.push(`${cible.emoji} ${cible.nom} — ${b.resume}`);
+    const conseil = b.conseils[0];
+    if (conseil) details.push(`Conseil enveloppe : ${conseil.action}`);
+  }
+
+  /* Le coach relie la réponse aux sujets que l'utilisateur ramène souvent. */
+  const favoris = sujetsFavoris(memoire, 3);
+  let reponse = base.reponse;
+  if (base.incompris) {
+    reponse =
+      favoris.length > 0
+        ? `${base.reponse} Vous me parlez souvent de ${favoris.join(", ")} : voulez-vous qu'on regarde de ce côté ?`
+        : base.reponse;
+  } else if (memoire.echanges >= 5) {
+    const theme = themeDominant(memoire);
+    if (theme) details.push(`Je continue à suivre votre priorité : ${theme}.`);
+  }
+
+  return {
+    reponse: { ...base, reponse, details },
+    ...(cible ? { enveloppeId: cible.id } : {}),
+  };
+}
+
+/** Thème sur lequel l'utilisateur montre le plus d'intérêt. */
+export function themeDominant(memoire: MemoireCoach): string | null {
+  const entrees = Object.entries(memoire.poids).filter(([, p]) => p > 1.1);
+  if (entrees.length === 0) return null;
+  entrees.sort((a, b) => b[1] - a[1]);
+  return entrees[0]![0];
+}
+
+/** Enveloppe explicitement nommée dans une phrase. */
+export function enveloppeCitee(
+  texte: string,
+  enveloppes: Enveloppe[],
+): Enveloppe | undefined {
+  const t = texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  let trouvee: Enveloppe | undefined;
+  let longueur = 0;
+  for (const e of enveloppes) {
+    for (const terme of [e.nom, e.categorie ?? "", e.sousCategorie ?? ""]) {
+      const cle = terme
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      if (cle.length >= 4 && t.includes(cle) && cle.length > longueur) {
+        trouvee = e;
+        longueur = cle.length;
+      }
+    }
+  }
+  return trouvee;
+}
+
 
 /** Ajoute les messages du jour à la mémoire, une seule fois par journée. */
 export function mettreAJourJournee(
