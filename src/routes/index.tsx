@@ -239,7 +239,7 @@ function Accueil() {
             className="carte flex flex-col gap-1 bg-muted/50 p-4 text-left transition-transform active:scale-[0.98]"
           >
             <Layers className="h-5 w-5 text-primary" aria-hidden />
-            <span className="font-semibold">Tous mes enveloppes</span>
+            <span className="font-semibold">Les enveloppes</span>
             <span className="text-xs text-muted-foreground">Toutes les enveloppes et leur état</span>
           </Link>
         </div>
