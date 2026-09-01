@@ -276,7 +276,7 @@ function CreerEnveloppePage() {
       sousCategorie: sousCategorie.trim(),
       compteSource: compteSource.trim(),
       periodeRenouvellement,
-      dateRenouvellement: modeRemplissage === "fixe" ? dateRenouvellement : "",
+      dateRenouvellement: "",
       modeRemplissage,
       pourcentageRevenu: modeRemplissage === "pourcentage" ? part : 0,
       ajustementAuto,
