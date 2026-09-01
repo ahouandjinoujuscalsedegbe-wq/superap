@@ -2,6 +2,7 @@
 
 import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
 import { MESSAGE_MICRO_REFUSE, assurerMicro } from "@/lib/micro";
+import { nettoyerDictee } from "@/lib/dictee-texte";
 
 type Recognition = {
   lang: string;
@@ -39,7 +40,9 @@ export function creerDictee(
       texte += e.results[i][0].transcript;
       if (e.results[i].isFinal) definitif = true;
     }
-    const propre = texte.trim();
+    // Le texte brut est remis au propre : vocabulaire du budget, nombres en
+    // chiffres, ponctuation dictée, hésitations retirées.
+    const propre = nettoyerDictee(texte);
     if (definitif) {
       journalInfo("dictee", "Dictée transcrite", {
         caracteres: propre.length,
