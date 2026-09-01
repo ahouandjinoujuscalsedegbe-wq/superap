@@ -55,10 +55,28 @@ const EXPRESSIONS: [RegExp, string][] = [
   [/\bfrancs?\s+c\.?\s*f\.?\s*a\.?\b/gi, "FCFA"],
   [/\bf\s*\.?\s*c\s*\.?\s*f\s*\.?\s*a\b/gi, "FCFA"],
   [/\bpour\s*cent\b/gi, "%"],
+  // Langage courant / élisions mal transcrites
+  [/\bjai\b/gi, "j'ai"],
+  [/\bch?uis?\b/gi, "je suis"],
+  [/\bya\b/gi, "il y a"],
+  [/\bp?t[ée]t?\s?[ée]tre\b/gi, "peut-être"],
+  [/\bkeske?\b|\bqu\s?est\s?ce\s?que?\b/gi, "qu'est-ce que"],
+  [/\bca\s+(fait|donne|reste|va)\b/gi, "ça $1"],
+  [/\b(dis|donne|montre|explique|conseille|aide)\s+moi\b/gi, "$1-moi"],
+  [/\bkomen\b|\bcoman\b/gi, "comment"],
+  [/\bpourkoi\b|\bpourquoi\s+est\s+ce\s+que\b/gi, "pourquoi"],
+  [/\bfaut\s+que\s+je\b/gi, "il faut que je"],
+  [/\bce\s+mois\s?ci\b/gi, "ce mois-ci"],
+  [/\ble\s+mois\s+pass[ée]e?\b/gi, "le mois dernier"],
+  [/\bl\s?['’]?\s?ann[ée]e\s+pass[ée]e\b/gi, "l'année dernière"],
+  [/\bmile\b|\bmil\b/gi, "mille"],
+  [/\bsoixante\s*-?\s*dix\b/gi, "soixante-dix"],
+  [/\bquatre\s*-?\s*vingts?\s*-?\s*dix\b/gi, "quatre-vingt-dix"],
 ];
 
 /** Hésitations à supprimer. */
-const HESITATIONS = /\b(euh+|heu+|hum+|hein|bah|ben|ba+f)\b/gi;
+const HESITATIONS =
+  /\b(euh+|heu+|hum+|hein|bah|ben|ba+f|voila quoi|tu vois|genre)\b/gi;
 
 /** Ponctuation dictée à haute voix. */
 const PONCTUATION: [RegExp, string][] = [
@@ -109,6 +127,12 @@ function valeurNombre(mots: string[]): number | null {
       vu = true;
       continue;
     }
+    if ((mot === "vingt" || mot === "vingts") && courant === 4) {
+      // « quatre-vingt(s) » = 80
+      courant = 80;
+      vu = true;
+      continue;
+    }
     const v = UNITES[mot];
     if (v === undefined) return null;
     courant += v;
@@ -149,6 +173,12 @@ export function chiffrerNombres(texte: string): string {
       continue;
     }
     const nu = sansAccent(jeton).replace(/[.,;:!?]/g, "");
+    // Nombres composés dictés avec traits d'union : « quatre-vingt-dix », « dix-sept ».
+    const parties = nu.split("-").filter(Boolean);
+    if (parties.length > 1 && parties.every((p) => MOTS_NOMBRE.has(p))) {
+      for (const p of parties) tampon.push(p);
+      continue;
+    }
     if (MOTS_NOMBRE.has(nu)) {
       // « et » n'est un mot-nombre que s'il suit déjà un nombre.
       if (nu === "et" && tampon.length === 0) {
