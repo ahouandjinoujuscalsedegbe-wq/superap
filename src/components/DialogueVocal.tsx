@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Volume2 } from "lucide-react";
 import { toast } from "sonner";
-import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import { creerDictee, demarrerDictee, dicteeDisponible } from "@/lib/dictee";
 import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
 import {
   choixParle,
@@ -153,7 +153,7 @@ export function DialogueVocal({
     if (!instance) return;
     reco.current = instance;
     setPhase("ecoute");
-    instance.start();
+    void demarrerDictee(instance);
   }
 
   function traiter(texte: string, i: number) {

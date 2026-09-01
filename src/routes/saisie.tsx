@@ -26,7 +26,7 @@ import {
   verifierAuthenticite,
   type VerdictAuthenticite,
 } from "@/lib/authenticite";
-import { creerDictee, dicteeDisponible } from "@/lib/dictee";
+import { creerDictee, demarrerDictee, dicteeDisponible } from "@/lib/dictee";
 import {
   ajouterHistoriqueSaisie,
   analyserPlusieurs,
@@ -301,7 +301,7 @@ function SaisieIntelligente() {
       () => setEcoute(false),
     );
     reco.current = instance;
-    instance?.start();
+    void demarrerDictee(instance);
     setEcoute(true);
   }
 
