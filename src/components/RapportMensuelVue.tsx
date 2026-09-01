@@ -1,51 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { FileText, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
-import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import {
-  construireRapport,
   libelleMois,
-  moisDisponibles,
   rapportEnTexte,
+  type RapportMensuel,
 } from "@/lib/rapport-mensuel";
 
-export const Route = createFileRoute("/rapport")({
-  head: () => ({
-    meta: [
-      { title: "Rapport mensuel automatique — SUPER APP" },
-      {
-        name: "description",
-        content:
-          "Bilan complet du mois : revenus, dépenses, taux d'épargne, enveloppes dépassées, fuites d'argent et conseils, calculés hors ligne.",
-      },
-      { property: "og:title", content: "Rapport mensuel automatique" },
-      {
-        property: "og:description",
-        content: "Le bilan du mois de votre foyer, calculé sur votre téléphone.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: PageRapport,
-});
-
-function PageRapport() {
-  const { transactions, enveloppes, dettes, budgets } = useSuperApp();
-  const mois = useMemo(() => moisDisponibles(transactions), [transactions]);
-  const [choisi, setChoisi] = useState<string>(
-    () => mois[0] ?? new Date().toISOString().slice(0, 7),
-  );
-
-  const rapport = useMemo(
-    () => construireRapport(choisi, { transactions, enveloppes, dettes, budgets }),
-    [choisi, transactions, enveloppes, dettes, budgets],
-  );
-
-
+export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
   const partager = async () => {
     const texte = rapportEnTexte(rapport);
     try {
@@ -61,17 +23,14 @@ function PageRapport() {
   };
 
   return (
-    <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
-
-      <header className="flex items-start justify-between gap-2">
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <FileText className="h-6 w-6 text-primary" aria-hidden />
-            Rapport mensuel
+          <h1 className="text-2xl font-bold tracking-tight">
+            {libelleMois(rapport.mois)}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Bilan automatique de {libelleMois(rapport.mois)}.
+            Bilan automatique du mois.
           </p>
         </div>
         <button
@@ -82,24 +41,7 @@ function PageRapport() {
         >
           <Share2 className="h-4 w-4" aria-hidden />
         </button>
-      </header>
-
-      {mois.length > 1 && (
-        <label className="block text-xs font-medium text-muted-foreground">
-          Mois analysé
-          <select
-            value={choisi}
-            onChange={(e) => setChoisi(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-          >
-            {mois.map((m) => (
-              <option key={m} value={m}>
-                {libelleMois(m)}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      </div>
 
       <section className="carte space-y-3 p-4">
         <div className="grid grid-cols-3 gap-2 text-center">

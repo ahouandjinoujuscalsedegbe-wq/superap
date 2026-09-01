@@ -25,7 +25,6 @@ import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PlanningRouteImport } from './routes/planning'
 import { Route as PrevisionsRouteImport } from './routes/previsions'
-import { Route as RapportRouteImport } from './routes/rapport'
 import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
@@ -56,6 +55,8 @@ import { Route as ParametresDonneesRouteImport } from './routes/parametres.donne
 import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mises-a-jour'
 import { Route as ParametresProfilRouteImport } from './routes/parametres.profil'
 import { Route as ParametresSecuriteRouteImport } from './routes/parametres.securite'
+import { Route as RapportIndexRouteImport } from './routes/rapport.index'
+import { Route as RapportMoisRouteImport } from './routes/rapport.$mois'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -138,11 +139,6 @@ const PlanningRoute = PlanningRouteImport.update({
 const PrevisionsRoute = PrevisionsRouteImport.update({
   id: '/previsions',
   path: '/previsions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RapportRoute = RapportRouteImport.update({
-  id: '/rapport',
-  path: '/rapport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RechercheRoute = RechercheRouteImport.update({
@@ -296,6 +292,16 @@ const ParametresSecuriteRoute = ParametresSecuriteRouteImport.update({
   path: '/securite',
   getParentRoute: () => ParametresRoute,
 } as any)
+const RapportIndexRoute = RapportIndexRouteImport.update({
+  id: '/rapport/',
+  path: '/rapport/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RapportMoisRoute = RapportMoisRouteImport.update({
+  id: '/rapport/$mois',
+  path: '/rapport/$mois',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -330,7 +336,6 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
   '/previsions': typeof PrevisionsRoute
-  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -358,9 +363,11 @@ export interface FileRoutesByFullPath {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
+  '/rapport/': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -379,7 +386,6 @@ export interface FileRoutesByTo {
   '/outils': typeof OutilsRoute
   '/planning': typeof PlanningRoute
   '/previsions': typeof PrevisionsRoute
-  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -406,9 +412,11 @@ export interface FileRoutesByTo {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
+  '/rapport': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
@@ -431,7 +439,6 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRouteWithChildren
   '/planning': typeof PlanningRoute
   '/previsions': typeof PrevisionsRoute
-  '/rapport': typeof RapportRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -459,9 +466,11 @@ export interface FileRoutesById {
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
+  '/rapport/$mois': typeof RapportMoisRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
+  '/rapport/': typeof RapportIndexRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -485,7 +494,6 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/planning'
     | '/previsions'
-    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -513,9 +521,11 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
+    | '/rapport/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -534,7 +544,6 @@ export interface FileRouteTypes {
     | '/outils'
     | '/planning'
     | '/previsions'
-    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -561,9 +570,11 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes'
     | '/enveloppes'
     | '/parametres'
+    | '/rapport'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts'
@@ -585,7 +596,6 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/planning'
     | '/previsions'
-    | '/rapport'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -613,9 +623,11 @@ export interface FileRouteTypes {
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
     | '/parametres/securite'
+    | '/rapport/$mois'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
+    | '/rapport/'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -638,13 +650,14 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRouteWithChildren
   PlanningRoute: typeof PlanningRoute
   PrevisionsRoute: typeof PrevisionsRoute
-  RapportRoute: typeof RapportRoute
   RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
   SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  RapportMoisRoute: typeof RapportMoisRoute
+  RapportIndexRoute: typeof RapportIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -759,13 +772,6 @@ declare module '@tanstack/react-router' {
       path: '/previsions'
       fullPath: '/previsions'
       preLoaderRoute: typeof PrevisionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rapport': {
-      id: '/rapport'
-      path: '/rapport'
-      fullPath: '/rapport'
-      preLoaderRoute: typeof RapportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recherche': {
@@ -978,6 +984,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresSecuriteRouteImport
       parentRoute: typeof ParametresRoute
     }
+    '/rapport/': {
+      id: '/rapport/'
+      path: '/rapport'
+      fullPath: '/rapport/'
+      preLoaderRoute: typeof RapportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rapport/$mois': {
+      id: '/rapport/$mois'
+      path: '/rapport/$mois'
+      fullPath: '/rapport/$mois'
+      preLoaderRoute: typeof RapportMoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -1111,13 +1131,14 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRouteWithChildren,
   PlanningRoute: PlanningRoute,
   PrevisionsRoute: PrevisionsRoute,
-  RapportRoute: RapportRoute,
   RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,
   SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
+  RapportMoisRoute: RapportMoisRoute,
+  RapportIndexRoute: RapportIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
