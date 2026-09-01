@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BellRing, FileText, MessageCircleQuestion, Plus, Search, Target } from "lucide-react";
+import { BellRing, CalendarRange, FileText, Plus, Search, Target } from "lucide-react";
 
 /**
  * Bouton circulaire flottant, déplaçable partout sur l'écran et présent dans
@@ -9,12 +9,13 @@ import { BellRing, FileText, MessageCircleQuestion, Plus, Search, Target } from 
  */
 
 const ACCES = [
-  { to: "/assistant", label: "Assistant", Icone: MessageCircleQuestion },
+  { to: "/mois", label: "Mois", Icone: CalendarRange },
   { to: "/recherche", label: "Recherche", Icone: Search },
   { to: "/notifications", label: "Conseiller", Icone: BellRing },
   { to: "/rapport", label: "Rapport", Icone: FileText },
   { to: "/objectifs", label: "Objectifs", Icone: Target },
 ] as const;
+
 
 const CLE_POSITION = "SA_BOUTON_FLOTTANT_POS_V1";
 const TAILLE = 56;
