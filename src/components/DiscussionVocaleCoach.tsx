@@ -46,6 +46,16 @@ export function DiscussionVocaleCoach({
     [],
   );
 
+  // Démarrage direct quand le composant s'ouvre en mode « mains libres ».
+  const lance = useRef(false);
+  useEffect(() => {
+    if (demarrageAuto && !lance.current) {
+      lance.current = true;
+      demarrer();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demarrageAuto]);
+
   function parler(texte: string, apres: () => void) {
     setPhase("parle");
     if (!vocalisationDisponible()) {
