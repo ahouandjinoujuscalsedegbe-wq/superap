@@ -28,7 +28,6 @@ import { SyncAuto } from "../components/SyncAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
-import { BoutonFlottantGlobal } from "../components/BoutonFlottantGlobal";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 
 function NotFoundComponent() {
@@ -189,7 +188,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
-          {!pleinEcran && <BoutonFlottantGlobal />}
+          
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
