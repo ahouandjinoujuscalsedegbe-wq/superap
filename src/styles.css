@@ -898,3 +898,35 @@ textarea {
     animation: none !important;
   }
 }
+
+@utility bouton-3d-budget {
+  background-image: linear-gradient(160deg, #9ec7ff 0%, #3b7ddd 55%, #1c4a94 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 10px rgba(10, 40, 90, 0.45),
+    0 10px 18px -8px rgba(59, 125, 221, 0.85);
+}
+
+@utility bouton-3d-enveloppes {
+  background-image: linear-gradient(160deg, #d3b6ff 0%, #8a5cf0 55%, #56309f 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 10px rgba(50, 20, 100, 0.45),
+    0 10px 18px -8px rgba(138, 92, 240, 0.85);
+}
+
+@utility bouton-3d-mois {
+  background-image: linear-gradient(160deg, #ffd79a 0%, #f0a33c 55%, #a96716 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 10px rgba(110, 65, 10, 0.45),
+    0 10px 18px -8px rgba(240, 163, 60, 0.85);
+}
+
+@utility bouton-3d-rapport {
+  background-image: linear-gradient(160deg, #9df0e6 0%, #17b3a3 55%, #0a7168 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 10px rgba(5, 70, 65, 0.45),
+    0 10px 18px -8px rgba(23, 179, 163, 0.85);
+}
