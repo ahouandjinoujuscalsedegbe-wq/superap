@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   MoreVertical,
   X,
-  LineChart,
   Settings,
   HelpCircle,
   HandCoins,
@@ -18,7 +17,6 @@ import {
 
 const ENTREES = [
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
-  { to: "/analyses", label: "Analyses et Conseils", icone: LineChart },
   { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
   { to: "/suivi", label: "Suivi réel / prévu", icone: Scale },
 
