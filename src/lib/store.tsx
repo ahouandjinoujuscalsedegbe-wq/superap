@@ -191,6 +191,15 @@ export const COMPTES = [
   "Carte virtuelle",
 ] as const;
 
+/**
+ * Comptes de mise de côté (épargne, caisse, compte diamant) : par défaut leur
+ * argent n'entre pas dans le solde disponible. L'utilisateur peut changer ce
+ * choix à la création ou à la modification du compte.
+ */
+export function estCompteNonDisponible(nom: string): boolean {
+  return /(épargne|epargne|caisse|diamant|tontine)/i.test(nom);
+}
+
 export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
   {
     id: "vitaux",
