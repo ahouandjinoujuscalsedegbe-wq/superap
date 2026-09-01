@@ -57,6 +57,11 @@ export type Enveloppe = {
   ajustementAuto?: boolean;
   /** Date (ISO) du dernier remplissage périodique appliqué. */
   dernierRemplissage?: string;
+  /**
+   * Date (AAAA-MM-JJ) choisie par l'utilisateur pour le premier renouvellement
+   * automatique. Sans elle, aucun renouvellement automatique n'a lieu.
+   */
+  dateRenouvellement?: string;
 };
 
 /** Versement d'un compte vers une enveloppe (approvisionnement). */
