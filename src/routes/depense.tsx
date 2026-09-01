@@ -36,9 +36,36 @@ function AjouterDepense() {
   const [montant, setMontant] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
-  const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
+  const [recherche, setRecherche] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
+
+  const enveloppeChoisie = useMemo(
+    () => enveloppes.find((e) => e.id === enveloppe),
+    [enveloppes, enveloppe],
+  );
+
+  // Le compte est déduit de l'enveloppe : chaque enveloppe est rattachée à un compte source.
+  const compte =
+    enveloppeChoisie?.compteSource && comptes.includes(enveloppeChoisie.compteSource)
+      ? enveloppeChoisie.compteSource
+      : (comptes[0] ?? COMPTES[0]);
+
+  // Regroupement par catégorie + recherche : liste lisible même avec beaucoup d'enveloppes.
+  const groupes = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
+    const filtrees = q
+      ? enveloppes.filter((e) =>
+          `${e.nom} ${e.categorie ?? ""} ${e.sousCategorie ?? ""}`.toLowerCase().includes(q),
+        )
+      : enveloppes;
+    const map = new Map<string, typeof enveloppes>();
+    for (const e of filtrees) {
+      const cle = e.categorie?.trim() || "Sans catégorie";
+      map.set(cle, [...(map.get(cle) ?? []), e]);
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"));
+  }, [enveloppes, recherche]);
 
   // Opérations répétées repérées localement : ressaisie en un seul appui.
   const favoris = useMemo(
@@ -47,6 +74,7 @@ function AjouterDepense() {
   );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
+
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
@@ -111,7 +139,7 @@ function AjouterDepense() {
                   setMontant(String(f.montant));
                   setLibelle(f.libelle);
                   if (enveloppes.some((e) => e.id === f.categorie)) setEnveloppe(f.categorie);
-                  if (comptes.includes(f.compte)) setCompte(f.compte);
+                  // Le compte suit automatiquement l'enveloppe choisie.
                 }}
                 className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
               >
@@ -150,32 +178,75 @@ function AjouterDepense() {
           </div>
         </section>
 
-        <section className="carte p-4">
-          <p className="text-sm font-medium">Enveloppe</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {enveloppes.map((e) => {
-              const actif = e.id === enveloppe;
-              return (
-                <button
-                  key={e.id}
-                  type="button"
-                  aria-pressed={actif}
-                  onClick={() => setEnveloppe(e.id)}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
-                    actif
-                      ? "border-primary bg-accent font-semibold text-accent-foreground"
-                      : "border-input bg-background/60 text-muted-foreground"
-                  }`}
-                >
-                  <span aria-hidden className="text-base">
-                    {e.emoji}
-                  </span>
-                  <span className="truncate">{e.nom}</span>
-                </button>
-              );
-            })}
+        <section className="carte space-y-3 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium">Enveloppe</p>
+            <span className="truncate text-xs text-muted-foreground">
+              {enveloppes.length} disponibles
+            </span>
           </div>
+
+          <input
+            value={recherche}
+            onChange={(ev) => setRecherche(ev.target.value)}
+            placeholder="Rechercher une enveloppe…"
+            aria-label="Rechercher une enveloppe"
+            className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+
+          {enveloppeChoisie && (
+            <div className="flex items-center gap-2 rounded-xl border border-primary bg-accent px-3 py-2.5 text-sm font-semibold text-accent-foreground">
+              <span aria-hidden className="text-base">
+                {enveloppeChoisie.emoji}
+              </span>
+              <span className="truncate">{enveloppeChoisie.nom}</span>
+            </div>
+          )}
+
+          <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+            {groupes.length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
+            )}
+            {groupes.map(([categorie, liste]) => (
+              <details key={categorie} open={liste.some((e) => e.id === enveloppe) || !!recherche}>
+                <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
+                  {categorie} · {liste.length}
+                </summary>
+                <div className="mt-2 grid gap-2">
+                  {liste.map((e) => {
+                    const actif = e.id === enveloppe;
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        aria-pressed={actif}
+                        onClick={() => setEnveloppe(e.id)}
+                        className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                          actif
+                            ? "border-primary bg-accent font-semibold text-accent-foreground"
+                            : "border-input bg-background/60 text-muted-foreground"
+                        }`}
+                      >
+                        <span aria-hidden className="shrink-0 text-base">
+                          {e.emoji}
+                        </span>
+                        <span className="truncate">{e.nom}</span>
+                        <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                          {e.compteSource ?? ""}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            ))}
+          </div>
+
+          <p className="rounded-xl bg-secondary px-3 py-2.5 text-xs text-secondary-foreground">
+            Compte débité automatiquement : <strong>{compte}</strong>
+          </p>
         </section>
+
 
         {membres.length > 0 && (
           <section className="carte p-4">
@@ -201,23 +272,7 @@ function AjouterDepense() {
         )}
 
         <section className="carte space-y-4 p-4">
-          <div>
-            <label htmlFor="compte" className="text-sm font-medium">
-              Compte débité
-            </label>
-            <select
-              id="compte"
-              value={compte}
-              onChange={(ev) => setCompte(ev.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-            >
-              {comptes.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+
 
           <div>
             <label htmlFor="libelle" className="text-sm font-medium">
