@@ -4,7 +4,7 @@ import { CalendarPlus, Scale, Trash2, TrendingDown, TrendingUp } from "lucide-re
 
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
-import { formatFCFA } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import {
   ecrireProjets,

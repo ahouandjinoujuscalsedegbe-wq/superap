@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { apprendreIcone } from "@/lib/icone-auto";
-import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
 import { DicteeOperation } from "@/components/DicteeOperation";

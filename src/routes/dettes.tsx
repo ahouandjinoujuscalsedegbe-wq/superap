@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { resteDu, useSuperApp, type Dette } from "@/lib/store";
-import { formatDateFr, formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatDateFr, formatFCFA, grouperMontant } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 

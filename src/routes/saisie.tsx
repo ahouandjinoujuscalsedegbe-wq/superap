@@ -19,7 +19,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { COMPTES, useSuperApp } from "@/lib/store";
-import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
   empreinteTicket,

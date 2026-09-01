@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { PERIODES, useSuperApp, type Periode } from "@/lib/store";
-import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";

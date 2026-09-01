@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
-import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatFCFA, grouperMontant } from "@/lib/format";
 import { operationsFrequentes } from "@/lib/favoris";
 import { DicteeOperation } from "@/components/DicteeOperation";
 

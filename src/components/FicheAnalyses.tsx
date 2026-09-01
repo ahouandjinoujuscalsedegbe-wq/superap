@@ -5,7 +5,7 @@ import { useCerveau } from "@/lib/cerveau/hook";
 import { SectionIaLocale } from "@/components/SectionIaLocale";
 import { BoutonVocalisation } from "@/components/BoutonVocalisation";
 import { Link } from "@tanstack/react-router";
-import { formatDateFr, formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatDateFr, formatFCFA, grouperMontant } from "@/lib/format";
 import {
   FENETRES,
   comparerCategories,
