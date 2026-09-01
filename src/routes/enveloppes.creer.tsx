@@ -594,15 +594,9 @@ function CreerEnveloppePage() {
                   apres:
                     confirmation.modeRemplissage === "pourcentage"
                       ? `${confirmation.pourcentageRevenu}% de chaque revenu`
-                      : `${formatFCFA(confirmation.dotation)} ${
-                          PERIODES.find((p) => p.id === confirmation.periodeRenouvellement)?.label ??
-                          ""
-                        }`,
+                      : `${formatFCFA(confirmation.dotation)} le 1er de chaque mois`,
                 },
-                {
-                  label: "Date de renouvellement",
-                  apres: confirmation.dateRenouvellement || "Aucune",
-                },
+
               ]
             : []
         }
