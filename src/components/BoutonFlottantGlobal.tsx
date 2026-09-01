@@ -164,7 +164,8 @@ export function BoutonFlottantGlobal() {
   const versGauche = centreX > window.innerWidth / 2;
   const versHaut = centreY > window.innerHeight / 2;
   const angleBase = Math.atan2(versHaut ? -1 : 1, versGauche ? -1 : 1) * (180 / Math.PI);
-  const angles = [-60, -30, 0, 30, 60].map((delta) => angleBase + delta);
+  const ecart = ACCES.length > 1 ? 90 / (ACCES.length - 1) : 0;
+  const angles = ACCES.map((_, i) => angleBase - 45 + i * ecart);
 
   return (
     <>
