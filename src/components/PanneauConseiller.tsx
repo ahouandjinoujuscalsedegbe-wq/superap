@@ -24,22 +24,16 @@ export function PanneauConseiller({
   mensuel,
   saison,
   projection,
-  bilans,
-  memoire,
   lecture,
   onLire,
-  onDemander,
 }: {
   ouvert: boolean;
   onFermer: () => void;
   mensuel: BilanMensuel;
   saison: BilanSaisonnier;
   projection: MoisProjete[];
-  bilans: BilanEnveloppe[];
-  memoire: MemoireCoach;
   lecture: string | null;
   onLire: (cle: string, texte: string) => void;
-  onDemander: (question: string) => void;
 }) {
   if (!ouvert) return null;
 
