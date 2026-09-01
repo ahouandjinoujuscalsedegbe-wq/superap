@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
 
 function Accueil() {
   const {
-    solde,
+    soldeDisponible,
     totalRevenus,
     totalDepenses,
     transactions,
@@ -121,7 +121,7 @@ function Accueil() {
           {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
         </p>
         <p className="mt-1 text-4xl font-bold tracking-tight text-primary">
-          {chargement ? "—" : formatFCFA(solde)}
+          {chargement ? "—" : formatFCFA(soldeDisponible)}
         </p>
         <div className="mt-5 grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-success/15 p-3">
