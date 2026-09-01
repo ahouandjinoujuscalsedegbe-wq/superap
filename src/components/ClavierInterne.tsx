@@ -906,7 +906,7 @@ type Commun = {
   visuel: boolean;
   apercuActif: boolean;
   onApercu: (a: { label: string; x: number; y: number } | null) => void;
-  onVariantes?: (v: { touches: string[]; x: number; y: number } | null) => void;
+  onVariantes: ((v: { touches: string[]; x: number; y: number } | null) => void) | undefined;
 };
 
 function Outil({
@@ -949,7 +949,7 @@ function RangeeBas({
   reglages: ReglagesClavier;
   gauche: { label: string; onClick: () => void };
   onEspace: () => void;
-  onGlisser?: (pas: number) => void;
+  onGlisser?: ((pas: number) => void) | undefined;
   onEntree: () => void;
   onPoint: () => void;
 }) {
@@ -1035,16 +1035,16 @@ function Touche({
 }: Commun & {
   label: React.ReactNode;
   onClick: () => void;
-  onMaintien?: () => void;
-  onRelacher?: () => void;
-  petite?: boolean;
-  pleine?: boolean;
-  actif?: boolean;
-  verrou?: boolean;
-  fonction?: boolean;
-  indice?: string | null;
-  variantes?: string[];
-  onVariante?: (v: string) => void;
+  onMaintien?: (() => void) | undefined;
+  onRelacher?: (() => void) | undefined;
+  petite?: boolean | undefined;
+  pleine?: boolean | undefined;
+  actif?: boolean | undefined;
+  verrou?: boolean | undefined;
+  fonction?: boolean | undefined;
+  indice?: string | null | undefined;
+  variantes?: string[] | undefined;
+  onVariante?: ((v: string) => void) | undefined;
 }) {
   const h = HAUTEURS[taille];
   const ref = useRef<HTMLButtonElement | null>(null);
