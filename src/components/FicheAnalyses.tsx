@@ -832,15 +832,26 @@ export function FicheAnalyses() {
 
       <section className="space-y-2">
         <h2 className="px-1 font-semibold">Conseils personnalisés</h2>
-        {diagnostic.conseils.map((c) => (
-          <article key={c.id} className={`rounded-xl border p-3 ${COULEUR_NIVEAU[c.niveau]}`}>
+        {cerveau.constats.map((c) => (
+          <article key={c.id} className={`rounded-xl border p-3 ${COULEUR_CONSTAT[c.gravite]}`}>
             <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <span aria-hidden>{ICONE_NIVEAU[c.niveau]}</span>
+              <span aria-hidden>{ICONE_CONSTAT[c.gravite]}</span>
               {c.titre}
             </h3>
-            <p className="mt-1 text-sm text-muted-foreground">{c.texte}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{c.detail}</p>
+            {c.confiance < 0.5 && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Lecture à confirmer : encore peu d'historique.
+              </p>
+            )}
           </article>
         ))}
+        {cerveau.constats.length === 0 && (
+          <p className="px-1 text-sm text-muted-foreground">
+            Rien à signaler pour le moment : continuez à enregistrer vos opérations.
+          </p>
+        )}
+
       </section>
 
       <div className="space-y-2">
