@@ -188,73 +188,100 @@ function AjouterDepense() {
         </section>
 
         <section className="carte space-y-3 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Enveloppe</p>
-            <span className="truncate text-xs text-muted-foreground">
-              {enveloppes.length} disponibles
+          <p className="text-sm font-medium">Enveloppe</p>
+
+          <button
+            type="button"
+            aria-expanded={panneauOuvert}
+            onClick={() => setPanneauOuvert((v) => !v)}
+            className="flex w-full min-w-0 items-center gap-2 rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm"
+          >
+            <span aria-hidden className="shrink-0 text-base">
+              {enveloppeChoisie?.emoji ?? "🔍"}
             </span>
-          </div>
+            <span className="min-w-0 flex-1 truncate font-semibold">
+              {enveloppeChoisie?.nom ?? "Choisir une enveloppe"}
+            </span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {panneauOuvert ? "▲" : "▼"}
+            </span>
+          </button>
 
-          <input
-            value={recherche}
-            onChange={(ev) => setRecherche(ev.target.value)}
-            placeholder="Rechercher une enveloppe…"
-            aria-label="Rechercher une enveloppe"
-            className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
+          {panneauOuvert && (
+            <div className="space-y-3 rounded-xl border border-input bg-background/40 p-3">
+              <input
+                value={recherche}
+                onChange={(ev) => setRecherche(ev.target.value)}
+                placeholder="Rechercher une enveloppe…"
+                aria-label="Rechercher une enveloppe"
+                className="w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
 
-          {enveloppeChoisie && (
-            <div className="flex items-center gap-2 rounded-xl border border-primary bg-accent px-3 py-2.5 text-sm font-semibold text-accent-foreground">
-              <span aria-hidden className="text-base">
-                {enveloppeChoisie.emoji}
-              </span>
-              <span className="truncate">{enveloppeChoisie.nom}</span>
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {arbre.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
+                )}
+                {arbre.map(([categorie, sousGroupes]) => (
+                  <details
+                    key={categorie}
+                    open={
+                      !!recherche ||
+                      sousGroupes.some(([, l]) => l.some((e) => e.id === enveloppe))
+                    }
+                  >
+                    <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
+                      {categorie}
+                    </summary>
+                    <div className="mt-2 space-y-2 pl-2">
+                      {sousGroupes.map(([sous, liste]) => (
+                        <details
+                          key={sous}
+                          open={!!recherche || liste.some((e) => e.id === enveloppe)}
+                        >
+                          <summary className="cursor-pointer list-none rounded-lg border border-input px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
+                            {sous} · {liste.length}
+                          </summary>
+                          <div className="mt-2 grid gap-2 pl-2">
+                            {liste.map((e) => {
+                              const actif = e.id === enveloppe;
+                              return (
+                                <button
+                                  key={e.id}
+                                  type="button"
+                                  aria-pressed={actif}
+                                  onClick={() => {
+                                    setEnveloppe(e.id);
+                                    setRecherche("");
+                                    setPanneauOuvert(false);
+                                  }}
+                                  className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                                    actif
+                                      ? "border-primary bg-accent font-semibold text-accent-foreground"
+                                      : "border-input bg-background/60 text-muted-foreground"
+                                  }`}
+                                >
+                                  <span aria-hidden className="shrink-0 text-base">
+                                    {e.emoji}
+                                  </span>
+                                  <span className="truncate">{e.nom}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
             </div>
           )}
-
-          <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
-            {groupes.length === 0 && (
-              <p className="text-sm text-muted-foreground">Aucune enveloppe ne correspond.</p>
-            )}
-            {groupes.map(([categorie, liste]) => (
-              <details key={categorie} open={liste.some((e) => e.id === enveloppe) || !!recherche}>
-                <summary className="cursor-pointer list-none rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
-                  {categorie} · {liste.length}
-                </summary>
-                <div className="mt-2 grid gap-2">
-                  {liste.map((e) => {
-                    const actif = e.id === enveloppe;
-                    return (
-                      <button
-                        key={e.id}
-                        type="button"
-                        aria-pressed={actif}
-                        onClick={() => setEnveloppe(e.id)}
-                        className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
-                          actif
-                            ? "border-primary bg-accent font-semibold text-accent-foreground"
-                            : "border-input bg-background/60 text-muted-foreground"
-                        }`}
-                      >
-                        <span aria-hidden className="shrink-0 text-base">
-                          {e.emoji}
-                        </span>
-                        <span className="truncate">{e.nom}</span>
-                        <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-                          {e.compteSource ?? ""}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </details>
-            ))}
-          </div>
 
           <p className="rounded-xl bg-secondary px-3 py-2.5 text-xs text-secondary-foreground">
             Compte débité automatiquement : <strong>{compte}</strong>
           </p>
         </section>
+
 
 
         {membres.length > 0 && (
