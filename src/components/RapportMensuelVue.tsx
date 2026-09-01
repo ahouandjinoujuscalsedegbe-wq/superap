@@ -182,11 +182,11 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
         </section>
       )}
 
-      {rapport.conseils.length > 0 && (
+      {conseils.length > 0 && (
         <section className="carte space-y-2 p-4">
           <h2 className="text-sm font-semibold">Conseils</h2>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
-            {rapport.conseils.map((c, i) => (
+            {conseils.map((c, i) => (
               <li key={i} className="rounded-lg bg-muted/50 px-3 py-2">
                 {c}
               </li>
@@ -194,6 +194,7 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
           </ul>
         </section>
       )}
+
     </div>
   );
 }
