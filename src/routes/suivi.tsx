@@ -48,6 +48,7 @@ function PageSuivi() {
   const [projets, setProjets] = useState<ProjetFutur[]>([]);
   const [limite, setLimite] = useState(12);
   const [ouvert, setOuvert] = useState<string | null>(null);
+  const [vue, setVue] = useState<"categories" | "enveloppes">("categories");
 
   useEffect(() => {
     let vivant = true;
@@ -205,32 +206,117 @@ function PageSuivi() {
                     </p>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <h3 className="text-xs font-semibold text-muted-foreground">
-                      Écart par enveloppe
-                    </h3>
-                    {m.ecartsEnveloppes.length === 0 && (
-                      <p className="text-xs text-muted-foreground">Aucune dépense ce mois-ci.</p>
-                    )}
-                    {m.ecartsEnveloppes.slice(0, 8).map((e) => (
-                      <div
-                        key={e.enveloppeId}
-                        className="flex items-center justify-between gap-2 text-xs"
+                  <div className="flex gap-2">
+                    {(["categories", "enveloppes"] as const).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setVue(v)}
+                        aria-pressed={vue === v}
+                        className={`rounded-full border px-3 py-1 text-[11px] transition-colors ${
+                          vue === v
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input bg-card hover:bg-accent/40"
+                        }`}
                       >
-                        <span className="min-w-0 truncate">
-                          {e.emoji} {e.nom}
-                        </span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {formatFCFA(e.reel)} / {formatFCFA(e.prevu)}{" "}
-                          <span
-                            className={e.ecart > 0 ? "font-semibold text-destructive" : "font-semibold text-success"}
-                          >
-                            ({e.ecart > 0 ? "+" : ""}
-                            {formatFCFA(e.ecart)})
-                          </span>
-                        </span>
-                      </div>
+                        {v === "categories" ? "Par catégorie" : "Par enveloppe"}
+                      </button>
                     ))}
+                  </div>
+
+                  {vue === "categories" ? (
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-semibold text-muted-foreground">
+                        Réel / prévu par catégorie
+                      </h3>
+                      {m.ecartsCategories.length === 0 && (
+                        <p className="text-xs text-muted-foreground">Aucune dépense ce mois-ci.</p>
+                      )}
+                      {m.ecartsCategories.map((c) => (
+                        <div key={c.categorie} className="rounded-lg bg-muted/40 p-2.5">
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <span className="min-w-0 truncate font-medium">
+                              {c.emoji} {c.categorie}
+                              <span className="ml-1 text-muted-foreground">({c.part} %)</span>
+                            </span>
+                            <span className="shrink-0 text-muted-foreground">
+                              {formatFCFA(c.reel)} / {formatFCFA(c.prevu)}{" "}
+                              <span
+                                className={
+                                  c.ecart > 0
+                                    ? "font-semibold text-destructive"
+                                    : "font-semibold text-success"
+                                }
+                              >
+                                ({c.ecart > 0 ? "+" : ""}
+                                {formatFCFA(c.ecart)})
+                              </span>
+                            </span>
+                          </div>
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={`h-full rounded-full ${
+                                c.ecart > 0 ? "bg-destructive" : "bg-primary"
+                              }`}
+                              style={{
+                                width: `${Math.max(
+                                  2,
+                                  Math.min(100, c.prevu > 0 ? Math.round((c.reel / c.prevu) * 100) : 100),
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                          <ul className="mt-1.5 space-y-0.5">
+                            {c.enveloppes.slice(0, 5).map((e) => (
+                              <li
+                                key={e.enveloppeId}
+                                className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground"
+                              >
+                                <span className="min-w-0 truncate">
+                                  {e.emoji} {e.nom}
+                                </span>
+                                <span className="shrink-0">
+                                  {formatFCFA(e.reel)} / {formatFCFA(e.prevu)}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <h3 className="text-xs font-semibold text-muted-foreground">
+                        Écart par enveloppe
+                      </h3>
+                      {m.ecartsEnveloppes.length === 0 && (
+                        <p className="text-xs text-muted-foreground">Aucune dépense ce mois-ci.</p>
+                      )}
+                      {m.ecartsEnveloppes.slice(0, 12).map((e) => (
+                        <div
+                          key={e.enveloppeId}
+                          className="flex items-center justify-between gap-2 text-xs"
+                        >
+                          <span className="min-w-0 truncate">
+                            {e.emoji} {e.nom}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground">
+                            {formatFCFA(e.reel)} / {formatFCFA(e.prevu)}{" "}
+                            <span
+                              className={
+                                e.ecart > 0
+                                  ? "font-semibold text-destructive"
+                                  : "font-semibold text-success"
+                              }
+                            >
+                              ({e.ecart > 0 ? "+" : ""}
+                              {formatFCFA(e.ecart)})
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   </div>
                 </div>
               )}
