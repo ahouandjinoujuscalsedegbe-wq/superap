@@ -1278,6 +1278,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       solde: totalRevenus - totalDepenses,
       depensesParEnveloppe,
       soldesParCompte,
+      reservesParCompte,
       stockageIllisible: illisible,
       chargement,
     };
