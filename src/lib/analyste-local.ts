@@ -8,14 +8,10 @@
  * d'opérations.
  */
 import { analyser } from "./cerveau";
-import { dotationDe, etatEnveloppe } from "./enveloppe-etat";
+import { calculerFaits } from "./cerveau/faits";
 import type { Enveloppe, Transaction } from "./store";
 
 const JOUR_MS = 86_400_000;
-
-function jour(date: string): string {
-  return date.slice(0, 10);
-}
 
 export type PrevisionEnveloppe = {
   enveloppe: Enveloppe;
@@ -30,51 +26,40 @@ export type PrevisionEnveloppe = {
 };
 
 /**
- * Estime la date d'épuisement de chaque enveloppe à partir du rythme
- * de dépense observé sur les derniers jours.
+ * Estime la date d'épuisement de chaque enveloppe.
+ *
+ * Façade : le rythme de dépense et les jours restants viennent du noyau unique
+ * `src/lib/cerveau/faits` pour que tous les écrans annoncent les mêmes chiffres.
  */
 export function previsionEnveloppes(
   enveloppes: Enveloppe[],
   transactions: Transaction[],
-  options: { fenetreJours?: number } = {},
 ): PrevisionEnveloppe[] {
-  const fenetre = options.fenetreJours ?? 30;
-  const depuis = new Date(Date.now() - fenetre * JOUR_MS).toISOString().slice(0, 10);
+  const faits = calculerFaits({ enveloppes, transactions });
+  const parId = new Map(enveloppes.map((e) => [e.id, e]));
 
-  return enveloppes
-    .map((e) => {
-      const depenses = transactions.filter((t) => t.type === "depense" && t.categorie === e.nom);
-      const utilise = depenses.reduce((s, t) => s + t.montant, 0);
-      const recentes = depenses
-        .filter((t) => jour(t.date) >= depuis)
-        .reduce((s, t) => s + t.montant, 0);
-      const etat = etatEnveloppe(e, utilise);
-      const rythmeJour = Math.round(recentes / fenetre);
-      const joursAvantEpuisement =
-        rythmeJour > 0 && etat.restant > 0 ? Math.floor(etat.restant / rythmeJour) : null;
+  return faits.enveloppes
+    .flatMap((f) => {
+      const enveloppe = parId.get(f.id);
+      if (!enveloppe) return [];
+      const jours = f.restant > 0 ? f.joursAvantEpuisement : null;
       const dateEpuisement =
-        joursAvantEpuisement === null
-          ? null
-          : new Date(Date.now() + joursAvantEpuisement * JOUR_MS).toISOString().slice(0, 10);
+        jours === null ? null : new Date(Date.now() + jours * JOUR_MS).toISOString().slice(0, 10);
 
       let niveau: PrevisionEnveloppe["niveau"] = "bon";
-      if (etat.epuisee || (joursAvantEpuisement !== null && joursAvantEpuisement <= 7)) {
-        niveau = "alerte";
-      } else if (
-        etat.plafondAtteint ||
-        (joursAvantEpuisement !== null && joursAvantEpuisement <= 15)
-      ) {
-        niveau = "attention";
-      }
+      if (f.epuisee || (jours !== null && jours <= 7)) niveau = "alerte";
+      else if (f.plafondAtteint || (jours !== null && jours <= 15)) niveau = "attention";
 
-      return {
-        enveloppe: e,
-        restant: etat.restant,
-        rythmeJour,
-        joursAvantEpuisement,
-        dateEpuisement,
-        niveau,
-      };
+      return [
+        {
+          enveloppe,
+          restant: f.restant,
+          rythmeJour: f.rythmeJour,
+          joursAvantEpuisement: jours,
+          dateEpuisement,
+          niveau,
+        },
+      ];
     })
     .sort((a, b) => {
       const va = a.joursAvantEpuisement ?? Number.MAX_SAFE_INTEGER;
@@ -82,6 +67,7 @@ export function previsionEnveloppes(
       return va - vb;
     });
 }
+
 
 // ------------------------------------------------------------ alertes utiles
 
