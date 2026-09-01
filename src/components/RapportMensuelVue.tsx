@@ -6,8 +6,18 @@ import {
   rapportEnTexte,
   type RapportMensuel,
 } from "@/lib/rapport-mensuel";
+import { useCerveau } from "@/lib/cerveau/hook";
 
 export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
+  const cerveau = useCerveau();
+  // Pour le mois en cours, les conseils viennent du noyau unique afin qu'ils
+  // soient identiques à ceux du conseiller ; les mois passés gardent le bilan
+  // figé calculé au moment du rapport.
+  const moisEnCours = rapport.mois === cerveau.faits.moisCourant.mois;
+  const conseils = moisEnCours
+    ? cerveau.constats.slice(0, 6).map((c) => `${c.titre} — ${c.detail}`)
+    : rapport.conseils;
+
   const partager = async () => {
     const texte = rapportEnTexte(rapport);
     try {
