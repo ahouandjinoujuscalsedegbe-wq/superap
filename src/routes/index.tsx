@@ -4,6 +4,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarCheck,
+  Eye,
   Sparkles,
   Target,
   Wallet,
@@ -98,7 +99,7 @@ function Accueil() {
             aria-label="Vue globale du mois"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
           >
-            <CalendarCheck className="h-5 w-5" aria-hidden />
+            <Eye className="h-5 w-5" aria-hidden />
           </Link>
           <Link
             to="/objectifs"
