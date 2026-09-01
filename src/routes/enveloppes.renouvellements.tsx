@@ -110,22 +110,13 @@ function Renouvellements() {
                 <dl className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <dt className="text-muted-foreground">Période</dt>
-                    <dd className="font-medium">
-                      {periode
-                        ? `${PERIODES.find((p) => p.id === periode)?.label} (${LABELS_PERIODE[periode]})`
-                        : "Aucune"}
-                    </dd>
+                    <dd className="font-medium">Le 1er de chaque mois</dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">Compte source</dt>
                     <dd className="font-medium">{e.compteSource || "Non défini"}</dd>
                   </div>
-                  <div>
-                    <dt className="text-muted-foreground">Date choisie</dt>
-                    <dd className="font-medium">
-                      {e.dateRenouvellement ? jourLisible(e.dateRenouvellement) : "Non définie"}
-                    </dd>
-                  </div>
+
                   <div>
                     <dt className="text-muted-foreground">
                       {pourcentage ? "Part de revenu" : "Montant par période"}
