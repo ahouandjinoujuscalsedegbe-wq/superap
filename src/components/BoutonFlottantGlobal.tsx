@@ -1,18 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BellRing, CalendarRange, FileText, Plus, Target } from "lucide-react";
+import { BellRing, Plus } from "lucide-react";
 
 /**
  * Bouton circulaire flottant, déplaçable partout sur l'écran et présent dans
  * tous les onglets. Sa position est retenue localement d'une session à l'autre.
- * Un appui déploie les quatre accès rapides en éventail circulaire.
+ * Un appui déploie les accès rapides en éventail circulaire.
+ * Seuls les raccourcis absents de la page d'accueil y figurent.
  */
 
 const ACCES = [
-  { to: "/mois", label: "Mois", Icone: CalendarRange },
   { to: "/notifications", label: "Conseiller", Icone: BellRing },
-  { to: "/rapport", label: "Rapport", Icone: FileText },
-  { to: "/objectifs", label: "Objectifs", Icone: Target },
 ] as const;
 
 
