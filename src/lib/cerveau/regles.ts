@@ -61,18 +61,41 @@ export function evaluerRegles(faits: Faits): Constat[] {
 
   // ---- enveloppes
   for (const e of faits.enveloppes) {
-    // Une enveloppe réservée suit sa propre logique : on ne l'alarme pas comme
-    // une enveloppe du quotidien, on signale seulement si elle est entamée.
+    // Une enveloppe réservée suit sa propre logique : elle finance un projet,
+    // une épargne ou un usage précis. On n'alarme pas sur son inactivité, mais
+    // tout dépassement ou tout manque doit être signalé très clairement.
     if (e.reservee) {
-      if (e.epuisee && e.dotation > 0) {
+      const compte = e.compteSource ?? "compte réservé";
+      const depassement = Math.max(0, e.utilise - e.dotation);
+      if (depassement > 0) {
+        c.push({
+          id: `reserve-depassement-${e.id}`,
+          type: "fonds-reserves",
+          gravite: "alerte",
+          titre: `${e.emoji} ${e.nom} : dépassement du projet`,
+          detail: `Ce projet est alimenté par le compte réservé « ${compte} ». Les dépenses (${f(e.utilise)}) dépassent la somme réservée (${f(e.dotation)}) de ${f(depassement)}. Remettez ${f(depassement)} sur ce projet ou réduisez ses dépenses.`,
+          confiance: 1,
+          poids: 105,
+        });
+      } else if (e.epuisee && e.dotation > 0) {
         c.push({
           id: `reserve-consommee-${e.id}`,
           type: "fonds-reserves",
-          gravite: "attention",
-          titre: `${e.emoji} ${e.nom} : réserve consommée`,
-          detail: `Cette enveloppe réservée (compte ${e.compteSource ?? "hors solde disponible"}) est entièrement utilisée : ${f(e.dotation)} affectés à son projet.`,
+          gravite: "alerte",
+          titre: `${e.emoji} ${e.nom} : réserve épuisée`,
+          detail: `Ce projet alimenté par le compte réservé « ${compte} » n'a plus rien : les ${f(e.dotation)} réservés sont entièrement utilisés. Toute nouvelle dépense creusera un manque.`,
           confiance: 1,
-          poids: 55,
+          poids: 95,
+        });
+      } else if (e.dotation > 0 && e.restant <= e.dotation * 0.2) {
+        c.push({
+          id: `reserve-manque-${e.id}`,
+          type: "fonds-reserves",
+          gravite: "attention",
+          titre: `${e.emoji} ${e.nom} : réserve presque à sec`,
+          detail: `Il ne reste que ${f(e.restant)} sur les ${f(e.dotation)} réservés via « ${compte} » (${100 - Math.round((e.restant / e.dotation) * 100)} % déjà utilisés). Prévoyez un renfort pour finir le projet.`,
+          confiance: 1,
+          poids: 75,
         });
       }
       continue;

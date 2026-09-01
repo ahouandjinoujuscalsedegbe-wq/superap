@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
 import { Sparkles, X } from "lucide-react";
-import { alertesLocales } from "@/lib/analyste-local";
-import { useSuperApp } from "@/lib/store";
+import { useCerveau } from "@/lib/cerveau/hook";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
@@ -20,7 +19,7 @@ const FACES = [
 ];
 
 export function BouleAnalyse() {
-  const { enveloppes, transactions } = useSuperApp();
+  const { alertes: toutesAlertes } = useCerveau();
   const [ouvert, setOuvert] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [glisse, setGlisse] = useState(false);
@@ -83,8 +82,8 @@ export function BouleAnalyse() {
   }, []);
 
   const alertes = useMemo(
-    () => alertesLocales(enveloppes, transactions),
-    [enveloppes, transactions],
+    () => toutesAlertes.filter((a) => a.niveau !== "bravo").slice(0, 6),
+    [toutesAlertes],
   );
 
   if (alertes.length === 0) return null;
@@ -167,9 +166,9 @@ export function BouleAnalyse() {
           }}
           aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
-          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          <span className="boule-halo-rose absolute -inset-2 rounded-full" aria-hidden />
+          <span className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`} aria-hidden />
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
           <span className="boule-rose-3d absolute inset-0 flex items-center justify-center rounded-full">
             <span className="boule-eclat absolute inset-0 rounded-full" aria-hidden />
