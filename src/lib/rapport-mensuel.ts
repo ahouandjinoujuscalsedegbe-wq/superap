@@ -108,11 +108,54 @@ function normaliser(v: string): string {
 /** Construit le bilan complet d'un mois donné. */
 export function construireRapport(
   mois: string,
-  donnees: { transactions: Transaction[]; enveloppes: Enveloppe[]; dettes: Dette[] },
+  donnees: {
+    transactions: Transaction[];
+    enveloppes: Enveloppe[];
+    dettes: Dette[];
+    budgets?: Budget[];
+  },
 ): RapportMensuel {
-  const duMois = donnees.transactions.filter((t) => t.date.slice(0, 7) === mois);
+  // Aujourd'hui : borne au-delà de laquelle une opération n'est pas encore effectuée.
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const effectuees = donnees.transactions.filter((t) => t.date.slice(0, 10) <= aujourdHui);
+  const duMois = effectuees.filter((t) => t.date.slice(0, 7) === mois);
   const precedent = moisPrecedent(mois);
-  const duPrecedent = donnees.transactions.filter((t) => t.date.slice(0, 7) === precedent);
+  const duPrecedent = effectuees.filter((t) => t.date.slice(0, 7) === precedent);
+
+  // Dépenses planifiées dont l'échéance est passée et qui n'ont pas d'opération
+  // correspondante déjà enregistrée dans l'enveloppe concernée.
+  const enRetard: DepenseEnRetard[] = (donnees.budgets ?? [])
+    .filter((b) => b.actif && b.prochaine.slice(0, 10) < aujourdHui)
+    .map((b) => {
+      const env = donnees.enveloppes.find((e) => e.id === b.enveloppeId);
+      const jours = Math.max(
+        0,
+        Math.round(
+          (Date.parse(aujourdHui) - Date.parse(b.prochaine.slice(0, 10))) / 86400000,
+        ),
+      );
+      return {
+        id: b.id,
+        libelle: b.libelle,
+        montant: b.montant,
+        echeance: b.prochaine.slice(0, 10),
+        emoji: env?.emoji ?? "🗓️",
+        enveloppe: env?.nom ?? "Sans enveloppe",
+        joursRetard: jours,
+      };
+    })
+    .filter((r) => {
+      // Écarte celles déjà payées : même enveloppe, même montant, depuis l'échéance.
+      return !effectuees.some(
+        (t) =>
+          t.type === "depense" &&
+          t.date.slice(0, 10) >= r.echeance &&
+          Math.abs(t.montant - r.montant) < 1 &&
+          (t.categorie === (donnees.budgets ?? []).find((b) => b.id === r.id)?.enveloppeId),
+      );
+    })
+    .sort((a, b) => b.joursRetard - a.joursRetard);
+
 
   const somme = (liste: Transaction[], type: Transaction["type"]) =>
     liste.filter((t) => t.type === type).reduce((s, t) => s + t.montant, 0);
