@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { ajusterAuRevenu, apprendreCorrections, proposerDotations } from "@/lib/budget-auto";
+import { marquerBudgetModifie } from "@/lib/rappel-budget";
 
 /**
  * Budget auto-proposé : calcul local des dotations conseillées pour le mois
@@ -74,6 +75,9 @@ export function SectionBudgetAuto() {
 
     // L'application retient les corrections pour ses prochaines propositions.
     if (corrections.length > 0) apprendreCorrections(corrections);
+
+    // Le budget du mois est validé par l'utilisateur : les rappels s'arrêtent.
+    marquerBudgetModifie();
 
     toast.success(
       modifiees > 0
