@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X } from "lucide-react";
 import type { AlerteLocale } from "@/lib/analyste-local";
 
@@ -15,29 +14,19 @@ export function BouleAnalyse({ alertes }: { alertes: AlerteLocale[] }) {
 
   return (
     <>
-      <AnimatePresence>
-        {ouvert && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOuvert(false)}
-            className="fixed inset-0 z-[65] bg-black/40"
-            aria-hidden
-          />
-        )}
-      </AnimatePresence>
+      {ouvert && (
+        <div
+          onClick={() => setOuvert(false)}
+          className="animate-fade-in fixed inset-0 z-[65] bg-black/40"
+          aria-hidden
+        />
+      )}
 
-      <AnimatePresence>
-        {ouvert && (
-          <motion.section
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+      {ouvert && (
+          <section
             role="dialog"
             aria-label="Analyse intelligente"
-            className="carte fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 right-3 z-[66] max-h-[55vh] space-y-2 overflow-y-auto p-4"
+            className="carte animate-scale-in fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 right-3 z-[66] max-h-[55vh] space-y-2 overflow-y-auto p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -77,19 +66,15 @@ export function BouleAnalyse({ alertes }: { alertes: AlerteLocale[] }) {
                 </li>
               ))}
             </ul>
-          </motion.section>
-        )}
-      </AnimatePresence>
+          </section>
+      )}
 
-      <motion.button
+      <button
         type="button"
         onClick={() => setOuvert((v) => !v)}
         aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
         aria-expanded={ouvert}
-        whileTap={{ scale: 0.92 }}
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-[67] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+        className="boule-levitation fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-[67] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95"
       >
         <Sparkles className="h-6 w-6" aria-hidden />
         <span
@@ -101,7 +86,7 @@ export function BouleAnalyse({ alertes }: { alertes: AlerteLocale[] }) {
         >
           {alertes.length}
         </span>
-      </motion.button>
+      </button>
     </>
   );
 }
