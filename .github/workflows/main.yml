@@ -119,10 +119,26 @@ jobs:
               '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />',
               '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
               '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
+              # Micro : dictée, discussion vocale avec le conseiller.
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
+              '<uses-feature android:name="android.hardware.microphone" android:required="false" />',
           ]
           for perm in permissions:
               if perm not in contenu:
                   contenu = contenu.replace("<application", perm + "\n\n    <application", 1)
+
+          # Autorise l'application à voir les services de reconnaissance vocale
+          # installés (obligatoire depuis Android 11 / package visibility).
+          requetes = '''
+              <queries>
+                  <intent>
+                      <action android:name="android.speech.RecognitionService" />
+                  </intent>
+              </queries>
+          '''
+          if "android.speech.RecognitionService" not in contenu:
+              contenu = contenu.replace("<application", requetes + "\n    <application", 1)
 
           if "requestLegacyExternalStorage" not in contenu:
               contenu = re.sub(
