@@ -46,16 +46,32 @@ const ETIQUETTES: Record<SuiviObjectif["etat"], string> = {
 };
 
 function PageObjectifs() {
-  const { objectifs, transactions, enveloppes, ajouterObjectif, supprimerObjectif } = useSuperApp();
+  const {
+    objectifs,
+    transactions,
+    transferts,
+    enveloppes,
+    comptes,
+    comptesExclus,
+    ajouterObjectif,
+    supprimerObjectif,
+    definirCompteDisponible,
+  } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
   const [dateCible, setDateCible] = useState("");
   const [enveloppeId, setEnveloppeId] = useState("");
+  const [compteSource, setCompteSource] = useState("");
+  const [compteEpargne, setCompteEpargne] = useState("");
+  const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
 
-  const suivis = useMemo(() => suivreObjectifs(objectifs, transactions), [objectifs, transactions]);
+  const suivis = useMemo(
+    () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
+    [objectifs, transactions, transferts],
+  );
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
@@ -75,19 +91,41 @@ function PageObjectifs() {
       toast.error("La date visée doit être dans le futur.");
       return;
     }
+    if (prelevementAuto) {
+      if (!compteSource || !compteEpargne) {
+        toast.error("Choisissez le compte à débiter et le compte d'épargne.");
+        return;
+      }
+      if (compteSource === compteEpargne) {
+        toast.error("Le compte d'épargne doit être différent du compte débité.");
+        return;
+      }
+      // L'épargne d'un objectif ne doit jamais compter dans le solde disponible.
+      if (!comptesExclus.includes(compteEpargne)) definirCompteDisponible(compteEpargne, false);
+    }
     ajouterObjectif({
       libelle: libelle.trim(),
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
       dateCible,
       enveloppeId: enveloppeId || undefined,
+      compteSource: prelevementAuto ? compteSource : undefined,
+      compteEpargne: prelevementAuto ? compteEpargne : undefined,
+      prelevementAuto,
     });
-    toast.success("Objectif créé.");
+    toast.success(
+      prelevementAuto
+        ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
+        : "Objectif créé.",
+    );
     setLibelle("");
     setCible("");
     setDeja("");
     setDateCible("");
     setEnveloppeId("");
+    setCompteSource("");
+    setCompteEpargne("");
+    setPrelevementAuto(true);
     setOuvert(false);
   };
 
