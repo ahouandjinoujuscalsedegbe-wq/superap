@@ -54,6 +54,7 @@ import {
   type SaisieHistorique,
 } from "@/lib/saisie-plus";
 import { Confirmation } from "@/components/Confirmation";
+import { TableauApprentissageOcr } from "@/components/TableauApprentissageOcr";
 import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal";
 
 export const Route = createFileRoute("/saisie")({
@@ -586,8 +587,11 @@ function SaisieIntelligente() {
             </p>
           </div>
           <p className="text-xs text-muted-foreground">{fiabilite.conseil}</p>
+          <TableauApprentissageOcr />
         </section>
       )}
+
+      {(!fiabilite || fiabilite.lectures === 0) && <TableauApprentissageOcr />}
 
       {brouillons.length > 0 && (
         <section className="space-y-3">
