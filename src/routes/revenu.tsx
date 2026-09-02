@@ -70,6 +70,7 @@ function AjouterRevenu() {
         <p className="text-sm text-muted-foreground">Entrée d'argent dans le foyer</p>
       </header>
 
+      {favoris.length > 0 && (
         <section className="carte space-y-2 p-4">
           <p className="text-sm font-medium">Revenus habituels</p>
           <div className="flex flex-wrap gap-2">
