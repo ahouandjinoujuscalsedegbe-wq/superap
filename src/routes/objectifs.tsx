@@ -55,10 +55,12 @@ function PageObjectifs() {
     comptes,
     comptesExclus,
     ajouterObjectif,
+    modifierObjectif,
     supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
+  const [enEdition, setEnEdition] = useState<string | null>(null);
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
@@ -68,11 +70,45 @@ function PageObjectifs() {
   const [compteEpargne, setCompteEpargne] = useState("");
   const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
+  const [ignores, setIgnores] = useState<string[]>([]);
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
     [objectifs, transactions, transferts],
   );
+
+  const ajustements = useMemo(
+    () => proposerAjustements(suivis, transactions).filter((a) => !ignores.includes(a.objectif.id)),
+    [suivis, transactions, ignores],
+  );
+
+  const reinitialiser = () => {
+    setEnEdition(null);
+    setLibelle("");
+    setCible("");
+    setDeja("");
+    setDateCible("");
+    setEnveloppeId("");
+    setCompteSource("");
+    setCompteEpargne("");
+    setPrelevementAuto(true);
+    setOuvert(false);
+  };
+
+  /** Ouvre le formulaire pré-rempli pour ajuster un objectif existant. */
+  const modifier = (o: Objectif) => {
+    setEnEdition(o.id);
+    setLibelle(o.libelle);
+    setCible(String(o.cible));
+    setDeja(String(o.deja));
+    setDateCible(o.dateCible);
+    setEnveloppeId(o.enveloppeId ?? "");
+    setCompteSource(o.compteSource ?? "");
+    setCompteEpargne(o.compteEpargne ?? "");
+    setPrelevementAuto(o.prelevementAuto ?? false);
+    setOuvert(true);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
@@ -104,7 +140,7 @@ function PageObjectifs() {
       // L'épargne d'un objectif ne doit jamais compter dans le solde disponible.
       if (!comptesExclus.includes(compteEpargne)) definirCompteDisponible(compteEpargne, false);
     }
-    ajouterObjectif({
+    const donnees = {
       libelle: libelle.trim(),
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
@@ -113,22 +149,21 @@ function PageObjectifs() {
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
-    });
-    toast.success(
-      prelevementAuto
-        ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
-        : "Objectif créé.",
-    );
-    setLibelle("");
-    setCible("");
-    setDeja("");
-    setDateCible("");
-    setEnveloppeId("");
-    setCompteSource("");
-    setCompteEpargne("");
-    setPrelevementAuto(true);
-    setOuvert(false);
+    };
+    if (enEdition) {
+      modifierObjectif(enEdition, donnees);
+      toast.success("Objectif ajusté.");
+    } else {
+      ajouterObjectif(donnees);
+      toast.success(
+        prelevementAuto
+          ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
+          : "Objectif créé.",
+      );
+    }
+    reinitialiser();
   };
+
 
   return (
     <div className="space-y-4 pt-4">
