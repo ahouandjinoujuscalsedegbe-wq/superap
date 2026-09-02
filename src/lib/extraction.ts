@@ -12,6 +12,12 @@ export type OperationExtraite = {
   confiance: number;
   /** Enveloppe devinée d'après les mots-clés, si trouvée. */
   indiceEnveloppe?: string;
+  /** D'où vient le montant retenu (total, paiement, articles…). */
+  sourceMontant?: "total" | "paiement" | "articles" | "devise" | "maximum" | "mots" | "aucun";
+  /** Explication lisible du montant retenu. */
+  explicationMontant?: string;
+  /** Recoupement du total avec les autres indices du ticket. */
+  coherence?: "verifiee" | "incoherente" | "inconnue";
 };
 
 const MOTS_REVENU = [
@@ -166,11 +172,39 @@ export function parseMontant(brut: string): number | null {
   return Math.round(valeur);
 }
 
+/**
+ * Corrige les confusions classiques de l'OCR à l'intérieur des nombres :
+ * O/o → 0, l/I → 1, S → 5, B → 8, G → 6, Z → 2. La correction n'est appliquée
+ * qu'entre des chiffres ou en bordure d'un groupe de chiffres, jamais dans un mot.
+ */
+export function corrigerConfusionsOcr(ligne: string): string {
+  const table: Record<string, string> = {
+    o: "0",
+    O: "0",
+    l: "1",
+    I: "1",
+    "|": "1",
+    S: "5",
+    B: "8",
+    G: "6",
+    Z: "2",
+  };
+  return ligne.replace(/[\dOolI|SBGZ]{2,}/g, (bloc) => {
+    const converti = bloc.replace(/[OolI|SBGZ]/g, (c) => table[c] ?? c);
+    // On ne garde la conversion que si le bloc contient déjà un chiffre et
+    // devient entièrement numérique : « 1OOO » → « 1000 », « Boulangerie » reste.
+    const chiffres = (bloc.match(/\d/g) ?? []).length;
+    return chiffres >= 1 && /^\d+$/.test(converti) ? converti : bloc;
+  });
+}
+
 /** Tous les nombres monétaires plausibles d'une ligne. */
 export function montantsDeLigne(ligne: string): number[] {
-  const sansDates = ligne
+  const sansDates = corrigerConfusionsOcr(ligne)
     .replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ")
-    .replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ");
+    .replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ")
+    // Codes-barres, références longues et numéros de téléphone : pas des montants.
+    .replace(/\b\d{9,}\b/g, " ");
   const trouves: number[] = [];
   const regex = /\d[\d\s.,]{0,15}\d|\d/g;
   let m: RegExpExecArray | null;
@@ -179,6 +213,11 @@ export function montantsDeLigne(ligne: string): number[] {
     if (valeur !== null) trouves.push(valeur);
   }
   return trouves;
+}
+
+/** Vrai si la ligne cite explicitement la devise (fcfa, xof, f cfa, francs). */
+export function ligneAvecDevise(ligne: string): boolean {
+  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne));
 }
 
 /** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
@@ -190,6 +229,10 @@ export type StructureTicket = {
   sousTotal: number | null;
   especes: number | null;
   rendu: number | null;
+  /** Cohérence entre le total annoncé et les autres indices du ticket. */
+  coherence: "verifiee" | "incoherente" | "inconnue";
+  /** Explication courte du montant retenu, affichable à l'utilisateur. */
+  explication?: string;
 };
 
 export function structurerTicket(texte: string): StructureTicket {
@@ -205,9 +248,17 @@ export function structurerTicket(texte: string): StructureTicket {
   let especes: number | null = null;
   let rendu: number | null = null;
 
-  for (const ligne of lignes) {
+  for (let i = 0; i < lignes.length; i += 1) {
+    const ligne = lignes[i] as string;
     const montants = montantsDeLigne(ligne);
-    const dernier = montants.length > 0 ? (montants[montants.length - 1] as number) : null;
+    let dernier = montants.length > 0 ? (montants[montants.length - 1] as number) : null;
+
+    // Étiquette seule sur sa ligne (« TOTAL A PAYER ») : le montant est sur la suivante.
+    if (dernier === null && LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+      const suite = montantsDeLigne(lignes[i + 1] ?? "");
+      dernier = suite.length > 0 ? (suite[suite.length - 1] as number) : null;
+      if (dernier !== null) i += 1;
+    }
     if (dernier === null) continue;
 
     if (/\b(tva|t\.v\.a|taxe)\b/.test(ligne)) {
@@ -237,37 +288,127 @@ export function structurerTicket(texte: string): StructureTicket {
     }
   }
 
-  return { lignes, articles, totalAnnonce, tva, sousTotal, especes, rendu };
+  // Recoupement : total annoncé ↔ somme des articles ↔ espèces − monnaie rendue.
+  const sommeArticles = articles.reduce((s, a) => s + a.montant, 0);
+  const paiement = especes !== null && rendu !== null ? especes - rendu : null;
+  let coherence: StructureTicket["coherence"] = "inconnue";
+  if (totalAnnonce !== null) {
+    const references = [
+      articles.length >= 2 ? sommeArticles : null,
+      paiement,
+      sousTotal !== null && tva !== null ? sousTotal + tva : null,
+    ].filter((v): v is number => v !== null && v > 0);
+    if (references.length > 0) {
+      const proche = references.some((r) => Math.abs(r - totalAnnonce) <= Math.max(2, r * 0.02));
+      coherence = proche ? "verifiee" : "incoherente";
+    }
+  }
+
+  return { lignes, articles, totalAnnonce, tva, sousTotal, especes, rendu, coherence };
 }
 
 /** Extrait le montant le plus probable d'un texte (chiffres ou lettres). */
 export function extraireMontant(texte: string): number | null {
+  return detaillerMontant(texte).montant;
+}
+
+/** Montant retenu, sa provenance et une explication lisible. */
+export function detaillerMontant(texte: string): {
+  montant: number | null;
+  source: "total" | "paiement" | "articles" | "devise" | "maximum" | "mots" | "aucun";
+  explication: string;
+  coherence: StructureTicket["coherence"];
+} {
   const normalise = sansAccents(texte);
   const structure = structurerTicket(texte);
 
   const plausible = (v: number | null): v is number => v !== null && v >= 10 && v <= 100_000_000;
+  const paiement =
+    structure.especes !== null && structure.rendu !== null
+      ? structure.especes - structure.rendu
+      : null;
+  const sommeArticles = structure.articles.reduce((s, a) => s + a.montant, 0);
 
-  if (plausible(structure.totalAnnonce)) return structure.totalAnnonce;
-
-  // Total déductible du paiement : espèces remises − monnaie rendue.
-  if (plausible(structure.especes) && structure.rendu !== null) {
-    const calcule = structure.especes - structure.rendu;
-    if (plausible(calcule)) return calcule;
+  if (plausible(structure.totalAnnonce)) {
+    // Total illisible ou incohérent : on privilégie le recoupement par le paiement.
+    if (structure.coherence === "incoherente" && plausible(paiement)) {
+      return {
+        montant: paiement,
+        source: "paiement",
+        explication: `Total lu (${structure.totalAnnonce}) incohérent : montant recoupé par espèces − monnaie rendue.`,
+        coherence: structure.coherence,
+      };
+    }
+    return {
+      montant: structure.totalAnnonce,
+      source: "total",
+      explication:
+        structure.coherence === "verifiee"
+          ? "Total du ticket recoupé avec les articles ou le paiement."
+          : "Total explicitement indiqué sur le ticket.",
+      coherence: structure.coherence,
+    };
   }
 
-  // Somme des articles détectés.
-  if (structure.articles.length >= 2) {
-    const somme = structure.articles.reduce((s, a) => s + a.montant, 0);
-    if (plausible(somme)) return somme;
+  if (plausible(paiement)) {
+    return {
+      montant: paiement,
+      source: "paiement",
+      explication: "Montant déduit des espèces remises moins la monnaie rendue.",
+      coherence: structure.coherence,
+    };
+  }
+
+  if (structure.articles.length >= 2 && plausible(sommeArticles)) {
+    return {
+      montant: sommeArticles,
+      source: "articles",
+      explication: `Somme des ${structure.articles.length} articles détectés.`,
+      coherence: structure.coherence,
+    };
+  }
+
+  // Ligne citant la devise : indice fort du montant payé.
+  const avecDevise = structure.lignes
+    .filter((l) => ligneAvecDevise(l) && !LIGNES_EXCLUES.test(l))
+    .flatMap(montantsDeLigne)
+    .filter((v) => v >= 10 && v <= 100_000_000);
+  if (avecDevise.length > 0) {
+    return {
+      montant: Math.max(...avecDevise),
+      source: "devise",
+      explication: "Montant repéré à côté de la devise (FCFA).",
+      coherence: structure.coherence,
+    };
   }
 
   const candidats = structure.lignes
     .filter((l) => !LIGNES_EXCLUES.test(l))
     .flatMap(montantsDeLigne)
     .filter((v) => v >= 10 && v <= 100_000_000);
-  if (candidats.length > 0) return Math.max(...candidats);
+  if (candidats.length > 0) {
+    return {
+      montant: Math.max(...candidats),
+      source: "maximum",
+      explication: "Aucun total identifié : plus grand montant lisible retenu. À vérifier.",
+      coherence: structure.coherence,
+    };
+  }
 
-  return nombreDepuisMots(normalise);
+  const enMots = nombreDepuisMots(normalise);
+  return enMots !== null
+    ? {
+        montant: enMots,
+        source: "mots",
+        explication: "Montant écrit en toutes lettres.",
+        coherence: structure.coherence,
+      }
+    : {
+        montant: null,
+        source: "aucun",
+        explication: "Aucun montant lisible.",
+        coherence: structure.coherence,
+      };
 }
 
 /** Extrait une date du texte, sinon retourne la date du jour. */
@@ -369,12 +510,19 @@ export function analyserTexte(
   enveloppes: { id: string; nom: string; categorie?: string; sousCategorie?: string }[] = [],
   aujourdHui = new Date(),
 ): OperationExtraite {
-  const montant = extraireMontant(texte) ?? 0;
+  const detail = detaillerMontant(texte);
+  const montant = detail.montant ?? 0;
   const libelle = extraireLibelle(texte);
   let confiance = 0;
-  if (montant > 0) confiance += 0.6;
-  if (libelle.length >= 3) confiance += 0.2;
-  if (/\d{1,2}[/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.2;
+  if (montant > 0) confiance += 0.5;
+  if (libelle.length >= 3) confiance += 0.15;
+  if (/\d{1,2}[/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.15;
+  // La provenance du montant pèse plus que sa simple présence.
+  if (detail.source === "total" || detail.source === "paiement") confiance += 0.15;
+  if (detail.source === "articles") confiance += 0.05;
+  if (detail.source === "maximum") confiance -= 0.2;
+  if (detail.coherence === "verifiee") confiance += 0.1;
+  if (detail.coherence === "incoherente") confiance -= 0.15;
 
   const indice = devinerEnveloppe(texte, enveloppes);
   return {
@@ -382,7 +530,10 @@ export function analyserTexte(
     montant,
     date: extraireDate(texte, aujourdHui),
     libelle: libelle || "Opération",
-    confiance: Math.min(1, Number(confiance.toFixed(2))),
+    confiance: Math.max(0, Math.min(1, Number(confiance.toFixed(2)))),
+    sourceMontant: detail.source,
+    explicationMontant: detail.explication,
+    coherence: detail.coherence,
     ...(indice ? { indiceEnveloppe: indice } : {}),
   };
 }

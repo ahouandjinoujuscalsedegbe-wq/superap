@@ -22,6 +22,15 @@ import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
+  appliquerApprentissage,
+  apprendreTicket,
+  fiabiliteOcr,
+  type FiabiliteOcr,
+  type OperationAmelioree,
+  type SourceMontant,
+} from "@/lib/ocr-apprentissage";
+
+import {
   empreinteTicket,
   verifierAuthenticite,
   type VerdictAuthenticite,
@@ -86,6 +95,18 @@ type Brouillon = {
   verdict?: VerdictAuthenticite;
   /** L'utilisateur certifie avoir vérifié un ticket jugé douteux. */
   certifie?: boolean;
+  /** Explication du montant retenu par la lecture automatique. */
+  explication?: string;
+  /** Corrections appliquées grâce à l'expérience passée. */
+  ajustements?: string[];
+  /** Proposition initiale, comparée à la validation pour apprendre. */
+  propose?: {
+    montant: number;
+    libelle: string;
+    type: "revenu" | "depense";
+    enveloppe?: string;
+    sourceMontant?: SourceMontant;
+  };
 };
 
 function SaisieIntelligente() {
@@ -103,6 +124,7 @@ function SaisieIntelligente() {
   const [ongletBas, setOngletBas] = useState<"historique" | "galerie" | null>(null);
   const [aSupprimer, setASupprimer] = useState<SaisieHistorique | null>(null);
   const [viderDemande, setViderDemande] = useState(false);
+  const [fiabilite, setFiabilite] = useState<FiabiliteOcr | null>(null);
   const fichier = useRef<HTMLInputElement>(null);
   const reco = useRef<ReturnType<typeof creerDictee>>(null);
   /** Empreintes des tickets déjà lus ou déjà enregistrés. */
@@ -111,6 +133,7 @@ function SaisieIntelligente() {
   useEffect(() => {
     const liste = lireHistoriqueSaisies();
     setHistorique(liste);
+    setFiabilite(fiabiliteOcr());
     empreintesConnues.current = liste
       .filter((s) => s.source === "ocr" && s.texte)
       .map((s) => empreinteTicket(s.texte));
@@ -137,25 +160,38 @@ function SaisieIntelligente() {
 
   const creerBrouillon = useCallback(
     (
-      resultat: OperationExtraite,
+      resultat: OperationExtraite | OperationAmelioree,
       origine: Brouillon["origine"],
       texteSource: string,
       vignette?: string,
       verdict?: VerdictAuthenticite,
     ): Brouillon => {
+      const ajustements = "ajustements" in resultat ? resultat.ajustements : [];
+      const experience = "experience" in resultat ? resultat.experience : 0;
+      const enveloppeApprise =
+        experience > 0 && resultat.indiceEnveloppe ? resultat.indiceEnveloppe : undefined;
       const apprise = suggererEnveloppe(resultat.libelle);
       const enveloppeChoisie =
+        (enveloppeApprise && enveloppes.some((e) => e.id === enveloppeApprise)
+          ? enveloppeApprise
+          : undefined) ??
         (apprise && enveloppes.some((e) => e.id === apprise) ? apprise : undefined) ??
         resultat.indiceEnveloppe ??
         enveloppes[0]?.id ??
         "";
-      const montantRetenu = verdict?.montantRecoupe ?? resultat.montant;
+      // Un montant déjà corrigé par l'expérience prime sur le recoupement brut.
+      const montantAjuste = ajustements.some((a) => a.startsWith("Montant"));
+      const montantRetenu = montantAjuste
+        ? resultat.montant
+        : (verdict?.montantRecoupe ?? resultat.montant);
       return {
         id: crypto.randomUUID(),
         origine,
         texte: texteSource,
         ...(vignette ? { vignette } : {}),
-        confiance: verdict ? verdict.score / 100 : resultat.confiance,
+        confiance: verdict
+          ? Math.max(verdict.score / 100, resultat.confiance * 0.9)
+          : resultat.confiance,
         type: resultat.type,
         montant: montantRetenu ? String(montantRetenu) : "",
         libelle: resultat.libelle,
@@ -164,8 +200,18 @@ function SaisieIntelligente() {
         source: sourcesRevenu[0] ?? "Salaire",
         compte: comptes[0] ?? COMPTES[0] ?? "",
         ...(verdict ? { verdict } : {}),
+        ...(resultat.explicationMontant ? { explication: resultat.explicationMontant } : {}),
+        ...(ajustements.length > 0 ? { ajustements } : {}),
+        propose: {
+          montant: montantRetenu || 0,
+          libelle: resultat.libelle,
+          type: resultat.type,
+          ...(enveloppeChoisie ? { enveloppe: enveloppeChoisie } : {}),
+          ...(resultat.sourceMontant ? { sourceMontant: resultat.sourceMontant } : {}),
+        },
       };
     },
+
     [comptes, enveloppes, sourcesRevenu],
   );
 
@@ -244,7 +290,12 @@ function SaisieIntelligente() {
           });
         }
         setTexte(lu);
-        const extrait = analyserTexte(lu, enveloppes);
+        // Lecture brute, puis application de ce que l'application a déjà appris.
+        const extrait = appliquerApprentissage(analyserTexte(lu, enveloppes), lu);
+        if (extrait.ajustements.length > 0) {
+          toast.info(`Ticket ${i + 1} : ${extrait.ajustements.join(", ")} (déjà appris).`);
+        }
+
         const verdict = verifierAuthenticite(lu, {
           confianceOcr: confiance,
           dateOperation: extrait.date,
@@ -344,6 +395,22 @@ function SaisieIntelligente() {
       date: new Date(b.date).toISOString(),
     });
     if (b.type === "depense") apprendreEnveloppe(b.libelle, b.enveloppe);
+    // Leçon de lecture : ce qui était proposé face à ce qui a été validé.
+    if (b.origine === "ocr" && b.propose) {
+      apprendreTicket({
+        texte: b.texte,
+        propose: b.propose,
+        valide: {
+          montant: valeur,
+          libelle: b.libelle.trim() || "Opération",
+          type: b.type,
+          ...(b.type === "depense" && b.enveloppe ? { enveloppe: b.enveloppe } : {}),
+          compte: b.compte,
+        },
+      });
+      setFiabilite(fiabiliteOcr());
+    }
+
     const liste = ajouterHistoriqueSaisie({
       source: b.origine,
       type: b.type,
@@ -493,6 +560,32 @@ function SaisieIntelligente() {
         </div>
       </section>
 
+      {fiabilite && fiabilite.lectures > 0 && (
+        <section className="space-y-2 rounded-2xl border border-border bg-card p-4">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Brain className="h-4 w-4 text-primary" aria-hidden />
+            Fiabilité de la lecture des tickets
+          </h2>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Tickets appris : <span className="font-semibold">{fiabilite.lectures}</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Lus sans correction :{" "}
+              <span className="font-semibold">{fiabilite.tauxSansCorrection} %</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Commerçants mémorisés : <span className="font-semibold">{fiabilite.regles}</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Montants corrigés :{" "}
+              <span className="font-semibold">{fiabilite.montantsCorriges}</span>
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">{fiabilite.conseil}</p>
+        </section>
+      )}
+
       {brouillons.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
@@ -543,6 +636,22 @@ function SaisieIntelligente() {
                     loading="lazy"
                     className="h-24 w-auto rounded-lg border border-border object-cover"
                   />
+                )}
+
+                {(b.explication || (b.ajustements?.length ?? 0) > 0) && (
+                  <div className="space-y-1 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
+                    {b.explication && (
+                      <p className="flex items-start gap-1.5">
+                        <Brain className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span>{b.explication}</span>
+                      </p>
+                    )}
+                    {(b.ajustements?.length ?? 0) > 0 && (
+                      <p className="font-medium text-foreground">
+                        Appris de vos corrections : {b.ajustements?.join(", ")}.
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {b.verdict && (
