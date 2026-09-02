@@ -243,7 +243,6 @@ export function oublierApprentissageSms(): void {
   ecrireJson(CLE_MEMOIRE, {});
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Fiabilité : statistiques et messages jamais reconnus                 */
 /* ------------------------------------------------------------------ */
@@ -263,7 +262,14 @@ export type StatsSms = {
   ignores: number;
 };
 
-const STATS_VIDE: StatsSms = { lus: 0, reconnus: 0, auto: 0, confirmes: 0, corriges: 0, ignores: 0 };
+const STATS_VIDE: StatsSms = {
+  lus: 0,
+  reconnus: 0,
+  auto: 0,
+  confirmes: 0,
+  corriges: 0,
+  ignores: 0,
+};
 
 export function statsSms(): StatsSms {
   return { ...STATS_VIDE, ...lireJson<Partial<StatsSms>>(CLE_STATS, {}) };
@@ -497,7 +503,10 @@ export function analyserMessages(
 /** Repère un message qui évoque de l'argent sans avoir été compris. */
 function ressembleATransaction(corps: string): boolean {
   const t = normaliser(corps);
-  return /[0-9]/.test(t) && /(fcfa|xof|f cfa|montant|solde|transfert|paiement|retrait|depot|virement|debit|credit)/.test(t);
+  return (
+    /[0-9]/.test(t) &&
+    /(fcfa|xof|f cfa|montant|solde|transfert|paiement|retrait|depot|virement|debit|credit)/.test(t)
+  );
 }
 
 /** Découpe un texte collé manuellement en messages analysables. */

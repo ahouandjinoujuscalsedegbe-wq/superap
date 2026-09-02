@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Inbox, MessageSquareText, RefreshCw, ShieldCheck, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
+import { FiabiliteSms } from "@/components/FiabiliteSms";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { lireSmsRecents, smsDisponible, autoriserSms } from "@/lib/sms-lecture";
@@ -12,6 +13,7 @@ import {
   definirLectureAuto,
   lectureAutoActive,
   marquerTraite,
+  noterStatSms,
   oublierApprentissageSms,
   reglesApprises,
   type OperationSms,
@@ -46,6 +48,9 @@ function PageMessages() {
   const [scan, setScan] = useState(false);
   const [natif, setNatif] = useState(false);
   const [apprises, setApprises] = useState(0);
+  const [versionStats, setVersionStats] = useState(0);
+  /** Copie des opérations telles que détectées, pour repérer les corrections. */
+  const initiales = useRef(new Map<string, OperationSms>());
 
   useEffect(() => {
     setAuto(lectureAutoActive());
@@ -71,7 +76,9 @@ function PageMessages() {
       }
       const messages = await lireSmsRecents();
       const trouvees = analyserMessages(messages, contexte);
+      for (const op of trouvees) initiales.current.set(op.id, { ...op });
       setOperations(trouvees);
+      setVersionStats((v) => v + 1);
       toast.success(
         trouvees.length > 0
           ? `${trouvees.length} opération(s) détectée(s) dans vos messages.`
@@ -118,14 +125,24 @@ function PageMessages() {
     }
     // La décision validée devient une règle : le moteur s'améliore à chaque fois.
     apprendreSms(op, { type: op.type, enveloppeId: op.enveloppeId, compte: op.compte });
+    const origine = initiales.current.get(op.id);
+    const corrigee =
+      !!origine &&
+      (origine.type !== op.type ||
+        origine.compte !== op.compte ||
+        (origine.enveloppeId ?? "") !== (op.enveloppeId ?? ""));
+    noterStatSms(corrigee ? { corriges: 1 } : { confirmes: 1 });
     marquerTraite(op.id);
     setApprises(reglesApprises().length);
+    setVersionStats((v) => v + 1);
     setOperations((v) => v.filter((o) => o.id !== op.id));
     toast.success("Opération enregistrée depuis le message.");
   };
 
   const ignorer = (op: OperationSms) => {
+    noterStatSms({ ignores: 1 });
     marquerTraite(op.id);
+    setVersionStats((v) => v + 1);
     setOperations((v) => v.filter((o) => o.id !== op.id));
   };
 
@@ -201,6 +218,8 @@ function PageMessages() {
           )}
         </p>
       </section>
+
+      <FiabiliteSms version={versionStats} />
 
       <section className="space-y-3">
         {operations.length === 0 && (
