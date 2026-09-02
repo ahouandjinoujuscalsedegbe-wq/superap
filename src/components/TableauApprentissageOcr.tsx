@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Brain, GraduationCap, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowLeft, Brain, GraduationCap, RotateCcw, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   fiabiliteOcr,
