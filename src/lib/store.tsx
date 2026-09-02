@@ -113,6 +113,12 @@ export type Objectif = {
   deja: number;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
   enveloppeId?: string | undefined;
+  /** Compte débité chaque mois pour alimenter l'épargne de l'objectif. */
+  compteSource?: string | undefined;
+  /** Compte d'épargne (exclu du solde disponible) qui reçoit le prélèvement. */
+  compteEpargne?: string | undefined;
+  /** true si le prélèvement mensuel est effectué automatiquement. */
+  prelevementAuto?: boolean | undefined;
   creeLe: string;
 };
 
