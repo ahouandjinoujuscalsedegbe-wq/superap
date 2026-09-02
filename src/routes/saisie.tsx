@@ -559,6 +559,34 @@ function SaisieIntelligente() {
         </div>
       </section>
 
+      {fiabilite && fiabilite.lectures > 0 && (
+        <section className="space-y-2 rounded-2xl border border-border bg-card p-4">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Brain className="h-4 w-4 text-primary" aria-hidden />
+            Fiabilité de la lecture des tickets
+          </h2>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Tickets appris : <span className="font-semibold">{fiabilite.lectures}</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Lus sans correction :{" "}
+              <span className="font-semibold">{fiabilite.tauxSansCorrection} %</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Commerçants mémorisés : <span className="font-semibold">{fiabilite.regles}</span>
+            </p>
+            <p className="rounded-xl bg-muted/50 px-3 py-2">
+              Montants corrigés :{" "}
+              <span className="font-semibold">{fiabilite.montantsCorriges}</span>
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">{fiabilite.conseil}</p>
+        </section>
+      )}
+
+
+
       {brouillons.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
