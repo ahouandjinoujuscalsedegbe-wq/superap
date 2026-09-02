@@ -6,6 +6,7 @@ import {
   fiabiliteOcr,
   reinitialiserApprentissageOcr,
 } from "@/lib/ocr-apprentissage";
+import { contexteBenin } from "@/lib/tickets-benin";
 
 const TICKET = `ALIMENTATION LE BARIC
 Riz parfume 5kg 4500
@@ -92,5 +93,49 @@ RENDU 500`);
     expect(f.lectures).toBe(1);
     expect(f.tauxSansCorrection).toBe(100);
     expect(f.regles).toBeGreaterThan(0);
+  });
+});
+
+describe("tickets locaux du Bénin", () => {
+  it("reconnaît un reçu Mobile Money et ses frais", () => {
+    const ctx = contexteBenin(`MTN MoMo
+Transfert a 97 00 00 00
+Montant 25000 FCFA
+Frais 250 F`);
+    expect(ctx.enseigne).toBe("MTN MoMo");
+    expect(ctx.frais).toBe(250);
+    expect(ctx.sens).toBe("depense");
+  });
+
+  it("reconnaît une recharge SBEE et propose l'électricité", () => {
+    const ctx = contexteBenin("SBEE prepaye recharge compteur 5000 F CFA 12 kWh");
+    expect(ctx.service).toBe("electricite");
+    expect(ctx.categorie).toBe("electricite");
+  });
+
+  it("lit un reçu manuscrit de boutique avec formule locale", () => {
+    const detail = detaillerMontant(`BOUTIQUE LA GRACE COTONOU
+Recu la somme de
+12 500 F CFA
+Sac de riz`);
+    expect(detail.montant).toBe(12500);
+    expect(detail.source).toBe("total");
+  });
+
+  it("écarte une référence longue au profit d'un prix en FCFA", () => {
+    const detail = detaillerMontant(`Pharmacie Zone
+Ref 458712349
+Paracetamol
+1 500 FCFA`);
+    expect(detail.montant).toBe(1500);
+  });
+
+  it("classe une dépense de marché dans l'enveloppe alimentation", () => {
+    const op = analyserTexte("Marche Dantokpa tomate piment 2 000 F", [
+      { id: "e1", nom: "Transport" },
+      { id: "e2", nom: "Nourriture", categorie: "Alimentation" },
+    ]);
+    expect(op.indiceEnveloppe).toBe("e2");
+    expect(op.type).toBe("depense");
   });
 });
