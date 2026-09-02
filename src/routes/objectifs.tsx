@@ -210,6 +210,68 @@ function PageObjectifs() {
               ))}
             </select>
           </label>
+
+          <div className="space-y-3 rounded-xl border border-border/70 bg-background/50 p-3">
+            <label className="flex items-start gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={prelevementAuto}
+                onChange={(e) => setPrelevementAuto(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+              />
+              <span>
+                Épargner automatiquement chaque mois
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                  Le montant nécessaire est prélevé du compte choisi et déplacé vers un compte
+                  d'épargne exclu du solde disponible.
+                </span>
+              </span>
+            </label>
+
+            {prelevementAuto && (
+              <>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Compte à débiter
+                  <select
+                    value={compteSource}
+                    onChange={(e) => setCompteSource(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Choisir un compte…</option>
+                    {comptes
+                      .filter((c) => !comptesExclus.includes(c))
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Compte d'épargne de l'objectif
+                  <select
+                    value={compteEpargne}
+                    onChange={(e) => setCompteEpargne(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Choisir un compte…</option>
+                    {comptes
+                      .filter((c) => c !== compteSource)
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                          {comptesExclus.includes(c) ? " (hors solde disponible)" : ""}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Ce compte sera automatiquement exclu du solde disponible.
+                </p>
+              </>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button
               type="button"
