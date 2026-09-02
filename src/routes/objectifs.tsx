@@ -7,8 +7,6 @@ import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
-import { DicteeChamp } from "@/components/DicteeChamp";
-import { analyserObjectifDicte } from "@/lib/dictee-champs";
 
 export const Route = createFileRoute("/objectifs")({
   head: () => ({
