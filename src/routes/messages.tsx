@@ -30,7 +30,8 @@ export const Route = createFileRoute("/messages")({
       { property: "og:title", content: "Enregistrement automatique depuis vos SMS" },
       {
         property: "og:description",
-        content: "Détection locale des transactions Mobile Money et bancaires, sans envoi de données.",
+        content:
+          "Détection locale des transactions Mobile Money et bancaires, sans envoi de données.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -93,11 +94,20 @@ function PageMessages() {
     setTexte("");
   };
 
-  const majOperation = (
-    id: string,
-    champs: Partial<Record<keyof OperationSms, OperationSms[keyof OperationSms]>>,
-  ) =>
+  const majOperation = (id: string, champs: Partial<OperationSms>) =>
     setOperations((v) => v.map((o) => (o.id === id ? { ...o, ...champs } : o)));
+
+  /** L'enveloppe peut être retirée : la clé est alors supprimée de l'objet. */
+  const majEnveloppe = (id: string, valeur: string) =>
+    setOperations((v) =>
+      v.map((o) => {
+        if (o.id !== id) return o;
+        const suivant = { ...o };
+        if (valeur) suivant.enveloppeId = valeur;
+        else delete suivant.enveloppeId;
+        return suivant;
+      }),
+    );
 
   const enregistrer = (op: OperationSms) => {
     ajouterTransaction({
@@ -287,7 +297,7 @@ function PageMessages() {
                 Enveloppe
                 <select
                   value={op.enveloppeId ?? ""}
-                  onChange={(e) => majOperation(op.id, { enveloppeId: e.target.value || undefined })}
+                  onChange={(e) => majEnveloppe(op.id, e.target.value)}
                   className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground"
                 >
                   <option value="">Sans enveloppe</option>

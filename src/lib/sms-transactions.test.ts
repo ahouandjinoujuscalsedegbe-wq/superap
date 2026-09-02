@@ -18,7 +18,12 @@ const contexte: ContexteSms = {
 };
 
 function sms(corps: string, expediteur = "MTN") {
-  return { id: `m-${corps.length}-${expediteur}`, expediteur, corps, date: Date.parse("2026-09-02") };
+  return {
+    id: `m-${corps.length}-${expediteur}`,
+    expediteur,
+    corps,
+    date: Date.parse("2026-09-02"),
+  };
 }
 
 beforeEach(() => {
@@ -29,7 +34,9 @@ beforeEach(() => {
 describe("analyserSms", () => {
   it("détecte un encaissement Mobile Money", () => {
     const op = analyserSms(
-      sms("Vous avez recu 25 000 FCFA de Jean KODJO. Frais: 0 FCFA. Nouveau solde: 132 500 FCFA. Ref: ABC12345"),
+      sms(
+        "Vous avez recu 25 000 FCFA de Jean KODJO. Frais: 0 FCFA. Nouveau solde: 132 500 FCFA. Ref: ABC12345",
+      ),
       contexte,
     );
     expect(op?.type).toBe("revenu");
@@ -56,7 +63,9 @@ describe("analyserSms", () => {
 
   it("ignore les messages qui ne sont pas des opérations", () => {
     expect(analyserSms(sms("Votre code de verification est 4821"), contexte)).toBeNull();
-    expect(analyserSms(sms("Promo: 2 Go a 1000 FCFA, abonnez-vous maintenant"), contexte)).toBeNull();
+    expect(
+      analyserSms(sms("Promo: 2 Go a 1000 FCFA, abonnez-vous maintenant"), contexte),
+    ).toBeNull();
   });
 
   it("apprend la correction de l'utilisateur", () => {
@@ -79,7 +88,10 @@ describe("analyserSms", () => {
 
 describe("analyserMessages", () => {
   it("ignore les messages déjà enregistrés", () => {
-    const liste = [sms("Vous avez recu 5 000 FCFA de Ana"), sms("Retrait de 2 000 FCFA au guichet")];
+    const liste = [
+      sms("Vous avez recu 5 000 FCFA de Ana"),
+      sms("Retrait de 2 000 FCFA au guichet"),
+    ];
     const ops = analyserMessages(liste, contexte, [liste[0]!.id]);
     expect(ops).toHaveLength(1);
     expect(ops[0]!.type).toBe("depense");

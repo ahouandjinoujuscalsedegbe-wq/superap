@@ -272,7 +272,9 @@ function devinerCompte(expediteur: string, corps: string, comptes: string[]): st
   const texte = `${expediteur} ${corps}`;
   for (const op of OPERATEURS) {
     if (!op.motifs.test(texte)) continue;
-    const correspondant = comptes.find((c) => normaliser(c).includes(normaliser(op.nom).split(" ")[0]!));
+    const correspondant = comptes.find((c) =>
+      normaliser(c).includes(normaliser(op.nom).split(" ")[0]!),
+    );
     if (correspondant) return correspondant;
     const parMot = comptes.find((c) => op.motifs.test(c));
     if (parMot) return parMot;
@@ -281,7 +283,10 @@ function devinerCompte(expediteur: string, corps: string, comptes: string[]): st
   return comptes[0] ?? "Espèces";
 }
 
-function devinerEnveloppe(corps: string, enveloppes: ContexteSms["enveloppes"]): string | undefined {
+function devinerEnveloppe(
+  corps: string,
+  enveloppes: ContexteSms["enveloppes"],
+): string | undefined {
   const texte = normaliser(corps);
   for (const indice of INDICES) {
     if (!indice.motifs.test(corps)) continue;
