@@ -44,19 +44,27 @@ export function suivreObjectif(
   objectif: Objectif,
   transactions: Transaction[],
   maintenant = new Date(),
+  transferts: Transfert[] = [],
 ): SuiviObjectif {
   const debut = new Date(objectif.creeLe).getTime();
   const now = maintenant.getTime();
   const echeance = new Date(objectif.dateCible).getTime();
 
   let epargne = 0;
-  for (const t of transactions) {
-    const d = new Date(t.date).getTime();
-    if (!Number.isFinite(d) || d < debut) continue;
-    if (objectif.enveloppeId) {
-      if (t.type === "depense" && t.categorie === objectif.enveloppeId) epargne += t.montant;
-    } else {
-      epargne += t.type === "revenu" ? t.montant : -t.montant;
+  if (objectif.compteEpargne) {
+    // Épargne dédiée : seuls les virements déclenchés par cet objectif comptent.
+    for (const t of transferts) {
+      if (t.note.startsWith(`Objectif:${objectif.id}`)) epargne += t.montant;
+    }
+  } else {
+    for (const t of transactions) {
+      const d = new Date(t.date).getTime();
+      if (!Number.isFinite(d) || d < debut) continue;
+      if (objectif.enveloppeId) {
+        if (t.type === "depense" && t.categorie === objectif.enveloppeId) epargne += t.montant;
+      } else {
+        epargne += t.type === "revenu" ? t.montant : -t.montant;
+      }
     }
   }
 
