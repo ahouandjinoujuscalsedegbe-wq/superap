@@ -12,7 +12,6 @@
  * Tout est calculé sur l'appareil, sans aucun réseau.
  */
 
-
 import { coefficientSaisonEnveloppe } from "./saison";
 import type { Enveloppe, Periode, Remplissage, Transaction } from "./store";
 
@@ -97,12 +96,9 @@ export function montantPeriodeSuivante(
      des années précédentes, 1 quand il n'y en a pas encore. */
   const saison = coefficientSaisonEnveloppe(enveloppe, transactions, finPeriode);
   const borner = (montant: number) =>
-    Math.round(
-      Math.min(base * (1 + VARIATION_MAX), Math.max(base * (1 - VARIATION_MAX), montant)),
-    );
+    Math.round(Math.min(base * (1 + VARIATION_MAX), Math.max(base * (1 - VARIATION_MAX), montant)));
 
-  if (!enveloppe.ajustementAuto)
-    return saison === 1 ? Math.round(base) : borner(base * saison);
+  if (!enveloppe.ajustementAuto) return saison === 1 ? Math.round(base) : borner(base * saison);
 
   // Habitude de dépense : moyenne des 3 derniers mois réellement vécus.
   const periode: Periode = "mois";
@@ -189,10 +185,11 @@ export function prochainRenouvellement(e: Enveloppe): string | null {
   return premierDuMoisSuivant(e.dernierRemplissage);
 }
 
-
 /** Total déjà versé dans une enveloppe depuis sa création. */
 export function totalVerse(enveloppeId: string, remplissages: Remplissage[]): number {
-  return remplissages.filter((r) => r.enveloppeId === enveloppeId).reduce((s, r) => s + r.montant, 0);
+  return remplissages
+    .filter((r) => r.enveloppeId === enveloppeId)
+    .reduce((s, r) => s + r.montant, 0);
 }
 
 export const LABELS_PERIODE: Record<Periode, string> = {

@@ -57,10 +57,7 @@ function PageObjectifs() {
   const [enveloppeId, setEnveloppeId] = useState("");
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
 
-  const suivis = useMemo(
-    () => suivreObjectifs(objectifs, transactions),
-    [objectifs, transactions],
-  );
+  const suivis = useMemo(() => suivreObjectifs(objectifs, transactions), [objectifs, transactions]);
 
   /** Dictée locale : auto-nom, auto-montant et auto-délai de l'objectif. */
   const appliquerDictee = (texte: string) => {

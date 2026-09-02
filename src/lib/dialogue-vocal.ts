@@ -70,7 +70,10 @@ export type OptionVocale = { valeur: string; label: string };
 
 /** Choisit l'option la plus proche de ce qui a été dit (mots, ou « numéro 2 »). */
 export function choixParle(texte: string, options: OptionVocale[]): string | null {
-  const dit = sansAccents(texte).replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const dit = sansAccents(texte)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!dit || options.length === 0) return null;
 
   // Réponse par position : « le premier », « numéro 3 », « 2 ».
@@ -100,7 +103,9 @@ export function choixParle(texte: string, options: OptionVocale[]): string | nul
 
   let meilleur: { valeur: string; score: number } | null = null;
   for (const option of options) {
-    const cible = sansAccents(option.label).replace(/[^a-z0-9\s]/g, " ").trim();
+    const cible = sansAccents(option.label)
+      .replace(/[^a-z0-9\s]/g, " ")
+      .trim();
     if (!cible) continue;
     let score = 0;
     if (dit === cible) score = 1000;

@@ -12,10 +12,7 @@ let autorisationAccordee = false;
 let demandeEnCours: Promise<boolean> | null = null;
 
 export function microDisponible(): boolean {
-  return (
-    typeof navigator !== "undefined" &&
-    Boolean(navigator.mediaDevices?.getUserMedia)
-  );
+  return typeof navigator !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia);
 }
 
 /** Demande (une seule fois) l'accès au micro. Renvoie true si accordé. */

@@ -95,11 +95,86 @@ function chiffreCache(disposition: Disposition, ligne: number, index: number): s
 }
 
 const EMOJIS = [
-  "😀","😃","😄","😁","😊","🙂","😉","😍","🥰","😘","😎","🤩","🤗","🤔","😐","😴",
-  "😢","😭","😤","😡","🥳","🤝","👍","👎","👏","🙏","💪","✌️","👋","🫶","❤️","💛",
-  "💚","💙","💜","🔥","✨","🎉","🎁","💰","💵","💳","🏦","📈","📉","🧾","🛒","🍚",
-  "🍲","🥖","🍗","🥤","☕","🚕","🏍️","🚌","⛽","🏠","🏥","💊","🎓","📚","📱","💡",
-  "🚿","🧴","👕","👗","💇","⚽","🎬","✈️","🕌","⛪","📅","⏰","✅","⚠️","❗","❓",
+  "😀",
+  "😃",
+  "😄",
+  "😁",
+  "😊",
+  "🙂",
+  "😉",
+  "😍",
+  "🥰",
+  "😘",
+  "😎",
+  "🤩",
+  "🤗",
+  "🤔",
+  "😐",
+  "😴",
+  "😢",
+  "😭",
+  "😤",
+  "😡",
+  "🥳",
+  "🤝",
+  "👍",
+  "👎",
+  "👏",
+  "🙏",
+  "💪",
+  "✌️",
+  "👋",
+  "🫶",
+  "❤️",
+  "💛",
+  "💚",
+  "💙",
+  "💜",
+  "🔥",
+  "✨",
+  "🎉",
+  "🎁",
+  "💰",
+  "💵",
+  "💳",
+  "🏦",
+  "📈",
+  "📉",
+  "🧾",
+  "🛒",
+  "🍚",
+  "🍲",
+  "🥖",
+  "🍗",
+  "🥤",
+  "☕",
+  "🚕",
+  "🏍️",
+  "🚌",
+  "⛽",
+  "🏠",
+  "🏥",
+  "💊",
+  "🎓",
+  "📚",
+  "📱",
+  "💡",
+  "🚿",
+  "🧴",
+  "👕",
+  "👗",
+  "💇",
+  "⚽",
+  "🎬",
+  "✈️",
+  "🕌",
+  "⛪",
+  "📅",
+  "⏰",
+  "✅",
+  "⚠️",
+  "❗",
+  "❓",
 ];
 const CLE_EMOJIS_RECENTS = "superapp.clavier.emojis";
 
@@ -263,7 +338,11 @@ export function ClavierInterne() {
       }
     }
     if (mot) apprendreMot(mot);
-    ecrire(champ, valeur.slice(0, debut) + remplacement + valeur.slice(f), debut + remplacement.length);
+    ecrire(
+      champ,
+      valeur.slice(0, debut) + remplacement + valeur.slice(f),
+      debut + remplacement.length,
+    );
     window.setTimeout(rafraichirSuggestions, 0);
   };
 
@@ -647,13 +726,7 @@ export function ClavierInterne() {
               ))}
             </div>
             <div className="flex gap-1.5">
-              <Touche
-                {...commun}
-                onClick={() => setMode("texte")}
-                label="ABC"
-                fonction
-                petite
-              />
+              <Touche {...commun} onClick={() => setMode("texte")} label="ABC" fonction petite />
               <Touche
                 {...commun}
                 onClick={effacer}

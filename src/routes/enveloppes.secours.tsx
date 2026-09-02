@@ -45,8 +45,8 @@ function Secours() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Plan de secours</h1>
         <p className="text-sm text-muted-foreground">
-          Enveloppes dont le plafond et la réserve sont épuisés : analyse, explication et
-          transferts sûrs proposés par l'intelligence locale.
+          Enveloppes dont le plafond et la réserve sont épuisés : analyse, explication et transferts
+          sûrs proposés par l'intelligence locale.
         </p>
       </header>
 

@@ -1,6 +1,8 @@
 /** Retire les séparateurs pour retrouver la valeur brute saisissable. */
 export function deGrouperMontant(valeur: string | number): string {
-  return String(valeur ?? "").replace(/[^\d.,-]/g, "").replace(/,/g, ".");
+  return String(valeur ?? "")
+    .replace(/[^\d.,-]/g, "")
+    .replace(/,/g, ".");
 }
 
 /** Affiche un montant saisi avec un espace tous les trois chiffres (1 250 000). */

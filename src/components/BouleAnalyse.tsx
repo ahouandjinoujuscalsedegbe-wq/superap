@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as PointerEventReact,
+} from "react";
 import { Sparkles, X } from "lucide-react";
 import { useCerveau } from "@/lib/cerveau/hook";
 
@@ -54,7 +61,10 @@ export function BouleAnalyse() {
         Math.max(4, ev.clientY - decalage.current.y),
         window.innerHeight - taille - 4,
       );
-      if (Math.abs(ev.clientX - (r.left + decalage.current.x)) > 4 || Math.abs(ev.clientY - (r.top + decalage.current.y)) > 4) {
+      if (
+        Math.abs(ev.clientX - (r.left + decalage.current.x)) > 4 ||
+        Math.abs(ev.clientY - (r.top + decalage.current.y)) > 4
+      ) {
         aGlisse.current = true;
       }
       setPos({ x, y });
@@ -168,7 +178,10 @@ export function BouleAnalyse() {
           aria-expanded={ouvert}
           className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          <span className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`} aria-hidden />
+          <span
+            className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`}
+            aria-hidden
+          />
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
           <span className="boule-rose-3d absolute inset-0 flex items-center justify-center rounded-full">
             <span className="boule-eclat absolute inset-0 rounded-full" aria-hidden />
@@ -201,7 +214,6 @@ export function BouleAnalyse() {
         </button>
         <span className="boule-ombre-rose mt-1 h-2 w-10 rounded-[50%]" aria-hidden />
       </div>
-
     </>
   );
 }

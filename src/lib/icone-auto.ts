@@ -22,7 +22,10 @@ const LEXIQUE: { mots: string[]; emoji: string; domaines?: Domaine[] }[] = [
   { mots: ["loyer", "maison", "logement", "bail"], emoji: "🏠" },
   { mots: ["electricite", "sbee", "courant", "lumiere"], emoji: "💡" },
   { mots: ["eaux", "soneb", "robinet"], emoji: "🚰" },
-  { mots: ["internet", "wifi", "connexion", "forfait", "credit", "telephone", "airtime"], emoji: "📶" },
+  {
+    mots: ["internet", "wifi", "connexion", "forfait", "credit", "telephone", "airtime"],
+    emoji: "📶",
+  },
   { mots: ["sante", "hopital", "clinique", "medicament", "pharmacie", "medecin"], emoji: "🏥" },
   { mots: ["ecole", "scolarite", "education", "universite", "cours", "fourniture"], emoji: "🎓" },
   { mots: ["enfant", "bebe", "couche", "lait"], emoji: "🍼" },
@@ -38,7 +41,11 @@ const LEXIQUE: { mots: string[]; emoji: string; domaines?: Domaine[] }[] = [
   { mots: ["salaire", "paie", "traitement", "prime"], emoji: "💼", domaines: ["revenu", "compte"] },
   { mots: ["vente", "recette", "client", "commande"], emoji: "🧺", domaines: ["revenu"] },
   { mots: ["don", "aide", "soutien", "famille"], emoji: "🎁" },
-  { mots: ["banque", "compte", "bancaire", "ecobank", "uba", "boa"], emoji: "🏦", domaines: ["compte"] },
+  {
+    mots: ["banque", "compte", "bancaire", "ecobank", "uba", "boa"],
+    emoji: "🏦",
+    domaines: ["compte"],
+  },
   { mots: ["momo", "mtn", "moov", "wave", "mobile", "celtiis"], emoji: "📱", domaines: ["compte"] },
   { mots: ["especes", "cash", "liquide", "caisse"], emoji: "💵", domaines: ["compte"] },
   { mots: ["carte", "visa", "virtuelle"], emoji: "💳", domaines: ["compte"] },
@@ -109,7 +116,10 @@ export function apprendreDepuisEnveloppes(enveloppes: { nom: string; emoji: stri
 export type SuggestionIcone = { emoji: string; source: "appris" | "lexique" | "defaut" };
 
 /** Propose une icône pour un libellé, en privilégiant ce qui a été appris. */
-export function suggererIconeDetail(texte: string, domaine: Domaine = "enveloppe"): SuggestionIcone {
+export function suggererIconeDetail(
+  texte: string,
+  domaine: Domaine = "enveloppe",
+): SuggestionIcone {
   const mots = motsCles(texte);
   if (mots.length > 0) {
     const appris = lireApprises();

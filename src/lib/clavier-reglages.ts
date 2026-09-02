@@ -84,7 +84,6 @@ export const REGLAGES_PAR_DEFAUT: ReglagesClavier = {
   themeSombre: false,
 };
 
-
 const CLE = "superapp.clavier.reglages";
 
 let courant: ReglagesClavier = REGLAGES_PAR_DEFAUT;

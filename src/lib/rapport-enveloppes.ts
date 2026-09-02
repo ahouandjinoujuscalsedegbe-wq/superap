@@ -70,7 +70,7 @@ export function moisCourant(date = new Date()): string {
 /** Mois précédant le mois donné (AAAA-MM). */
 export function moisPrecedent(mois: string): string {
   const [a, m] = mois.split("-").map(Number);
-  const d = new Date((a ?? 1970), (m ?? 1) - 2, 1);
+  const d = new Date(a ?? 1970, (m ?? 1) - 2, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
@@ -214,7 +214,10 @@ export function classerRapportAvantRenouvellement(
 }
 
 /** Liste des mois disponibles : archives classées + mois en cours. */
-export function moisDisponibles(transactions: Transaction[], remplissages: Remplissage[]): string[] {
+export function moisDisponibles(
+  transactions: Transaction[],
+  remplissages: Remplissage[],
+): string[] {
   const mois = new Set<string>(Object.keys(lireArchives()));
   for (const t of transactions) mois.add(t.date.slice(0, 7));
   for (const r of remplissages) mois.add(r.date.slice(0, 7));

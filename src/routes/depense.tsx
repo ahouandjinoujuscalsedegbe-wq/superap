@@ -80,7 +80,6 @@ function AjouterDepense() {
       );
   }, [enveloppes, recherche]);
 
-
   // Opérations répétées repérées localement : ressaisie en un seul appui.
   const favoris = useMemo(
     () => operationsFrequentes(transactions, { type: "depense", maximum: 4 }),
@@ -88,7 +87,6 @@ function AjouterDepense() {
   );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
-
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
@@ -142,7 +140,8 @@ function AjouterDepense() {
           if (r.montant > 0) setMontant(String(Math.round(r.montant)));
           if (r.libelle) setLibelle(r.libelle);
           if (r.date) setDate(r.date);
-          if (r.enveloppe && enveloppes.some((e) => e.id === r.enveloppe)) setEnveloppe(r.enveloppe);
+          if (r.enveloppe && enveloppes.some((e) => e.id === r.enveloppe))
+            setEnveloppe(r.enveloppe);
         }}
       />
 
@@ -296,33 +295,35 @@ function AjouterDepense() {
                 {/* Mode recherche : affiche directement les enveloppes filtrées */}
                 {recherche.trim() ? (
                   <div className="grid gap-2">
-                    {arbre.flatMap(([, sousGroupes]) =>
-                      sousGroupes.flatMap(([, liste]) => liste),
-                    ).map((e) => {
-                      const actif = e.id === enveloppe;
-                      return (
-                        <button
-                          key={e.id}
-                          type="button"
-                          aria-pressed={actif}
-                          onClick={() => {
-                            setEnveloppe(e.id);
-                            setRecherche("");
-                            setCategorieChoisie(null);
-                            setSousCategorieChoisie(null);
-                            setPanneauOuvert(false);
-                          }}
-                          className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
-                            actif
-                              ? "border-primary bg-accent font-semibold text-accent-foreground"
-                              : "border-input bg-background/60 text-muted-foreground"
-                          }`}
-                        >
-                          <span aria-hidden className="shrink-0 text-base">{e.emoji}</span>
-                          <span className="truncate">{e.nom}</span>
-                        </button>
-                      );
-                    })}
+                    {arbre
+                      .flatMap(([, sousGroupes]) => sousGroupes.flatMap(([, liste]) => liste))
+                      .map((e) => {
+                        const actif = e.id === enveloppe;
+                        return (
+                          <button
+                            key={e.id}
+                            type="button"
+                            aria-pressed={actif}
+                            onClick={() => {
+                              setEnveloppe(e.id);
+                              setRecherche("");
+                              setCategorieChoisie(null);
+                              setSousCategorieChoisie(null);
+                              setPanneauOuvert(false);
+                            }}
+                            className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors ${
+                              actif
+                                ? "border-primary bg-accent font-semibold text-accent-foreground"
+                                : "border-input bg-background/60 text-muted-foreground"
+                            }`}
+                          >
+                            <span aria-hidden className="shrink-0 text-base">
+                              {e.emoji}
+                            </span>
+                            <span className="truncate">{e.nom}</span>
+                          </button>
+                        );
+                      })}
                   </div>
                 ) : !categorieChoisie ? (
                   // Étape 1 : choix de la catégorie
@@ -353,7 +354,9 @@ function AjouterDepense() {
                           className="flex w-full items-center justify-between rounded-xl border border-input bg-background/60 px-3 py-3 text-left text-sm transition-colors hover:bg-accent"
                         >
                           <span className="font-medium">{sous}</span>
-                          <span className="text-xs text-muted-foreground">{liste.length} enveloppe{liste.length > 1 ? "s" : ""}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {liste.length} enveloppe{liste.length > 1 ? "s" : ""}
+                          </span>
                         </button>
                       ))}
                   </div>
@@ -385,7 +388,9 @@ function AjouterDepense() {
                                 : "border-input bg-background/60 text-muted-foreground"
                             }`}
                           >
-                            <span aria-hidden className="shrink-0 text-base">{e.emoji}</span>
+                            <span aria-hidden className="shrink-0 text-base">
+                              {e.emoji}
+                            </span>
                             <span className="truncate">{e.nom}</span>
                           </button>
                         );
@@ -400,8 +405,6 @@ function AjouterDepense() {
             Compte débité automatiquement : <strong>{compte}</strong>
           </p>
         </section>
-
-
 
         {membres.length > 0 && (
           <section className="carte p-4">
@@ -427,8 +430,6 @@ function AjouterDepense() {
         )}
 
         <section className="carte space-y-4 p-4">
-
-
           <div>
             <label htmlFor="libelle" className="text-sm font-medium">
               Libellé (obligatoire)
@@ -441,7 +442,6 @@ function AjouterDepense() {
               placeholder="Pain, taxi, recharge téléphonique…"
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             />
-
           </div>
 
           <div>

@@ -58,7 +58,6 @@ export type RapportMensuel = {
   conseils: string[];
 };
 
-
 const MOIS_FR = [
   "janvier",
   "février",
@@ -130,9 +129,7 @@ export function construireRapport(
       const env = donnees.enveloppes.find((e) => e.id === b.enveloppeId);
       const jours = Math.max(
         0,
-        Math.round(
-          (Date.parse(aujourdHui) - Date.parse(b.prochaine.slice(0, 10))) / 86400000,
-        ),
+        Math.round((Date.parse(aujourdHui) - Date.parse(b.prochaine.slice(0, 10))) / 86400000),
       );
       return {
         id: b.id,
@@ -151,11 +148,10 @@ export function construireRapport(
           t.type === "depense" &&
           t.date.slice(0, 10) >= r.echeance &&
           Math.abs(t.montant - r.montant) < 1 &&
-          (t.categorie === (donnees.budgets ?? []).find((b) => b.id === r.id)?.enveloppeId),
+          t.categorie === (donnees.budgets ?? []).find((b) => b.id === r.id)?.enveloppeId,
       );
     })
     .sort((a, b) => b.joursRetard - a.joursRetard);
-
 
   const somme = (liste: Transaction[], type: Transaction["type"]) =>
     liste.filter((t) => t.type === type).reduce((s, t) => s + t.montant, 0);
@@ -300,7 +296,9 @@ export function rapportEnTexte(r: RapportMensuel): string {
     ),
     "",
     "PLUS GROSSES DÉPENSES",
-    ...r.plusGrossesDepenses.map((t) => `- ${t.libelle} : ${f(t.montant)} (${t.date.slice(0, 10)})`),
+    ...r.plusGrossesDepenses.map(
+      (t) => `- ${t.libelle} : ${f(t.montant)} (${t.date.slice(0, 10)})`,
+    ),
     "",
     ...(r.enRetard.length > 0
       ? [
@@ -313,7 +311,6 @@ export function rapportEnTexte(r: RapportMensuel): string {
       : []),
     "CONSEILS",
     ...r.conseils.map((c) => `- ${c}`),
-
   ];
   return lignes.join("\n");
 }

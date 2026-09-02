@@ -14,7 +14,14 @@
  * Tout est calculé sur l'appareil : aucune donnée ne sort du téléphone.
  */
 
-import { resteDu, type Budget, type Dette, type Enveloppe, type Objectif, type Transaction } from "./store";
+import {
+  resteDu,
+  type Budget,
+  type Dette,
+  type Enveloppe,
+  type Objectif,
+  type Transaction,
+} from "./store";
 import { etatEnveloppe } from "./enveloppe-etat";
 import { saisonDe } from "./saison";
 
@@ -108,10 +115,7 @@ const ECHANTILLON_MIN = 3;
  * Analyse l'intégralité des données et renvoie les faits solides.
  * Un fait dont l'échantillon est trop faible n'est jamais renvoyé.
  */
-export function observer(
-  donnees: DonneesRaisonnement,
-  maintenant = new Date(),
-): Fait[] {
+export function observer(donnees: DonneesRaisonnement, maintenant = new Date()): Fait[] {
   const faits: Fait[] = [];
   const ajouter = (f: Fait) => {
     if (f.echantillon < ECHANTILLON_MIN) return;
@@ -119,7 +123,9 @@ export function observer(
     faits.push(f);
   };
 
-  const depenses = donnees.transactions.filter((t) => t.type === "depense" && nombreSain(t.montant));
+  const depenses = donnees.transactions.filter(
+    (t) => t.type === "depense" && nombreSain(t.montant),
+  );
   const revenus = donnees.transactions.filter((t) => t.type === "revenu" && nombreSain(t.montant));
   const moisCourant = maintenant.toISOString().slice(0, 7);
   const depensesMois = depenses.filter((t) => moisDe(t.date) === moisCourant);
@@ -134,7 +140,8 @@ export function observer(
     const lignes = depenses.filter((t) => t.categorie === e.nom);
     if (lignes.length === 0) continue;
     const parMois = new Map<string, number>();
-    for (const t of lignes) parMois.set(moisDe(t.date), (parMois.get(moisDe(t.date)) ?? 0) + t.montant);
+    for (const t of lignes)
+      parMois.set(moisDe(t.date), (parMois.get(moisDe(t.date)) ?? 0) + t.montant);
     parMois.delete(moisCourant);
     const historiques = [...parMois.values()];
     const moyenneMois = moyenne(historiques);
@@ -181,7 +188,10 @@ export function observer(
               `Versez les ${fcfa(cible)} libérés vers votre épargne dès l'entrée du revenu.`,
             ],
             preuves: [
-              `Observé sur ${historiques.length} mois : ${historiques.map((h) => fcfa(h)).slice(-4).join(", ")}.`,
+              `Observé sur ${historiques.length} mois : ${historiques
+                .map((h) => fcfa(h))
+                .slice(-4)
+                .join(", ")}.`,
             ],
             echantillon: historiques.length,
             importance: 4.5,
@@ -306,9 +316,7 @@ export function observer(
 
   /* --- 4. Vitesse de dépense après l'arrivée du revenu --- */
   if (revenusMois.length > 0 && revenuMois > 0) {
-    const arrivee = revenusMois
-      .map((t) => new Date(t.date).getTime())
-      .sort((a, b) => a - b)[0]!;
+    const arrivee = revenusMois.map((t) => new Date(t.date).getTime()).sort((a, b) => a - b)[0]!;
     const sept = arrivee + 7 * 24 * 3600 * 1000;
     const brulees = depensesMois
       .filter((t) => {
@@ -362,7 +370,9 @@ export function observer(
           `Fixez-vous un budget ${JOURS[pire]} et retirez-le en espèces la veille.`,
           `Notez le total dépensé chaque ${JOURS[pire]} pendant un mois pour voir l'effet.`,
         ],
-        preuves: [`Total des dépenses observées : ${fcfa(total)} sur ${depenses.length} opérations.`],
+        preuves: [
+          `Total des dépenses observées : ${fcfa(total)} sur ${depenses.length} opérations.`,
+        ],
         echantillon: compte[pire] ?? 0,
         importance: 5,
         mots: [JOURS[pire] ?? "", "habitude", "semaine"],
@@ -504,7 +514,9 @@ export function observer(
           "Ouvrez Budgétisation et désactivez les lignes qui ne correspondent plus à la réalité.",
           "Reprenez ensuite Prévisions : les projections redeviennent exactes.",
         ],
-        preuves: [`Budgets actifs : ${budgetsActifs.length}, dont ${nonSuivis.length} sans opération.`],
+        preuves: [
+          `Budgets actifs : ${budgetsActifs.length}, dont ${nonSuivis.length} sans opération.`,
+        ],
         echantillon: nonSuivis.length,
         importance: 4,
         mots: ["budget", "prevision", "planification"],
@@ -547,7 +559,8 @@ export function noterFait(
 
   // Ce que l'utilisateur ramène souvent dans ses messages.
   for (const [mot, compte] of Object.entries(appris.motsCles)) {
-    if (compte >= 2 && fait.mots.some((m) => m.includes(cle(mot)))) note += Math.min(2, compte * 0.3);
+    if (compte >= 2 && fait.mots.some((m) => m.includes(cle(mot))))
+      note += Math.min(2, compte * 0.3);
   }
 
   // Apprentissage : thèmes appréciés devant, thèmes rejetés derrière.

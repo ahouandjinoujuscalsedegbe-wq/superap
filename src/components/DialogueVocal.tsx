@@ -253,7 +253,11 @@ export function DialogueVocal({
               : "border-input bg-card text-primary"
           }`}
         >
-          {actif ? <Square className="h-5 w-5" aria-hidden /> : <Mic className="h-5 w-5" aria-hidden />}
+          {actif ? (
+            <Square className="h-5 w-5" aria-hidden />
+          ) : (
+            <Mic className="h-5 w-5" aria-hidden />
+          )}
         </button>
       </div>
 

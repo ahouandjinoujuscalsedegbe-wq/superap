@@ -136,9 +136,7 @@ function Budgetisation() {
 
   const search = useSearch({ from: Route.id }) as { onglet?: "plan" | "suivi" | "auto" };
   const [popupOuvert, setPopupOuvert] = useState(false);
-  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">(
-    search.onglet ?? "plan",
-  );
+  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">(search.onglet ?? "plan");
   const [ouverte, setOuverte] = useState<string | null>(null);
 
   useEffect(() => {
@@ -362,7 +360,6 @@ function Budgetisation() {
       {onglet === "auto" && <SectionBudgetAuto />}
 
       <section className={onglet === "plan" ? "carte space-y-4 p-4" : "hidden"}>
-
         <div>
           <h2 className="text-lg font-semibold">Budgétisation</h2>
           <p className="text-sm text-muted-foreground">

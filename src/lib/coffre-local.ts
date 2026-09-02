@@ -55,7 +55,6 @@ function secretAppareil(): string {
   return secret;
 }
 
-
 async function cleCoffre(): Promise<CryptoKey> {
   if (!clePromesse) {
     clePromesse = (async () => {

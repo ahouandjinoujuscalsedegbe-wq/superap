@@ -253,8 +253,7 @@ export function evaluerRegles(faits: Faits): Constat[] {
   }
 
   // ---- solde et découvert prévisible
-  const depenseJour =
-    faits.joursEcoules > 0 ? faits.moisCourant.depenses / faits.joursEcoules : 0;
+  const depenseJour = faits.joursEcoules > 0 ? faits.moisCourant.depenses / faits.joursEcoules : 0;
   if (depenseJour > 0 && faits.solde > 0) {
     const joursTenue = Math.floor(faits.solde / depenseJour);
     if (joursTenue < faits.joursRestants) {
@@ -302,7 +301,5 @@ export function evaluerRegles(faits: Faits): Constat[] {
     });
   }
 
-  return c.sort(
-    (a, b) => ORDRE[a.gravite] - ORDRE[b.gravite] || b.poids - a.poids,
-  );
+  return c.sort((a, b) => ORDRE[a.gravite] - ORDRE[b.gravite] || b.poids - a.poids);
 }

@@ -84,7 +84,9 @@ export function FicheSuiviBudget() {
         </h2>
 
         {lignes.length === 0 ? (
-          <p className="carte p-4 text-sm text-muted-foreground">Aucune enveloppe pour le moment.</p>
+          <p className="carte p-4 text-sm text-muted-foreground">
+            Aucune enveloppe pour le moment.
+          </p>
         ) : (
           lignes.map((l) => {
             const depassement = l.ecart > 0;

@@ -192,7 +192,6 @@ function RootComponent() {
           <AlarmeIntelligente />
           <RappelBudgetMensuel />
           <BouleAnalyse />
-          
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>

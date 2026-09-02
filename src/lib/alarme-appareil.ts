@@ -174,7 +174,6 @@ export async function notifierAlarme(titre: string, texte: string, urgent = fals
           autoCancel: true,
           schedule: { at: new Date(Date.now() + 300) },
           extra: { urgent },
-
         },
       ],
     });

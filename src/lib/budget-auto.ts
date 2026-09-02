@@ -142,12 +142,9 @@ export function proposerDotations(
       : 0;
     const ecartType =
       observes > 1
-        ? Math.sqrt(
-            observees.reduce((s, v) => s + (v - moyenneSimple) ** 2, 0) / observees.length,
-          )
+        ? Math.sqrt(observees.reduce((s, v) => s + (v - moyenneSimple) ** 2, 0) / observees.length)
         : 0;
     const reguliere = observes >= 3 && moyenneSimple > 0 && ecartType / moyenneSimple < 0.15;
-
 
     const marge = reguliere ? 1.02 : tendance === "hausse" ? 1.15 : 1.08;
     let base = observes === 0 ? actuelle : Math.max(moyenne * marge, maxi * (reguliere ? 1 : 0.9));
@@ -227,7 +224,6 @@ export function ajusterAuRevenu(budget: BudgetPropose): BudgetPropose {
     totalPropose: propositions.reduce((s, p) => s + p.proposee, 0),
   };
 }
-
 
 /* ------------------------------------------------------------------ *
  * Apprentissage local des corrections de l'utilisateur

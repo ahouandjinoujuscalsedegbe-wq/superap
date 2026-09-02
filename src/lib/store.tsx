@@ -452,10 +452,6 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
   };
 }
 
-
-
-
-
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
 // rechargement à chaud, le provider et une route peuvent momentanément recevoir
@@ -554,7 +550,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         origine,
       });
       if (!propre) {
-        journaliser("avertissement", "application", "Remplissage refusé : montant ou compte invalide.");
+        journaliser(
+          "avertissement",
+          "application",
+          "Remplissage refusé : montant ou compte invalide.",
+        );
         return;
       }
       setEtat((e) => ({
@@ -1389,7 +1389,6 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       chargement,
     ],
   );
-
 
   return <SuperAppContext.Provider value={valeur}>{children}</SuperAppContext.Provider>;
 }

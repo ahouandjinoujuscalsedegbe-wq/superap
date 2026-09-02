@@ -12,8 +12,6 @@ import {
 import { idRappel, programmerNotificationsPlanifiees } from "@/lib/alarme-appareil";
 import { occurrencesEntre } from "@/lib/planning";
 
-
-
 /**
  * Surveille en continu les dépenses planifiées et les prévisions locales,
  * puis déclenche une alarme sonore et visuelle. Tout est calculé sur
@@ -100,9 +98,6 @@ export function AlarmeIntelligente() {
     }
     void programmerNotificationsPlanifiees(rappels);
   }, [budgets, enveloppes]);
-
-
-
 
   if (alarmes.length === 0) return null;
   const alarme = alarmes[0];

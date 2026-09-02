@@ -52,9 +52,7 @@ export function bilanEnveloppe(
   maintenant = new Date(),
 ): BilanEnveloppe {
   const now = maintenant.getTime();
-  const siennes = transactions.filter(
-    (t) => t.type === "depense" && t.categorie === enveloppe.id,
-  );
+  const siennes = transactions.filter((t) => t.type === "depense" && t.categorie === enveloppe.id);
 
   let depense30 = 0;
   let depense30Avant = 0;
@@ -68,8 +66,7 @@ export function bilanEnveloppe(
 
   const etat = etatEnveloppe(enveloppe, utilise);
   const rythmeJour = depense30 / 30;
-  const tendance =
-    depense30Avant > 0 ? ((depense30 - depense30Avant) / depense30Avant) * 100 : 0;
+  const tendance = depense30Avant > 0 ? ((depense30 - depense30Avant) / depense30Avant) * 100 : 0;
   const joursAvantEpuisement =
     rythmeJour > 0 ? Math.floor(etat.restant / rythmeJour) : Number.POSITIVE_INFINITY;
 
@@ -80,7 +77,8 @@ export function bilanEnveloppe(
     conseils.push({
       id: "epuisee",
       texte: `L'enveloppe est vide : ${fcfa(etat.utilise)} déjà dépensés sur ${fcfa(dotation)}.`,
-      action: "Faites un transfert de secours depuis une enveloppe en avance, ou mettez-la en pause jusqu'au prochain remplissage.",
+      action:
+        "Faites un transfert de secours depuis une enveloppe en avance, ou mettez-la en pause jusqu'au prochain remplissage.",
       gravite: 2,
     });
   } else if (joursAvantEpuisement <= 7) {
@@ -94,7 +92,8 @@ export function bilanEnveloppe(
     conseils.push({
       id: "plafond",
       texte: `Le plafond de ${fcfa(enveloppe.plafond)} est atteint ; vous puisez maintenant dans la réserve (${fcfa(etat.reserveDisponible)}).`,
-      action: "Relevez le plafond s'il est irréaliste, sinon stoppez les dépenses non urgentes ici.",
+      action:
+        "Relevez le plafond s'il est irréaliste, sinon stoppez les dépenses non urgentes ici.",
       gravite: 1,
     });
   }
@@ -127,7 +126,8 @@ export function bilanEnveloppe(
   if (siennes.length === 0) {
     conseils.push({
       id: "aucune-donnee",
-      texte: "Aucune dépense enregistrée ici pour l'instant : je n'ai pas encore de rythme à analyser.",
+      texte:
+        "Aucune dépense enregistrée ici pour l'instant : je n'ai pas encore de rythme à analyser.",
       action: "Saisissez vos dépenses de cette enveloppe pour que mes conseils deviennent précis.",
       gravite: 0,
     });

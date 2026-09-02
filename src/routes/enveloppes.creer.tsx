@@ -239,14 +239,14 @@ function CreerEnveloppePage() {
       return;
     }
     if (!compteSource.trim()) {
-      setErreur(
-        "Choisissez le compte qui alimente cette enveloppe : son contenu y est réservé.",
-      );
+      setErreur("Choisissez le compte qui alimente cette enveloppe : son contenu y est réservé.");
       return;
     }
     const part = Number(pourcentageRevenu);
     if (modeRemplissage === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100)) {
-      setErreur("Indiquez le pourcentage de chaque revenu à verser dans cette enveloppe (1 à 100).");
+      setErreur(
+        "Indiquez le pourcentage de chaque revenu à verser dans cette enveloppe (1 à 100).",
+      );
       return;
     }
     if ((soldesParCompte[compteSource.trim()] ?? 0) < somme) {
@@ -455,15 +455,14 @@ function CreerEnveloppePage() {
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            Le contenu de l'enveloppe reste dans ce compte : il y est seulement réservé.
-            Seules les dépenses faites depuis l'enveloppe diminuent le compte.
+            Le contenu de l'enveloppe reste dans ce compte : il y est seulement réservé. Seules les
+            dépenses faites depuis l'enveloppe diminuent le compte.
           </p>
 
           <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
-            Renouvellement automatique : le contenu de cette enveloppe est reversé
-            le 1er de chaque mois, sans date à choisir.
+            Renouvellement automatique : le contenu de cette enveloppe est reversé le 1er de chaque
+            mois, sans date à choisir.
           </p>
-
 
           <div className="flex gap-2">
             {(
@@ -561,7 +560,6 @@ function CreerEnveloppePage() {
                       ? `${confirmation.pourcentageRevenu}% de chaque revenu`
                       : `${formatFCFA(confirmation.dotation)} le 1er de chaque mois`,
                 },
-
               ]
             : []
         }

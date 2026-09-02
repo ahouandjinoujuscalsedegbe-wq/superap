@@ -76,7 +76,10 @@ function PageSuivi() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Vos dépenses réelles, mois par mois, face à ce que la{" "}
-          <Link to="/previsions" className="font-medium text-primary underline-offset-2 hover:underline">
+          <Link
+            to="/previsions"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
             Prévision mois par mois
           </Link>{" "}
           annonçait.
@@ -147,10 +150,16 @@ function PageSuivi() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <p className="text-muted-foreground">
-                      Prévu : <span className="font-semibold text-foreground">{formatFCFA(m.depensesPrevues)}</span>
+                      Prévu :{" "}
+                      <span className="font-semibold text-foreground">
+                        {formatFCFA(m.depensesPrevues)}
+                      </span>
                     </p>
                     <p className="text-muted-foreground">
-                      Réel : <span className="font-semibold text-foreground">{formatFCFA(m.depensesReelles)}</span>
+                      Réel :{" "}
+                      <span className="font-semibold text-foreground">
+                        {formatFCFA(m.depensesReelles)}
+                      </span>
                     </p>
                   </div>
 
@@ -187,22 +196,29 @@ function PageSuivi() {
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <p className="text-muted-foreground">
                       Revenus prévus :{" "}
-                      <span className="font-semibold text-foreground">{formatFCFA(m.revenusPrevus)}</span>
+                      <span className="font-semibold text-foreground">
+                        {formatFCFA(m.revenusPrevus)}
+                      </span>
                     </p>
                     <p className="text-muted-foreground">
                       Revenus réels :{" "}
-                      <span className="font-semibold text-foreground">{formatFCFA(m.revenusReels)}</span>
+                      <span className="font-semibold text-foreground">
+                        {formatFCFA(m.revenusReels)}
+                      </span>
                     </p>
                     <p className="text-muted-foreground">
                       Net prévu :{" "}
-                      <span className="font-semibold text-foreground">{formatFCFA(m.netPrevu)}</span>
+                      <span className="font-semibold text-foreground">
+                        {formatFCFA(m.netPrevu)}
+                      </span>
                     </p>
                     <p className="text-muted-foreground">
                       Net réel :{" "}
                       <span className="font-semibold text-foreground">{formatFCFA(m.netReel)}</span>
                     </p>
                     <p className="text-muted-foreground">
-                      Opérations : <span className="font-semibold text-foreground">{m.operations}</span>
+                      Opérations :{" "}
+                      <span className="font-semibold text-foreground">{m.operations}</span>
                     </p>
                   </div>
 
@@ -261,7 +277,10 @@ function PageSuivi() {
                               style={{
                                 width: `${Math.max(
                                   2,
-                                  Math.min(100, c.prevu > 0 ? Math.round((c.reel / c.prevu) * 100) : 100),
+                                  Math.min(
+                                    100,
+                                    c.prevu > 0 ? Math.round((c.reel / c.prevu) * 100) : 100,
+                                  ),
                                 )}%`,
                               }}
                             />

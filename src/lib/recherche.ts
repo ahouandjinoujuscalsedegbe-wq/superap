@@ -6,13 +6,7 @@ import type { Budget, Dette, Enveloppe, Objectif, Transaction, Transfert } from 
 import { resteDu } from "./store";
 
 export type TypeResultat =
-  | "operation"
-  | "enveloppe"
-  | "compte"
-  | "dette"
-  | "budget"
-  | "transfert"
-  | "objectif";
+  "operation" | "enveloppe" | "compte" | "dette" | "budget" | "transfert" | "objectif";
 
 export type Resultat = {
   id: string;

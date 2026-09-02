@@ -319,7 +319,6 @@ function ModifierEnveloppe() {
                             />
                           </div>
 
-
                           {detail === e.id && (
                             <div className="mt-3 border-t border-border/70 pt-3">
                               <CarteEnveloppe
@@ -332,7 +331,6 @@ function ModifierEnveloppe() {
                         </li>
                       );
                     })}
-
                   </ul>
                 </div>
               ))}
@@ -513,10 +511,9 @@ function ModifierEnveloppe() {
                 </select>
 
                 <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
-                  Renouvellement automatique le 1er de chaque mois, pour toutes les
-                  enveloppes : il n'y a plus de date à choisir.
+                  Renouvellement automatique le 1er de chaque mois, pour toutes les enveloppes : il
+                  n'y a plus de date à choisir.
                 </p>
-
 
                 <div className="flex gap-2">
                   {(
@@ -530,7 +527,9 @@ function ModifierEnveloppe() {
                       type="button"
                       onClick={() => setEMode(m.id)}
                       className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium ${
-                        eMode === m.id ? "border-primary bg-primary/10 text-primary" : "border-input"
+                        eMode === m.id
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-input"
                       }`}
                     >
                       {m.label}

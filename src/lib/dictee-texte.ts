@@ -22,29 +22,66 @@ export function sansAccent(texte: string): string {
 /** Corrections mot à mot : forme entendue (sans accent) → forme correcte. */
 const VOCABULAIRE: Record<string, string> = {
   // Budget
-  budge: "budget", budgé: "budget", budjet: "budget", budgets: "budget",
-  bidget: "budget", budgé_t: "budget", budgetaire: "budgétaire",
-  budgetisation: "budgétisation", budgetiser: "budgétiser",
+  budge: "budget",
+  budgé: "budget",
+  budjet: "budget",
+  budgets: "budget",
+  bidget: "budget",
+  budgé_t: "budget",
+  budgetaire: "budgétaire",
+  budgetisation: "budgétisation",
+  budgetiser: "budgétiser",
   // Enveloppe
-  enveloppes: "enveloppes", envelope: "enveloppe", envelopes: "enveloppes",
-  enveloppement: "enveloppe", "en veloppe": "enveloppe", anveloppe: "enveloppe",
-  enveloppa: "enveloppe", enveloppee: "enveloppe",
+  enveloppes: "enveloppes",
+  envelope: "enveloppe",
+  envelopes: "enveloppes",
+  enveloppement: "enveloppe",
+  "en veloppe": "enveloppe",
+  anveloppe: "enveloppe",
+  enveloppa: "enveloppe",
+  enveloppee: "enveloppe",
   // Conseil
-  conseille: "conseil", conseils: "conseils", conseiller: "conseiller",
-  consseil: "conseil", conseille_moi: "conseille-moi", conseilles: "conseil",
+  conseille: "conseil",
+  conseils: "conseils",
+  conseiller: "conseiller",
+  consseil: "conseil",
+  conseille_moi: "conseille-moi",
+  conseilles: "conseil",
   konseil: "conseil",
   // Argent
-  depense: "dépense", depenses: "dépenses", depenser: "dépenser",
-  revenu: "revenu", revenus: "revenus", rev: "revenu",
-  epargne: "épargne", epargner: "épargner", eparnge: "épargne",
-  solde: "solde", soldes: "soldes", compte: "compte", comptes: "comptes",
-  dette: "dette", dettes: "dettes", objectif: "objectif", objectifs: "objectifs",
-  virement: "virement", transfert: "transfert", plafond: "plafond",
-  categorie: "catégorie", categories: "catégories",
-  renouvellement: "renouvellement", echeance: "échéance", echeances: "échéances",
+  depense: "dépense",
+  depenses: "dépenses",
+  depenser: "dépenser",
+  revenu: "revenu",
+  revenus: "revenus",
+  rev: "revenu",
+  epargne: "épargne",
+  epargner: "épargner",
+  eparnge: "épargne",
+  solde: "solde",
+  soldes: "soldes",
+  compte: "compte",
+  comptes: "comptes",
+  dette: "dette",
+  dettes: "dettes",
+  objectif: "objectif",
+  objectifs: "objectifs",
+  virement: "virement",
+  transfert: "transfert",
+  plafond: "plafond",
+  categorie: "catégorie",
+  categories: "catégories",
+  renouvellement: "renouvellement",
+  echeance: "échéance",
+  echeances: "échéances",
   // Monnaie
-  cfa: "FCFA", fcfa: "FCFA", "f cfa": "FCFA", franc: "francs", francs: "francs",
-  balle: "francs", balles: "francs",
+  cfa: "FCFA",
+  fcfa: "FCFA",
+  "f cfa": "FCFA",
+  franc: "francs",
+  francs: "francs",
+  balle: "francs",
+  balles: "francs",
 };
 
 /** Expressions entendues de travers → expression correcte. */
@@ -75,8 +112,7 @@ const EXPRESSIONS: [RegExp, string][] = [
 ];
 
 /** Hésitations à supprimer. */
-const HESITATIONS =
-  /\b(euh+|heu+|hum+|hein|bah|ben|ba+f|voila quoi|tu vois|genre)\b/gi;
+const HESITATIONS = /\b(euh+|heu+|hum+|hein|bah|ben|ba+f|voila quoi|tu vois|genre)\b/gi;
 
 /** Ponctuation dictée à haute voix. */
 const PONCTUATION: [RegExp, string][] = [
@@ -94,11 +130,33 @@ const PONCTUATION: [RegExp, string][] = [
 /* ------------------------------------------------------------------ */
 
 const UNITES: Record<string, number> = {
-  zero: 0, un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6,
-  sept: 7, huit: 8, neuf: 9, dix: 10, onze: 11, douze: 12, treize: 13,
-  quatorze: 14, quinze: 15, seize: 16, vingt: 20, trente: 30, quarante: 40,
-  cinquante: 50, soixante: 60, "quatre-vingt": 80, "quatre-vingts": 80,
-  cent: 100, cents: 100,
+  zero: 0,
+  un: 1,
+  une: 1,
+  deux: 2,
+  trois: 3,
+  quatre: 4,
+  cinq: 5,
+  six: 6,
+  sept: 7,
+  huit: 8,
+  neuf: 9,
+  dix: 10,
+  onze: 11,
+  douze: 12,
+  treize: 13,
+  quatorze: 14,
+  quinze: 15,
+  seize: 16,
+  vingt: 20,
+  trente: 30,
+  quarante: 40,
+  cinquante: 50,
+  soixante: 60,
+  "quatre-vingt": 80,
+  "quatre-vingts": 80,
+  cent: 100,
+  cents: 100,
 };
 
 const MOTS_LIAISON = new Set(["et", "-"]);
@@ -144,7 +202,11 @@ function valeurNombre(mots: string[]): number | null {
 
 const MOTS_NOMBRE = new Set([
   ...Object.keys(UNITES),
-  "mille", "milles", "million", "millions", "et",
+  "mille",
+  "milles",
+  "million",
+  "millions",
+  "et",
 ]);
 
 /** Remplace les nombres dictés en toutes lettres par des chiffres. */

@@ -33,14 +33,8 @@ export const Route = createFileRoute("/mois")({
 });
 
 function PageMois() {
-  const {
-    transactions,
-    enveloppes,
-    budgets,
-    dettes,
-    soldesParCompte,
-    depensesParEnveloppe,
-  } = useSuperApp();
+  const { transactions, enveloppes, budgets, dettes, soldesParCompte, depensesParEnveloppe } =
+    useSuperApp();
   const moisActuel = new Date().toISOString().slice(0, 7);
   const [mois, setMois] = useState(moisActuel);
   const [alarmes, setAlarmes] = useState<Alarme[]>([]);
@@ -52,12 +46,8 @@ function PageMois() {
 
   const bilan = useMemo(() => {
     const duMois = transactions.filter((t) => t.date.slice(0, 7) === mois);
-    const revenus = duMois
-      .filter((t) => t.type === "revenu")
-      .reduce((s, t) => s + t.montant, 0);
-    const depenses = duMois
-      .filter((t) => t.type === "depense")
-      .reduce((s, t) => s + t.montant, 0);
+    const revenus = duMois.filter((t) => t.type === "revenu").reduce((s, t) => s + t.montant, 0);
+    const depenses = duMois.filter((t) => t.type === "depense").reduce((s, t) => s + t.montant, 0);
     const precedent = transactions
       .filter((t) => t.type === "depense" && t.date.slice(0, 7) === decalerMois(mois, -1))
       .reduce((s, t) => s + t.montant, 0);
@@ -224,8 +214,8 @@ function PageMois() {
                     {enveloppe.emoji} {enveloppe.nom}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {etat.epuisee ? "Dotation épuisée" : "Plafond atteint"} ·{" "}
-                    {formatFCFA(duMois)} ce mois
+                    {etat.epuisee ? "Dotation épuisée" : "Plafond atteint"} · {formatFCFA(duMois)}{" "}
+                    ce mois
                   </p>
                 </div>
                 <span className="shrink-0 text-xs text-muted-foreground">
