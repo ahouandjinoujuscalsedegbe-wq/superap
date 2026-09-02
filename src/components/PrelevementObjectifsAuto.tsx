@@ -9,14 +9,8 @@ import { noteObjectif, prelevementsDus } from "@/lib/prelevement-objectifs";
  * disponible) est crédité du montant nécessaire pour tenir l'échéance.
  */
 export function PrelevementObjectifsAuto() {
-  const {
-    objectifs,
-    transactions,
-    transferts,
-    chargement,
-    ajouterTransfert,
-    remplirEnveloppe,
-  } = useSuperApp();
+  const { objectifs, transactions, transferts, chargement, ajouterTransfert, remplirEnveloppe } =
+    useSuperApp();
   const enCours = useRef(false);
 
   const appliquer = useCallback(() => {
