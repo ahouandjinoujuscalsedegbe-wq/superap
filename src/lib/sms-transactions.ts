@@ -239,6 +239,13 @@ export function reglesApprises(): SouvenirSms[] {
   );
 }
 
+/** Oublie une seule règle apprise (l'utilisateur la juge erronée). */
+export function oublierRegleSms(signature: string): void {
+  const memoire = lireJson<Memoire>(CLE_MEMOIRE, {});
+  delete memoire[signature];
+  ecrireJson(CLE_MEMOIRE, memoire);
+}
+
 export function oublierApprentissageSms(): void {
   ecrireJson(CLE_MEMOIRE, {});
 }

@@ -4,6 +4,7 @@ import { Check, Inbox, MessageSquareText, RefreshCw, ShieldCheck, Trash2, X } fr
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { FiabiliteSms } from "@/components/FiabiliteSms";
+import { TableauApprentissageSms } from "@/components/TableauApprentissageSms";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { lireSmsRecents, smsDisponible, autoriserSms } from "@/lib/sms-lecture";
@@ -220,6 +221,7 @@ function PageMessages() {
       </section>
 
       <FiabiliteSms version={versionStats} />
+      <TableauApprentissageSms version={versionStats} />
 
       <section className="space-y-3">
         {operations.length === 0 && (
