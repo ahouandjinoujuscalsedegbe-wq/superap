@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SuperAppProvider } from "@/lib/store";
 import { EcheancesAuto } from "@/components/EcheancesAuto";
 import { RemplissageAuto } from "@/components/RemplissageAuto";
+import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
 import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
@@ -180,6 +181,7 @@ function RootComponent() {
 
           <EcheancesAuto />
           <RemplissageAuto />
+          <PrelevementObjectifsAuto />
           <MenuPrincipal />
           {!pleinEcran && <BottomNav />}
           <ClavierInterne />
