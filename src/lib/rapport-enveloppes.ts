@@ -194,7 +194,6 @@ export function construireRapportMois(
   };
 }
 
-
 /* ------------------------------------------------------------------ *
  * Classement (archivage) local des rapports
  * ------------------------------------------------------------------ */

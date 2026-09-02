@@ -39,7 +39,6 @@ export function AlarmeIntelligente() {
     // donc jamais indéfiniment au fil des heures d'utilisation.
     dejaSonnees.current = new Set(liste.map((a) => a.id));
 
-
     if (nouvelle && reglages.active) {
       void declencherAlarmeAppareil({
         volume: reglages.volume,
