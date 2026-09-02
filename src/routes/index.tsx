@@ -105,6 +105,14 @@ function Accueil() {
         <Target className="h-5 w-5" aria-hidden />
       </Link>
 
+      <Link
+        to="/messages"
+        aria-label="Messages de transaction"
+        className="surface fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+8.75rem)] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+      >
+        <MessageSquare className="h-5 w-5" aria-hidden />
+      </Link>
+
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">
           {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
