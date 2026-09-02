@@ -183,6 +183,7 @@ function RootComponent() {
           <EcheancesAuto />
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
+          <SmsAuto />
           <MenuPrincipal />
           {!pleinEcran && <BottomNav />}
           <ClavierInterne />
