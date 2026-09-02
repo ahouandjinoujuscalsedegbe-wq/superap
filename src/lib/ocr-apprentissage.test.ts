@@ -15,8 +15,22 @@ TOTAL A PAYER
 ESPECES 10000
 RENDU 4000`;
 
+// L'environnement de test n'a pas de stockage local : on en simule un.
+const memoire = new Map<string, string>();
+(globalThis as unknown as { localStorage: Storage }).localStorage = {
+  getItem: (k: string) => memoire.get(k) ?? null,
+  setItem: (k: string, v: string) => void memoire.set(k, v),
+  removeItem: (k: string) => void memoire.delete(k),
+  clear: () => memoire.clear(),
+  key: (i: number) => [...memoire.keys()][i] ?? null,
+  get length() {
+    return memoire.size;
+  },
+} as Storage;
+
 describe("lecture des tickets", () => {
   beforeEach(() => {
+    memoire.clear();
     reinitialiserApprentissageOcr();
   });
 

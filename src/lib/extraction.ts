@@ -191,9 +191,10 @@ export function corrigerConfusionsOcr(ligne: string): string {
   };
   return ligne.replace(/[\dOolI|SBGZ]{2,}/g, (bloc) => {
     const converti = bloc.replace(/[OolI|SBGZ]/g, (c) => table[c] ?? c);
-    // On ne garde la conversion que si le bloc est majoritairement numérique.
+    // On ne garde la conversion que si le bloc contient déjà un chiffre et
+    // devient entièrement numérique : « 1OOO » → « 1000 », « Boulangerie » reste.
     const chiffres = (bloc.match(/\d/g) ?? []).length;
-    return chiffres >= 1 && chiffres >= bloc.length - 2 ? converti : bloc;
+    return chiffres >= 1 && /^\d+$/.test(converti) ? converti : bloc;
   });
 }
 

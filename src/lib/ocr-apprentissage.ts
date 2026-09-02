@@ -102,10 +102,20 @@ export function motsCles(texte: string, maximum = 8): string[] {
   return uniques;
 }
 
-export function lireMemoireOcr(): MemoireOcr {
-  if (typeof window === "undefined") return { ...VIDE, regles: {}, echecs: [] };
+/** Stockage local disponible (navigateur ou environnement de test). */
+function stockage(): Storage | undefined {
   try {
-    const brut = window.localStorage.getItem(CLE);
+    return (globalThis as { localStorage?: Storage }).localStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+export function lireMemoireOcr(): MemoireOcr {
+  const local = stockage();
+  if (!local) return { ...VIDE, regles: {}, echecs: [] };
+  try {
+    const brut = local.getItem(CLE);
     if (!brut) return { ...VIDE, regles: {}, echecs: [] };
     const lu = JSON.parse(brut) as Partial<MemoireOcr>;
     return {
@@ -119,9 +129,10 @@ export function lireMemoireOcr(): MemoireOcr {
 }
 
 function ecrire(memoire: MemoireOcr): MemoireOcr {
-  if (typeof window === "undefined") return memoire;
+  const local = stockage();
+  if (!local) return memoire;
   try {
-    window.localStorage.setItem(CLE, JSON.stringify(memoire));
+    local.setItem(CLE, JSON.stringify(memoire));
   } catch {
     /* quota dépassé : l'apprentissage reste optionnel */
   }
