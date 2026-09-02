@@ -46,16 +46,32 @@ const ETIQUETTES: Record<SuiviObjectif["etat"], string> = {
 };
 
 function PageObjectifs() {
-  const { objectifs, transactions, enveloppes, ajouterObjectif, supprimerObjectif } = useSuperApp();
+  const {
+    objectifs,
+    transactions,
+    transferts,
+    enveloppes,
+    comptes,
+    comptesExclus,
+    ajouterObjectif,
+    supprimerObjectif,
+    definirCompteDisponible,
+  } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
   const [dateCible, setDateCible] = useState("");
   const [enveloppeId, setEnveloppeId] = useState("");
+  const [compteSource, setCompteSource] = useState("");
+  const [compteEpargne, setCompteEpargne] = useState("");
+  const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
 
-  const suivis = useMemo(() => suivreObjectifs(objectifs, transactions), [objectifs, transactions]);
+  const suivis = useMemo(
+    () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
+    [objectifs, transactions, transferts],
+  );
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
@@ -75,19 +91,41 @@ function PageObjectifs() {
       toast.error("La date visée doit être dans le futur.");
       return;
     }
+    if (prelevementAuto) {
+      if (!compteSource || !compteEpargne) {
+        toast.error("Choisissez le compte à débiter et le compte d'épargne.");
+        return;
+      }
+      if (compteSource === compteEpargne) {
+        toast.error("Le compte d'épargne doit être différent du compte débité.");
+        return;
+      }
+      // L'épargne d'un objectif ne doit jamais compter dans le solde disponible.
+      if (!comptesExclus.includes(compteEpargne)) definirCompteDisponible(compteEpargne, false);
+    }
     ajouterObjectif({
       libelle: libelle.trim(),
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
       dateCible,
       enveloppeId: enveloppeId || undefined,
+      compteSource: prelevementAuto ? compteSource : undefined,
+      compteEpargne: prelevementAuto ? compteEpargne : undefined,
+      prelevementAuto,
     });
-    toast.success("Objectif créé.");
+    toast.success(
+      prelevementAuto
+        ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
+        : "Objectif créé.",
+    );
     setLibelle("");
     setCible("");
     setDeja("");
     setDateCible("");
     setEnveloppeId("");
+    setCompteSource("");
+    setCompteEpargne("");
+    setPrelevementAuto(true);
     setOuvert(false);
   };
 
@@ -172,6 +210,68 @@ function PageObjectifs() {
               ))}
             </select>
           </label>
+
+          <div className="space-y-3 rounded-xl border border-border/70 bg-background/50 p-3">
+            <label className="flex items-start gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={prelevementAuto}
+                onChange={(e) => setPrelevementAuto(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+              />
+              <span>
+                Épargner automatiquement chaque mois
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                  Le montant nécessaire est prélevé du compte choisi et déplacé vers un compte
+                  d'épargne exclu du solde disponible.
+                </span>
+              </span>
+            </label>
+
+            {prelevementAuto && (
+              <>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Compte à débiter
+                  <select
+                    value={compteSource}
+                    onChange={(e) => setCompteSource(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Choisir un compte…</option>
+                    {comptes
+                      .filter((c) => !comptesExclus.includes(c))
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Compte d'épargne de l'objectif
+                  <select
+                    value={compteEpargne}
+                    onChange={(e) => setCompteEpargne(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Choisir un compte…</option>
+                    {comptes
+                      .filter((c) => c !== compteSource)
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                          {comptesExclus.includes(c) ? " (hors solde disponible)" : ""}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Ce compte sera automatiquement exclu du solde disponible.
+                </p>
+              </>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button
               type="button"
@@ -257,6 +357,13 @@ function PageObjectifs() {
               <p className="text-xs text-muted-foreground">
                 Au rythme actuel ({formatFCFA(s.rythmeMensuel)}/mois), objectif atteint vers le{" "}
                 {s.datePrevue}.
+              </p>
+            )}
+            {s.objectif.prelevementAuto && s.objectif.compteEpargne && (
+              <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                Épargne automatique : {formatFCFA(s.effortMensuel)}/mois prélevés de «{" "}
+                {s.objectif.compteSource} » vers « {s.objectif.compteEpargne} », hors solde
+                disponible.
               </p>
             )}
           </article>

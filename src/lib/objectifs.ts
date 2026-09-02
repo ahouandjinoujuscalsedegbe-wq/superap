@@ -2,7 +2,7 @@
  * Suivi intelligent des objectifs d'épargne, calculé entièrement sur
  * l'appareil à partir des opérations déjà enregistrées.
  */
-import type { Objectif, Transaction } from "./store";
+import type { Objectif, Transaction, Transfert } from "./store";
 
 export type SuiviObjectif = {
   objectif: Objectif;
@@ -44,19 +44,27 @@ export function suivreObjectif(
   objectif: Objectif,
   transactions: Transaction[],
   maintenant = new Date(),
+  transferts: Transfert[] = [],
 ): SuiviObjectif {
   const debut = new Date(objectif.creeLe).getTime();
   const now = maintenant.getTime();
   const echeance = new Date(objectif.dateCible).getTime();
 
   let epargne = 0;
-  for (const t of transactions) {
-    const d = new Date(t.date).getTime();
-    if (!Number.isFinite(d) || d < debut) continue;
-    if (objectif.enveloppeId) {
-      if (t.type === "depense" && t.categorie === objectif.enveloppeId) epargne += t.montant;
-    } else {
-      epargne += t.type === "revenu" ? t.montant : -t.montant;
+  if (objectif.compteEpargne) {
+    // Épargne dédiée : seuls les virements déclenchés par cet objectif comptent.
+    for (const t of transferts) {
+      if (t.note.startsWith(`Objectif:${objectif.id}`)) epargne += t.montant;
+    }
+  } else {
+    for (const t of transactions) {
+      const d = new Date(t.date).getTime();
+      if (!Number.isFinite(d) || d < debut) continue;
+      if (objectif.enveloppeId) {
+        if (t.type === "depense" && t.categorie === objectif.enveloppeId) epargne += t.montant;
+      } else {
+        epargne += t.type === "revenu" ? t.montant : -t.montant;
+      }
     }
   }
 
@@ -117,6 +125,7 @@ export function suivreObjectifs(
   objectifs: Objectif[],
   transactions: Transaction[],
   maintenant = new Date(),
+  transferts: Transfert[] = [],
 ): SuiviObjectif[] {
   const rang: Record<SuiviObjectif["etat"], number> = {
     en_danger: 0,
@@ -126,6 +135,6 @@ export function suivreObjectifs(
     atteint: 4,
   };
   return objectifs
-    .map((o) => suivreObjectif(o, transactions, maintenant))
+    .map((o) => suivreObjectif(o, transactions, maintenant, transferts))
     .sort((a, b) => rang[a.etat] - rang[b.etat] || a.joursRestants - b.joursRestants);
 }

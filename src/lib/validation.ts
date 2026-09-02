@@ -139,6 +139,9 @@ export function assainirObjectif(v: unknown): Objectif | null {
     creeLe,
     deja: nombreSur(v["deja"], 0),
     enveloppeId: idValide(v["enveloppeId"]) ? v["enveloppeId"] : undefined,
+    compteSource: texteSur(v["compteSource"], 60) || undefined,
+    compteEpargne: texteSur(v["compteEpargne"], 60) || undefined,
+    prelevementAuto: v["prelevementAuto"] === true,
   };
 }
 
