@@ -2,7 +2,7 @@
  * Suivi intelligent des objectifs d'épargne, calculé entièrement sur
  * l'appareil à partir des opérations déjà enregistrées.
  */
-import type { Objectif, Transaction } from "./store";
+import type { Objectif, Transaction, Transfert } from "./store";
 
 export type SuiviObjectif = {
   objectif: Objectif;
