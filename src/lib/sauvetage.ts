@@ -85,7 +85,7 @@ function estPrioritaire(e: Enveloppe): boolean {
 export function joursPeriode(e: Enveloppe): number {
   const p = e.periodeRenouvellement;
   if (!p) return 30;
-  return Math.round((365 / 12) / PERIODES_PAR_MOIS[p]);
+  return Math.round(365 / 12 / PERIODES_PAR_MOIS[p]);
 }
 
 /** Rythme de dépense journalier observé sur l'enveloppe (60 derniers jours). */
@@ -148,10 +148,7 @@ export function planSecours(
   const etat = etatEnveloppe(cible, utilise);
   const depassement = Math.max(0, utilise - dotationDe(cible));
   const jours = joursRestants(cible, maintenant);
-  const manque = Math.max(
-    depassement,
-    besoinPrevu(cible, transactions, maintenant) - etat.restant,
-  );
+  const manque = Math.max(depassement, besoinPrevu(cible, transactions, maintenant) - etat.restant);
 
   const candidats: Donneur[] = enveloppes
     .filter((e) => e.id !== cible.id)

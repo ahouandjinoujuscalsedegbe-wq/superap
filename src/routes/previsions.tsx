@@ -133,7 +133,6 @@ function PagePrevisions() {
         </Link>
       </header>
 
-
       <section className="surface space-y-3 rounded-2xl border border-border p-4">
         <h2 className="text-sm font-semibold">Nouvel objectif futur</h2>
         <input
@@ -233,7 +232,9 @@ function PagePrevisions() {
             type="button"
             onClick={() => setHorizon(h)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              h === horizon ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              h === horizon
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {h} mois
@@ -247,9 +248,7 @@ function PagePrevisions() {
         <div className="grid grid-cols-2 gap-3 pt-1 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Revenu moyen / mois</p>
-            <p className="font-semibold text-emerald-600">
-              {formatFCFA(previsions.revenuMoyen)}
-            </p>
+            <p className="font-semibold text-emerald-600">{formatFCFA(previsions.revenuMoyen)}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Dépense moyenne / mois</p>

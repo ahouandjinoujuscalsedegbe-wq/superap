@@ -1,11 +1,7 @@
 import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/format";
-import {
-  libelleMois,
-  rapportEnTexte,
-  type RapportMensuel,
-} from "@/lib/rapport-mensuel";
+import { libelleMois, rapportEnTexte, type RapportMensuel } from "@/lib/rapport-mensuel";
 import { useCerveau } from "@/lib/cerveau/hook";
 
 export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
@@ -36,12 +32,8 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {libelleMois(rapport.mois)}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Bilan automatique du mois.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{libelleMois(rapport.mois)}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Bilan automatique du mois.</p>
         </div>
         <button
           type="button"
@@ -57,9 +49,7 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl bg-success/15 p-3">
             <p className="text-xs text-success/80">Revenus</p>
-            <p className="mt-1 text-sm font-semibold text-success">
-              {formatFCFA(rapport.revenus)}
-            </p>
+            <p className="mt-1 text-sm font-semibold text-success">{formatFCFA(rapport.revenus)}</p>
           </div>
           <div className="rounded-xl bg-destructive/15 p-3">
             <p className="text-xs text-destructive/80">Dépenses</p>
@@ -73,9 +63,8 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Taux d'épargne : <span className="font-semibold text-foreground">
-            {rapport.tauxEpargne.toFixed(0)} %
-          </span>{" "}
+          Taux d'épargne :{" "}
+          <span className="font-semibold text-foreground">{rapport.tauxEpargne.toFixed(0)} %</span>{" "}
           · {rapport.nbOperations} opérations déjà effectuées · dépenses{" "}
           {rapport.variationDepenses >= 0 ? "+" : ""}
           {rapport.variationDepenses.toFixed(0)} % vs mois précédent
@@ -90,7 +79,10 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
             aria-valuemax={100}
             aria-label="Note du mois"
           >
-            <div className="h-full rounded-full bg-primary" style={{ width: `${rapport.score}%` }} />
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${rapport.score}%` }}
+            />
           </div>
           <span className="text-sm font-semibold">{rapport.score}/100</span>
         </div>
@@ -125,21 +117,21 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
       )}
 
       {rapport.enveloppes.some((e) => e.depense > 0) && (
-
         <section className="carte space-y-2 p-4">
           <h2 className="text-sm font-semibold">Enveloppes dépensées ce mois</h2>
           <ul className="space-y-1.5 text-sm">
-            {rapport.enveloppes.filter((e) => e.depense > 0).map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-2">
-
-                <span className="truncate">
-                  {e.emoji} {e.nom}
-                </span>
-                <span className={e.depassee ? "font-semibold text-destructive" : "font-medium"}>
-                  {formatFCFA(e.depense)} / {formatFCFA(e.dotation)}
-                </span>
-              </li>
-            ))}
+            {rapport.enveloppes
+              .filter((e) => e.depense > 0)
+              .map((e) => (
+                <li key={e.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate">
+                    {e.emoji} {e.nom}
+                  </span>
+                  <span className={e.depassee ? "font-semibold text-destructive" : "font-medium"}>
+                    {formatFCFA(e.depense)} / {formatFCFA(e.dotation)}
+                  </span>
+                </li>
+              ))}
           </ul>
         </section>
       )}
@@ -204,7 +196,6 @@ export function RapportMensuelVue({ rapport }: { rapport: RapportMensuel }) {
           </ul>
         </section>
       )}
-
     </div>
   );
 }

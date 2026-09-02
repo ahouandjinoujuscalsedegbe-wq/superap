@@ -165,7 +165,14 @@ export type EnveloppeDictee = {
  * Sans plafond dicté, il est déduit à 80 % de la dotation (arrondi au 500).
  */
 export function analyserEnveloppeDictee(texte: string): EnveloppeDictee {
-  const plafondDit = montantApres(texte, ["plafond", "plafonne a", "limite de", "limite", "maximum", "max"]);
+  const plafondDit = montantApres(texte, [
+    "plafond",
+    "plafonne a",
+    "limite de",
+    "limite",
+    "maximum",
+    "max",
+  ]);
   const dotationDit = montantApres(texte, [
     "dotation",
     "somme de",
@@ -272,9 +279,17 @@ export type ObjectifDictee = {
  *  → { libelle: "Moto", cible: 500000, deja: 50000, dateCible: "…" }
  */
 export function analyserObjectifDicte(texte: string, aujourdHui = new Date()): ObjectifDictee {
-  const deja = montantApres(texte, ["deja", "j ai deja", "de cote", "cote", "reuni", "epargne deja"]);
+  const deja = montantApres(texte, [
+    "deja",
+    "j ai deja",
+    "de cote",
+    "cote",
+    "reuni",
+    "epargne deja",
+  ]);
   const tous = montantsOrdonnes(texte).map((m) => m.valeur);
-  const cible = montantApres(texte, ["objectif de", "economiser", "epargner", "atteindre", "cible de"]) ??
+  const cible =
+    montantApres(texte, ["objectif de", "economiser", "epargner", "atteindre", "cible de"]) ??
     tous.find((v) => v !== deja) ??
     tous[0] ??
     null;

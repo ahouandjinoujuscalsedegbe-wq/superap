@@ -44,7 +44,6 @@ import {
 import { exporterRapportPdf } from "@/lib/intelligence-plus";
 import { conseiller, evaluerSante, planDAction } from "@/lib/conseil";
 
-
 function Section({
   titre,
   icone,
@@ -316,7 +315,6 @@ export function FicheOutils() {
 
   return (
     <div className="space-y-4">
-
       <section className="carte space-y-3 p-4">
         <div className="flex items-center gap-3">
           <span className="text-primary" aria-hidden>

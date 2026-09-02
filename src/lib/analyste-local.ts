@@ -68,7 +68,6 @@ export function previsionEnveloppes(
     });
 }
 
-
 // ------------------------------------------------------------ alertes utiles
 
 export type AlerteLocale = {
@@ -101,4 +100,3 @@ export function alertesLocales(
       texte: a.texte,
     }));
 }
-

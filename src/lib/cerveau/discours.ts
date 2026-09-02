@@ -37,9 +37,7 @@ const OUVERTURES: Record<Gravite, string> = {
 /** Phrase parlée par le coach, avec une nuance selon la confiance. */
 export function enPhraseCoach(constat: Constat): string {
   const nuance =
-    constat.confiance < 0.5
-      ? " (avec peu d'historique, cette lecture reste à confirmer)"
-      : "";
+    constat.confiance < 0.5 ? " (avec peu d'historique, cette lecture reste à confirmer)" : "";
   return `${OUVERTURES[constat.gravite]} : ${constat.titre.toLowerCase()}. ${constat.detail}${nuance}`;
 }
 

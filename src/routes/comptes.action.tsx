@@ -422,9 +422,7 @@ function ActionComptes() {
                   {
                     label: "Solde",
                     avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
-                    apres: formatFCFA(
-                      (soldesParCompte[demande.ancien] ?? 0) + demande.ajustement,
-                    ),
+                    apres: formatFCFA((soldesParCompte[demande.ancien] ?? 0) + demande.ajustement),
                   },
                 ]
               : demande?.type === "suppression"

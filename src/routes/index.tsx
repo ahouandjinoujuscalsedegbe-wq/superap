@@ -69,8 +69,6 @@ function Accueil() {
 
   // Analyse locale : prévision d'épuisement des enveloppes et dépenses inhabituelles.
 
-
-
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 pr-12">
@@ -106,9 +104,6 @@ function Accueil() {
         <Target className="h-5 w-5" aria-hidden />
       </Link>
 
-
-
-
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">
           {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
@@ -131,9 +126,6 @@ function Accueil() {
           </div>
         </div>
       </section>
-
-
-
 
       {rappels > 0 && (
         <section className="carte space-y-2 border-destructive/30 p-4">
@@ -176,7 +168,6 @@ function Accueil() {
           </ul>
         </section>
       )}
-
 
       <section className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-3">

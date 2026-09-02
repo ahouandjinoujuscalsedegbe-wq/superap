@@ -15,7 +15,6 @@ import { demanderPermissionNotification } from "@/lib/alarme-appareil";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
-
 export const Route = createFileRoute("/parametres/alarmes")({
   head: () => ({
     meta: [
@@ -28,7 +27,8 @@ export const Route = createFileRoute("/parametres/alarmes")({
       { property: "og:title", content: "Alarmes intelligentes — SUPER APP" },
       {
         property: "og:description",
-        content: "Rappels sonores des dépenses planifiées et alarmes de prévision, 100% hors ligne.",
+        content:
+          "Rappels sonores des dépenses planifiées et alarmes de prévision, 100% hors ligne.",
       },
     ],
   }),
@@ -224,4 +224,3 @@ function PageAlarmes() {
     </div>
   );
 }
-

@@ -187,9 +187,7 @@ export function CarteEnveloppe({
         />
       </div>
 
-
       {depasse && (
-
         <p
           role="status"
           className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive"
@@ -257,7 +255,6 @@ export function CarteEnveloppe({
       {estOuverte && (
         <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
           <div>
-
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Opérations réelles
             </h3>

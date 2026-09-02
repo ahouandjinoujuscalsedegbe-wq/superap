@@ -50,8 +50,7 @@ export function lireEtatRappel(maintenant = new Date()): EtatRappelBudget {
     if (objet.mois !== mois) return etatVierge(mois);
     return {
       mois,
-      statut:
-        objet.statut === "modifie" || objet.statut === "auto" ? objet.statut : "attente",
+      statut: objet.statut === "modifie" || objet.statut === "auto" ? objet.statut : "attente",
       sonnes: Array.isArray(objet.sonnes) ? objet.sonnes.filter((s) => typeof s === "string") : [],
     };
   } catch {

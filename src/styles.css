@@ -221,7 +221,6 @@
   background: color-mix(in oklab, var(--muted) 85%, var(--card) 15%);
 }
 
-
 body[data-clavier-ouvert="true"] .app-bottom-nav {
   visibility: hidden;
   pointer-events: none;
@@ -282,8 +281,7 @@ textarea:not([data-majuscules="non"]) {
   bottom: var(--app-keyboard-height) !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem
-    max(1rem, env(safe-area-inset-bottom, 0px)) !important;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px)) !important;
   overflow: hidden;
 }
 
@@ -637,10 +635,14 @@ textarea {
 /* Défilement de la texture : donne l'illusion d'une sphère qui tourne sans fin. */
 @keyframes boule-rotation-texture {
   from {
-    background-position: 0% 50%, 32% 26%;
+    background-position:
+      0% 50%,
+      32% 26%;
   }
   to {
-    background-position: 200% 50%, 32% 26%;
+    background-position:
+      200% 50%,
+      32% 26%;
   }
 }
 
@@ -666,7 +668,9 @@ textarea {
       color-mix(in oklab, white 78%, transparent) 0%,
       transparent 42%
     );
-  background-size: 200% 100%, 100% 100%;
+  background-size:
+    200% 100%,
+    100% 100%;
   background-blend-mode: normal, screen;
   box-shadow:
     inset 0 3px 6px color-mix(in oklab, white 45%, transparent),
@@ -684,17 +688,29 @@ textarea {
   }
 }
 
-
-
-
 /* ===== Discussion « Mon conseiller » : rendu messagerie ===== */
 .fond-discussion {
   background-color: color-mix(in oklab, var(--muted) 55%, var(--background));
   background-image:
-    radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--primary) 8%, transparent) 0 6px, transparent 7px),
-    radial-gradient(circle at 62% 42%, color-mix(in oklab, var(--success) 7%, transparent) 0 5px, transparent 6px),
-    radial-gradient(circle at 34% 78%, color-mix(in oklab, var(--accent) 9%, transparent) 0 7px, transparent 8px);
-  background-size: 140px 140px, 180px 180px, 160px 160px;
+    radial-gradient(
+      circle at 12% 18%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 0 6px,
+      transparent 7px
+    ),
+    radial-gradient(
+      circle at 62% 42%,
+      color-mix(in oklab, var(--success) 7%, transparent) 0 5px,
+      transparent 6px
+    ),
+    radial-gradient(
+      circle at 34% 78%,
+      color-mix(in oklab, var(--accent) 9%, transparent) 0 7px,
+      transparent 8px
+    );
+  background-size:
+    140px 140px,
+    180px 180px,
+    160px 160px;
 }
 
 .bulle-coach {
@@ -709,37 +725,79 @@ textarea {
 .point-ecrit {
   animation: point-ecrit 1.2s infinite ease-in-out;
 }
-.point-ecrit:nth-child(2) { animation-delay: 0.15s; }
-.point-ecrit:nth-child(3) { animation-delay: 0.3s; }
+.point-ecrit:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.point-ecrit:nth-child(3) {
+  animation-delay: 0.3s;
+}
 @keyframes point-ecrit {
-  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-2px); }
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 @keyframes montee-bas {
-  from { transform: translateY(100%); opacity: 0.6; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
-.animate-montee { animation: montee-bas 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-montee {
+  animation: montee-bas 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 /* ===== Boule flottante « Analyse intelligente » ===== */
 @keyframes boule-halo-pulse {
-  0%, 100% { transform: scale(0.9); opacity: 0.35; }
-  50% { transform: scale(1.15); opacity: 0; }
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
 }
 
 @keyframes boule-orbite-tour {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes boule-eclat-glisse {
-  0%, 100% { transform: translate3d(-12%, -8%, 0); opacity: 0.75; }
-  50% { transform: translate3d(12%, 8%, 0); opacity: 1; }
+  0%,
+  100% {
+    transform: translate3d(-12%, -8%, 0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate3d(12%, 8%, 0);
+    opacity: 1;
+  }
 }
 
 @utility boule-halo {
-  background: radial-gradient(circle, color-mix(in oklab, var(--primary) 55%, transparent) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--primary) 55%, transparent) 0%,
+    transparent 70%
+  );
   animation: boule-halo-pulse 2.6s ease-in-out infinite;
 }
 
@@ -749,7 +807,11 @@ textarea {
 }
 
 @utility boule-eclat {
-  background: radial-gradient(circle at 30% 24%, color-mix(in oklab, white 70%, transparent) 0%, transparent 45%);
+  background: radial-gradient(
+    circle at 30% 24%,
+    color-mix(in oklab, white 70%, transparent) 0%,
+    transparent 45%
+  );
   animation: boule-eclat-glisse 3.8s ease-in-out infinite;
 }
 
@@ -764,14 +826,23 @@ textarea {
 /* ===== Boule flottante rose : sphère 3D claire, ombre teintée (jamais noire) ===== */
 @utility boule-rose-3d {
   background-image:
-    radial-gradient(circle at 32% 26%, #ffffff 0%, #ffd9ec 18%, #ff9ecb 46%, #ff77b6 70%, #ff9ecb 100%),
+    radial-gradient(
+      circle at 32% 26%,
+      #ffffff 0%,
+      #ffd9ec 18%,
+      #ff9ecb 46%,
+      #ff77b6 70%,
+      #ff9ecb 100%
+    ),
     repeating-linear-gradient(
       100deg,
       rgba(255, 255, 255, 0.32) 0 8%,
       rgba(255, 255, 255, 0) 14%,
       rgba(255, 255, 255, 0.32) 20%
     );
-  background-size: 100% 100%, 200% 100%;
+  background-size:
+    100% 100%,
+    200% 100%;
   background-blend-mode: normal, soft-light;
   box-shadow:
     inset 0 4px 8px rgba(255, 255, 255, 0.85),
@@ -808,13 +879,21 @@ textarea {
 
 /* ===== Logos posés sur la sphère 3D (rotation verticale + horizontale) ===== */
 @keyframes boule-tour-y {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
 }
 
 @keyframes boule-tour-x {
-  from { transform: rotateX(0deg); }
-  to { transform: rotateX(360deg); }
+  from {
+    transform: rotateX(0deg);
+  }
+  to {
+    transform: rotateX(360deg);
+  }
 }
 
 @utility boule-scene {
@@ -841,13 +920,23 @@ textarea {
 
 /* ===== Boutons 3D brillants en lévitation (Ajouter un revenu / une dépense) ===== */
 @keyframes bouton-3d-levite {
-  0%, 100% { transform: translateY(0) rotateX(0deg); }
-  50% { transform: translateY(-6px) rotateX(4deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotateX(4deg);
+  }
 }
 
 @keyframes bouton-3d-eclair {
-  0% { transform: translateX(-130%) skewX(-18deg); }
-  55%, 100% { transform: translateX(230%) skewX(-18deg); }
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
 }
 
 @utility bouton-3d {
@@ -933,8 +1022,15 @@ textarea {
 
 /* ===== Clignotement d'alerte de la boule flottante ===== */
 @keyframes boule-clignotement {
-  0%, 100% { filter: none; opacity: 1; }
-  50% { filter: brightness(1.45) saturate(1.3); opacity: 0.55; }
+  0%,
+  100% {
+    filter: none;
+    opacity: 1;
+  }
+  50% {
+    filter: brightness(1.45) saturate(1.3);
+    opacity: 0.55;
+  }
 }
 
 @utility boule-clignote {
@@ -944,7 +1040,11 @@ textarea {
 }
 
 @utility boule-halo-alerte {
-  background: radial-gradient(circle, color-mix(in oklab, var(--destructive) 55%, transparent) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--destructive) 55%, transparent) 0%,
+    transparent 70%
+  );
   animation: boule-clignotement 0.9s ease-in-out infinite;
 }
 

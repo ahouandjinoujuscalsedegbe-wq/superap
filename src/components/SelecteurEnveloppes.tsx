@@ -77,7 +77,10 @@ export function SelecteurEnveloppes({
           /* Détail du conseiller de l'enveloppe choisie */
           <div className="space-y-3 overflow-y-auto px-4 pt-3 text-sm">
             <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-full bg-muted text-2xl" aria-hidden>
+              <span
+                className="grid h-12 w-12 place-items-center rounded-full bg-muted text-2xl"
+                aria-hidden
+              >
                 {courant.enveloppe.emoji}
               </span>
               <div className="min-w-0 flex-1">
@@ -136,7 +139,11 @@ export function SelecteurEnveloppes({
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
               {recherche && (
-                <button type="button" onClick={() => setRecherche("")} aria-label="Effacer la recherche">
+                <button
+                  type="button"
+                  onClick={() => setRecherche("")}
+                  aria-label="Effacer la recherche"
+                >
                   <X className="h-4 w-4 text-muted-foreground" aria-hidden />
                 </button>
               )}

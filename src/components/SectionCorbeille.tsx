@@ -42,8 +42,8 @@ export function SectionCorbeille() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{c.libelle}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {c.type === "revenu" ? "Revenu" : "Dépense"} · {formatFCFA(c.montant)} ·
-                  supprimée le {formatDateFr(c.supprimeLe.slice(0, 10))}
+                  {c.type === "revenu" ? "Revenu" : "Dépense"} · {formatFCFA(c.montant)} · supprimée
+                  le {formatDateFr(c.supprimeLe.slice(0, 10))}
                 </p>
               </div>
               <button

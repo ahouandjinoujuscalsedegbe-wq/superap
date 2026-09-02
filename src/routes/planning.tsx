@@ -268,7 +268,8 @@ function PagePlanning() {
       {alarmesAgenda.length > 0 && (
         <section className="space-y-2 rounded-2xl border border-destructive/40 bg-destructive/5 p-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-destructive">
-            <AlertTriangle aria-hidden className="h-4 w-4" /> Alarmes du jour ({alarmesAgenda.length})
+            <AlertTriangle aria-hidden className="h-4 w-4" /> Alarmes du jour (
+            {alarmesAgenda.length})
           </h2>
           <ul className="space-y-1.5">
             {alarmesAgenda.map((a) => (

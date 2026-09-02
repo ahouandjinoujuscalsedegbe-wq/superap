@@ -126,7 +126,10 @@ export function SectionMiseAJour() {
             />
           </div>
           <div>
-            <label htmlFor="maj-token" className="block text-xs font-semibold text-muted-foreground">
+            <label
+              htmlFor="maj-token"
+              className="block text-xs font-semibold text-muted-foreground"
+            >
               Jeton d'accès GitHub (dépôt privé)
             </label>
             <input

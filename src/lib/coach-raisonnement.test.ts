@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { observer, raisonner, type DonneesRaisonnement, type PoidsAppris } from "./coach-raisonnement";
+import {
+  observer,
+  raisonner,
+  type DonneesRaisonnement,
+  type PoidsAppris,
+} from "./coach-raisonnement";
 import type { Transaction } from "./store";
 
 const APPRIS: PoidsAppris = {
@@ -16,7 +21,15 @@ function op(
   libelle = "COURSES",
   type: "depense" | "revenu" = "depense",
 ): Transaction {
-  return { id: `${date}-${libelle}-${montant}`, type, montant, libelle, categorie, compte: "Espèces", date };
+  return {
+    id: `${date}-${libelle}-${montant}`,
+    type,
+    montant,
+    libelle,
+    categorie,
+    compte: "Espèces",
+    date,
+  };
 }
 
 const MAINTENANT = new Date("2026-06-15T10:00:00Z");
@@ -29,7 +42,14 @@ function donnees(transactions: Transaction[]): DonneesRaisonnement {
   return {
     transactions,
     enveloppes: [
-      { id: "e1", nom: "MARCHÉ", emoji: "🛒", plafond: 50000, dotation: 50000, categorie: "Alimentation" },
+      {
+        id: "e1",
+        nom: "MARCHÉ",
+        emoji: "🛒",
+        plafond: 50000,
+        dotation: 50000,
+        categorie: "Alimentation",
+      },
     ],
     budgets: [],
     dettes: [],
@@ -40,7 +60,13 @@ function donnees(transactions: Transaction[]): DonneesRaisonnement {
 
 describe("raisonnement du coach", () => {
   it("ne dit rien quand les données ne prouvent rien", () => {
-    const r = raisonner(donnees([op("2026-06-02", 1000, "MARCHÉ")]), "un conseil", APPRIS, undefined, MAINTENANT);
+    const r = raisonner(
+      donnees([op("2026-06-02", 1000, "MARCHÉ")]),
+      "un conseil",
+      APPRIS,
+      undefined,
+      MAINTENANT,
+    );
     expect(r.fait).toBeUndefined();
     expect(r.texte).toContain("ne suffisent pas");
   });

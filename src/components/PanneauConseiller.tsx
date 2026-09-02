@@ -64,16 +64,16 @@ export function PanneauConseiller({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-foreground/40 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Fermer le panneau"
-        onClick={onFermer}
-        className="flex-1"
-      />
+      <button type="button" aria-label="Fermer le panneau" onClick={onFermer} className="flex-1" />
       <div className="max-h-[82vh] overflow-y-auto rounded-t-3xl bg-background p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-bold">Tableau de bord du conseiller</h2>
-          <button type="button" onClick={onFermer} aria-label="Fermer" className="rounded-full p-1.5">
+          <button
+            type="button"
+            onClick={onFermer}
+            aria-label="Fermer"
+            className="rounded-full p-1.5"
+          >
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
@@ -173,7 +173,6 @@ export function PanneauConseiller({
             )}
           </section>
 
-
           <section className="carte space-y-2 p-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -184,8 +183,8 @@ export function PanneauConseiller({
             </div>
             <p className="text-xs text-muted-foreground">{saison.saison}</p>
             <p className="text-xs">
-              Ce mois-ci&nbsp;: <strong>{fcfa(saison.depenses)}</strong> · même saison l'an dernier&nbsp;:{" "}
-              <strong>{fcfa(saison.depensesAnneePrecedente)}</strong>
+              Ce mois-ci&nbsp;: <strong>{fcfa(saison.depenses)}</strong> · même saison l'an
+              dernier&nbsp;: <strong>{fcfa(saison.depensesAnneePrecedente)}</strong>
               {saison.historique && (
                 <span className={saison.ecart > 0 ? "text-destructive" : "text-success"}>
                   {" "}
@@ -233,14 +232,14 @@ export function PanneauConseiller({
                     </span>
                   </div>
                   <p className="text-muted-foreground">
-                    {fcfa(m.revenus)} entrées · {fcfa(m.depenses)} sorties · cumul {fcfa(m.soldeCumule)}
+                    {fcfa(m.revenus)} entrées · {fcfa(m.depenses)} sorties · cumul{" "}
+                    {fcfa(m.soldeCumule)}
                   </p>
                   <p className="mt-0.5 text-muted-foreground">{m.conseil}</p>
                 </li>
               ))}
             </ul>
           </section>
-
         </div>
       </div>
     </div>

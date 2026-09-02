@@ -62,7 +62,6 @@ export function DicteeOperation({
       if (trouvee) enveloppe = trouvee.id;
     }
 
-
     onResultat({
       montant: analyse.montant,
       libelle: analyse.libelle,
@@ -113,9 +112,12 @@ export function DicteeOperation({
     <section className="carte space-y-2 p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium">Dicter {type === "depense" ? "la dépense" : "le revenu"}</p>
+          <p className="text-sm font-medium">
+            Dicter {type === "depense" ? "la dépense" : "le revenu"}
+          </p>
           <p className="text-xs text-muted-foreground">
-            Ex. : « {type === "depense" ? "dépensé 2500 francs de taxi" : "reçu 50000 francs de salaire"} »
+            Ex. : «{" "}
+            {type === "depense" ? "dépensé 2500 francs de taxi" : "reçu 50000 francs de salaire"} »
           </p>
         </div>
         <button
@@ -128,7 +130,11 @@ export function DicteeOperation({
               : "border-input bg-card text-primary"
           }`}
         >
-          {ecoute ? <Square className="h-5 w-5" aria-hidden /> : <Mic className="h-5 w-5" aria-hidden />}
+          {ecoute ? (
+            <Square className="h-5 w-5" aria-hidden />
+          ) : (
+            <Mic className="h-5 w-5" aria-hidden />
+          )}
         </button>
       </div>
       {ecoute && (

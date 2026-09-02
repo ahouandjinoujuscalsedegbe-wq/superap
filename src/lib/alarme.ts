@@ -82,7 +82,6 @@ export function lireReglagesAlarme(): ReglagesAlarme {
   }
 }
 
-
 export function ecrireReglagesAlarme(r: ReglagesAlarme) {
   if (typeof localStorage === "undefined") return;
   try {
@@ -206,7 +205,8 @@ export function alarmesPredictives(
         type: "prediction",
         niveau: "alerte",
         titre: `${p.enveloppe.emoji} ${p.enveloppe.nom} épuisée`,
-        texte: "Cette enveloppe n'a plus de disponible : réapprovisionnez-la ou stoppez les dépenses.",
+        texte:
+          "Cette enveloppe n'a plus de disponible : réapprovisionnez-la ou stoppez les dépenses.",
       });
     } else if (p.joursAvantEpuisement !== null && p.joursAvantEpuisement <= 15) {
       alarmes.push({
@@ -356,4 +356,3 @@ export {
   notifierAlarme,
   vibrerAlarme,
 } from "./alarme-appareil";
-

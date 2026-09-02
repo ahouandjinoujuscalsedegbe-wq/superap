@@ -137,9 +137,7 @@ export function projeter(args: {
   const horizon = Math.max(1, Math.min(36, args.horizon ?? 12));
   const depart = args.moisDepart ?? new Date().toISOString().slice(0, 7);
   const revenuMoyen = Math.round(revenuMensuelMoyen(args.transactions));
-  const depenseMoyenne = Math.round(
-    depenseMensuelleMoyenne(args.transactions, args.enveloppes),
-  );
+  const depenseMoyenne = Math.round(depenseMensuelleMoyenne(args.transactions, args.enveloppes));
 
   let solde = args.soldeActuel;
   let moisDeficit: string | undefined;

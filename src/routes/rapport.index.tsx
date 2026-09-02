@@ -4,11 +4,7 @@ import { ChevronRight, FileText, SlidersHorizontal, X } from "lucide-react";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import {
-  construireRapport,
-  libelleMois,
-  moisDisponibles,
-} from "@/lib/rapport-mensuel";
+import { construireRapport, libelleMois, moisDisponibles } from "@/lib/rapport-mensuel";
 
 export const Route = createFileRoute("/rapport/")({
   head: () => ({
@@ -179,9 +175,7 @@ function PageListeRapports() {
               className="carte flex items-center gap-3 p-4 active:opacity-80"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold capitalize">
-                  {libelleMois(r.mois)}
-                </p>
+                <p className="truncate text-sm font-semibold capitalize">{libelleMois(r.mois)}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {r.nbOperations} opérations · note {r.score}/100
                 </p>

@@ -54,7 +54,9 @@ export function BottomNav() {
                     <span className="boule-levite absolute inset-x-0 top-0 flex justify-center">
                       <span
                         className={`boule-rose-3d relative flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-300 ${
-                          actif ? "scale-105 ring-2 ring-[rgba(255,158,203,0.7)]" : "group-active:scale-95"
+                          actif
+                            ? "scale-105 ring-2 ring-[rgba(255,158,203,0.7)]"
+                            : "group-active:scale-95"
                         }`}
                       >
                         <span className="boule-scene absolute inset-0" aria-hidden>
@@ -90,7 +92,6 @@ export function BottomNav() {
               </li>
             );
           }
-
 
           return (
             <li key={onglet.to} className="flex flex-1 flex-col items-center justify-end">

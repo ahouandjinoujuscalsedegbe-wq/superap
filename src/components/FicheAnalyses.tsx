@@ -36,7 +36,6 @@ import {
   tauxRealisationBudgets,
 } from "@/lib/intelligence-plus";
 
-
 const COULEUR_NIVEAU = {
   alerte: "border-destructive/40 bg-destructive/10",
   attention: "border-primary/40 bg-primary/10",
@@ -138,7 +137,6 @@ export function FicheAnalyses() {
     [cerveau],
   );
 
-
   const douzeMois = useMemo(() => comparaisonMensuelle(transactions, 12), [transactions]);
   const joursSemaine = useMemo(() => analyseJoursSemaine(periode), [periode]);
   const realisation = useMemo(
@@ -229,7 +227,8 @@ export function FicheAnalyses() {
     } else {
       lignes.push("Aucune alerte sur vos enveloppes.");
     }
-    for (const c of diagnostic.conseils.slice(0, 3)) lignes.push(`Conseil : ${c.titre}. ${c.texte}`);
+    for (const c of diagnostic.conseils.slice(0, 3))
+      lignes.push(`Conseil : ${c.titre}. ${c.texte}`);
     return lignes.join(" ");
   };
 
@@ -238,7 +237,6 @@ export function FicheAnalyses() {
 
   return (
     <div className="space-y-5">
-
       <div className="flex gap-2 overflow-x-auto pb-1">
         {FENETRES.map((f) => (
           <button
@@ -265,8 +263,6 @@ export function FicheAnalyses() {
       </Link>
 
       <SectionIaLocale transactions={transactions} enveloppes={enveloppes} solde={solde} />
-
-
 
       <section className="carte space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
@@ -861,7 +857,6 @@ export function FicheAnalyses() {
             Rien à signaler pour le moment : continuez à enregistrer vos opérations.
           </p>
         )}
-
       </section>
 
       <div className="space-y-2">

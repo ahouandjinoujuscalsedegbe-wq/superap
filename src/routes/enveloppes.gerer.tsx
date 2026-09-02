@@ -8,14 +8,12 @@ export const Route = createFileRoute("/enveloppes/gerer")({
       { title: "Gérer les enveloppes — SUPER APP" },
       {
         name: "description",
-        content:
-          "Créez une nouvelle enveloppe budgétaire ou modifiez une enveloppe existante.",
+        content: "Créez une nouvelle enveloppe budgétaire ou modifiez une enveloppe existante.",
       },
       { property: "og:title", content: "Gérer les enveloppes — SUPER APP" },
       {
         property: "og:description",
-        content:
-          "Création et modification des enveloppes budgétaires en FCFA.",
+        content: "Création et modification des enveloppes budgétaires en FCFA.",
       },
     ],
   }),

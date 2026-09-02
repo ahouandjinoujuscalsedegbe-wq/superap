@@ -289,7 +289,6 @@ export function SectionClavier() {
         onChange={(themeSombre) => majReglagesClavier({ themeSombre })}
       />
 
-
       <div className="rounded-xl bg-secondary/40 p-3">
         <label className="text-sm font-medium" htmlFor="essai-clavier">
           Champ d’essai

@@ -36,15 +36,22 @@ function depuisBase64(txt: string): Uint8Array {
   return out;
 }
 
+let secretMemo: string | null = null;
+
 /** Secret aléatoire propre à cette installation (créé une seule fois). */
 function secretAppareil(): string {
+  if (secretMemo) return secretMemo;
   let secret = window.localStorage.getItem(CLE_SECRET_APPAREIL);
   if (!secret) {
     const alea = new Uint8Array(32);
     crypto.getRandomValues(alea);
     secret = versBase64(alea);
     window.localStorage.setItem(CLE_SECRET_APPAREIL, secret);
+    // Relecture : si un autre contexte a écrit le sien entre-temps, c'est
+    // le secret réellement stocké qui fait foi, jamais celui en mémoire.
+    secret = window.localStorage.getItem(CLE_SECRET_APPAREIL) ?? secret;
   }
+  secretMemo = secret;
   return secret;
 }
 

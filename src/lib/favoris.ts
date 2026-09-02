@@ -101,8 +101,6 @@ export function operationsFrequentes(
   }
 
   return favoris
-    .sort(
-      (a, b) => b.occurrences - a.occurrences || (a.derniere < b.derniere ? 1 : -1),
-    )
+    .sort((a, b) => b.occurrences - a.occurrences || (a.derniere < b.derniere ? 1 : -1))
     .slice(0, maximum);
 }

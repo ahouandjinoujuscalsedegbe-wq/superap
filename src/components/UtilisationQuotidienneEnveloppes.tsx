@@ -2,7 +2,12 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import { formatFCFA } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
-import { construireRapportMois, libelleMois, lireArchives, moisCourant } from "@/lib/rapport-enveloppes";
+import {
+  construireRapportMois,
+  libelleMois,
+  lireArchives,
+  moisCourant,
+} from "@/lib/rapport-enveloppes";
 
 /**
  * Relevé jour par jour de chaque enveloppe pour un mois donné.

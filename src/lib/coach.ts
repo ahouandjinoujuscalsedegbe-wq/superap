@@ -7,7 +7,14 @@
  * taire. Tout est calculé et stocké sur l'appareil, chiffré.
  */
 
-import { resteDu, type Budget, type Dette, type Enveloppe, type Objectif, type Transaction } from "./store";
+import {
+  resteDu,
+  type Budget,
+  type Dette,
+  type Enveloppe,
+  type Objectif,
+  type Transaction,
+} from "./store";
 import { conseiller, evaluerSante, type Recommandation } from "./conseil";
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
 import { bilanEnveloppe, bilansEnveloppes } from "./coach-enveloppe";
@@ -22,11 +29,7 @@ export { saisonDe };
 export const CLE_COACH = "super-app-coach";
 
 export type CategorieCoach =
-  | Recommandation["categorie"]
-  | "bilan"
-  | "reponse"
-  | "question"
-  | "enveloppe";
+  Recommandation["categorie"] | "bilan" | "reponse" | "question" | "enveloppe";
 
 export type MessageCoach = {
   id: string;
@@ -49,7 +52,6 @@ export type MessageCoach = {
   supprime?: boolean;
   /** Message épinglé en haut de la discussion. */
   epingle?: boolean;
-
 };
 
 export type MemoireCoach = {
@@ -83,7 +85,6 @@ export const MEMOIRE_VIDE: MemoireCoach = {
   echanges: 0,
   conseilsDits: [],
 };
-
 
 function fcfa(montant: number): string {
   return `${Math.round(montant).toLocaleString("fr-FR")} FCFA`;
@@ -166,9 +167,7 @@ export function apprendreAvis(
   const poidsEnveloppe = { ...memoire.poidsEnveloppe };
   if (message.enveloppeId) {
     const courant = poidsEnveloppeDe(memoire, message.enveloppeId);
-    poidsEnveloppe[message.enveloppeId] = borne(
-      avis === "utile" ? courant + 0.3 : courant - 0.4,
-    );
+    poidsEnveloppe[message.enveloppeId] = borne(avis === "utile" ? courant + 0.3 : courant - 0.4);
   }
 
   // Les mots du message noté renforcent (ou affaiblissent) le vocabulaire suivi.
@@ -188,9 +187,38 @@ export function apprendreAvis(
 }
 
 const MOTS_VIDES = new Set([
-  "avec","dans","pour","vous","cette","votre","mais","plus","moins","chez","tout","tous",
-  "sont","cela","donc","alors","quand","comme","fait","faire","sans","leur","elle","nous",
-  "combien","est-ce","quel","quelle","mois","jour","francs","fcfa",
+  "avec",
+  "dans",
+  "pour",
+  "vous",
+  "cette",
+  "votre",
+  "mais",
+  "plus",
+  "moins",
+  "chez",
+  "tout",
+  "tous",
+  "sont",
+  "cela",
+  "donc",
+  "alors",
+  "quand",
+  "comme",
+  "fait",
+  "faire",
+  "sans",
+  "leur",
+  "elle",
+  "nous",
+  "combien",
+  "est-ce",
+  "quel",
+  "quelle",
+  "mois",
+  "jour",
+  "francs",
+  "fcfa",
 ]);
 
 /** Mots significatifs d'une phrase, sans accents ni mots vides. */
@@ -257,7 +285,6 @@ export function sujetsFavoris(memoire: MemoireCoach, combien = 5): string[] {
     .map(([mot]) => mot);
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Génération des messages du jour                                      */
 /* ------------------------------------------------------------------ */
@@ -312,12 +339,8 @@ export type BilanMensuel = {
   surplus: LigneEnveloppeBilan[];
 };
 
-
 /** Calcule le bilan chiffré du mois en cours à partir des données réelles. */
-export function bilanMensuel(
-  donnees: DonneesCoach,
-  maintenant = new Date(),
-): BilanMensuel {
+export function bilanMensuel(donnees: DonneesCoach, maintenant = new Date()): BilanMensuel {
   const an = maintenant.getFullYear();
   const mo = maintenant.getMonth();
   const dansMois = (iso: string, decalage: number) => {
@@ -346,8 +369,7 @@ export function bilanMensuel(
   const depenses = faits.moisCourant.depenses;
   const depensesVeille = somme(1, "depense");
   const ecart = depenses - depensesVeille;
-  const ecartPct =
-    depensesVeille > 0 ? Math.round((ecart / depensesVeille) * 100) : 0;
+  const ecartPct = depensesVeille > 0 ? Math.round((ecart / depensesVeille) * 100) : 0;
 
   const jour = Math.max(1, faits.joursEcoules);
   const rythmeJour = Math.round(depenses / jour);
@@ -367,8 +389,7 @@ export function bilanMensuel(
       pourcentage: Math.round(etat.pourcentage),
     };
     if (etat.epuisee) epuisees.push(ligne);
-    else if (etat.dotation > 0 && etat.restant / etat.dotation >= 0.6)
-      surplus.push(ligne);
+    else if (etat.dotation > 0 && etat.restant / etat.dotation >= 0.6) surplus.push(ligne);
   }
   epuisees.sort((a, b) => b.manque - a.manque);
   surplus.sort((a, b) => b.restant - a.restant);
@@ -387,8 +408,7 @@ export function bilanMensuel(
       ? Math.round(memeMois.reduce((s, t) => s + Math.abs(t.montant), 0) / annees.size)
       : 0;
   const ecartSaison = moyenneSaison > 0 ? depenses - moyenneSaison : 0;
-  const ecartSaisonPct =
-    moyenneSaison > 0 ? Math.round((ecartSaison / moyenneSaison) * 100) : 0;
+  const ecartSaisonPct = moyenneSaison > 0 ? Math.round((ecartSaison / moyenneSaison) * 100) : 0;
 
   const nbOperations = donnees.transactions.filter((t) => dansMois(t.date, 0)).length;
 
@@ -459,14 +479,11 @@ export function messagesDuJour(
   const recos = conseiller(donnees);
 
   const sortie: MessageCoach[] = [];
-  const horodater = (i: number) =>
-    new Date(maintenant.getTime() + i * 1000).toISOString();
+  const horodater = (i: number) => new Date(maintenant.getTime() + i * 1000).toISOString();
 
   /* Bilan quotidien : toujours présent, il ouvre la conversation du jour. */
   const veille = memoire.historique[memoire.historique.length - 1];
-  const evolution = veille
-    ? sante.score - veille.score
-    : 0;
+  const evolution = veille ? sante.score - veille.score : 0;
   const bilan = [
     `Bonjour. Voici votre point du jour : santé financière ${sante.score}/100 (${sante.niveau}).`,
     veille
@@ -541,7 +558,8 @@ export function messagesDuJour(
         mois.epuisees.map((e) => e.nom).join(", ") +
         `. Il faudrait ${fcfa(total)} pour les remettre à flot.`,
       details: mois.epuisees.map(
-        (e) => `${e.nom} : dépensé ${fcfa(e.utilise)} sur ${fcfa(e.dotation)} · manque ${fcfa(e.manque)}`,
+        (e) =>
+          `${e.nom} : dépensé ${fcfa(e.utilise)} sur ${fcfa(e.dotation)} · manque ${fcfa(e.manque)}`,
       ),
       categorie: "enveloppe",
       date: horodater(0),
@@ -561,14 +579,14 @@ export function messagesDuJour(
           ? `Transférez-en une partie vers ${mois.epuisees[0]!.nom}.`
           : "Vous pouvez les basculer vers l'épargne."),
       details: mois.surplus.map(
-        (e) => `${e.nom} : ${fcfa(e.restant)} restants sur ${fcfa(e.dotation)} (${e.pourcentage} % utilisés)`,
+        (e) =>
+          `${e.nom} : ${fcfa(e.restant)} restants sur ${fcfa(e.dotation)} (${e.pourcentage} % utilisés)`,
       ),
       categorie: "enveloppe",
       date: horodater(0),
       lu: false,
     });
   }
-
 
   /* Conseils du jour, triés par intérêt appris puis par gain. */
   const classees = recos
@@ -686,9 +704,7 @@ export function repondreCoach(
       `Rythme : ${fcfa(b.rythmeJour)} par jour, projection de fin de mois ${fcfa(b.projection)}.`,
     ];
     if (b.epuisees.length > 0)
-      details.push(
-        `Enveloppes épuisées : ${b.epuisees.map((e) => e.nom).join(", ")}.`,
-      );
+      details.push(`Enveloppes épuisées : ${b.epuisees.map((e) => e.nom).join(", ")}.`);
     return {
       reponse: {
         reponse: `Votre budget du mois : ${fcfa(b.revenus)} de revenus, ${fcfa(b.depenses)} de dépenses, soit ${fcfa(b.solde)} de solde sur ${b.nbOperations} opérations.`,
@@ -964,12 +980,7 @@ export function conseilPersonnalise(
   const b = bilanMensuel(donnees, maintenant);
   const pistes: (ConseilCoach & { poids: number })[] = [];
 
-  const pousser = (
-    texte: string,
-    details: string[],
-    poids: number,
-    enveloppeId?: string,
-  ) => {
+  const pousser = (texte: string, details: string[], poids: number, enveloppeId?: string) => {
     pistes.push({
       texte,
       details,
@@ -1100,10 +1111,7 @@ export function themeDominant(memoire: MemoireCoach): string | null {
 }
 
 /** Enveloppe explicitement nommée dans une phrase. */
-export function enveloppeCitee(
-  texte: string,
-  enveloppes: Enveloppe[],
-): Enveloppe | undefined {
+export function enveloppeCitee(texte: string, enveloppes: Enveloppe[]): Enveloppe | undefined {
   const t = texte
     .toLowerCase()
     .normalize("NFD")
@@ -1124,7 +1132,6 @@ export function enveloppeCitee(
   }
   return trouvee;
 }
-
 
 /** Ajoute les messages du jour à la mémoire, une seule fois par journée. */
 export function mettreAJourJournee(

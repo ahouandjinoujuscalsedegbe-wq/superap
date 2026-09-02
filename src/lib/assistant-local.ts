@@ -320,4 +320,3 @@ export const EXEMPLES_QUESTIONS = [
   "Combien j'ai dépensé hier ?",
   "Quels sont mes principaux postes de dépense ?",
 ];
-

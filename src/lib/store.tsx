@@ -434,6 +434,9 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     const connus = new Set(deja.map((x) => x.id));
     return depuis.filter((x) => !connus.has(x.id));
   };
+  // Toutes les entités porteuses d'identifiant sont fusionnées : une
+  // enveloppe, un objectif ou une catégorie créés pendant le déchiffrement
+  // ne peuvent plus disparaître silencieusement.
   return {
     ...charge,
     transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
@@ -441,6 +444,11 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     remplissages: [...ajouts(actuel.remplissages, charge.remplissages), ...charge.remplissages],
     budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
+    objectifs: [...charge.objectifs, ...ajouts(actuel.objectifs, charge.objectifs)],
+    corbeille: [...ajouts(actuel.corbeille, charge.corbeille), ...charge.corbeille],
+    // Enveloppes, catégories et comptes ne sont PAS fusionnés : l'état
+    // initial en contient déjà par défaut, les réintroduire ressusciterait
+    // des éléments que l'utilisateur avait supprimés.
   };
 }
 
@@ -542,7 +550,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         origine,
       });
       if (!propre) {
-        journaliser("avertissement", "application", "Remplissage refusé : montant ou compte invalide.");
+        journaliser(
+          "avertissement",
+          "application",
+          "Remplissage refusé : montant ou compte invalide.",
+        );
         return;
       }
       setEtat((e) => ({
@@ -1282,62 +1294,101 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  const valeur = useMemo<Contexte>(() => {
-    const moisEnCours = new Date().toISOString().slice(0, 7);
-    const totalRevenus = etat.transactions
-      .filter((t) => t.type === "revenu" && t.date.slice(0, 7) === moisEnCours)
-      .reduce((s, t) => s + t.montant, 0);
-    const totalDepenses = etat.transactions
-      .filter((t) => t.type === "depense" && t.date.slice(0, 7) === moisEnCours)
-      .reduce((s, t) => s + t.montant, 0);
+  // Les totaux du mois ne doivent pas rester figés si l'application reste
+  // ouverte au passage du 1er : on suit le mois courant dans un état revu
+  // à chaque minute (coût négligeable, aucune dérive de date).
+  const [moisEnCours, setMoisEnCours] = useState(() => new Date().toISOString().slice(0, 7));
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const mois = new Date().toISOString().slice(0, 7);
+      setMoisEnCours((actuel) => (actuel === mois ? actuel : mois));
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const { transactions, transferts, enveloppes, comptes, comptesExclus } = etat;
+
+  // Chaque calcul ne dépend que des tranches d'état qui le concernent :
+  // modifier un objectif ou une dette ne relance plus les totaux et soldes.
+  const totaux = useMemo(() => {
+    let totalRevenus = 0;
+    let totalDepenses = 0;
     const depensesParEnveloppe: Record<string, number> = {};
-    for (const t of etat.transactions) {
-      if (t.type !== "depense") continue;
+    for (const t of transactions) {
+      const duMois = t.date.slice(0, 7) === moisEnCours;
+      if (t.type === "revenu") {
+        if (duMois) totalRevenus += t.montant;
+        continue;
+      }
+      if (duMois) totalDepenses += t.montant;
       depensesParEnveloppe[t.categorie] = (depensesParEnveloppe[t.categorie] ?? 0) + t.montant;
     }
-    const soldesParCompte: Record<string, number> = {};
-    for (const c of etat.comptes) soldesParCompte[c] = 0;
-    for (const t of etat.transactions) {
-      soldesParCompte[t.compte] =
-        (soldesParCompte[t.compte] ?? 0) + (t.type === "revenu" ? t.montant : -t.montant);
+    return { totalRevenus, totalDepenses, depensesParEnveloppe };
+  }, [transactions, moisEnCours]);
+
+  const soldesParCompte = useMemo(() => {
+    const soldes: Record<string, number> = {};
+    for (const c of comptes) soldes[c] = 0;
+    for (const t of transactions) {
+      soldes[t.compte] = (soldes[t.compte] ?? 0) + (t.type === "revenu" ? t.montant : -t.montant);
     }
-    for (const t of etat.transferts) {
-      soldesParCompte[t.source] = (soldesParCompte[t.source] ?? 0) - t.montant;
-      soldesParCompte[t.destination] = (soldesParCompte[t.destination] ?? 0) + t.montant;
+    for (const t of transferts) {
+      soldes[t.source] = (soldes[t.source] ?? 0) - t.montant;
+      soldes[t.destination] = (soldes[t.destination] ?? 0) + t.montant;
     }
-    // Remplir une enveloppe ne sort PAS l'argent du compte : c'est une simple
-    // réservation d'une partie du solde. Seules les dépenses appauvrissent le
-    // compte. On calcule donc la part réservée, à titre indicatif.
-    const reservesParCompte: Record<string, number> = {};
-    for (const c of etat.comptes) reservesParCompte[c] = 0;
-    for (const e of etat.enveloppes) {
+    return soldes;
+  }, [transactions, transferts, comptes]);
+
+  // Remplir une enveloppe ne sort PAS l'argent du compte : c'est une simple
+  // réservation d'une partie du solde. Seules les dépenses appauvrissent le
+  // compte. On calcule donc la part réservée, à titre indicatif.
+  const reservesParCompte = useMemo(() => {
+    const reserves: Record<string, number> = {};
+    for (const c of comptes) reserves[c] = 0;
+    for (const e of enveloppes) {
       const compte = e.compteSource;
       if (!compte) continue;
-      const reste = Math.max(0, e.dotation ?? e.plafond);
-      reservesParCompte[compte] = (reservesParCompte[compte] ?? 0) + reste;
+      reserves[compte] = (reserves[compte] ?? 0) + Math.max(0, e.dotation ?? e.plafond);
     }
-    // Solde disponible : seuls les comptes marqués « dans le disponible »
-    // comptent. Les comptes épargne, caisse ou diamant en sont exclus, ainsi
-    // que les enveloppes qui tirent leur source de ces comptes.
-    const soldeDisponible = etat.comptes
-      .filter((c) => !etat.comptesExclus.includes(c))
-      .reduce((s, c) => s + (soldesParCompte[c] ?? 0), 0);
+    return reserves;
+  }, [enveloppes, comptes]);
 
-    return {
+  // Solde disponible : seuls les comptes marqués « dans le disponible »
+  // comptent. Les comptes épargne, caisse ou diamant en sont exclus.
+  const soldeDisponible = useMemo(
+    () =>
+      comptes
+        .filter((c) => !comptesExclus.includes(c))
+        .reduce((s, c) => s + (soldesParCompte[c] ?? 0), 0),
+    [comptes, comptesExclus, soldesParCompte],
+  );
+
+  const valeur = useMemo<Contexte>(
+    () => ({
       ...etat,
       sourcesRevenu: SOURCES_REVENU,
       ...actions,
-      totalRevenus,
-      totalDepenses,
-      solde: totalRevenus - totalDepenses,
+      totalRevenus: totaux.totalRevenus,
+      totalDepenses: totaux.totalDepenses,
+      solde: totaux.totalRevenus - totaux.totalDepenses,
       soldeDisponible,
-      depensesParEnveloppe,
+      depensesParEnveloppe: totaux.depensesParEnveloppe,
       soldesParCompte,
       reservesParCompte,
       stockageIllisible: illisible,
       chargement,
-    };
-  }, [etat, actions, illisible, chargement]);
+    }),
+    [
+      etat,
+      actions,
+      totaux,
+      soldeDisponible,
+      soldesParCompte,
+      reservesParCompte,
+      illisible,
+      chargement,
+    ],
+  );
 
   return <SuperAppContext.Provider value={valeur}>{children}</SuperAppContext.Provider>;
 }

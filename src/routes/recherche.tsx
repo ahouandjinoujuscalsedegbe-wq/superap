@@ -69,10 +69,7 @@ function PageRecherche() {
     ],
   );
 
-  const typesPresents = useMemo(
-    () => [...new Set(resultats.map((r) => r.type))],
-    [resultats],
-  );
+  const typesPresents = useMemo(() => [...new Set(resultats.map((r) => r.type))], [resultats]);
   const visibles = filtre === "tous" ? resultats : resultats.filter((r) => r.type === filtre);
 
   return (

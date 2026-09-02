@@ -18,7 +18,15 @@ describe("cerveau local", () => {
     const { faits } = analyser({
       enveloppes,
       transactions: [
-        { id: "r1", type: "revenu", montant: 100_000, libelle: "Salaire", categorie: "", compte: "c1", date: "2026-03-01" },
+        {
+          id: "r1",
+          type: "revenu",
+          montant: 100_000,
+          libelle: "Salaire",
+          categorie: "",
+          compte: "c1",
+          date: "2026-03-01",
+        },
         depense("d1", 30_000, "2026-03-05"),
       ],
       maintenant,
@@ -43,7 +51,15 @@ describe("cerveau local", () => {
     const { constats } = analyser({
       enveloppes,
       transactions: [
-        { id: "r1", type: "revenu", montant: 10_000, libelle: "Salaire", categorie: "", compte: "c1", date: "2026-03-01" },
+        {
+          id: "r1",
+          type: "revenu",
+          montant: 10_000,
+          libelle: "Salaire",
+          categorie: "",
+          compte: "c1",
+          date: "2026-03-01",
+        },
         depense("d1", 40_000, "2026-03-05"),
       ],
       maintenant,

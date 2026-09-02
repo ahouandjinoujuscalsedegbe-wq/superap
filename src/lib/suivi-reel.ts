@@ -269,9 +269,7 @@ export function suivreDepensesReelles(args: {
       : 0;
   const fiabilite =
     termines.length > 0
-      ? Math.round(
-          (termines.filter((m) => m.statut === "conforme").length / termines.length) * 100,
-        )
+      ? Math.round((termines.filter((m) => m.statut === "conforme").length / termines.length) * 100)
       : 0;
 
   const resume =

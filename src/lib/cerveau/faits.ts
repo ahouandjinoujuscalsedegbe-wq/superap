@@ -135,7 +135,7 @@ function totauxMois(transactions: Transaction[], mois: string): FaitMois {
 
 function moisPrecedentDe(mois: string): string {
   const [a, m] = mois.split("-").map(Number);
-  const d = new Date((a ?? 1970), (m ?? 1) - 2, 1);
+  const d = new Date(a ?? 1970, (m ?? 1) - 2, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
@@ -174,11 +174,7 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
       : 0;
 
   const joursEcoules = maintenant.getDate();
-  const joursDansMois = new Date(
-    maintenant.getFullYear(),
-    maintenant.getMonth() + 1,
-    0,
-  ).getDate();
+  const joursDansMois = new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 0).getDate();
   const joursRestants = Math.max(0, joursDansMois - joursEcoules);
   const projectionFinDeMois =
     joursEcoules > 0 ? Math.round((moisCourant.depenses / joursEcoules) * joursDansMois) : 0;
@@ -229,8 +225,7 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
       joursAvantEpuisement: rythmeJour > 0 ? Math.floor(etat.restant / rythmeJour) : null,
       // Une enveloppe réservée n'est jamais « dormante » : ne rien y dépenser
       // est exactement son rôle (projet, épargne, usage précis).
-      dormante:
-        !estReservee(e) && dotationDe(e) > 0 && (!derniere || derniere < limite60),
+      dormante: !estReservee(e) && dotationDe(e) > 0 && (!derniere || derniere < limite60),
       compteSource: e.compteSource,
       reservee: estReservee(e),
     };
@@ -306,9 +301,7 @@ export function calculerFaits(donnees: DonneesCerveau): Faits {
 
   // ---- dettes et objectifs
   const dettes = donnees.dettes ?? [];
-  const detteTotale = dettes
-    .filter((d) => d.sens === "dette")
-    .reduce((s, d) => s + resteDu(d), 0);
+  const detteTotale = dettes.filter((d) => d.sens === "dette").reduce((s, d) => s + resteDu(d), 0);
   const creanceTotale = dettes
     .filter((d) => d.sens === "creance")
     .reduce((s, d) => s + resteDu(d), 0);

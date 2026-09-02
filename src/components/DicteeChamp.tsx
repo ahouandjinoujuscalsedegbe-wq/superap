@@ -78,10 +78,16 @@ export function DicteeChamp({
               : "border-input bg-card text-primary"
           }`}
         >
-          {ecoute ? <Square className="h-5 w-5" aria-hidden /> : <Mic className="h-5 w-5" aria-hidden />}
+          {ecoute ? (
+            <Square className="h-5 w-5" aria-hidden />
+          ) : (
+            <Mic className="h-5 w-5" aria-hidden />
+          )}
         </button>
       </div>
-      {ecoute && <p className="text-xs italic text-muted-foreground">{apercu || "Je vous écoute…"}</p>}
+      {ecoute && (
+        <p className="text-xs italic text-muted-foreground">{apercu || "Je vous écoute…"}</p>
+      )}
     </section>
   );
 }

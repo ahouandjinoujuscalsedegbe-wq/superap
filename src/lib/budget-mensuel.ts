@@ -85,11 +85,7 @@ export function budgetMensuelEnveloppe(
 }
 
 /** Dépenses d'une enveloppe pour un mois AAAA-MM. */
-export function depensesDuMois(
-  e: Enveloppe,
-  transactions: Transaction[],
-  mois: string,
-): number {
+export function depensesDuMois(e: Enveloppe, transactions: Transaction[], mois: string): number {
   return transactions
     .filter((t) => t.type === "depense" && t.categorie === e.nom && moisDe(t.date) === mois)
     .reduce((s, t) => s + t.montant, 0);
@@ -110,7 +106,9 @@ export function comparerBudgets(
     .map((e) => {
       const { montant: budgetMensuel, source } = budgetMensuelEnveloppe(e, revenuMoyen);
       const depenseMois = depensesDuMois(e, transactions, mois);
-      const precedents = [1, 2, 3].map((i) => depensesDuMois(e, transactions, decalerMois(mois, -i)));
+      const precedents = [1, 2, 3].map((i) =>
+        depensesDuMois(e, transactions, decalerMois(mois, -i)),
+      );
       const moyenneDepense = Math.round(precedents.reduce((s, x) => s + x, 0) / 3);
       return {
         enveloppe: e,

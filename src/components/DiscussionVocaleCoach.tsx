@@ -164,10 +164,16 @@ export function DiscussionVocaleCoach({
           onClick={actif ? arreter : demarrer}
           aria-label={actif ? "Arrêter la discussion vocale" : "Démarrer la discussion vocale"}
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform active:scale-95 ${
-            actif ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"
+            actif
+              ? "bg-destructive text-destructive-foreground"
+              : "bg-primary text-primary-foreground"
           }`}
         >
-          {actif ? <MicOff className="h-5 w-5" aria-hidden /> : <Mic className="h-5 w-5" aria-hidden />}
+          {actif ? (
+            <MicOff className="h-5 w-5" aria-hidden />
+          ) : (
+            <Mic className="h-5 w-5" aria-hidden />
+          )}
         </button>
       </div>
 

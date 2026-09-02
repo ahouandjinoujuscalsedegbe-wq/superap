@@ -184,12 +184,13 @@ export function SectionBudgetAuto() {
 
       {modeEdition && (
         <p className="text-xs text-muted-foreground">
-          Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)}, actuel{" "}
-          {formatFCFA(budget.totalActuel)}).
+          Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)},
+          actuel {formatFCFA(budget.totalActuel)}).
           {budget.revenuMoyen > 0 && totalRetenu > budget.revenuMoyen && (
             <span className="text-destructive">
               {" "}
-              Attention : dépasse votre revenu moyen de {formatFCFA(totalRetenu - budget.revenuMoyen)}.
+              Attention : dépasse votre revenu moyen de{" "}
+              {formatFCFA(totalRetenu - budget.revenuMoyen)}.
             </span>
           )}
         </p>

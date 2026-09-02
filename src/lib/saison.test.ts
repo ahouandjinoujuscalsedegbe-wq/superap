@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  bilanSaisonnier,
-  coefficientSaison,
-  projectionSaisonniere,
-  saisonDe,
-} from "./saison";
+import { bilanSaisonnier, coefficientSaison, projectionSaisonniere, saisonDe } from "./saison";
 import type { Enveloppe, Transaction } from "./store";
 
 let n = 0;

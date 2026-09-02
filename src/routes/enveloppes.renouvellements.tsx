@@ -53,10 +53,7 @@ function Renouvellements() {
     return [...liste].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 100);
   }, [remplissages, filtre]);
 
-  const totalDebite = useMemo(
-    () => historique.reduce((s, r) => s + r.montant, 0),
-    [historique],
-  );
+  const totalDebite = useMemo(() => historique.reduce((s, r) => s + r.montant, 0), [historique]);
 
   /** Revenus encaissés sur le compte source, pour situer la part prélevée. */
   const revenusParCompte = useMemo(() => {
@@ -67,7 +64,8 @@ function Renouvellements() {
     return m;
   }, [transactions]);
 
-  const nomEnveloppe = (id: string) => enveloppes.find((e) => e.id === id)?.nom ?? "ENVELOPPE SUPPRIMÉE";
+  const nomEnveloppe = (id: string) =>
+    enveloppes.find((e) => e.id === id)?.nom ?? "ENVELOPPE SUPPRIMÉE";
 
   return (
     <div className="space-y-5">

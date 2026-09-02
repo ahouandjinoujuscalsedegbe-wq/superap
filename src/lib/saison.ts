@@ -40,7 +40,8 @@ export function reperesSaison(moisIndex: number): string[] {
   if ([1, 2].includes(m)) return ["chaleur et eau", "frais scolaires du 2e trimestre"];
   if ([3, 4, 5, 6].includes(m))
     return ["pluies et transports", "santé (paludisme)", "semences et travaux"];
-  if ([7, 8].includes(m)) return ["rentrée scolaire", "fournitures et uniformes", "frais d'inscription"];
+  if ([7, 8].includes(m))
+    return ["rentrée scolaire", "fournitures et uniformes", "frais d'inscription"];
   return ["fin des récoltes", "réparations de la maison"];
 }
 

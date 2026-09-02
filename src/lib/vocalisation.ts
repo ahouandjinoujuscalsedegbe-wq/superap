@@ -86,7 +86,8 @@ export function decouper(texte: string, taille: number): string[] {
     if (phrase.length > taille) {
       if (courant.trim()) morceaux.push(courant.trim());
       courant = "";
-      for (let i = 0; i < phrase.length; i += taille) morceaux.push(phrase.slice(i, i + taille).trim());
+      for (let i = 0; i < phrase.length; i += taille)
+        morceaux.push(phrase.slice(i, i + taille).trim());
       continue;
     }
     courant += phrase;

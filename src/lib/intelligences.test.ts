@@ -276,7 +276,6 @@ describe("Intelligence 7 — Analyse des dépenses", () => {
     const p = projectionFinDeMois(transactions);
     expect(Number.isFinite(p.projection)).toBe(true);
   });
-
 });
 
 /* ---------------------------------------------------------------- */

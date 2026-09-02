@@ -125,7 +125,15 @@ function PageNotifications() {
   donneesCoachRef.current = donneesCoach;
 
   const donneesAssistant = useMemo(
-    () => ({ transactions, enveloppes, dettes, comptes, soldesParCompte, depensesParEnveloppe, solde }),
+    () => ({
+      transactions,
+      enveloppes,
+      dettes,
+      comptes,
+      soldesParCompte,
+      depensesParEnveloppe,
+      solde,
+    }),
     [transactions, enveloppes, dettes, comptes, soldesParCompte, depensesParEnveloppe, solde],
   );
   const donneesAssistantRef = useRef(donneesAssistant);
@@ -136,8 +144,14 @@ function PageNotifications() {
     [enveloppes, transactions, depensesParEnveloppe],
   );
   const mensuel = useMemo(() => bilanMensuel(donneesCoach), [donneesCoach]);
-  const saison = useMemo(() => bilanSaisonnier(enveloppes, transactions), [enveloppes, transactions]);
-  const projection = useMemo(() => projectionSaisonniere(transactions, solde, 6), [transactions, solde]);
+  const saison = useMemo(
+    () => bilanSaisonnier(enveloppes, transactions),
+    [enveloppes, transactions],
+  );
+  const projection = useMemo(
+    () => projectionSaisonniere(transactions, solde, 6),
+    [transactions, solde],
+  );
 
   // Chargement de la mémoire chiffrée puis bilan du jour.
   useEffect(() => {
@@ -146,7 +160,10 @@ function PageNotifications() {
       const chargee = await lireMemoire();
       if (!vivant) return;
       const aJour = mettreAJourJournee(chargee, donneesCoachRef.current);
-      const lue: MemoireCoach = { ...aJour, messages: aJour.messages.map((m) => ({ ...m, lu: true })) };
+      const lue: MemoireCoach = {
+        ...aJour,
+        messages: aJour.messages.map((m) => ({ ...m, lu: true })),
+      };
       setMemoire(lue);
       setPrete(true);
       void ecrireMemoire(lue);
@@ -518,7 +535,9 @@ function PageNotifications() {
                     </>
                   )}
                   <div className="mt-1 flex items-center justify-end gap-1 text-[0.62rem] text-muted-foreground">
-                    {m.avis === "utile" && <ThumbsUp className="h-3 w-3 text-primary" aria-hidden />}
+                    {m.avis === "utile" && (
+                      <ThumbsUp className="h-3 w-3 text-primary" aria-hidden />
+                    )}
                     {m.avis === "inutile" && <ThumbsDown className="h-3 w-3" aria-hidden />}
                     {m.epingle && <Pin className="h-3 w-3" aria-hidden />}
                     <span>{heure(m.date)}</span>
@@ -702,19 +721,33 @@ function PageNotifications() {
 
       {emojis && (
         <div className="flex flex-wrap gap-2 border-t border-border bg-card p-2">
-          {["😀", "😊", "😂", "🤔", "😅", "😍", "👍", "🙏", "💰", "📉", "📈", "✅", "❌", "🔥", "🎯"].map(
-            (e) => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => setQuestion((q) => q + e)}
-                className="text-xl"
-                aria-label={`Insérer ${e}`}
-              >
-                {e}
-              </button>
-            ),
-          )}
+          {[
+            "😀",
+            "😊",
+            "😂",
+            "🤔",
+            "😅",
+            "😍",
+            "👍",
+            "🙏",
+            "💰",
+            "📉",
+            "📈",
+            "✅",
+            "❌",
+            "🔥",
+            "🎯",
+          ].map((e) => (
+            <button
+              key={e}
+              type="button"
+              onClick={() => setQuestion((q) => q + e)}
+              className="text-xl"
+              aria-label={`Insérer ${e}`}
+            >
+              {e}
+            </button>
+          ))}
         </div>
       )}
 
@@ -728,7 +761,11 @@ function PageNotifications() {
               </p>
               <p className="line-clamp-2 text-muted-foreground">{citation.texte}</p>
             </div>
-            <button type="button" onClick={() => setCitation(null)} aria-label="Annuler la citation">
+            <button
+              type="button"
+              onClick={() => setCitation(null)}
+              aria-label="Annuler la citation"
+            >
               <X className="h-4 w-4" aria-hidden />
             </button>
           </div>
@@ -790,7 +827,9 @@ function PageNotifications() {
               onClick={() => setVocal((v) => !v)}
               aria-label="Discussion vocale avec le conseiller"
               className={`grid h-11 w-11 shrink-0 place-items-center rounded-full active:scale-95 ${
-                vocal ? "bg-destructive text-primary-foreground" : "bg-primary text-primary-foreground"
+                vocal
+                  ? "bg-destructive text-primary-foreground"
+                  : "bg-primary text-primary-foreground"
               }`}
             >
               <Mic className="h-5 w-5" aria-hidden />
