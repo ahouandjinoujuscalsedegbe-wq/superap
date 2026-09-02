@@ -166,11 +166,38 @@ export function parseMontant(brut: string): number | null {
   return Math.round(valeur);
 }
 
+/**
+ * Corrige les confusions classiques de l'OCR à l'intérieur des nombres :
+ * O/o → 0, l/I → 1, S → 5, B → 8, G → 6, Z → 2. La correction n'est appliquée
+ * qu'entre des chiffres ou en bordure d'un groupe de chiffres, jamais dans un mot.
+ */
+export function corrigerConfusionsOcr(ligne: string): string {
+  const table: Record<string, string> = {
+    o: "0",
+    O: "0",
+    l: "1",
+    I: "1",
+    "|": "1",
+    S: "5",
+    B: "8",
+    G: "6",
+    Z: "2",
+  };
+  return ligne.replace(/[\dOolI|SBGZ]{2,}/g, (bloc) => {
+    const converti = bloc.replace(/[OolI|SBGZ]/g, (c) => table[c] ?? c);
+    // On ne garde la conversion que si le bloc est majoritairement numérique.
+    const chiffres = (bloc.match(/\d/g) ?? []).length;
+    return chiffres >= 1 && chiffres >= bloc.length - 2 ? converti : bloc;
+  });
+}
+
 /** Tous les nombres monétaires plausibles d'une ligne. */
 export function montantsDeLigne(ligne: string): number[] {
-  const sansDates = ligne
+  const sansDates = corrigerConfusionsOcr(ligne)
     .replace(/\d{1,4}[/\-.]\d{1,2}[/\-.]\d{2,4}/g, " ")
-    .replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ");
+    .replace(/\d{1,2}\s*[h:]\s*\d{2}/g, " ")
+    // Codes-barres, références longues et numéros de téléphone : pas des montants.
+    .replace(/\b\d{9,}\b/g, " ");
   const trouves: number[] = [];
   const regex = /\d[\d\s.,]{0,15}\d|\d/g;
   let m: RegExpExecArray | null;
@@ -180,6 +207,12 @@ export function montantsDeLigne(ligne: string): number[] {
   }
   return trouves;
 }
+
+/** Vrai si la ligne cite explicitement la devise (fcfa, xof, f cfa, francs). */
+export function ligneAvecDevise(ligne: string): boolean {
+  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne));
+}
+
 
 /** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
 export type StructureTicket = {
