@@ -164,7 +164,6 @@ function PageObjectifs() {
     reinitialiser();
   };
 
-
   return (
     <div className="space-y-4 pt-4">
       <BoutonRetour to="/" label="Accueil" />
