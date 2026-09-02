@@ -1,3 +1,10 @@
+import {
+  contexteBenin,
+  ligneDeviseLocale,
+  ligneTotalLocale,
+  montantPlausibleCfa,
+} from "@/lib/tickets-benin";
+
 /**
  * Analyse de texte libre (OCR de ticket ou dictée vocale) pour en extraire
  * une opération : type, montant, date et libellé. Fonctions pures, testables.
@@ -215,9 +222,9 @@ export function montantsDeLigne(ligne: string): number[] {
   return trouves;
 }
 
-/** Vrai si la ligne cite explicitement la devise (fcfa, xof, f cfa, francs). */
+/** Vrai si la ligne cite explicitement la devise, y compris à la béninoise. */
 export function ligneAvecDevise(ligne: string): boolean {
-  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne));
+  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne)) || ligneDeviseLocale(ligne);
 }
 
 /** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
@@ -234,6 +241,11 @@ export type StructureTicket = {
   /** Explication courte du montant retenu, affichable à l'utilisateur. */
   explication?: string;
 };
+
+/** Ligne annonçant la somme à payer, en français courant ou en formule locale. */
+function estLigneTotal(ligne: string): boolean {
+  return LIGNES_TOTAL.test(ligne) || ligneTotalLocale(ligne);
+}
 
 export function structurerTicket(texte: string): StructureTicket {
   const lignes = sansAccents(texte)
@@ -254,7 +266,7 @@ export function structurerTicket(texte: string): StructureTicket {
     let dernier = montants.length > 0 ? (montants[montants.length - 1] as number) : null;
 
     // Étiquette seule sur sa ligne (« TOTAL A PAYER ») : le montant est sur la suivante.
-    if (dernier === null && LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+    if (dernier === null && estLigneTotal(ligne) && !LIGNES_EXCLUES.test(ligne)) {
       const suite = montantsDeLigne(lignes[i + 1] ?? "");
       dernier = suite.length > 0 ? (suite[suite.length - 1] as number) : null;
       if (dernier !== null) i += 1;
@@ -277,7 +289,7 @@ export function structurerTicket(texte: string): StructureTicket {
       rendu = rendu ?? dernier;
       continue;
     }
-    if (LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+    if (estLigneTotal(ligne) && !LIGNES_EXCLUES.test(ligne)) {
       totalAnnonce = Math.max(totalAnnonce ?? 0, dernier) || dernier;
       continue;
     }
