@@ -109,7 +109,6 @@ type Brouillon = {
   };
 };
 
-
 function SaisieIntelligente() {
   const { ajouterTransaction, enveloppes, comptes, sourcesRevenu, transactions } = useSuperApp();
   const navigate = useNavigate();
@@ -190,7 +189,9 @@ function SaisieIntelligente() {
         origine,
         texte: texteSource,
         ...(vignette ? { vignette } : {}),
-        confiance: verdict ? Math.max(verdict.score / 100, resultat.confiance * 0.9) : resultat.confiance,
+        confiance: verdict
+          ? Math.max(verdict.score / 100, resultat.confiance * 0.9)
+          : resultat.confiance,
         type: resultat.type,
         montant: montantRetenu ? String(montantRetenu) : "",
         libelle: resultat.libelle,
@@ -585,8 +586,6 @@ function SaisieIntelligente() {
         </section>
       )}
 
-
-
       {brouillons.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
@@ -654,8 +653,6 @@ function SaisieIntelligente() {
                     )}
                   </div>
                 )}
-
-
 
                 {b.verdict && (
                   <div

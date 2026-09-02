@@ -20,7 +20,6 @@ export type OperationExtraite = {
   coherence?: "verifiee" | "incoherente" | "inconnue";
 };
 
-
 const MOTS_REVENU = [
   "revenu",
   "salaire",
@@ -220,7 +219,6 @@ export function ligneAvecDevise(ligne: string): boolean {
   return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne));
 }
 
-
 /** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
 export type StructureTicket = {
   lignes: string[];
@@ -412,7 +410,6 @@ export function detaillerMontant(texte: string): {
       };
 }
 
-
 /** Extrait une date du texte, sinon retourne la date du jour. */
 export function extraireDate(texte: string, aujourdHui = new Date()): string {
   const t = sansAccents(texte);
@@ -539,4 +536,3 @@ export function analyserTexte(
     ...(indice ? { indiceEnveloppe: indice } : {}),
   };
 }
-

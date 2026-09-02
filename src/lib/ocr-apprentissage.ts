@@ -346,7 +346,8 @@ export function fiabiliteOcr(memoire = lireMemoireOcr()): FiabiliteOcr {
     conseil = "La lecture est fiable : continuez simplement à valider vos tickets.";
   else if (memoire.stats.montantsCorriges > memoire.stats.libellesCorriges)
     conseil = "Corrigez le montant avant d'enregistrer : la bonne ligne du ticket sera mémorisée.";
-  else conseil = "Corrigez libellé et enveloppe avant d'enregistrer pour accélérer l'apprentissage.";
+  else
+    conseil = "Corrigez libellé et enveloppe avant d'enregistrer pour accélérer l'apprentissage.";
   return {
     lectures,
     tauxSansCorrection: taux,
