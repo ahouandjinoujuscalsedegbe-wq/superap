@@ -368,7 +368,7 @@ function PageObjectifs() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setOuvert(false)}
+              onClick={reinitialiser}
               className="flex-1 rounded-xl border border-input bg-card px-4 py-2 text-sm font-medium"
             >
               Annuler
@@ -378,7 +378,7 @@ function PageObjectifs() {
               onClick={enregistrer}
               className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
-              Enregistrer
+              {enEdition ? "Enregistrer les changements" : "Enregistrer"}
             </button>
           </div>
         </section>
