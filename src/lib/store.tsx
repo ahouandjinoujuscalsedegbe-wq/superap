@@ -449,6 +449,10 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     // Enveloppes, catégories et comptes ne sont PAS fusionnés : l'état
     // initial en contient déjà par défaut, les réintroduire ressusciterait
     // des éléments que l'utilisateur avait supprimés.
+  };
+}
+
+
 
 
 
