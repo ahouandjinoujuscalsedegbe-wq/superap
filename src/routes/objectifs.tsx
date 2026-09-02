@@ -245,7 +245,9 @@ function PageObjectifs() {
 
       {ouvert && (
         <section className="carte space-y-3 p-4">
-          <h2 className="text-sm font-semibold">Créer un objectif</h2>
+          <h2 className="text-sm font-semibold">
+            {enEdition ? "Ajuster l'objectif" : "Créer un objectif"}
+          </h2>
           <label className="block text-xs font-medium text-muted-foreground">
             Nom de l'objectif
             <input
