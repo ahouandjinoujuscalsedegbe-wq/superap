@@ -22,6 +22,14 @@ import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
+  appliquerApprentissage,
+  apprendreTicket,
+  fiabiliteOcr,
+  type FiabiliteOcr,
+  type OperationAmelioree,
+} from "@/lib/ocr-apprentissage";
+
+import {
   empreinteTicket,
   verifierAuthenticite,
   type VerdictAuthenticite,
