@@ -434,6 +434,9 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     const connus = new Set(deja.map((x) => x.id));
     return depuis.filter((x) => !connus.has(x.id));
   };
+  // Toutes les entités porteuses d'identifiant sont fusionnées : une
+  // enveloppe, un objectif ou une catégorie créés pendant le déchiffrement
+  // ne peuvent plus disparaître silencieusement.
   return {
     ...charge,
     transactions: [...ajouts(actuel.transactions, charge.transactions), ...charge.transactions],
@@ -441,8 +444,18 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     remplissages: [...ajouts(actuel.remplissages, charge.remplissages), ...charge.remplissages],
     budgets: [...charge.budgets, ...ajouts(actuel.budgets, charge.budgets)],
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
+    objectifs: [...charge.objectifs, ...ajouts(actuel.objectifs, charge.objectifs)],
+    corbeille: [...ajouts(actuel.corbeille, charge.corbeille), ...charge.corbeille],
+    enveloppes: [...charge.enveloppes, ...ajouts(actuel.enveloppes, charge.enveloppes)],
+    categories: [...charge.categories, ...ajouts(actuel.categories, charge.categories)],
+    comptes: [...charge.comptes, ...actuel.comptes.filter((c) => !charge.comptes.includes(c))],
+    comptesExclus: [
+      ...charge.comptesExclus,
+      ...actuel.comptesExclus.filter((c) => !charge.comptesExclus.includes(c)),
+    ],
   };
 }
+
 
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
