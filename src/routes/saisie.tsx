@@ -611,6 +611,24 @@ function SaisieIntelligente() {
                   />
                 )}
 
+                {(b.explication || (b.ajustements?.length ?? 0) > 0) && (
+                  <div className="space-y-1 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
+                    {b.explication && (
+                      <p className="flex items-start gap-1.5">
+                        <Brain className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span>{b.explication}</span>
+                      </p>
+                    )}
+                    {(b.ajustements?.length ?? 0) > 0 && (
+                      <p className="font-medium text-foreground">
+                        Appris de vos corrections : {b.ajustements?.join(", ")}.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+
+
                 {b.verdict && (
                   <div
                     className={`space-y-2 rounded-xl border px-3 py-2.5 text-xs ${
