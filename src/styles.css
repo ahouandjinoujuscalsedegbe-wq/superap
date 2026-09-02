@@ -962,6 +962,7 @@ textarea {
     rgba(255, 255, 255, 0.55) 50%,
     transparent 100%
   );
+  z-index: 0;
   animation: bouton-3d-eclair 3.2s ease-in-out infinite;
   pointer-events: none;
 }

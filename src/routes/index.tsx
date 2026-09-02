@@ -176,27 +176,27 @@ function Accueil() {
             className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <ArrowUpRight className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Ajouter un revenu</span>
-            <span className="relative text-xs opacity-85">Salaire, activité, aide…</span>
+            <ArrowUpRight className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Ajouter un revenu</span>
+            <span className="relative z-10 text-xs opacity-85">Salaire, activité, aide…</span>
           </Link>
           <Link
             to="/enveloppes/budgetisation"
             className="bouton-3d bouton-3d-budget relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <Wallet className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Budgétisation</span>
-            <span className="relative text-xs opacity-85">Planifier vos enveloppes</span>
+            <Wallet className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Budgétisation</span>
+            <span className="relative z-10 text-xs opacity-85">Planifier vos enveloppes</span>
           </Link>
           <Link
             to="/enveloppes/details"
             className="bouton-3d bouton-3d-enveloppes relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <Layers className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Les enveloppes</span>
-            <span className="relative text-xs opacity-85">Toutes les enveloppes et leur état</span>
+            <Layers className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Les enveloppes</span>
+            <span className="relative z-10 text-xs opacity-85">Toutes les enveloppes et leur état</span>
           </Link>
         </div>
         <div className="flex flex-col gap-3">
@@ -205,27 +205,27 @@ function Accueil() {
             className="bouton-3d bouton-3d-depense relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <ArrowDownRight className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Ajouter une dépense</span>
-            <span className="relative text-xs opacity-85">En 2 secondes</span>
+            <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Ajouter une dépense</span>
+            <span className="relative z-10 text-xs opacity-85">En 2 secondes</span>
           </Link>
           <Link
             to="/mois"
             className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <CalendarCheck className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Vue globale du mois</span>
-            <span className="relative text-xs opacity-85">Bilan et conseils</span>
+            <CalendarCheck className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Vue globale du mois</span>
+            <span className="relative z-10 text-xs opacity-85">Bilan et conseils</span>
           </Link>
           <Link
             to="/rapport"
             className="bouton-3d bouton-3d-rapport relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <FileText className="relative h-5 w-5" aria-hidden />
-            <span className="relative font-semibold">Rapport mensuel</span>
-            <span className="relative text-xs opacity-85">Bilan du mois terminé</span>
+            <FileText className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Rapport mensuel</span>
+            <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
           </Link>
         </div>
       </section>
