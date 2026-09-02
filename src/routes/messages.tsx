@@ -12,7 +12,6 @@ import {
   definirLectureAuto,
   lectureAutoActive,
   marquerTraite,
-  messagesDepuisTexte,
   oublierApprentissageSms,
   reglesApprises,
   type OperationSms,
@@ -43,7 +42,6 @@ export const Route = createFileRoute("/messages")({
 function PageMessages() {
   const { comptes, enveloppes, ajouterTransaction } = useSuperApp();
   const [operations, setOperations] = useState<OperationSms[]>([]);
-  const [texte, setTexte] = useState("");
   const [auto, setAuto] = useState(false);
   const [scan, setScan] = useState(false);
   const [natif, setNatif] = useState(false);
@@ -83,16 +81,6 @@ function PageMessages() {
       setScan(false);
     }
   }, [contexte]);
-
-  const analyserTexte = () => {
-    const trouvees = analyserMessages(messagesDepuisTexte(texte), contexte, []);
-    if (trouvees.length === 0) {
-      toast.error("Aucune transaction reconnue dans ce texte.");
-      return;
-    }
-    setOperations((v) => [...trouvees, ...v]);
-    setTexte("");
-  };
 
   const majOperation = (id: string, champs: Partial<OperationSms>) =>
     setOperations((v) => v.map((o) => (o.id === id ? { ...o, ...champs } : o)));
@@ -188,30 +176,11 @@ function PageMessages() {
 
         {!natif && (
           <p className="rounded-xl bg-warning/10 p-3 text-xs text-warning">
-            La lecture directe de la boîte SMS n'est disponible que dans l'application installée sur
-            le téléphone, avec l'autorisation « Lire les SMS ». En attendant, collez vos messages
-            ci-dessous : l'analyse est exactement la même.
+            La lecture des SMS fonctionne dans l'application installée sur le téléphone (APK), après
+            avoir accepté l'autorisation « Lire les SMS ». Dans le navigateur, Android n'autorise
+            aucun accès à la boîte de réception.
           </p>
         )}
-
-        <label className="block text-xs font-medium text-muted-foreground">
-          Coller un ou plusieurs messages (séparés par une ligne vide)
-          <textarea
-            value={texte}
-            onChange={(e) => setTexte(e.target.value)}
-            rows={4}
-            placeholder="Vous avez recu 25 000 FCFA de Jean KODJO. Frais: 0 FCFA…"
-            className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-          />
-        </label>
-        <button
-          type="button"
-          onClick={analyserTexte}
-          disabled={texte.trim().length < 12}
-          className="w-full rounded-xl border border-input px-4 py-2 text-sm font-medium disabled:opacity-50"
-        >
-          Analyser ce texte
-        </button>
 
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-success" aria-hidden />

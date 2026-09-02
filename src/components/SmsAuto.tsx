@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSuperApp } from "@/lib/store";
-import { lireSmsRecents, smsDisponible } from "@/lib/sms-lecture";
+import { autoriserSms, lireSmsRecents, smsDisponible, surNouveauSms } from "@/lib/sms-lecture";
 import {
   analyserMessages,
   apprendreSms,
@@ -25,6 +25,7 @@ export function SmsAuto() {
     if (!lectureAutoActive() || !smsDisponible()) return;
     enCours.current = true;
     try {
+      if (!(await autoriserSms())) return;
       const messages = await lireSmsRecents(Date.now() - 7 * 86400000);
       const contexte = {
         comptes,
@@ -65,9 +66,12 @@ export function SmsAuto() {
       if (document.visibilityState === "visible") void analyser();
     };
     document.addEventListener("visibilitychange", auRetour);
+    // Réception d'un nouveau SMS : analyse immédiate, sans attendre le cycle.
+    const desabonner = surNouveauSms(() => void analyser());
     return () => {
       window.clearInterval(minuterie);
       document.removeEventListener("visibilitychange", auRetour);
+      desabonner();
     };
   }, [analyser]);
 
