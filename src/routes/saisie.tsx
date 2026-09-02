@@ -158,25 +158,36 @@ function SaisieIntelligente() {
 
   const creerBrouillon = useCallback(
     (
-      resultat: OperationExtraite,
+      resultat: OperationExtraite | OperationAmelioree,
       origine: Brouillon["origine"],
       texteSource: string,
       vignette?: string,
       verdict?: VerdictAuthenticite,
     ): Brouillon => {
+      const ajustements = "ajustements" in resultat ? resultat.ajustements : [];
+      const experience = "experience" in resultat ? resultat.experience : 0;
+      const enveloppeApprise =
+        experience > 0 && resultat.indiceEnveloppe ? resultat.indiceEnveloppe : undefined;
       const apprise = suggererEnveloppe(resultat.libelle);
       const enveloppeChoisie =
+        (enveloppeApprise && enveloppes.some((e) => e.id === enveloppeApprise)
+          ? enveloppeApprise
+          : undefined) ??
         (apprise && enveloppes.some((e) => e.id === apprise) ? apprise : undefined) ??
         resultat.indiceEnveloppe ??
         enveloppes[0]?.id ??
         "";
-      const montantRetenu = verdict?.montantRecoupe ?? resultat.montant;
+      // Un montant déjà corrigé par l'expérience prime sur le recoupement brut.
+      const montantAjuste = ajustements.some((a) => a.startsWith("Montant"));
+      const montantRetenu = montantAjuste
+        ? resultat.montant
+        : (verdict?.montantRecoupe ?? resultat.montant);
       return {
         id: crypto.randomUUID(),
         origine,
         texte: texteSource,
         ...(vignette ? { vignette } : {}),
-        confiance: verdict ? verdict.score / 100 : resultat.confiance,
+        confiance: verdict ? Math.max(verdict.score / 100, resultat.confiance * 0.9) : resultat.confiance,
         type: resultat.type,
         montant: montantRetenu ? String(montantRetenu) : "",
         libelle: resultat.libelle,
@@ -185,8 +196,18 @@ function SaisieIntelligente() {
         source: sourcesRevenu[0] ?? "Salaire",
         compte: comptes[0] ?? COMPTES[0] ?? "",
         ...(verdict ? { verdict } : {}),
+        ...(resultat.explicationMontant ? { explication: resultat.explicationMontant } : {}),
+        ...(ajustements.length > 0 ? { ajustements } : {}),
+        propose: {
+          montant: montantRetenu || 0,
+          libelle: resultat.libelle,
+          type: resultat.type,
+          ...(enveloppeChoisie ? { enveloppe: enveloppeChoisie } : {}),
+          ...(resultat.sourceMontant ? { sourceMontant: resultat.sourceMontant } : {}),
+        },
       };
     },
+
     [comptes, enveloppes, sourcesRevenu],
   );
 
