@@ -54,6 +54,8 @@ export type ContexteSms = {
 const CLE_MEMOIRE = "superapp:sms:memoire:v1";
 const CLE_TRAITES = "superapp:sms:traites:v1";
 const CLE_AUTO = "superapp:sms:auto:v1";
+const CLE_STATS = "superapp:sms:stats:v1";
+const CLE_INCONNUS = "superapp:sms:inconnus:v1";
 
 /* ------------------------------------------------------------------ */
 /* Outils de texte                                                      */
@@ -242,6 +244,93 @@ export function oublierApprentissageSms(): void {
 }
 
 /* ------------------------------------------------------------------ */
+/* Fiabilité : statistiques et messages jamais reconnus                 */
+/* ------------------------------------------------------------------ */
+
+export type StatsSms = {
+  /** Nombre de messages analysés depuis l'installation. */
+  lus: number;
+  /** Messages dans lesquels une opération a été comprise. */
+  reconnus: number;
+  /** Opérations enregistrées seules, sans confirmation. */
+  auto: number;
+  /** Opérations confirmées telles quelles par l'utilisateur. */
+  confirmes: number;
+  /** Opérations corrigées avant enregistrement (sens, compte ou enveloppe). */
+  corriges: number;
+  /** Opérations écartées par l'utilisateur. */
+  ignores: number;
+};
+
+const STATS_VIDE: StatsSms = {
+  lus: 0,
+  reconnus: 0,
+  auto: 0,
+  confirmes: 0,
+  corriges: 0,
+  ignores: 0,
+};
+
+export function statsSms(): StatsSms {
+  return { ...STATS_VIDE, ...lireJson<Partial<StatsSms>>(CLE_STATS, {}) };
+}
+
+/** Incrémente un ou plusieurs compteurs de fiabilité. */
+export function noterStatSms(ajouts: Partial<StatsSms>): void {
+  const actuel = statsSms();
+  const suivant = { ...actuel };
+  for (const [cle, valeur] of Object.entries(ajouts)) {
+    const k = cle as keyof StatsSms;
+    suivant[k] = actuel[k] + (valeur ?? 0);
+  }
+  ecrireJson(CLE_STATS, suivant);
+}
+
+/** Part des messages compris automatiquement, entre 0 et 1. */
+export function tauxReconnaissance(stats: StatsSms = statsSms()): number {
+  return stats.lus > 0 ? stats.reconnus / stats.lus : 0;
+}
+
+/** Part des opérations comprises sans aucune correction, entre 0 et 1. */
+export function tauxJustesse(stats: StatsSms = statsSms()): number {
+  const decides = stats.auto + stats.confirmes + stats.corriges;
+  return decides > 0 ? (stats.auto + stats.confirmes) / decides : 0;
+}
+
+export type MessageInconnu = {
+  id: string;
+  expediteur: string;
+  extrait: string;
+  date: number;
+};
+
+/** Mémorise un message qu'aucune règle n'a su interpréter (20 derniers). */
+export function memoriserInconnu(message: MessageSms): void {
+  const liste = messagesInconnus();
+  if (liste.some((m) => m.id === message.id)) return;
+  const entree: MessageInconnu = {
+    id: message.id,
+    expediteur: message.expediteur,
+    extrait: message.corps.slice(0, 220),
+    date: message.date,
+  };
+  ecrireJson(CLE_INCONNUS, [entree, ...liste].slice(0, 20));
+}
+
+export function messagesInconnus(): MessageInconnu[] {
+  return lireJson<MessageInconnu[]>(CLE_INCONNUS, []);
+}
+
+export function oublierInconnus(): void {
+  ecrireJson(CLE_INCONNUS, []);
+}
+
+export function reinitialiserStatsSms(): void {
+  ecrireJson(CLE_STATS, STATS_VIDE);
+  oublierInconnus();
+}
+
+/* ------------------------------------------------------------------ */
 /* Messages déjà traités                                                */
 /* ------------------------------------------------------------------ */
 
@@ -393,15 +482,31 @@ export function analyserMessages(
 ): OperationSms[] {
   const vus = new Set(deja);
   const out: OperationSms[] = [];
+  let lus = 0;
   for (const m of messages) {
     if (vus.has(m.id)) continue;
+    lus += 1;
     const op = analyserSms(m, contexte);
     if (op) {
       vus.add(m.id);
       out.push(op);
+    } else if (ressembleATransaction(m.corps)) {
+      // Message qui parle d'argent mais qu'aucune règle ne sait lire :
+      // il est conservé pour être montré dans le tableau de fiabilité.
+      memoriserInconnu(m);
     }
   }
+  if (lus > 0) noterStatSms({ lus, reconnus: out.length });
   return out.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/** Repère un message qui évoque de l'argent sans avoir été compris. */
+function ressembleATransaction(corps: string): boolean {
+  const t = normaliser(corps);
+  return (
+    /[0-9]/.test(t) &&
+    /(fcfa|xof|f cfa|montant|solde|transfert|paiement|retrait|depot|virement|debit|credit)/.test(t)
+  );
 }
 
 /** Découpe un texte collé manuellement en messages analysables. */

@@ -6,6 +6,7 @@ import {
   apprendreSms,
   lectureAutoActive,
   marquerTraite,
+  noterStatSms,
 } from "@/lib/sms-transactions";
 
 /** Seuil au-delà duquel une opération est enregistrée sans confirmation. */
@@ -51,6 +52,7 @@ export function SmsAuto() {
             date: op.date,
           });
         }
+        noterStatSms({ auto: 1 });
         apprendreSms(op, { type: op.type, enveloppeId: op.enveloppeId, compte: op.compte });
         marquerTraite(op.id);
       }
