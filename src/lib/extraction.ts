@@ -12,7 +12,14 @@ export type OperationExtraite = {
   confiance: number;
   /** Enveloppe devinée d'après les mots-clés, si trouvée. */
   indiceEnveloppe?: string;
+  /** D'où vient le montant retenu (total, paiement, articles…). */
+  sourceMontant?: "total" | "paiement" | "articles" | "devise" | "maximum" | "mots" | "aucun";
+  /** Explication lisible du montant retenu. */
+  explicationMontant?: string;
+  /** Recoupement du total avec les autres indices du ticket. */
+  coherence?: "verifiee" | "incoherente" | "inconnue";
 };
+
 
 const MOTS_REVENU = [
   "revenu",
