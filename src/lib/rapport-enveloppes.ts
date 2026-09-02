@@ -87,18 +87,58 @@ export function construireRapportMois(
   enveloppes: Enveloppe[],
   transactions: Transaction[],
   remplissages: Remplissage[],
+  maintenant = new Date(),
 ): RapportMoisEnveloppes {
   const nbJours = joursDuMois(mois);
   const rapports: RapportEnveloppe[] = [];
 
-  for (const e of enveloppes) {
-    const verse = remplissages
-      .filter((r) => r.enveloppeId === e.id && r.date.slice(0, 7) === mois)
-      .reduce((s, r) => s + r.montant, 0);
+  // Pour un mois encore en cours, la moyenne se calcule sur les jours écoulés
+  // afin de ne pas sous-estimer le rythme de dépense.
+  const enCours = mois === moisCourant(maintenant);
+  const joursEcoules = enCours ? Math.min(nbJours, maintenant.getDate()) : nbJours;
 
-    const depenses = transactions.filter(
-      (t) => t.type === "depense" && t.categorie === e.nom && t.date.slice(0, 7) === mois,
-    );
+  // Un seul passage sur les données : versements et dépenses sont regroupés
+  // par enveloppe puis par jour (au lieu de reparcourir la liste chaque jour).
+  const verseParEnveloppe = new Map<string, number>();
+  for (const r of remplissages) {
+    if (r.date.slice(0, 7) !== mois) continue;
+    verseParEnveloppe.set(r.enveloppeId, (verseParEnveloppe.get(r.enveloppeId) ?? 0) + r.montant);
+  }
+
+  const nomVersId = new Map<string, string>();
+  for (const e of enveloppes) nomVersId.set(e.nom, e.id);
+
+  type Case = { montant: number; operations: number };
+  const depensesParEnveloppe = new Map<string, Map<string, Case>>();
+  const SANS = "__sans_enveloppe__";
+  for (const t of transactions) {
+    if (t.type !== "depense" || t.date.slice(0, 7) !== mois) continue;
+    const cle = (t.categorie && nomVersId.get(t.categorie)) || SANS;
+    let parJour = depensesParEnveloppe.get(cle);
+    if (!parJour) {
+      parJour = new Map<string, Case>();
+      depensesParEnveloppe.set(cle, parJour);
+    }
+    const date = t.date.slice(0, 10);
+    const c = parJour.get(date) ?? { montant: 0, operations: 0 };
+    c.montant += t.montant;
+    c.operations += 1;
+    parJour.set(date, c);
+  }
+
+  const lignes: { id: string; nom: string; emoji: string }[] = enveloppes.map((e) => ({
+    id: e.id,
+    nom: e.nom,
+    emoji: e.emoji,
+  }));
+  // Les dépenses sans enveloppe restent visibles dans le rapport.
+  if (depensesParEnveloppe.has(SANS)) {
+    lignes.push({ id: SANS, nom: "Sans enveloppe", emoji: "❔" });
+  }
+
+  for (const e of lignes) {
+    const verse = verseParEnveloppe.get(e.id) ?? 0;
+    const parJour = depensesParEnveloppe.get(e.id);
 
     let cumul = 0;
     let joursActifs = 0;
@@ -108,8 +148,8 @@ export function construireRapportMois(
 
     for (let j = 1; j <= nbJours; j += 1) {
       const date = `${mois}-${String(j).padStart(2, "0")}`;
-      const duJour = depenses.filter((t) => t.date.slice(0, 10) === date);
-      const montant = duJour.reduce((s, t) => s + t.montant, 0);
+      const c = parJour?.get(date);
+      const montant = c?.montant ?? 0;
       cumul += montant;
       if (montant > 0) joursActifs += 1;
       if (montant > maxJour) {
@@ -120,7 +160,7 @@ export function construireRapportMois(
         date,
         jour: j,
         depense: montant,
-        operations: duJour.length,
+        operations: c?.operations ?? 0,
         cumul,
         reste: verse - cumul,
       });
@@ -136,7 +176,7 @@ export function construireRapportMois(
       verse,
       depense,
       joursActifs,
-      moyenneJour: Math.round(depense / nbJours),
+      moyenneJour: Math.round(depense / Math.max(1, joursEcoules)),
       jourFort,
       reste: verse - depense,
       jours,

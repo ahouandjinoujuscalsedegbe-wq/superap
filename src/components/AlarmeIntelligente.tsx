@@ -35,7 +35,9 @@ export function AlarmeIntelligente() {
     setAlarmes(liste);
 
     const nouvelle = liste.find((a) => !dejaSonnees.current.has(a.id));
-    for (const a of liste) dejaSonnees.current.add(a.id);
+    // On ne mémorise que les alarmes encore actives : la liste ne grossit
+    // donc jamais indéfiniment au fil des heures d'utilisation.
+    dejaSonnees.current = new Set(liste.map((a) => a.id));
 
     if (nouvelle && reglages.active) {
       void declencherAlarmeAppareil({
