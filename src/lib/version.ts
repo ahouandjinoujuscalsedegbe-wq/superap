@@ -12,7 +12,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.14";
+export const VERSION_APPLICATION = "1.0.15";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -109,8 +109,7 @@ let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 /** Durée de validité du cache de Release. */
 const CACHE_RELEASE_MS = 60 * 1000;
 
-type ReponseGithub =
-  { etat: "ok"; donnees: unknown } | { etat: "http"; code: number } | { etat: "reseau" };
+type ReponseGithub = { etat: "ok"; donnees: unknown } | { etat: "http"; code: number } | { etat: "reseau" };
 
 /** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
 async function lireJsonGithub(url: string): Promise<ReponseGithub> {
@@ -166,13 +165,8 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
     return { etat: "http", code: reponseLatest.code };
   }
 
-  const latest =
-    reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
-  if (
-    latest &&
-    Array.isArray(latest.assets) &&
-    latest.assets.some((a) => a.name === "version.json")
-  ) {
+  const latest = reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
+  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
     return { etat: "ok", assets: latest.assets };
   }
@@ -202,9 +196,7 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
-async function trouverAsset(
-  nom: string,
-): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
+async function trouverAsset(nom: string): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
   const release = await lireDerniereRelease();
   if (release.etat !== "ok") return { asset: null, echec: release };
   return { asset: release.assets.find((a) => a.name === nom) ?? null, echec: null };
@@ -217,9 +209,7 @@ async function trouverAsset(
  */
 async function telechargerAssetJson(
   assetUrl: string,
-): Promise<
-  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
-> {
+): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
   const entetes = entetesGithub("application/octet-stream");
   try {
     if (estApplicationNative()) {
@@ -251,8 +241,7 @@ async function telechargerAssetJson(
   } catch {
     return {
       etat: "hors-ligne",
-      message:
-        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -310,9 +299,7 @@ export function estApplicationNative(): boolean {
 /** Téléchargement par le réseau natif Android (aucune restriction CORS). */
 async function telechargerNatif(
   cible: string,
-): Promise<
-  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
-> {
+): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
   try {
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
@@ -333,8 +320,7 @@ async function telechargerNatif(
   } catch {
     return {
       etat: "hors-ligne",
-      message:
-        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -367,15 +353,12 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
  * Télécharge le manifeste et le compare à la version installée.
  * Ne lève jamais d'exception : toutes les issues sont décrites dans le résultat.
  */
-export async function verifierMiseAJour(
-  urlManifeste = lireUrlManifeste(),
-): Promise<ResultatVerification> {
+export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Promise<ResultatVerification> {
   const adresse = urlManifeste.trim();
   if (!adresse) {
     return {
       etat: "erreur",
-      message:
-        "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
+      message: "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
     };
   }
   if (!estAdresseValide(adresse)) {
@@ -401,8 +384,7 @@ export async function verifierMiseAJour(
       if (echec?.etat === "reseau") {
         return {
           etat: "hors-ligne",
-          message:
-            "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
+          message: "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
         };
       }
       if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
@@ -457,8 +439,7 @@ export async function verifierMiseAJour(
     if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
       return {
         etat: "erreur",
-        message:
-          "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
+        message: "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
       };
     }
     memoriserVerification();
@@ -501,9 +482,7 @@ function bufferVersBase64(buffer: ArrayBuffer): string {
 
 /** Nettoie une chaîne base64 (préfixe « data: », espaces, retours à la ligne). */
 function nettoyerBase64(valeur: string): string {
-  const sansPrefixe = valeur.includes("base64,")
-    ? valeur.slice(valeur.indexOf("base64,") + 7)
-    : valeur;
+  const sansPrefixe = valeur.includes("base64,") ? valeur.slice(valeur.indexOf("base64,") + 7) : valeur;
   return sansPrefixe.replace(/\s/g, "");
 }
 
@@ -627,9 +606,7 @@ async function telechargerAPKNatif(
       base64 = bufferVersBase64(brut);
     } else if (ArrayBuffer.isView(brut)) {
       const vue = brut as ArrayBufferView;
-      base64 = bufferVersBase64(
-        vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer,
-      );
+      base64 = bufferVersBase64(vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer);
     } else {
       return {
         ok: false,
@@ -696,8 +673,7 @@ async function installerAPKDepuisCache(
     if (!info.size || info.size < 100_000) {
       return {
         ok: false,
-        message:
-          "L'enregistrement du fichier d'installation est incomplet. Réessayez la mise à jour.",
+        message: "L'enregistrement du fichier d'installation est incomplet. Réessayez la mise à jour.",
       };
     }
 
