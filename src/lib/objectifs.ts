@@ -125,6 +125,7 @@ export function suivreObjectifs(
   objectifs: Objectif[],
   transactions: Transaction[],
   maintenant = new Date(),
+  transferts: Transfert[] = [],
 ): SuiviObjectif[] {
   const rang: Record<SuiviObjectif["etat"], number> = {
     en_danger: 0,
@@ -134,6 +135,6 @@ export function suivreObjectifs(
     atteint: 4,
   };
   return objectifs
-    .map((o) => suivreObjectif(o, transactions, maintenant))
+    .map((o) => suivreObjectif(o, transactions, maintenant, transferts))
     .sort((a, b) => rang[a.etat] - rang[b.etat] || a.joursRestants - b.joursRestants);
 }
