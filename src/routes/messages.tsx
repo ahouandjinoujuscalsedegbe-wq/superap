@@ -93,7 +93,10 @@ function PageMessages() {
     setTexte("");
   };
 
-  const majOperation = (id: string, champs: Partial<OperationSms>) =>
+  const majOperation = (
+    id: string,
+    champs: Partial<Record<keyof OperationSms, OperationSms[keyof OperationSms]>>,
+  ) =>
     setOperations((v) => v.map((o) => (o.id === id ? { ...o, ...champs } : o)));
 
   const enregistrer = (op: OperationSms) => {
