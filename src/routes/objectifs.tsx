@@ -181,12 +181,67 @@ function PageObjectifs() {
 
       <button
         type="button"
-        onClick={() => setOuvert(true)}
+        onClick={() => {
+          setEnEdition(null);
+          setOuvert(true);
+        }}
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
       >
         <Plus className="h-4 w-4" aria-hidden />
         Nouvel objectif
       </button>
+
+      {ajustements.length > 0 && (
+        <section className="space-y-2">
+          {ajustements.map((a) => (
+            <div
+              key={a.objectif.id}
+              className="carte space-y-2 border-warning/40 p-4"
+              role="status"
+            >
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-warning">
+                <Lightbulb className="h-4 w-4" aria-hidden />
+                Ajustement suggéré — {a.objectif.libelle}
+              </h2>
+              <p className="text-xs text-muted-foreground">{a.message}</p>
+              {a.dateProposee && (
+                <p className="text-xs">
+                  En épargnant {formatFCFA(a.effortTenable)}/mois, l'objectif serait atteint vers le{" "}
+                  {a.dateProposee}.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {a.dateProposee && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      modifierObjectif(a.objectif.id, { dateCible: a.dateProposee! });
+                      toast.success("Échéance repoussée à une date tenable.");
+                    }}
+                    className="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                  >
+                    Repousser l'échéance
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => modifier(a.objectif)}
+                  className="rounded-xl border border-input px-3 py-2 text-xs font-medium"
+                >
+                  Modifier moi-même
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIgnores((v) => [...v, a.objectif.id])}
+                  className="rounded-xl px-3 py-2 text-xs text-muted-foreground"
+                >
+                  Ignorer
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {ouvert && (
         <section className="carte space-y-3 p-4">
