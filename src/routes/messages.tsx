@@ -149,14 +149,13 @@ function PageMessages() {
 
   return (
     <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
-
-      <header>
+      <header className="space-y-2">
+        <BoutonRetour to="/" label="Accueil" />
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <MessageSquareText className="h-6 w-6 text-primary" aria-hidden />
           Messages de transaction
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Vos SMS Mobile Money et bancaires sont lus et compris sur le téléphone même : montant,
           sens de l'opération, frais et bénéficiaire. Rien n'est envoyé sur Internet.
         </p>
