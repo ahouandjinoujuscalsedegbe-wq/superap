@@ -134,14 +134,20 @@ export function proposerDotations(
 
     // Régularité : une enveloppe payée chaque mois avec un montant proche
     // est une charge fixe, on ne lui ajoute pas de marge de sécurité.
+    // L'écart-type se mesure autour de la moyenne des mois observés
+    // (et non autour de la moyenne des seuls mois récents).
+    const observees = valeurs.filter((v) => v > 0);
+    const moyenneSimple = observees.length
+      ? observees.reduce((s, v) => s + v, 0) / observees.length
+      : 0;
     const ecartType =
       observes > 1
         ? Math.sqrt(
-            valeurs.filter((v) => v > 0).reduce((s, v) => s + (v - moyRecent || 0) ** 2, 0) /
-              observes,
+            observees.reduce((s, v) => s + (v - moyenneSimple) ** 2, 0) / observees.length,
           )
         : 0;
-    const reguliere = observes >= 3 && moyenne > 0 && ecartType / moyenne < 0.15;
+    const reguliere = observes >= 3 && moyenneSimple > 0 && ecartType / moyenneSimple < 0.15;
+
 
     const marge = reguliere ? 1.02 : tendance === "hausse" ? 1.15 : 1.08;
     let base = observes === 0 ? actuelle : Math.max(moyenne * marge, maxi * (reguliere ? 1 : 0.9));
