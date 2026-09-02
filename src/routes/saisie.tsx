@@ -477,7 +477,8 @@ function SaisieIntelligente() {
 
   return (
     <div className="space-y-5">
-      <header>
+      <header className="space-y-2">
+        <BoutonRetour to="/" label="Accueil" />
         <h1 className="text-2xl font-bold tracking-tight">Saisie intelligente</h1>
         <p className="text-sm text-muted-foreground">
           Photographiez plusieurs tickets ou dictez vos opérations : montant, date, libellé et
