@@ -359,6 +359,13 @@ function PageObjectifs() {
                 {s.datePrevue}.
               </p>
             )}
+            {s.objectif.prelevementAuto && s.objectif.compteEpargne && (
+              <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                Épargne automatique : {formatFCFA(s.effortMensuel)}/mois prélevés de «{" "}
+                {s.objectif.compteSource} » vers « {s.objectif.compteEpargne} », hors solde
+                disponible.
+              </p>
+            )}
           </article>
         ))}
       </section>
