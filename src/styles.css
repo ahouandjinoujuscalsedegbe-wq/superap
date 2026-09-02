@@ -922,32 +922,33 @@ textarea {
 @keyframes bouton-3d-levite {
   0%,
   100% {
-    transform: translateY(0) rotateX(0deg);
+    transform: translate3d(0, 0, 0);
   }
   50% {
-    transform: translateY(-6px) rotateX(4deg);
+    transform: translate3d(0, -6px, 0);
   }
 }
 
 @keyframes bouton-3d-eclair {
   0% {
-    transform: translateX(-130%) skewX(-18deg);
+    transform: translate3d(-130%, 0, 0) skewX(-18deg);
   }
   55%,
   100% {
-    transform: translateX(230%) skewX(-18deg);
+    transform: translate3d(230%, 0, 0) skewX(-18deg);
   }
 }
 
 @utility bouton-3d {
+  position: relative;
+  isolation: isolate;
   border-radius: 1rem;
   color: #fff;
-  transform-style: preserve-3d;
-  perspective: 600px;
+  backface-visibility: hidden;
   animation: bouton-3d-levite 3.6s ease-in-out infinite;
   transition: transform 0.15s ease-out;
-  will-change: transform;
 }
+
 
 @utility bouton-3d-brillance {
   position: absolute;
@@ -961,6 +962,7 @@ textarea {
     rgba(255, 255, 255, 0.55) 50%,
     transparent 100%
   );
+  z-index: 0;
   animation: bouton-3d-eclair 3.2s ease-in-out infinite;
   pointer-events: none;
 }
