@@ -17,9 +17,10 @@ const contexte: ContexteSms = {
   ],
 };
 
+let compteur = 0;
 function sms(corps: string, expediteur = "MTN") {
   return {
-    id: `m-${corps.length}-${expediteur}`,
+    id: `m-${++compteur}-${expediteur}`,
     expediteur,
     corps,
     date: Date.parse("2026-09-02"),
