@@ -73,16 +73,7 @@ export const LIBELLES_TOTAL_LOCAUX = [
 ];
 
 /** Écritures de la devise rencontrées localement. */
-export const DEVISES_LOCALES = [
-  "fcfa",
-  "f cfa",
-  "cfa",
-  "xof",
-  "franc",
-  "francs",
-  "frs",
-  "fr cfa",
-];
+export const DEVISES_LOCALES = ["fcfa", "f cfa", "cfa", "xof", "franc", "francs", "frs", "fr cfa"];
 
 type Signature = {
   service: ServiceLocal;
@@ -290,7 +281,9 @@ function fraisDeService(texte: string): number | undefined {
 
 /** Analyse locale d'un texte de ticket : enseigne, service, sens, frais. */
 export function contexteBenin(texte: string): ContexteBenin {
-  const t = normaliser(texte).replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ");
+  const t = normaliser(texte)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ");
   const indices: string[] = [];
   let trouve: Signature | undefined;
   let meilleurScore = 0;

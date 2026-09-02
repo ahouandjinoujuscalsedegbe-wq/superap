@@ -398,6 +398,17 @@ export function detaillerMontant(texte: string): {
     .filter((l) => !LIGNES_EXCLUES.test(l))
     .flatMap(montantsDeLigne)
     .filter((v) => v >= 10 && v <= 100_000_000);
+  // En zone franc CFA, un prix tombe presque toujours sur un multiple de 5 :
+  // les valeurs qui n'en sont pas viennent souvent d'une référence mal lue.
+  const cfa = candidats.filter(montantPlausibleCfa);
+  if (cfa.length > 0) {
+    return {
+      montant: Math.max(...cfa),
+      source: "maximum",
+      explication: "Aucun total identifié : plus grand montant en FCFA retenu. À vérifier.",
+      coherence: structure.coherence,
+    };
+  }
   if (candidats.length > 0) {
     return {
       montant: Math.max(...candidats),
@@ -468,6 +479,11 @@ export function extraireType(texte: string): "revenu" | "depense" {
   const t = sansAccents(texte);
   const revenu = MOTS_REVENU.filter((m) => t.includes(sansAccents(m))).length;
   const depense = MOTS_DEPENSE.filter((m) => t.includes(sansAccents(m))).length;
+  if (revenu === depense) {
+    // Départage par le vocabulaire des reçus béninois (« reçu de », « retrait »…).
+    const local = contexteBenin(texte).sens;
+    if (local) return local;
+  }
   return revenu > depense ? "revenu" : "depense";
 }
 
@@ -496,7 +512,9 @@ export function extraireLibelle(texte: string): string {
     return nettoye || brut;
   }
 
-  // Ticket : la première ligne alphabétique significative est le commerçant.
+  // Ticket : enseigne locale reconnue, sinon première ligne significative.
+  const local = contexteBenin(texte);
+  if (local.enseigne && local.enseigne !== "Marché") return local.enseigne;
   const entete = lignes.find((l) => /[a-zA-ZÀ-ÿ]{3,}/.test(l) && !/total|facture|ticket/i.test(l));
   return (entete ?? lignes[0] ?? "").slice(0, 60).trim();
 }
@@ -512,6 +530,16 @@ export function devinerEnveloppe(
       .map((c) => sansAccents(c))
       .filter((c) => c.length >= 4);
     if (cles.some((c) => t.includes(c))) return e.id;
+  }
+  // Rien de littéral : on se rabat sur le type de commerce reconnu localement.
+  const categorie = contexteBenin(texte).categorie;
+  if (categorie) {
+    const trouvee = enveloppes.find((e) =>
+      [e.nom, e.categorie ?? "", e.sousCategorie ?? ""].some((c) =>
+        sansAccents(c).includes(categorie),
+      ),
+    );
+    if (trouvee) return trouvee.id;
   }
   return undefined;
 }
