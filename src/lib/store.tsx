@@ -446,15 +446,10 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
     objectifs: [...charge.objectifs, ...ajouts(actuel.objectifs, charge.objectifs)],
     corbeille: [...ajouts(actuel.corbeille, charge.corbeille), ...charge.corbeille],
-    enveloppes: [...charge.enveloppes, ...ajouts(actuel.enveloppes, charge.enveloppes)],
-    categories: [...charge.categories, ...ajouts(actuel.categories, charge.categories)],
-    comptes: [...charge.comptes, ...actuel.comptes.filter((c) => !charge.comptes.includes(c))],
-    comptesExclus: [
-      ...charge.comptesExclus,
-      ...actuel.comptesExclus.filter((c) => !charge.comptesExclus.includes(c)),
-    ],
-  };
-}
+    // Enveloppes, catégories et comptes ne sont PAS fusionnés : l'état
+    // initial en contient déjà par défaut, les réintroduire ressusciterait
+    // des éléments que l'utilisateur avait supprimés.
+
 
 
 const CLE = "superapp:etat:v1";
