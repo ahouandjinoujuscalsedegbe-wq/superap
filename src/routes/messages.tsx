@@ -12,7 +12,6 @@ import {
   definirLectureAuto,
   lectureAutoActive,
   marquerTraite,
-  messagesDepuisTexte,
   oublierApprentissageSms,
   reglesApprises,
   type OperationSms,
@@ -43,7 +42,6 @@ export const Route = createFileRoute("/messages")({
 function PageMessages() {
   const { comptes, enveloppes, ajouterTransaction } = useSuperApp();
   const [operations, setOperations] = useState<OperationSms[]>([]);
-  const [texte, setTexte] = useState("");
   const [auto, setAuto] = useState(false);
   const [scan, setScan] = useState(false);
   const [natif, setNatif] = useState(false);
@@ -83,16 +81,6 @@ function PageMessages() {
       setScan(false);
     }
   }, [contexte]);
-
-  const analyserTexte = () => {
-    const trouvees = analyserMessages(messagesDepuisTexte(texte), contexte, []);
-    if (trouvees.length === 0) {
-      toast.error("Aucune transaction reconnue dans ce texte.");
-      return;
-    }
-    setOperations((v) => [...trouvees, ...v]);
-    setTexte("");
-  };
 
   const majOperation = (id: string, champs: Partial<OperationSms>) =>
     setOperations((v) => v.map((o) => (o.id === id ? { ...o, ...champs } : o)));
