@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PiggyBank, Plus, Target, Trash2 } from "lucide-react";
+import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
-import { useSuperApp } from "@/lib/store";
+import { useSuperApp, type Objectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
+import { proposerAjustements } from "@/lib/ajustement-objectifs";
 
 export const Route = createFileRoute("/objectifs")({
   head: () => ({
@@ -54,10 +55,12 @@ function PageObjectifs() {
     comptes,
     comptesExclus,
     ajouterObjectif,
+    modifierObjectif,
     supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
+  const [enEdition, setEnEdition] = useState<string | null>(null);
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
@@ -67,11 +70,45 @@ function PageObjectifs() {
   const [compteEpargne, setCompteEpargne] = useState("");
   const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
+  const [ignores, setIgnores] = useState<string[]>([]);
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
     [objectifs, transactions, transferts],
   );
+
+  const ajustements = useMemo(
+    () => proposerAjustements(suivis, transactions).filter((a) => !ignores.includes(a.objectif.id)),
+    [suivis, transactions, ignores],
+  );
+
+  const reinitialiser = () => {
+    setEnEdition(null);
+    setLibelle("");
+    setCible("");
+    setDeja("");
+    setDateCible("");
+    setEnveloppeId("");
+    setCompteSource("");
+    setCompteEpargne("");
+    setPrelevementAuto(true);
+    setOuvert(false);
+  };
+
+  /** Ouvre le formulaire pré-rempli pour ajuster un objectif existant. */
+  const modifier = (o: Objectif) => {
+    setEnEdition(o.id);
+    setLibelle(o.libelle);
+    setCible(String(o.cible));
+    setDeja(String(o.deja));
+    setDateCible(o.dateCible);
+    setEnveloppeId(o.enveloppeId ?? "");
+    setCompteSource(o.compteSource ?? "");
+    setCompteEpargne(o.compteEpargne ?? "");
+    setPrelevementAuto(o.prelevementAuto ?? false);
+    setOuvert(true);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const enregistrer = () => {
     const montant = Number(cible.replace(/\s/g, ""));
@@ -103,7 +140,7 @@ function PageObjectifs() {
       // L'épargne d'un objectif ne doit jamais compter dans le solde disponible.
       if (!comptesExclus.includes(compteEpargne)) definirCompteDisponible(compteEpargne, false);
     }
-    ajouterObjectif({
+    const donnees = {
       libelle: libelle.trim(),
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
@@ -112,21 +149,19 @@ function PageObjectifs() {
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
-    });
-    toast.success(
-      prelevementAuto
-        ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
-        : "Objectif créé.",
-    );
-    setLibelle("");
-    setCible("");
-    setDeja("");
-    setDateCible("");
-    setEnveloppeId("");
-    setCompteSource("");
-    setCompteEpargne("");
-    setPrelevementAuto(true);
-    setOuvert(false);
+    };
+    if (enEdition) {
+      modifierObjectif(enEdition, donnees);
+      toast.success("Objectif ajusté.");
+    } else {
+      ajouterObjectif(donnees);
+      toast.success(
+        prelevementAuto
+          ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
+          : "Objectif créé.",
+      );
+    }
+    reinitialiser();
   };
 
   return (
@@ -145,16 +180,73 @@ function PageObjectifs() {
 
       <button
         type="button"
-        onClick={() => setOuvert(true)}
+        onClick={() => {
+          setEnEdition(null);
+          setOuvert(true);
+        }}
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
       >
         <Plus className="h-4 w-4" aria-hidden />
         Nouvel objectif
       </button>
 
+      {ajustements.length > 0 && (
+        <section className="space-y-2">
+          {ajustements.map((a) => (
+            <div
+              key={a.objectif.id}
+              className="carte space-y-2 border-warning/40 p-4"
+              role="status"
+            >
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-warning">
+                <Lightbulb className="h-4 w-4" aria-hidden />
+                Ajustement suggéré — {a.objectif.libelle}
+              </h2>
+              <p className="text-xs text-muted-foreground">{a.message}</p>
+              {a.dateProposee && (
+                <p className="text-xs">
+                  En épargnant {formatFCFA(a.effortTenable)}/mois, l'objectif serait atteint vers le{" "}
+                  {a.dateProposee}.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {a.dateProposee && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      modifierObjectif(a.objectif.id, { dateCible: a.dateProposee! });
+                      toast.success("Échéance repoussée à une date tenable.");
+                    }}
+                    className="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                  >
+                    Repousser l'échéance
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => modifier(a.objectif)}
+                  className="rounded-xl border border-input px-3 py-2 text-xs font-medium"
+                >
+                  Modifier moi-même
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIgnores((v) => [...v, a.objectif.id])}
+                  className="rounded-xl px-3 py-2 text-xs text-muted-foreground"
+                >
+                  Ignorer
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
       {ouvert && (
         <section className="carte space-y-3 p-4">
-          <h2 className="text-sm font-semibold">Créer un objectif</h2>
+          <h2 className="text-sm font-semibold">
+            {enEdition ? "Ajuster l'objectif" : "Créer un objectif"}
+          </h2>
           <label className="block text-xs font-medium text-muted-foreground">
             Nom de l'objectif
             <input
@@ -275,7 +367,7 @@ function PageObjectifs() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setOuvert(false)}
+              onClick={reinitialiser}
               className="flex-1 rounded-xl border border-input bg-card px-4 py-2 text-sm font-medium"
             >
               Annuler
@@ -285,7 +377,7 @@ function PageObjectifs() {
               onClick={enregistrer}
               className="flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
-              Enregistrer
+              {enEdition ? "Enregistrer les changements" : "Enregistrer"}
             </button>
           </div>
         </section>
@@ -311,14 +403,24 @@ function PageObjectifs() {
                   {s.objectif.dateCible}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setASupprimer(s.objectif.id)}
-                aria-label={`Supprimer l'objectif ${s.objectif.libelle}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" aria-hidden />
-              </button>
+              <div className="flex shrink-0 gap-1">
+                <button
+                  type="button"
+                  onClick={() => modifier(s.objectif)}
+                  aria-label={`Modifier l'objectif ${s.objectif.libelle}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary/10"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setASupprimer(s.objectif.id)}
+                  aria-label={`Supprimer l'objectif ${s.objectif.libelle}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
             </div>
 
             <div
