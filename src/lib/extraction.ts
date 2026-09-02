@@ -505,12 +505,19 @@ export function analyserTexte(
   enveloppes: { id: string; nom: string; categorie?: string; sousCategorie?: string }[] = [],
   aujourdHui = new Date(),
 ): OperationExtraite {
-  const montant = extraireMontant(texte) ?? 0;
+  const detail = detaillerMontant(texte);
+  const montant = detail.montant ?? 0;
   const libelle = extraireLibelle(texte);
   let confiance = 0;
-  if (montant > 0) confiance += 0.6;
-  if (libelle.length >= 3) confiance += 0.2;
-  if (/\d{1,2}[/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.2;
+  if (montant > 0) confiance += 0.5;
+  if (libelle.length >= 3) confiance += 0.15;
+  if (/\d{1,2}[/\-.]\d{1,2}/.test(texte) || /hier/i.test(texte)) confiance += 0.15;
+  // La provenance du montant pèse plus que sa simple présence.
+  if (detail.source === "total" || detail.source === "paiement") confiance += 0.15;
+  if (detail.source === "articles") confiance += 0.05;
+  if (detail.source === "maximum") confiance -= 0.2;
+  if (detail.coherence === "verifiee") confiance += 0.1;
+  if (detail.coherence === "incoherente") confiance -= 0.15;
 
   const indice = devinerEnveloppe(texte, enveloppes);
   return {
@@ -518,7 +525,11 @@ export function analyserTexte(
     montant,
     date: extraireDate(texte, aujourdHui),
     libelle: libelle || "Opération",
-    confiance: Math.min(1, Number(confiance.toFixed(2))),
+    confiance: Math.max(0, Math.min(1, Number(confiance.toFixed(2)))),
+    sourceMontant: detail.source,
+    explicationMontant: detail.explication,
+    coherence: detail.coherence,
     ...(indice ? { indiceEnveloppe: indice } : {}),
   };
 }
+
