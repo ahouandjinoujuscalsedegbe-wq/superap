@@ -404,14 +404,24 @@ function PageObjectifs() {
                   {s.objectif.dateCible}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setASupprimer(s.objectif.id)}
-                aria-label={`Supprimer l'objectif ${s.objectif.libelle}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" aria-hidden />
-              </button>
+              <div className="flex shrink-0 gap-1">
+                <button
+                  type="button"
+                  onClick={() => modifier(s.objectif)}
+                  aria-label={`Modifier l'objectif ${s.objectif.libelle}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary/10"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setASupprimer(s.objectif.id)}
+                  aria-label={`Supprimer l'objectif ${s.objectif.libelle}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
             </div>
 
             <div
