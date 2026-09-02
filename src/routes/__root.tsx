@@ -16,6 +16,7 @@ import { SuperAppProvider } from "@/lib/store";
 import { EcheancesAuto } from "@/components/EcheancesAuto";
 import { RemplissageAuto } from "@/components/RemplissageAuto";
 import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
+import { SmsAuto } from "@/components/SmsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
 import { BottomNav } from "../components/BottomNav";
 import { MenuPrincipal } from "../components/MenuPrincipal";
