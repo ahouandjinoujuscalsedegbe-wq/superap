@@ -14,6 +14,7 @@ import {
   structurerTicket,
   type OperationExtraite,
 } from "@/lib/extraction";
+import { contexteBenin } from "@/lib/tickets-benin";
 
 const CLE = "superapp:ocr:apprentissage:v1";
 
@@ -190,6 +191,8 @@ export type OperationAmelioree = OperationExtraite & {
   ajustements: string[];
   /** Nombre de fois où ce commerçant a déjà été validé. */
   experience: number;
+  /** Ce que le document dit du contexte local (enseigne, frais, sens). */
+  indicesLocaux: string[];
 };
 
 /**
@@ -201,12 +204,20 @@ export function appliquerApprentissage(
   texte: string,
   memoire = lireMemoireOcr(),
 ): OperationAmelioree {
+  const local = contexteBenin(texte);
   const trouve = trouverRegle(texte, extrait.libelle, memoire);
-  if (!trouve) return { ...extrait, ajustements: [], experience: 0 };
+  if (!trouve) {
+    return { ...extrait, ajustements: [], experience: 0, indicesLocaux: local.indices };
+  }
 
   const { regle } = trouve;
   const ajustements: string[] = [];
-  const resultat: OperationAmelioree = { ...extrait, ajustements, experience: regle.validations };
+  const resultat: OperationAmelioree = {
+    ...extrait,
+    ajustements,
+    experience: regle.validations,
+    indicesLocaux: local.indices,
+  };
 
   if (regle.sourcePreferee && regle.sourcePreferee !== extrait.sourceMontant) {
     const candidats = candidatsParSource(texte);

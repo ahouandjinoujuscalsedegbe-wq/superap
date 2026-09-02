@@ -1,3 +1,10 @@
+import {
+  contexteBenin,
+  ligneDeviseLocale,
+  ligneTotalLocale,
+  montantPlausibleCfa,
+} from "@/lib/tickets-benin";
+
 /**
  * Analyse de texte libre (OCR de ticket ou dictée vocale) pour en extraire
  * une opération : type, montant, date et libellé. Fonctions pures, testables.
@@ -215,9 +222,9 @@ export function montantsDeLigne(ligne: string): number[] {
   return trouves;
 }
 
-/** Vrai si la ligne cite explicitement la devise (fcfa, xof, f cfa, francs). */
+/** Vrai si la ligne cite explicitement la devise, y compris à la béninoise. */
 export function ligneAvecDevise(ligne: string): boolean {
-  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne));
+  return /\b(fcfa|xof|cfa|francs?|f\s*cfa)\b/.test(sansAccents(ligne)) || ligneDeviseLocale(ligne);
 }
 
 /** Structure décodée d'un ticket : lignes d'articles, total annoncé, TVA. */
@@ -234,6 +241,11 @@ export type StructureTicket = {
   /** Explication courte du montant retenu, affichable à l'utilisateur. */
   explication?: string;
 };
+
+/** Ligne annonçant la somme à payer, en français courant ou en formule locale. */
+function estLigneTotal(ligne: string): boolean {
+  return LIGNES_TOTAL.test(ligne) || ligneTotalLocale(ligne);
+}
 
 export function structurerTicket(texte: string): StructureTicket {
   const lignes = sansAccents(texte)
@@ -254,7 +266,7 @@ export function structurerTicket(texte: string): StructureTicket {
     let dernier = montants.length > 0 ? (montants[montants.length - 1] as number) : null;
 
     // Étiquette seule sur sa ligne (« TOTAL A PAYER ») : le montant est sur la suivante.
-    if (dernier === null && LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+    if (dernier === null && estLigneTotal(ligne) && !LIGNES_EXCLUES.test(ligne)) {
       const suite = montantsDeLigne(lignes[i + 1] ?? "");
       dernier = suite.length > 0 ? (suite[suite.length - 1] as number) : null;
       if (dernier !== null) i += 1;
@@ -277,7 +289,7 @@ export function structurerTicket(texte: string): StructureTicket {
       rendu = rendu ?? dernier;
       continue;
     }
-    if (LIGNES_TOTAL.test(ligne) && !LIGNES_EXCLUES.test(ligne)) {
+    if (estLigneTotal(ligne) && !LIGNES_EXCLUES.test(ligne)) {
       totalAnnonce = Math.max(totalAnnonce ?? 0, dernier) || dernier;
       continue;
     }
@@ -386,6 +398,17 @@ export function detaillerMontant(texte: string): {
     .filter((l) => !LIGNES_EXCLUES.test(l))
     .flatMap(montantsDeLigne)
     .filter((v) => v >= 10 && v <= 100_000_000);
+  // En zone franc CFA, un prix tombe presque toujours sur un multiple de 5 :
+  // les valeurs qui n'en sont pas viennent souvent d'une référence mal lue.
+  const cfa = candidats.filter(montantPlausibleCfa);
+  if (cfa.length > 0) {
+    return {
+      montant: Math.max(...cfa),
+      source: "maximum",
+      explication: "Aucun total identifié : plus grand montant en FCFA retenu. À vérifier.",
+      coherence: structure.coherence,
+    };
+  }
   if (candidats.length > 0) {
     return {
       montant: Math.max(...candidats),
@@ -456,6 +479,11 @@ export function extraireType(texte: string): "revenu" | "depense" {
   const t = sansAccents(texte);
   const revenu = MOTS_REVENU.filter((m) => t.includes(sansAccents(m))).length;
   const depense = MOTS_DEPENSE.filter((m) => t.includes(sansAccents(m))).length;
+  if (revenu === depense) {
+    // Départage par le vocabulaire des reçus béninois (« reçu de », « retrait »…).
+    const local = contexteBenin(texte).sens;
+    if (local) return local;
+  }
   return revenu > depense ? "revenu" : "depense";
 }
 
@@ -484,7 +512,9 @@ export function extraireLibelle(texte: string): string {
     return nettoye || brut;
   }
 
-  // Ticket : la première ligne alphabétique significative est le commerçant.
+  // Ticket : enseigne locale reconnue, sinon première ligne significative.
+  const local = contexteBenin(texte);
+  if (local.enseigne && local.enseigne !== "Marché") return local.enseigne;
   const entete = lignes.find((l) => /[a-zA-ZÀ-ÿ]{3,}/.test(l) && !/total|facture|ticket/i.test(l));
   return (entete ?? lignes[0] ?? "").slice(0, 60).trim();
 }
@@ -500,6 +530,16 @@ export function devinerEnveloppe(
       .map((c) => sansAccents(c))
       .filter((c) => c.length >= 4);
     if (cles.some((c) => t.includes(c))) return e.id;
+  }
+  // Rien de littéral : on se rabat sur le type de commerce reconnu localement.
+  const categorie = contexteBenin(texte).categorie;
+  if (categorie) {
+    const trouvee = enveloppes.find((e) =>
+      [e.nom, e.categorie ?? "", e.sousCategorie ?? ""].some((c) =>
+        sansAccents(c).includes(categorie),
+      ),
+    );
+    if (trouvee) return trouvee.id;
   }
   return undefined;
 }
