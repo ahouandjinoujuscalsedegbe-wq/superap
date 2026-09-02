@@ -286,7 +286,12 @@ function SaisieIntelligente() {
           });
         }
         setTexte(lu);
-        const extrait = analyserTexte(lu, enveloppes);
+        // Lecture brute, puis application de ce que l'application a déjà appris.
+        const extrait = appliquerApprentissage(analyserTexte(lu, enveloppes), lu);
+        if (extrait.ajustements.length > 0) {
+          toast.info(`Ticket ${i + 1} : ${extrait.ajustements.join(", ")} (déjà appris).`);
+        }
+
         const verdict = verifierAuthenticite(lu, {
           confianceOcr: confiance,
           dateOperation: extrait.date,
