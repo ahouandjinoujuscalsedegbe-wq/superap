@@ -16,6 +16,10 @@ type LecteurNatif = {
   getSMSList?: (options: {
     filter?: { minDate?: number; maxCount?: number };
   }) => Promise<{ smsList?: unknown[] }>;
+  addListener?: (
+    evenement: string,
+    rappel: () => void,
+  ) => Promise<{ remove: () => Promise<void> | void }> | { remove: () => void };
 };
 
 function lecteur(): LecteurNatif | null {
@@ -81,4 +85,23 @@ export async function lireSmsRecents(depuis?: number, maximum = 200): Promise<Me
   } catch {
     return [];
   }
+}
+
+/**
+ * S'abonne à l'arrivée d'un nouveau SMS pour analyser aussitôt le message.
+ * Renvoie une fonction de désabonnement (sans effet si le lecteur est absent).
+ */
+export function surNouveauSms(rappel: () => void): () => void {
+  const l = lecteur();
+  if (!l?.addListener) return () => {};
+  let retrait: (() => void) | null = null;
+  try {
+    const abonnement = l.addListener("smsRecu", rappel);
+    void Promise.resolve(abonnement).then((a) => {
+      retrait = () => void a.remove();
+    });
+  } catch {
+    return () => {};
+  }
+  return () => retrait?.();
 }

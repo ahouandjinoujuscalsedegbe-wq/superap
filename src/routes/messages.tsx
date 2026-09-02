@@ -182,7 +182,6 @@ function PageMessages() {
           </p>
         )}
 
-
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-success" aria-hidden />
           {apprises} règle(s) apprise(s) de vos validations.
