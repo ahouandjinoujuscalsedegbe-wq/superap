@@ -391,6 +391,22 @@ function SaisieIntelligente() {
       date: new Date(b.date).toISOString(),
     });
     if (b.type === "depense") apprendreEnveloppe(b.libelle, b.enveloppe);
+    // Leçon de lecture : ce qui était proposé face à ce qui a été validé.
+    if (b.origine === "ocr" && b.propose) {
+      apprendreTicket({
+        texte: b.texte,
+        propose: b.propose,
+        valide: {
+          montant: valeur,
+          libelle: b.libelle.trim() || "Opération",
+          type: b.type,
+          ...(b.type === "depense" && b.enveloppe ? { enveloppe: b.enveloppe } : {}),
+          compte: b.compte,
+        },
+      });
+      setFiabilite(fiabiliteOcr());
+    }
+
     const liste = ajouterHistoriqueSaisie({
       source: b.origine,
       type: b.type,
