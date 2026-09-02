@@ -167,6 +167,7 @@ function SaisieIntelligente() {
       verdict?: VerdictAuthenticite,
     ): Brouillon => {
       const ajustements = "ajustements" in resultat ? resultat.ajustements : [];
+      const indicesLocaux = "indicesLocaux" in resultat ? resultat.indicesLocaux : [];
       const experience = "experience" in resultat ? resultat.experience : 0;
       const enveloppeApprise =
         experience > 0 && resultat.indiceEnveloppe ? resultat.indiceEnveloppe : undefined;
@@ -201,7 +202,9 @@ function SaisieIntelligente() {
         compte: comptes[0] ?? COMPTES[0] ?? "",
         ...(verdict ? { verdict } : {}),
         ...(resultat.explicationMontant ? { explication: resultat.explicationMontant } : {}),
-        ...(ajustements.length > 0 ? { ajustements } : {}),
+        ...(ajustements.length > 0 || indicesLocaux.length > 0
+          ? { ajustements: [...indicesLocaux, ...ajustements] }
+          : {}),
         propose: {
           montant: montantRetenu || 0,
           libelle: resultat.libelle,
@@ -648,7 +651,7 @@ function SaisieIntelligente() {
                     )}
                     {(b.ajustements?.length ?? 0) > 0 && (
                       <p className="font-medium text-foreground">
-                        Appris de vos corrections : {b.ajustements?.join(", ")}.
+                        Lecture locale : {b.ajustements?.join(" ")}
                       </p>
                     )}
                   </div>
