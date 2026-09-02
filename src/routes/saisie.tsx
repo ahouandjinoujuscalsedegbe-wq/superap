@@ -94,7 +94,20 @@ type Brouillon = {
   verdict?: VerdictAuthenticite;
   /** L'utilisateur certifie avoir vérifié un ticket jugé douteux. */
   certifie?: boolean;
+  /** Explication du montant retenu par la lecture automatique. */
+  explication?: string;
+  /** Corrections appliquées grâce à l'expérience passée. */
+  ajustements?: string[];
+  /** Proposition initiale, comparée à la validation pour apprendre. */
+  propose?: {
+    montant: number;
+    libelle: string;
+    type: "revenu" | "depense";
+    enveloppe?: string;
+    sourceMontant?: OperationExtraite["sourceMontant"];
+  };
 };
+
 
 function SaisieIntelligente() {
   const { ajouterTransaction, enveloppes, comptes, sourcesRevenu, transactions } = useSuperApp();
