@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, GraduationCap, MessageSquareText, RotateCcw, Trash2, X } from "lucide-react";
+import {
+  AlertTriangle,
+  GraduationCap,
+  MessageSquareText,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   messagesInconnus,
@@ -22,7 +29,7 @@ import { useSuperApp } from "@/lib/store";
  * taux de réussite, ce qui a été retenu, et ce qui reste incompris.
  */
 export function TableauApprentissageSms({ version = 0 }: { version?: number }) {
-  const { etat } = useSuperApp();
+  const { enveloppes } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
   const [stats, setStats] = useState<StatsSms | null>(null);
   const [regles, setRegles] = useState<SouvenirSms[]>([]);
@@ -50,7 +57,7 @@ export function TableauApprentissageSms({ version = 0 }: { version?: number }) {
   }, [stats, reconnaissance, justesse]);
 
   const nomEnveloppe = (id?: string) =>
-    id ? (etat.enveloppes.find((e) => e.id === id)?.nom ?? "Enveloppe supprimée") : undefined;
+    id ? (enveloppes.find((e) => e.id === id)?.nom ?? "Enveloppe supprimée") : undefined;
 
   return (
     <>
@@ -82,10 +89,10 @@ export function TableauApprentissageSms({ version = 0 }: { version?: number }) {
 
           <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-16">
             <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground">
-                Opérations comprises sans correction
+              <p className="text-xs text-muted-foreground">Opérations comprises sans correction</p>
+              <p className="text-3xl font-bold text-primary">
+                {decides > 0 ? `${justesse} %` : "—"}
               </p>
-              <p className="text-3xl font-bold text-primary">{decides > 0 ? `${justesse} %` : "—"}</p>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
