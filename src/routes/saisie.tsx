@@ -27,6 +27,7 @@ import {
   fiabiliteOcr,
   type FiabiliteOcr,
   type OperationAmelioree,
+  type SourceMontant,
 } from "@/lib/ocr-apprentissage";
 
 import {
@@ -104,7 +105,7 @@ type Brouillon = {
     libelle: string;
     type: "revenu" | "depense";
     enveloppe?: string;
-    sourceMontant?: OperationExtraite["sourceMontant"];
+    sourceMontant?: SourceMontant;
   };
 };
 
@@ -124,6 +125,7 @@ function SaisieIntelligente() {
   const [ongletBas, setOngletBas] = useState<"historique" | "galerie" | null>(null);
   const [aSupprimer, setASupprimer] = useState<SaisieHistorique | null>(null);
   const [viderDemande, setViderDemande] = useState(false);
+  const [fiabilite, setFiabilite] = useState<FiabiliteOcr | null>(null);
   const fichier = useRef<HTMLInputElement>(null);
   const reco = useRef<ReturnType<typeof creerDictee>>(null);
   /** Empreintes des tickets déjà lus ou déjà enregistrés. */
@@ -132,6 +134,7 @@ function SaisieIntelligente() {
   useEffect(() => {
     const liste = lireHistoriqueSaisies();
     setHistorique(liste);
+    setFiabilite(fiabiliteOcr());
     empreintesConnues.current = liste
       .filter((s) => s.source === "ocr" && s.texte)
       .map((s) => empreinteTicket(s.texte));
