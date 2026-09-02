@@ -22,10 +22,7 @@ export function TableauApprentissageOcr() {
     if (ouvert) setMemoire(lireMemoireOcr());
   }, [ouvert]);
 
-  const fiabilite = useMemo(
-    () => (memoire ? fiabiliteOcr(memoire) : null),
-    [memoire],
-  );
+  const fiabilite = useMemo(() => (memoire ? fiabiliteOcr(memoire) : null), [memoire]);
 
   const commercants = useMemo(() => {
     if (!memoire) return [];
@@ -38,7 +35,10 @@ export function TableauApprentissageOcr() {
           justesse: total > 0 ? Math.round((regle.validations / total) * 100) : 0,
         };
       })
-      .sort((a, b) => b.regle.validations + b.regle.corrections - (a.regle.validations + a.regle.corrections));
+      .sort(
+        (a, b) =>
+          b.regle.validations + b.regle.corrections - (a.regle.validations + a.regle.corrections),
+      );
   }, [memoire]);
 
   return (
