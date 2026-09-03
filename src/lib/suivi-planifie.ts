@@ -98,3 +98,102 @@ export function comparerPlanifieEtReel(
     .map((l) => ({ ...l, ecart: l.reel - l.planifie }))
     .sort((a, z) => z.planifie + z.reel - (a.planifie + a.reel));
 }
+
+/** Axes de comparaison possibles entre planifié et réel. */
+export type AxeSuivi = "enveloppe" | "libelle" | "sous-categorie" | "categorie";
+
+export const AXES_SUIVI: ReadonlyArray<{ axe: AxeSuivi; titre: string; detail: string }> = [
+  {
+    axe: "enveloppe",
+    titre: "Enveloppe par enveloppe",
+    detail: "Comparer le planifié et le réel pour chaque enveloppe.",
+  },
+  {
+    axe: "libelle",
+    titre: "Dépense par dépense",
+    detail: "Comparer chaque dépense selon son libellé.",
+  },
+  {
+    axe: "sous-categorie",
+    titre: "Sous-catégorie par sous-catégorie",
+    detail: "Regrouper les montants par sous-catégorie d'enveloppe.",
+  },
+  {
+    axe: "categorie",
+    titre: "Catégorie par catégorie",
+    detail: "Vue d'ensemble par grande catégorie d'enveloppe.",
+  },
+];
+
+export type LigneSuivi = {
+  /** Libellé de la ligne (planifié ou réel). */
+  libelle: string;
+  date: string;
+  montant: number;
+  origine: "planifie" | "reel";
+};
+
+export type GroupeSuivi = {
+  cle: string;
+  emoji: string;
+  planifie: number;
+  reel: number;
+  ecart: number;
+  lignes: LigneSuivi[];
+};
+
+function cleDe(axe: AxeSuivi, env: Enveloppe | undefined, libelle: string): string {
+  if (axe === "enveloppe") return env?.nom ?? SANS_ENVELOPPE;
+  if (axe === "libelle") return libelle.trim() || "Sans libellé";
+  if (axe === "sous-categorie") return env?.sousCategorie?.trim() || "Sans sous-catégorie";
+  return env?.categorie?.trim() || "Sans catégorie";
+}
+
+/** Comparaison planifié / réel d'un mois, regroupée selon l'axe demandé. */
+export function comparerParAxe(
+  budgets: Budget[],
+  transactions: Transaction[],
+  enveloppes: Enveloppe[],
+  mois: string,
+  axe: AxeSuivi,
+): GroupeSuivi[] {
+  const par = new Map<string, GroupeSuivi>();
+  const groupe = (cle: string, emoji: string) => {
+    const existant = par.get(cle);
+    if (existant) return existant;
+    const cree: GroupeSuivi = { cle, emoji, planifie: 0, reel: 0, ecart: 0, lignes: [] };
+    par.set(cle, cree);
+    return cree;
+  };
+
+  for (const l of echeancesDuMois(budgets, mois)) {
+    const env = enveloppes.find((e) => e.id === l.budget.enveloppeId);
+    const g = groupe(cleDe(axe, env, l.budget.libelle), env?.emoji ?? "📄");
+    g.planifie += l.budget.montant;
+    g.lignes.push({
+      libelle: l.budget.libelle,
+      date: l.date,
+      montant: l.budget.montant,
+      origine: "planifie",
+    });
+  }
+
+  for (const d of depensesDuMois(transactions, enveloppes, mois)) {
+    const g = groupe(cleDe(axe, d.enveloppe, d.transaction.libelle), d.enveloppe?.emoji ?? "📄");
+    g.reel += d.transaction.montant;
+    g.lignes.push({
+      libelle: d.transaction.libelle,
+      date: d.transaction.date,
+      montant: d.transaction.montant,
+      origine: "reel",
+    });
+  }
+
+  return [...par.values()]
+    .map((g) => ({
+      ...g,
+      ecart: g.reel - g.planifie,
+      lignes: g.lignes.sort((a, z) => a.date.localeCompare(z.date)),
+    }))
+    .sort((a, z) => z.planifie + z.reel - (a.planifie + a.reel));
+}
