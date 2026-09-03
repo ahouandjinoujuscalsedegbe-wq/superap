@@ -225,6 +225,16 @@ function infosCategorie(pathname: string): { titre: string; sousTitre: string } 
   };
 }
 
+/** Renvoie le nom de la catégorie de compte lorsqu'on est sur une route /comptes/categorie/:nom. */
+function infosCategorieComptes(pathname: string): { titre: string; sousTitre: string } | null {
+  const match = pathname.match(/^\/comptes\/categorie\/(.+)$/);
+  if (!match || !match[1]) return null;
+  const nom = decodeURIComponent(match[1]).toLowerCase();
+  if (nom === "actifs") return { titre: "Comptes actifs", sousTitre: "Catégorie de compte" };
+  if (nom === "passifs") return { titre: "Comptes passifs", sousTitre: "Catégorie de compte" };
+  return null;
+}
+
 /** Texte propre d'un nœud (espaces normalisés). */
 function texteDe(n: Element | null | undefined): string {
   return (n?.textContent ?? "").replace(/\s+/g, " ").trim();
