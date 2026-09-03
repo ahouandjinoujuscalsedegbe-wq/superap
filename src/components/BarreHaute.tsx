@@ -225,6 +225,16 @@ function infosCategorie(pathname: string): { titre: string; sousTitre: string } 
   };
 }
 
+/** Renvoie le nom de la catégorie de compte lorsqu'on est sur une route /comptes/categorie/:nom. */
+function infosCategorieComptes(pathname: string): { titre: string; sousTitre: string } | null {
+  const match = pathname.match(/^\/comptes\/categorie\/(.+)$/);
+  if (!match || !match[1]) return null;
+  const nom = decodeURIComponent(match[1]).toLowerCase();
+  if (nom === "actifs") return { titre: "Comptes actifs", sousTitre: "Catégorie de compte" };
+  if (nom === "passifs") return { titre: "Comptes passifs", sousTitre: "Catégorie de compte" };
+  return null;
+}
+
 /** Texte propre d'un nœud (espaces normalisés). */
 function texteDe(n: Element | null | undefined): string {
   return (n?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -252,9 +262,9 @@ export function BarreHaute() {
   const accueil = pathname === "/";
   const pageEnveloppesAccueil =
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
-  const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
-  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
-  const categorieInfos = !accueil ? infosCategorie(pathname) : null;
+  const pageComptesAccueil = pathname === "/comptes" || pathname === "/comptes/";
+  const actions = pageComptesAccueil ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
+  const categorieInfos = !accueil ? infosCategorie(pathname) || infosCategorieComptes(pathname) : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : categorieInfos?.titre || entete.titre || titreDe(pathname);
@@ -527,7 +537,7 @@ export function BarreHaute() {
       <aside
         id="menu-actions-page"
         role="menu"
-        aria-label={pageComptes ? "Actions sur les comptes" : "Actions sur les enveloppes"}
+        aria-label={pageComptesAccueil ? "Actions sur les comptes" : "Actions sur les enveloppes"}
         aria-hidden={!actionOuvert}
         className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
@@ -574,7 +584,7 @@ export function BarreHaute() {
           </ul>
         </nav>
 
-        {pageComptes && comptes.length > 1 && (
+        {pageComptesAccueil && comptes.length > 1 && (
           <section
             aria-label="Ordre d'affichage des comptes"
             className="mt-4 border-t border-border pt-3"
