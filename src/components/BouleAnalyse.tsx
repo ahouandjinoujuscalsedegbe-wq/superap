@@ -355,8 +355,11 @@ export function BouleAnalyse() {
                           />
                           <button
                             type="button"
+                            disabled={!notes[s.id]}
+                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
                               appliquer(
+                                s.id,
                                 cle,
                                 s.plan.enveloppe.id,
                                 s.plan.enveloppe.nom,
@@ -365,17 +368,25 @@ export function BouleAnalyse() {
                                 d.montantPropose,
                               )
                             }
-                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground"
+                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
                           >
                             <ArrowRight aria-hidden className="h-3 w-3" />
                             Appliquer
                           </button>
                           <button
                             type="button"
+                            disabled={!notes[s.id]}
+                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              ignorer(cle, s.plan.enveloppe.nom, d.enveloppe.nom, d.montantPropose)
+                              ignorer(
+                                s.id,
+                                cle,
+                                s.plan.enveloppe.nom,
+                                d.enveloppe.nom,
+                                d.montantPropose,
+                              )
                             }
-                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
+                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground disabled:opacity-50"
                           >
                             Ignorer
                           </button>
