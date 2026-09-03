@@ -14,10 +14,14 @@ import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import {
   bilanSecours,
   enregistrerDecision,
+  lireMemoireSecours,
+  marquerTraitee,
   noterQualiteSolution,
   noterSolution,
+  purgerTraitees,
   solutionsSecours,
 } from "@/lib/analyse-secours";
+import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
@@ -42,7 +46,8 @@ export function BouleAnalyse() {
   const [ouvert, setOuvert] = useState(false);
   const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
-  const [faits, setFaits] = useState<string[]>([]);
+  /** Mémoire locale : les propositions déjà traitées n'y réapparaissent plus. */
+  const [memoire, setMemoire] = useState(() => lireMemoireSecours());
   const [bilan, setBilan] = useState(() => bilanSecours());
   /** Signature du contenu déjà consulté : sert à ne clignoter que sur du nouveau. */
   const [vu, setVu] = useState("");
@@ -135,22 +140,36 @@ export function BouleAnalyse() {
   );
 
   const solutions = useMemo(
-    () => solutionsSecours(enveloppes, depensesParEnveloppe, transactions),
-    [enveloppes, depensesParEnveloppe, transactions],
+    () => solutionsSecours(enveloppes, depensesParEnveloppe, transactions, new Date(), memoire),
+    [enveloppes, depensesParEnveloppe, transactions, memoire],
   );
+
+  // Une enveloppe redevenue saine libère son historique de propositions traitées.
+  useEffect(() => {
+    const suite = purgerTraitees(solutions.map((s) => s.id));
+    setMemoire((m) => (suite === m ? m : suite));
+  }, [solutions]);
+
+  // Enveloppe toujours en défaillance sans aucune piste de transfert : l'intelligence prévient.
+  useEffect(() => {
+    for (const s of solutions.filter((x) => x.sansTransfert)) {
+      void publierAlerteConseiller({
+        titre: `Aucun transfert possible pour ${s.plan.enveloppe.nom}`,
+        texte: `Toutes les pistes de secours ont été traitées ou épuisées, et ${s.plan.enveloppe.nom} reste en difficulté (${formatFCFA(s.plan.manque)} manquants). Voici ce que je conseille.`,
+        details: s.conseils,
+        urgent: true,
+      });
+    }
+  }, [solutions]);
 
   /** Empreinte du contenu en attente d'action : change dès qu'il y a du nouveau. */
   const signature = useMemo(() => {
     const a = alertes.map((x) => `${x.id}:${x.niveau}`).join("|");
     const s = solutions
-      .flatMap((x) =>
-        x.donneurs
-          .map((d) => `${x.id}-${d.enveloppe.id}-${d.montantPropose}`)
-          .filter((cle) => !faits.includes(cle)),
-      )
+      .flatMap((x) => x.donneurs.map((d) => `${x.id}-${d.enveloppe.id}-${d.montantPropose}`))
       .join("|");
     return `${a}#${s}`;
-  }, [alertes, solutions, faits]);
+  }, [alertes, solutions]);
 
   // Tant que l'onglet est ouvert, ce qui s'affiche est considéré comme consulté.
   useEffect(() => {
@@ -198,7 +217,7 @@ export function BouleAnalyse() {
         }),
       ),
     );
-    setFaits((l) => [...l, cle]);
+    setMemoire(marquerTraitee(cle));
     toast.success(`${formatFCFA(montant)} transférés vers ${cibleNom}`);
   };
 
@@ -221,7 +240,7 @@ export function BouleAnalyse() {
         }),
       ),
     );
-    setFaits((l) => [...l, cle]);
+    setMemoire(marquerTraitee(cle));
   };
 
   const ouvrirPopupNote = (ctx: NonNullable<typeof popupNote>) => {
@@ -348,7 +367,6 @@ export function BouleAnalyse() {
 
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
-                    if (faits.includes(cle)) return null;
                     return (
                       <div key={cle} className="mt-2 rounded-lg bg-muted/50 p-2">
                         <div className="flex items-center justify-between gap-2 text-xs font-medium">
@@ -412,6 +430,19 @@ export function BouleAnalyse() {
                       </div>
                     );
                   })}
+
+                  {s.sansTransfert && (
+                    <div className="mt-2 rounded-lg border border-warning/40 bg-warning/10 p-2">
+                      <p className="text-[11px] font-semibold">
+                        Plus aucun transfert sûr : {s.plan.enveloppe.nom} reste en difficulté.
+                      </p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4 text-[11px] leading-relaxed text-muted-foreground">
+                        {s.conseils.map((c, i) => (
+                          <li key={i}>{c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
                     <span>Cette solution vous a-t-elle aidé ?</span>

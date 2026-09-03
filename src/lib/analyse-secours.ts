@@ -34,9 +34,17 @@ export type MemoireSecours = {
   inutiles: number;
   /** Notes de 1 à 5 données aux solutions avant approbation ou rejet. */
   notes: number[];
+  /** Propositions déjà consultées et traitées : clé « cibleId-donneurId » → date. */
+  traitees: Record<string, string>;
 };
 
-export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0, notes: [] };
+export const MEMOIRE_VIDE: MemoireSecours = {
+  decisions: [],
+  utiles: 0,
+  inutiles: 0,
+  notes: [],
+  traitees: {},
+};
 
 const MAX_DECISIONS = 200;
 
@@ -68,7 +76,42 @@ function assainir(brut: unknown): MemoireSecours {
           .filter((n) => n >= 1)
           .slice(-MAX_DECISIONS)
       : [],
+    traitees:
+      o.traitees && typeof o.traitees === "object"
+        ? Object.fromEntries(
+            Object.entries(o.traitees as Record<string, unknown>)
+              .filter(([, v]) => typeof v === "string")
+              .map(([k, v]) => [k, String(v)]),
+          )
+        : {},
   };
+}
+
+/** Marque une proposition comme déjà consultée et traitée. */
+export function marquerTraitee(cle: string): MemoireSecours {
+  const m = lireMemoireSecours();
+  const suite: MemoireSecours = {
+    ...m,
+    traitees: { ...m.traitees, [cle]: new Date().toISOString() },
+  };
+  ecrire(suite);
+  return suite;
+}
+
+/**
+ * Oublie les propositions traitées qui ne concernent plus une enveloppe en
+ * défaillance : dès qu'une enveloppe redevient saine puis retombe en difficulté,
+ * l'intelligence repart d'une page blanche pour elle.
+ */
+export function purgerTraitees(ciblesEnDetresse: string[]): MemoireSecours {
+  const m = lireMemoireSecours();
+  const gardees = Object.entries(m.traitees).filter(([cle]) =>
+    ciblesEnDetresse.some((id) => cle.startsWith(`${id}-`)),
+  );
+  if (gardees.length === Object.keys(m.traitees).length) return m;
+  const suite: MemoireSecours = { ...m, traitees: Object.fromEntries(gardees) };
+  ecrire(suite);
+  return suite;
 }
 
 /** Note de 1 à 5 donnée par l'utilisateur avant d'approuver ou de rejeter une solution. */
@@ -158,7 +201,40 @@ export type SolutionSecours = {
   gravite: number;
   /** Ce que l'utilisateur gagne concrètement s'il applique la solution. */
   impact: string;
+  /** true quand toutes les pistes de transfert ont déjà été traitées ou sont épuisées. */
+  sansTransfert: boolean;
+  /** Conseils concrets, toujours renseignés même sans transfert possible. */
+  conseils: string[];
 };
+
+/** Conseils de repli : l'intelligence propose toujours quelque chose. */
+function conseilsRepli(plan: PlanSecours, couverture: number): string[] {
+  const restant = Math.max(0, Math.round(plan.manque - couverture));
+  const nom = plan.enveloppe.nom;
+  const liste: string[] = [];
+  if (plan.conseil) liste.push(plan.conseil);
+  if (restant > 0) {
+    liste.push(
+      `Suspendez toute nouvelle dépense sur ${nom} jusqu'au prochain renouvellement : il manque encore ${fcfaCourt(restant)}.`,
+    );
+    liste.push(
+      `Reportez ${fcfaCourt(restant)} de dépenses non vitales de ${nom} sur le mois suivant, ou étalez-les en deux fois.`,
+    );
+    liste.push(
+      `Augmentez la dotation de ${nom} dans « Proposition auto » du budget : le dépassement se répète sinon chaque mois.`,
+    );
+    liste.push(
+      `Si une rentrée est prévue, affectez-en ${fcfaCourt(restant)} en priorité à ${nom} dès sa réception.`,
+    );
+  } else {
+    liste.push(`Les transferts proposés suffisent : appliquez-les puis surveillez ${nom}.`);
+  }
+  return liste;
+}
+
+function fcfaCourt(v: number): string {
+  return `${Math.round(v).toLocaleString("fr-FR")} FCFA`;
+}
 
 /** Solutions issues de la fusion analyse + secours, de la plus urgente à la moins urgente. */
 export function solutionsSecours(
@@ -178,7 +254,10 @@ export function solutionsSecours(
           montantPropose: Math.max(0, Math.round(d.montantPropose * confiance)),
         };
       })
-      .filter((d) => d.montantPropose > 0)
+      // Une piste déjà consultée et traitée disparaît : l'intelligence en cherche une autre.
+      .filter(
+        (d) => d.montantPropose > 0 && !memoire.traitees[`${plan.enveloppe.id}-${d.enveloppe.id}`],
+      )
       .sort((a, b) => {
         if (a.prioritaire !== b.prioritaire) return a.prioritaire ? 1 : -1;
         return b.confiance * b.montantPropose - a.confiance * a.montantPropose;
@@ -198,7 +277,15 @@ export function solutionsSecours(
         ? `Aucun transfert sûr possible : la seule action utile est de suspendre les dépenses de ${plan.enveloppe.nom}.`
         : `En appliquant ces transferts, ${part}% du manque de ${plan.enveloppe.nom} est comblé et aucune autre enveloppe ne passe en dessous de ses dépenses prévues.`;
 
-    return { id: plan.enveloppe.id, plan, donneurs, gravite, impact };
+    return {
+      id: plan.enveloppe.id,
+      plan,
+      donneurs,
+      gravite,
+      impact,
+      sansTransfert: donneurs.length === 0,
+      conseils: conseilsRepli(plan, couverture),
+    };
   });
 }
 
