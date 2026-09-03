@@ -6,7 +6,7 @@ import {
   useState,
   type PointerEvent as PointerEventReact,
 } from "react";
-import { ArrowRight, LifeBuoy, Sparkles, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { ArrowRight, LifeBuoy, Sparkles, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCerveau } from "@/lib/cerveau/hook";
 import { useSuperApp } from "@/lib/store";
@@ -14,6 +14,7 @@ import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import {
   bilanSecours,
   enregistrerDecision,
+  noterQualiteSolution,
   noterSolution,
   solutionsSecours,
 } from "@/lib/analyse-secours";
