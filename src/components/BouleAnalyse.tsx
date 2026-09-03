@@ -124,7 +124,17 @@ export function BouleAnalyse() {
   const urgentes = alertes.filter((a) => a.niveau === "alerte").length + solutions.length;
   const total = alertes.length + solutions.length;
 
+  /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
+  const noteManquante = (solutionId: string) => {
+    if (!notes[solutionId]) {
+      toast.error("Donnez d'abord une note de 1 à 5 à cette solution.");
+      return true;
+    }
+    return false;
+  };
+
   const appliquer = (
+    solutionId: string,
     cle: string,
     cibleId: string,
     cibleNom: string,
@@ -132,6 +142,7 @@ export function BouleAnalyse() {
     donneurNom: string,
     propose: number,
   ) => {
+    if (noteManquante(solutionId)) return;
     const saisi = montants[cle];
     const montant = saisi ? Number(deGrouperMontant(saisi)) : propose;
     if (!montant || montant <= 0) {
