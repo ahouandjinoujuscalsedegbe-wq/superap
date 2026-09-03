@@ -9,7 +9,6 @@ import {
   reporterAlarme,
   type Alarme,
 } from "@/lib/alarme";
-import { idRappel, programmerNotificationsPlanifiees } from "@/lib/alarme-appareil";
 import { occurrencesEntre } from "@/lib/planning";
 
 /**
@@ -72,34 +71,6 @@ export function AlarmeIntelligente() {
       window.clearInterval(intervalle);
     };
   }, [recalculer, tick]);
-
-  // Rappels programmés à l'avance : le téléphone sonne le jour de la dépense
-  // planifiée, même si l'application n'a pas été ouverte entre-temps.
-  useEffect(() => {
-    const reglages = lireReglagesAlarme();
-    if (!reglages.active || !reglages.notification) return;
-
-    const aujourdHui = new Date();
-    const debut = aujourdHui.toISOString().slice(0, 10);
-    const fin = new Date(aujourdHui.getTime() + 90 * 86_400_000).toISOString().slice(0, 10);
-
-    const rappels: { id: number; titre: string; texte: string; quand: Date }[] = [];
-    for (const b of budgets) {
-      for (const date of occurrencesEntre(b, debut, fin)) {
-        const env = enveloppes.find((e) => e.id === b.enveloppeId);
-        // Sonnerie à l'heure de rappel choisie, avec l'avance des réglages.
-        const quand = new Date(`${date}T${b.heureRappel ?? "07:30"}:00`);
-        quand.setDate(quand.getDate() - reglages.avanceJours);
-        rappels.push({
-          id: idRappel(`${b.id}-${date}`),
-          titre: `${env ? `${env.emoji} ` : "📌 "}${b.libelle}`,
-          texte: `Dépense planifiée de ${Math.round(b.montant).toLocaleString("fr-FR")} FCFA le ${date}${b.heure ? ` à ${b.heure}` : ""}. À confirmer dans l'application.`,
-          quand,
-        });
-      }
-    }
-    void programmerNotificationsPlanifiees(rappels);
-  }, [budgets, enveloppes]);
 
   if (alarmes.length === 0) return null;
   const alarme = alarmes[0];

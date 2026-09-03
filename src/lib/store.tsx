@@ -443,8 +443,12 @@ type Contexte = Etat & {
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
-  /** L'échéance n'a pas été réalisée : on passe à la suivante sans dépense réelle. */
-  reporterBudget: (id: string) => void;
+  /**
+   * L'échéance n'a pas été réalisée : aucune dépense n'est créée et la
+   * dépense est replanifiée (prochaine occurrence, ou dans `joursReport`
+   * jours pour une dépense ponctuelle).
+   */
+  reporterBudget: (id: string, joursReport?: number) => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
   ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => void;
@@ -1174,12 +1178,19 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const reporterBudget = useCallback((id: string) => {
+  const reporterBudget = useCallback((id: string, joursReport = 1) => {
     setEtat((e) => ({
       ...e,
       budgets: e.budgets.map((b) => {
         if (b.id !== id) return b;
-        if (b.ponctuel !== false) return { ...b, actif: false };
+        // Dépense ponctuelle : on la replanifie automatiquement plus tard,
+        // en conservant l'heure choisie par l'utilisateur.
+        if (b.ponctuel !== false) {
+          const quand = new Date(b.prochaine);
+          quand.setDate(quand.getDate() + Math.max(1, Math.round(joursReport)));
+          return { ...b, actif: true, prochaine: quand.toISOString() };
+        }
+        // Dépense récurrente : on saute simplement à l'occurrence suivante.
         return { ...b, prochaine: avancerDate(b.prochaine, b.periode, b.intervalle) };
       }),
     }));
