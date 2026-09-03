@@ -245,6 +245,10 @@ export function bilanSecours(memoire = lireMemoireSecours()): BilanSecours {
     utiles: memoire.utiles,
     inutiles: memoire.inutiles,
     maturite,
+    noteMoyenne: memoire.notes.length
+      ? Math.round((memoire.notes.reduce((s, n) => s + n, 0) / memoire.notes.length) * 10) / 10
+      : 0,
+    notes: memoire.notes.length,
   };
 }
 
