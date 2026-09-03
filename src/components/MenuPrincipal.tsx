@@ -58,31 +58,37 @@ export function MenuPrincipal() {
     };
   }, [ouvert]);
 
+  const accueil = pathname === "/";
+
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOuvert((v) => !v)}
-        aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
-        aria-haspopup="menu"
-        aria-expanded={ouvert}
-        aria-controls="menu-principal"
-        className="surface fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[60] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
-      >
-        {ouvert ? (
-          <X className="h-5 w-5" aria-hidden />
-        ) : (
-          <MoreVertical className="h-5 w-5" aria-hidden />
-        )}
-      </button>
+      {accueil && (
+        <button
+          type="button"
+          onClick={() => setOuvert((v) => !v)}
+          aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-haspopup="menu"
+          aria-expanded={ouvert}
+          aria-controls="menu-principal"
+          className="surface fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[60] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+        >
+          {ouvert ? (
+            <X className="h-5 w-5" aria-hidden />
+          ) : (
+            <MoreVertical className="h-5 w-5" aria-hidden />
+          )}
+        </button>
+      )}
 
-      <Link
-        to="/recherche"
-        aria-label="Rechercher"
-        className="surface fixed right-14 top-[max(0.75rem,env(safe-area-inset-top))] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
-      >
-        <Search className="h-5 w-5" aria-hidden />
-      </Link>
+      {accueil && (
+        <Link
+          to="/recherche"
+          aria-label="Rechercher"
+          className="surface fixed right-14 top-[max(0.75rem,env(safe-area-inset-top))] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+        >
+          <Search className="h-5 w-5" aria-hidden />
+        </Link>
+      )}
 
       <div
         onClick={() => setOuvert(false)}
