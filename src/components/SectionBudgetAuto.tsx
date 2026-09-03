@@ -335,6 +335,16 @@ export function SectionBudgetAuto() {
         })}
       </ul>
 
+      {enveloppesProtegees.length > 0 && (
+        <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+          Vos dépenses planifiées ne sont pas touchées :{" "}
+          <span className="font-semibold text-foreground">
+            {enveloppesProtegees.map((e) => e.nom).join(", ")}
+          </span>{" "}
+          gardent exactement le budget que vous avez fixé.
+        </p>
+      )}
+
       {periodeMois !== 1 && (
         <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
           Sur la période {libellePeriode} ({periodeMois} mois), ce budget représente{" "}

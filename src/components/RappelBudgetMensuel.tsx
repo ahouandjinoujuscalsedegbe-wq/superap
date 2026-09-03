@@ -27,7 +27,7 @@ const PAS_BIP_MS = 3_000;
  * la proposition locale devient le budget du mois.
  */
 export function RappelBudgetMensuel() {
-  const { transactions, enveloppes, modifierEnveloppe, chargement } = useSuperApp();
+  const { transactions, enveloppes, budgets, modifierEnveloppe, chargement } = useSuperApp();
   const [visible, setVisible] = useState(false);
   const [sonne, setSonne] = useState(false);
   const bips = useRef<number | null>(null);
@@ -45,8 +45,11 @@ export function RappelBudgetMensuel() {
   /** Applique d'office la proposition locale (fin des deux premiers jours). */
   const appliquerProposition = useCallback(() => {
     const budget = ajusterAuRevenu(proposerDotations(transactions, enveloppes));
+    // Les enveloppes portant une dépense planifiée par l'utilisateur sont préservées.
+    const protegees = new Set(budgets.filter((b) => b.actif).map((b) => b.enveloppeId));
     let modifiees = 0;
     for (const p of budget.propositions) {
+      if (protegees.has(p.enveloppeId)) continue;
       const env = enveloppes.find((e) => e.id === p.enveloppeId);
       if (!env || p.proposee <= 0 || p.proposee === p.actuelle) continue;
       modifierEnveloppe(env.id, {
@@ -61,7 +64,7 @@ export function RappelBudgetMensuel() {
         `Budget du mois validé automatiquement : ${modifiees} enveloppe(s) ajustée(s) par l'analyse locale.`,
       );
     }
-  }, [transactions, enveloppes, modifierEnveloppe]);
+  }, [transactions, enveloppes, budgets, modifierEnveloppe]);
 
   const verifier = useCallback(() => {
     if (chargement) return;
