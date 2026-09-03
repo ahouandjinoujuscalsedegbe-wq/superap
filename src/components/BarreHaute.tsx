@@ -100,14 +100,63 @@ export function BarreHaute() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
+  const { nomUtilisateur } = useSuperApp();
+  const [entete, setEntete] = useState<{ titre: string; sousTitre: string }>({
+    titre: "",
+    sousTitre: "",
+  });
 
   const accueil = pathname === "/";
-  const titre = titreDe(pathname);
+  const titre = accueil
+    ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
+    : entete.titre || titreDe(pathname);
+  const sousTitre = accueil ? "Bonjour 👋" : entete.sousTitre;
 
   // Fermer après une navigation.
   useEffect(() => {
     setOuvert(false);
   }, [pathname]);
+
+  /**
+   * Reprise automatique de l'en-tête de la page dans la barre figée :
+   * le premier titre de la page (et son sous-titre) alimente la barre puis
+   * est masqué dans la page, afin de ne jamais afficher deux fois la même
+   * information. Fonctionne pour toutes les pages, sans réécrire chacune.
+   */
+  useEffect(() => {
+    if (accueil) {
+      setEntete({ titre: "", sousTitre: "" });
+      return;
+    }
+    let brut = 0;
+    const lire = () => {
+      const zone = document.querySelector("main");
+      const h1 = zone?.querySelector("h1");
+      if (!h1) return;
+      const t = texteDe(h1);
+      if (!t) return;
+      const suivant = h1.nextElementSibling;
+      const s =
+        suivant instanceof HTMLParagraphElement && texteDe(suivant).length <= 90
+          ? texteDe(suivant)
+          : "";
+      (h1 as HTMLElement).style.display = "none";
+      if (s) (suivant as HTMLElement).style.display = "none";
+      setEntete((p) => (p.titre === t && p.sousTitre === s ? p : { titre: t, sousTitre: s }));
+    };
+    const planifier = () => {
+      cancelAnimationFrame(brut);
+      brut = requestAnimationFrame(lire);
+    };
+    planifier();
+    const cible = document.querySelector("main");
+    const observateur = cible ? new MutationObserver(planifier) : null;
+    if (cible) observateur?.observe(cible, { childList: true, subtree: true });
+    return () => {
+      cancelAnimationFrame(brut);
+      observateur?.disconnect();
+    };
+  }, [pathname, accueil]);
 
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
