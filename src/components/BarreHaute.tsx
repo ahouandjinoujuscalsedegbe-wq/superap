@@ -584,53 +584,6 @@ export function BarreHaute() {
           </ul>
         </nav>
 
-        {pageComptesAccueil && comptes.length > 1 && (
-          <section
-            aria-label="Ordre d'affichage des comptes"
-            className="mt-4 border-t border-border pt-3"
-          >
-            <div className="flex items-center justify-between px-1 pb-2">
-              <span className="text-sm font-semibold">Ordre d'affichage</span>
-              {ordreComptes.length > 0 && (
-                <button
-                  type="button"
-                  onClick={reinitialiserOrdreComptes}
-                  className="inline-flex items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] text-muted-foreground transition-transform active:scale-95"
-                >
-                  <RotateCcw className="h-3 w-3" aria-hidden /> Alphabétique
-                </button>
-              )}
-            </div>
-            <ul className="space-y-1.5">
-              {ordreEffectifComptes(comptes, ordreComptes).map((c, i, liste) => (
-                <li
-                  key={c}
-                  className="flex items-center gap-2 rounded-lg border border-border/70 bg-secondary/40 px-2 py-1.5"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm">{c}</span>
-                  <button
-                    type="button"
-                    onClick={() => deplacerCompte(c, "haut")}
-                    disabled={i === 0}
-                    aria-label={`Monter ${c}`}
-                    className="rounded-full p-1.5 text-foreground transition-transform active:scale-95 disabled:opacity-30"
-                  >
-                    <ArrowUp className="h-4 w-4" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deplacerCompte(c, "bas")}
-                    disabled={i === liste.length - 1}
-                    aria-label={`Descendre ${c}`}
-                    className="rounded-full p-1.5 text-foreground transition-transform active:scale-95 disabled:opacity-30"
-                  >
-                    <ArrowDown className="h-4 w-4" aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </aside>
     </>
   );
