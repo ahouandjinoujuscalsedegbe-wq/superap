@@ -32,6 +32,7 @@ import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
 import { AlertesVersConseiller } from "@/components/AlertesVersConseiller";
+import { VeilleConseiller } from "@/components/VeilleConseiller";
 import { BouleAnalyse } from "@/components/BouleAnalyse";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 
@@ -196,6 +197,7 @@ function RootComponent() {
           <AlerteStockage />
           <AlarmeIntelligente />
           <AlertesVersConseiller />
+          <VeilleConseiller />
           <RappelBudgetMensuel />
           <BouleAnalyse />
         </SuperAppProvider>
