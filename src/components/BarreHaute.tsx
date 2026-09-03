@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 
 import { ordreEffectifComptes, useSuperApp } from "@/lib/store";
+import { CATEGORIE_LIBRE } from "@/lib/categories";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
