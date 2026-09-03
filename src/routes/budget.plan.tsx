@@ -506,8 +506,13 @@ function Budgetisation() {
                   })}
                 </ul>
               </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))
           )}
+
         </div>
       </section>
 
