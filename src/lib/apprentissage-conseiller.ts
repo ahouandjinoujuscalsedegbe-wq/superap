@@ -102,8 +102,7 @@ export function themeDeTexte(texte: string): ThemeConseiller {
     return "operations";
   if (t.includes("point du jour")) return "point";
   if (t.includes("apprentissage") || t.includes("intelligence")) return "collaboration";
-  if (t.includes("alerte") || t.includes("attention") || t.includes("dépassement"))
-    return "alerte";
+  if (t.includes("alerte") || t.includes("attention") || t.includes("dépassement")) return "alerte";
   return "general";
 }
 

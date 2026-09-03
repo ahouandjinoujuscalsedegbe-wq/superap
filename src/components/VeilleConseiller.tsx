@@ -15,6 +15,15 @@ import {
   type MemoireVeille,
   type PublicationVeille,
 } from "@/lib/veille-conseiller";
+import {
+  bilanCollaboration,
+  cadenceApprise,
+  ecrireProfilConseiller,
+  lireProfilConseiller,
+  noterEnvois,
+  poidsTheme,
+  themeDeIdentifiant,
+} from "@/lib/apprentissage-conseiller";
 
 const CLE_MEMOIRE = "super-app:veille-conseiller";
 
@@ -62,8 +71,29 @@ export function VeilleConseiller() {
     enCours.current = true;
     try {
       const memoire = lireMemoireVeille();
+      // Le conseiller relit d'abord ce qu'il a appris de vos réactions et de
+      // l'état des autres intelligences de l'application.
+      const profil = lireProfilConseiller();
+      const { bilan, profil: profilSuivant } = bilanCollaboration(profil);
+      if (profilSuivant !== profil) ecrireProfilConseiller(profilSuivant);
+      const themes = ["operations", "objectifs", "point", "alerte", "collaboration", "general"];
+      const poids = Object.fromEntries(themes.map((t) => [t, poidsTheme(profil, t)]));
       const { publications, memoire: suivante } = construireVeille(
         {
+          apprentissage: { poids, maxParPassage: cadenceApprise(profil) },
+          ...(bilan
+            ? {
+                extras: [
+                  {
+                    id: bilan.id,
+                    titre: bilan.titre,
+                    texte: bilan.texte,
+                    details: bilan.details,
+                    niveau: "message" as const,
+                  },
+                ],
+              }
+            : {}),
           faits: cerveau.faits,
           constats: cerveau.constats,
           operations: transactions.map((t) => ({
@@ -100,6 +130,9 @@ export function VeilleConseiller() {
       void programmerRappelsConseiller(rappels);
 
       if (publications.length === 0) return;
+      // Chaque envoi nourrit l'apprentissage : le conseiller mesure ensuite
+      // l'effet de ses messages grâce aux retours « utile / inutile ».
+      noterEnvois(publications.map((p) => themeDeIdentifiant(p.id)));
 
       const reglages = lireReglagesAlarme();
       // Aucune attente : chaque publication part immédiatement en message ET
