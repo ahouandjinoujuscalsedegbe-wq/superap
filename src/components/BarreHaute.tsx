@@ -14,6 +14,9 @@ import {
   TrendingUp,
   Search,
   MessageSquareText,
+  FolderTree,
+  RefreshCcw,
+  LifeBuoy,
 } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 
