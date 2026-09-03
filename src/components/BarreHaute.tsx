@@ -252,7 +252,6 @@ export function BarreHaute() {
   const accueil = pathname === "/";
   const pageEnveloppesAccueil =
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
-  const pageEnveloppesCategorie = !!infosCategorie(pathname);
   const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
   const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
   const categorieInfos = !accueil ? infosCategorie(pathname) : null;
