@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, beforeEach } from "vitest";
 import { construireEtatIA, type DonneesUnifiees } from "./ia-unifiee";
 import { repondreGeneral } from "./reponse-generale";
