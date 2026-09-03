@@ -14,6 +14,9 @@ import {
   TrendingUp,
   Search,
   MessageSquareText,
+  FolderTree,
+  RefreshCcw,
+  LifeBuoy,
 } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 
@@ -30,6 +33,40 @@ const ENTREES = [
   { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
   { to: "/journal", label: "Journal de diagnostic", icone: Stethoscope },
   { to: "/aide", label: "Aide", icone: HelpCircle },
+] as const;
+
+/** Options de la section « Action » de la page Enveloppes, ouvertes depuis la barre figée. */
+const ACTIONS_ENVELOPPES = [
+  {
+    to: "/enveloppes/categories",
+    label: "Gérer les catégories et sous-catégories",
+    detail: "Créez, renommez ou supprimez vos classements.",
+    icone: FolderTree,
+  },
+  {
+    to: "/enveloppes/gerer",
+    label: "Gérer les enveloppes",
+    detail: "Créer ou modifier une enveloppe existante.",
+    icone: FolderTree,
+  },
+  {
+    to: "/enveloppes/renouvellements",
+    label: "Détail des renouvellements",
+    detail: "Période, montant débité, compte source et part de revenu.",
+    icone: RefreshCcw,
+  },
+  {
+    to: "/enveloppes/budgetisation",
+    label: "Budget : plan, suivi et proposition",
+    detail: "Dépenses planifiées, comparaison au réel, budget auto.",
+    icone: Scale,
+  },
+  {
+    to: "/enveloppes/secours",
+    label: "Plan de secours (enveloppe épuisée)",
+    detail: "Transferts sûrs depuis d'autres enveloppes.",
+    icone: LifeBuoy,
+  },
 ] as const;
 
 /** Titre affiché dans la barre haute selon la page en cours. */
@@ -101,6 +138,7 @@ function texteDe(n: Element | null | undefined): string {
  */
 export function BarreHaute() {
   const [ouvert, setOuvert] = useState(false);
+  const [actionOuvert, setActionOuvert] = useState(false);
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
@@ -111,6 +149,7 @@ export function BarreHaute() {
   });
 
   const accueil = pathname === "/";
+  const pageEnveloppes = pathname === "/enveloppes" || pathname === "/enveloppes/";
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : entete.titre || titreDe(pathname);
@@ -119,6 +158,7 @@ export function BarreHaute() {
   // Fermer après une navigation.
   useEffect(() => {
     setOuvert(false);
+    setActionOuvert(false);
   }, [pathname]);
 
   /**
@@ -165,7 +205,10 @@ export function BarreHaute() {
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOuvert(false);
+      if (e.key === "Escape") {
+        setOuvert(false);
+        setActionOuvert(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -180,6 +223,15 @@ export function BarreHaute() {
       document.body.style.overflow = precedent;
     };
   }, [ouvert]);
+
+  useEffect(() => {
+    if (!actionOuvert) return;
+    const precedent = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = precedent;
+    };
+  }, [actionOuvert]);
 
   return (
     <>
@@ -233,21 +285,35 @@ export function BarreHaute() {
             </Link>
           )}
 
-          <button
-            type="button"
-            onClick={() => setOuvert((v) => !v)}
-            aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
-            aria-haspopup="menu"
-            aria-expanded={ouvert}
-            aria-controls="menu-principal"
-            className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
-          >
-            {ouvert ? (
-              <X className="h-5 w-5" aria-hidden />
-            ) : (
-              <MoreVertical className="h-5 w-5" aria-hidden />
-            )}
-          </button>
+          {pageEnveloppes ? (
+            <button
+              type="button"
+              onClick={() => setActionOuvert((v) => !v)}
+              aria-label={actionOuvert ? "Fermer les actions" : "Ouvrir les actions"}
+              aria-haspopup="menu"
+              aria-expanded={actionOuvert}
+              aria-controls="menu-actions-enveloppes"
+              className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform duration-200 active:scale-95"
+            >
+              Action
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setOuvert((v) => !v)}
+              aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-haspopup="menu"
+              aria-expanded={ouvert}
+              aria-controls="menu-principal"
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              {ouvert ? (
+                <X className="h-5 w-5" aria-hidden />
+              ) : (
+                <MoreVertical className="h-5 w-5" aria-hidden />
+              )}
+            </button>
+          )}
         </div>
       </header>
 
@@ -305,6 +371,64 @@ export function BarreHaute() {
                     />
                     <Icone className="h-[1.15rem] w-[1.15rem] shrink-0 text-primary" aria-hidden />
                     <span className="truncate">{e.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
+
+      {/* Panneau latéral « Action » réservé à la page Enveloppes. */}
+      <div
+        onClick={() => setActionOuvert(false)}
+        aria-hidden
+        className={`fixed inset-0 z-[70] bg-foreground/30 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
+          actionOuvert ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      <aside
+        id="menu-actions-enveloppes"
+        role="menu"
+        aria-label="Actions sur les enveloppes"
+        aria-hidden={!actionOuvert}
+        className={`fixed right-0 top-0 z-[70] flex h-[100dvh] w-[19rem] max-w-[88vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+          actionOuvert ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <span className="font-semibold">Action</span>
+          <button
+            type="button"
+            onClick={() => setActionOuvert(false)}
+            aria-label="Fermer les actions"
+            className="rounded-full p-1.5 text-foreground transition-transform duration-200 active:scale-95"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto overscroll-contain p-3">
+          <ul className="space-y-2">
+            {ACTIONS_ENVELOPPES.map((a) => {
+              const Icone = a.icone;
+              return (
+                <li key={a.to}>
+                  <Link
+                    to={a.to}
+                    role="menuitem"
+                    tabIndex={actionOuvert ? 0 : -1}
+                    onClick={() => setActionOuvert(false)}
+                    className="carte flex items-center gap-3 p-3 text-left transition-colors hover:bg-accent/40"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Icone className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{a.label}</span>
+                      <span className="block text-xs text-muted-foreground">{a.detail}</span>
+                    </span>
                   </Link>
                 </li>
               );
