@@ -262,9 +262,9 @@ export function BarreHaute() {
   const accueil = pathname === "/";
   const pageEnveloppesAccueil =
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
-  const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
-  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
-  const categorieInfos = !accueil ? infosCategorie(pathname) : null;
+  const pageComptesAccueil = pathname === "/comptes" || pathname === "/comptes/";
+  const actions = pageComptesAccueil ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
+  const categorieInfos = !accueil ? infosCategorie(pathname) || infosCategorieComptes(pathname) : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : categorieInfos?.titre || entete.titre || titreDe(pathname);
