@@ -78,11 +78,16 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
 ];
 
 function titreDe(pathname: string): string {
-  if (pathname === "/") return "SUPER APP";
+  if (pathname === "/") return "";
   for (const [prefix, titre] of TITRES) {
     if (pathname.startsWith(prefix)) return titre;
   }
-  return "SUPER APP";
+  return "";
+}
+
+/** Texte propre d'un nœud (espaces normalisés). */
+function texteDe(n: Element | null | undefined): string {
+  return (n?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 /**
