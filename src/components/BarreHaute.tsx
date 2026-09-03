@@ -10,6 +10,7 @@ import {
   CalendarRange,
   ShieldCheck,
   RefreshCw,
+  Scale,
   TrendingUp,
   Search,
   MessageSquareText,
