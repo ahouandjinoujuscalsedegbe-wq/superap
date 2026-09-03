@@ -377,7 +377,6 @@ function Budgetisation() {
           </div>
         )}
 
-
         <div className="space-y-3">
           <h3 className="text-sm font-medium">Dépenses planifiées à venir</h3>
           {budgets.length === 0 ? (

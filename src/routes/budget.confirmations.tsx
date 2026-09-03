@@ -56,8 +56,7 @@ function Page() {
                 {d.budget.libelle}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {formatFCFA(d.budget.montant)} · {env?.nom ?? "Sans enveloppe"} ·{" "}
-                {d.budget.compte}
+                {formatFCFA(d.budget.montant)} · {env?.nom ?? "Sans enveloppe"} · {d.budget.compte}
               </p>
               <p className="text-xs text-muted-foreground">
                 Prévue le {d.quand.toLocaleDateString("fr-FR")}

@@ -2,7 +2,12 @@ import { useCallback, useEffect } from "react";
 import { useSuperApp } from "@/lib/store";
 import { declencherAlarmeAppareil } from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
-import { echeancesDues, marquerRappelSonne, momentRappel, rappelNonSonne } from "@/lib/echeances-dues";
+import {
+  echeancesDues,
+  marquerRappelSonne,
+  momentRappel,
+  rappelNonSonne,
+} from "@/lib/echeances-dues";
 import { formatFCFA } from "@/lib/format";
 
 /**
