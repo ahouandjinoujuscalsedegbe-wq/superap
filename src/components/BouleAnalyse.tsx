@@ -173,25 +173,15 @@ export function BouleAnalyse() {
   /** Du nouveau non encore consulté : seule situation où la boule clignote. */
   const nouveau = signature !== vu && signature !== "#";
 
-  /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
-  const noteManquante = (solutionId: string) => {
-    if (!notes[solutionId]) {
-      toast.error("Donnez d'abord une note de 1 à 5 à cette solution.");
-      return true;
-    }
-    return false;
-  };
-
   const appliquer = (
-    solutionId: string,
     cle: string,
     cibleId: string,
     cibleNom: string,
     donneurId: string,
     donneurNom: string,
     propose: number,
+    note: number,
   ) => {
-    if (noteManquante(solutionId)) return;
     const saisi = montants[cle];
     const montant = saisi ? Number(deGrouperMontant(saisi)) : propose;
     if (!montant || montant <= 0) {
@@ -201,6 +191,7 @@ export function BouleAnalyse() {
     transfererEntreEnveloppes(donneurId, cibleId, montant);
     setBilan(
       bilanSecours(
+        noterQualiteSolution(note),
         enregistrerDecision({
           cible: cibleNom,
           donneur: donneurNom,
@@ -215,15 +206,15 @@ export function BouleAnalyse() {
   };
 
   const ignorer = (
-    solutionId: string,
     cle: string,
     cibleNom: string,
     donneurNom: string,
     propose: number,
+    note: number,
   ) => {
-    if (noteManquante(solutionId)) return;
     setBilan(
       bilanSecours(
+        noterQualiteSolution(note),
         enregistrerDecision({
           cible: cibleNom,
           donneur: donneurNom,
@@ -234,6 +225,26 @@ export function BouleAnalyse() {
       ),
     );
     setFaits((l) => [...l, cle]);
+  };
+
+  const ouvrirPopupNote = (ctx: NonNullable<typeof popupNote>) => {
+    setNoteTemp(0);
+    setPopupNote(ctx);
+  };
+
+  const confirmerNote = () => {
+    if (!popupNote || noteTemp < 1 || noteTemp > 5) {
+      toast.error("Veuillez donner une note de 1 à 5.");
+      return;
+    }
+    const { action, cle, cibleId, cibleNom, donneurId, donneurNom, propose } = popupNote;
+    if (action === "appliquer" && cibleId && donneurId) {
+      appliquer(cle, cibleId, cibleNom, donneurId, donneurNom, propose, noteTemp);
+    } else {
+      ignorer(cle, cibleNom, donneurNom, propose, noteTemp);
+    }
+    setPopupNote(null);
+    setNoteTemp(0);
   };
 
   return (
