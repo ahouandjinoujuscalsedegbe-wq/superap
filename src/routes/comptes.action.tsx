@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PencilLine, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { FormulaireCompte, type DemandeCompte } from "@/components/FormulaireCompte";
 import { suggererIcone } from "@/lib/icone-auto";
+import { enregistrerActionCompte } from "@/lib/historique-comptes";
 
 type Demande = DemandeCompte | { type: "suppression"; nom: string };
 
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/comptes/action")({
 });
 
 function ActionComptes() {
+  const navigate = useNavigate();
   const {
     comptes,
     comptesExclus,
@@ -38,6 +40,7 @@ function ActionComptes() {
     definirIconeCompte,
     definirCompteDisponible,
     transactions,
+    nomUtilisateur,
     transferts,
     soldesParCompte,
     ajouterTransaction,
@@ -67,6 +70,7 @@ function ActionComptes() {
 
   function confirmer() {
     if (!demande) return;
+    const auteur = nomUtilisateur?.trim() || "Utilisateur";
     if (demande.type === "renommage") {
       if (demande.disponible === comptesExclus.includes(demande.ancien)) {
         definirCompteDisponible(demande.ancien, demande.disponible);
@@ -85,10 +89,45 @@ function ActionComptes() {
           date: new Date().toISOString().slice(0, 10),
         });
       }
-      toast.success("Compte modifié.");
-    } else if (demande.type === "suppression") {
+      const changements = [
+        demande.nom !== demande.ancien ? `nom : « ${demande.ancien} » → « ${demande.nom} »` : null,
+        demande.ajustement !== 0
+          ? `solde ajusté de ${formatFCFA(Math.abs(demande.ajustement))}`
+          : null,
+        demande.disponible === comptesExclus.includes(demande.ancien)
+          ? `solde disponible : ${demande.disponible ? "compté" : "exclu"}`
+          : null,
+      ].filter(Boolean);
+      enregistrerActionCompte({
+        compte: demande.nom,
+        ancienNom: demande.ancien !== demande.nom ? demande.ancien : undefined,
+        action: demande.ancien !== demande.nom ? "renommage" : "modification",
+        auteur,
+        details: changements.length > 0 ? changements.join(" · ") : "logo mis à jour",
+      });
+      toast.success(`Compte « ${demande.nom} » enregistré.`, {
+        description: "Retour à la liste des comptes.",
+      });
+      setDemande(null);
+      setEnEdition(null);
+      navigate({ to: "/comptes" });
+      return;
+    }
+    if (demande.type === "suppression") {
       supprimerCompte(demande.nom);
-      toast.success("Compte supprimé.");
+      enregistrerActionCompte({
+        compte: demande.nom,
+        action: "suppression",
+        auteur,
+        details: "Compte retiré du foyer (solde nul, sans opération liée).",
+      });
+      toast.success(`Compte « ${demande.nom} » supprimé.`, {
+        description: "Retour à la liste des comptes.",
+      });
+      setDemande(null);
+      setEnEdition(null);
+      navigate({ to: "/comptes" });
+      return;
     }
     setDemande(null);
     setEnEdition(null);
@@ -169,9 +208,7 @@ function ActionComptes() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-base font-semibold">Modifier le compte</h3>
-                <p className="text-xs text-muted-foreground">
-                  Renommez le compte « {enEdition} ».
-                </p>
+                <p className="text-xs text-muted-foreground">Renommez le compte « {enEdition} ».</p>
               </div>
               <button
                 type="button"
@@ -210,17 +247,35 @@ function ActionComptes() {
         details={
           demande?.type === "renommage"
             ? [
+                {
+                  label: "Logo",
+                  avant: iconesComptes[demande.ancien] ?? suggererIcone(demande.ancien, "compte"),
+                  apres: demande.emoji || suggererIcone(demande.nom, "compte"),
+                },
                 { label: "Nom", avant: demande.ancien, apres: demande.nom },
                 {
                   label: "Solde",
                   avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
                   apres: formatFCFA((soldesParCompte[demande.ancien] ?? 0) + demande.ajustement),
                 },
+                {
+                  label: "Solde disponible",
+                  avant: comptesExclus.includes(demande.ancien) ? "Exclu" : "Compté",
+                  apres: demande.disponible ? "Compté" : "Exclu",
+                },
               ]
             : demande?.type === "suppression"
               ? [
+                  {
+                    label: "Logo",
+                    apres: iconesComptes[demande.nom] ?? suggererIcone(demande.nom, "compte"),
+                  },
                   { label: "Compte", apres: demande.nom },
                   { label: "Solde", apres: formatFCFA(soldesParCompte[demande.nom] ?? 0) },
+                  {
+                    label: "Solde disponible",
+                    apres: comptesExclus.includes(demande.nom) ? "Exclu" : "Compté",
+                  },
                 ]
               : []
         }

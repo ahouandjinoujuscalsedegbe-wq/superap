@@ -39,14 +39,19 @@ export function FormulaireCompte({
   const [solde, setSolde] = useState(
     compte !== undefined ? String(soldesParCompte[compte] ?? 0) : "",
   );
-  const [disponible, setDisponible] = useState(
-    compte !== undefined ? !comptesExclus.includes(compte) : true,
+  const [disponible, setDisponible] = useState<boolean | null>(
+    compte !== undefined ? !comptesExclus.includes(compte) : null,
   );
   const [emoji, setEmoji] = useState(
     compte !== undefined ? (iconesComptes[compte] ?? suggererIcone(compte, "compte")) : "👛",
   );
   const [emojiManuel, setEmojiManuel] = useState(compte !== undefined);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [erreurs, setErreurs] = useState<{
+    nom?: string;
+    solde?: string;
+    disponible?: string;
+  }>({});
 
   function auTexteDicte(texte: string) {
     const lu = analyserCompteDicte(texte);
@@ -62,39 +67,39 @@ export function FormulaireCompte({
   function soumettre(ev: React.FormEvent) {
     ev.preventDefault();
     const valeur = nom.trim();
-    if (!valeur) {
-      setErreur("Donnez un nom au compte avant de valider.");
-      return;
-    }
-    if (valeur.length > 30) {
-      setErreur("Nom trop long : 30 caractères maximum.");
-      return;
-    }
     const soldeSaisi = solde.trim() === "" ? 0 : Number(solde.replace(/[^\d-]/g, ""));
-    if (!Number.isFinite(soldeSaisi) || soldeSaisi < 0) {
-      setErreur("Le solde doit être un nombre positif en francs CFA.");
-      return;
-    }
+    const prochaines: { nom?: string; solde?: string; disponible?: string } = {};
+
+    if (!valeur) prochaines.nom = "Donnez un nom au compte avant de valider.";
+    else if (valeur.length > 30) prochaines.nom = "Nom trop long : 30 caractères maximum.";
+    else if (creation && comptes.includes(valeur))
+      prochaines.nom = `Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`;
+    else if (!creation && valeur !== compte && comptes.includes(valeur))
+      prochaines.nom = `Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`;
+
+    if (!Number.isFinite(soldeSaisi) || soldeSaisi < 0)
+      prochaines.solde = "Le solde doit être un nombre positif en francs CFA.";
+    else if (soldeSaisi > 1_000_000_000)
+      prochaines.solde = "Montant trop élevé : 1 000 000 000 FCFA au maximum.";
+
+    if (disponible === null)
+      prochaines.disponible = "Indiquez si ce compte est compté dans le solde disponible.";
+
+    setErreurs(prochaines);
+    if (Object.keys(prochaines).length > 0) return;
+
     if (creation) {
-      if (comptes.includes(valeur)) {
-        setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
-        return;
-      }
       onDemande({
         type: "creation",
         nom: valeur,
         solde: soldeSaisi,
-        disponible,
+        disponible: disponible === true,
         emoji: emoji.trim() || suggererIcone(valeur, "compte"),
       });
       return;
     }
     const ancien = compte;
     const ajustement = soldeSaisi - (soldesParCompte[ancien] ?? 0);
-    if (valeur !== ancien && comptes.includes(valeur)) {
-      setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
-      return;
-    }
     const disponibleActuel = !comptesExclus.includes(ancien);
     const iconeActuelle = iconesComptes[ancien] ?? "";
     if (
@@ -103,7 +108,9 @@ export function FormulaireCompte({
       disponible === disponibleActuel &&
       emoji.trim() === iconeActuelle
     ) {
-      setErreur("Rien n'a changé : modifiez le nom, le solde, le logo ou le disponible, ou annulez.");
+      setErreur(
+        "Rien n'a changé : modifiez le nom, le solde, le logo ou le disponible, ou annulez.",
+      );
       return;
     }
     onDemande({
@@ -111,7 +118,7 @@ export function FormulaireCompte({
       ancien,
       nom: valeur,
       ajustement,
-      disponible,
+      disponible: disponible === true,
       emoji: emoji.trim(),
     });
   }
@@ -141,7 +148,13 @@ export function FormulaireCompte({
             placeholder="Tontine du quartier"
             className={champ}
           />
-          <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
+          {erreurs.nom ? (
+            <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+              {erreurs.nom}
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
+          )}
         </div>
 
         <ChoixIcone
@@ -167,30 +180,62 @@ export function FormulaireCompte({
             placeholder="0"
             className={champ}
           />
-          <p className="mt-1 text-xs text-muted-foreground">
-            {creation
-              ? "Laissez 0 si le compte est vide."
-              : "Une correction crée une opération d'ajustement."}
-          </p>
+          {erreurs.solde ? (
+            <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+              {erreurs.solde}
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {creation
+                ? "Laissez 0 si le compte est vide."
+                : "Une correction crée une opération d'ajustement."}
+            </p>
+          )}
         </div>
 
-        <label className="flex items-start gap-3 rounded-xl border border-input bg-background/60 p-3">
-          <input
-            type="checkbox"
-            checked={disponible}
-            onChange={(ev) => setDisponible(ev.target.checked)}
-            className="mt-0.5 h-4 w-4"
-          />
-          <span className="min-w-0">
-            <span className="block text-sm font-medium">
-              Compter ce compte dans le solde disponible
-            </span>
-            <span className="block text-xs text-muted-foreground">
-              Décochez pour une épargne, une caisse ou un compte diamant : son solde et les
-              enveloppes alimentées par ce compte resteront hors du solde disponible.
-            </span>
-          </span>
-        </label>
+        <fieldset className="rounded-xl border border-input bg-background/60 p-3">
+          <legend className="px-1 text-sm font-medium">Solde disponible</legend>
+          <p className="text-xs text-muted-foreground">
+            Choisissez si le solde de ce compte entre dans le solde disponible du foyer.
+          </p>
+          <div className="mt-2 space-y-2">
+            <label className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="c-disponible"
+                checked={disponible === true}
+                onChange={() => setDisponible(true)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="min-w-0 text-sm">
+                Compté dans le solde disponible
+                <span className="block text-xs text-muted-foreground">
+                  Compte courant, mobile money, espèces du quotidien.
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="c-disponible"
+                checked={disponible === false}
+                onChange={() => setDisponible(false)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="min-w-0 text-sm">
+                Exclu du solde disponible
+                <span className="block text-xs text-muted-foreground">
+                  Épargne, caisse, compte diamant : le solde reste protégé.
+                </span>
+              </span>
+            </label>
+          </div>
+          {erreurs.disponible && (
+            <p role="alert" className="mt-2 text-xs font-medium text-destructive">
+              {erreurs.disponible}
+            </p>
+          )}
+        </fieldset>
 
         <div className="flex gap-2">
           <button

@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { History } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
+import { historiqueDuCompte, libelleAction } from "@/lib/historique-comptes";
 
 export const Route = createFileRoute("/comptes/$compte")({
   head: ({ params }) => {
@@ -38,6 +40,7 @@ function DetailCompte() {
   const { compte: brut } = Route.useParams();
   const compte = decodeURIComponent(brut);
   const { comptes, transactions, transferts, soldesParCompte, enveloppes } = useSuperApp();
+  const journal = useMemo(() => historiqueDuCompte(compte), [compte]);
   const [filtre, setFiltre] = useState<Filtre>("tout");
 
   const existe = comptes.includes(compte);
@@ -127,6 +130,34 @@ function DetailCompte() {
               </button>
             ))}
           </div>
+
+          <section className="carte space-y-2 p-4">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <History className="h-4 w-4" aria-hidden /> Historique du compte
+            </h2>
+            {journal.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Aucune action enregistrée sur ce compte pour le moment.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {journal.map((e) => (
+                  <li key={e.id} className="rounded-xl border border-border/70 bg-secondary/40 p-3">
+                    <p className="text-sm font-medium">{libelleAction(e.action)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateFr(e.date.slice(0, 10))} ·{" "}
+                      {new Date(e.date).toLocaleTimeString("fr-FR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      · {e.auteur}
+                    </p>
+                    <p className="mt-1 text-xs break-words">{e.details}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           {visibles.length === 0 ? (
             <p className="carte p-4 text-sm text-muted-foreground">
