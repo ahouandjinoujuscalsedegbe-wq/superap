@@ -23,7 +23,11 @@ import {
   assainirCategorie,
   assainirComptes,
   assainirDette,
+  assainirElementCorbeille,
   assainirEnveloppe,
+  assainirMembres,
+  assainirObjectif,
+  assainirRemplissage,
   assainirTransaction,
   assainirTransfert,
 } from "./validation";
