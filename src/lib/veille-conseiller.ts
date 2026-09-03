@@ -61,6 +61,14 @@ export type ObjectifVeille = {
 
 export type EntreeVeille = {
   faits: Faits;
+  /**
+   * Réglages appris par le conseiller : poids par thème (0,4 à 1,6) et nombre
+   * maximal de messages par passage. Le conseiller devient ainsi plus discret
+   * sur ce qui n'intéresse pas et plus insistant sur ce qui aide.
+   */
+  apprentissage?: { poids?: Record<string, number>; maxParPassage?: number };
+  /** Publications supplémentaires (bilan de collaboration entre IA…). */
+  extras?: PublicationVeille[];
   constats: Constat[];
   operations: OperationVeille[];
   objectifs: ObjectifVeille[];
@@ -85,11 +93,29 @@ function niveauDuConstat(constat: Constat): NiveauVeille {
   return "message";
 }
 
-function reposEcoule(memoire: MemoireVeille, id: string, niveau: NiveauVeille, maintenant: Date) {
+function reposEcoule(
+  memoire: MemoireVeille,
+  id: string,
+  niveau: NiveauVeille,
+  maintenant: Date,
+  poids = 1,
+) {
   const dernier = memoire.publie[id];
   if (!dernier) return true;
   const ecart = maintenant.getTime() - new Date(dernier).getTime();
-  return !Number.isFinite(ecart) || ecart >= REPOS_HEURES[niveau] * 3_600_000;
+  // Un thème jugé utile revient plus vite ; un thème jugé inutile attend plus.
+  const repos = (REPOS_HEURES[niveau] / Math.max(0.4, poids)) * 3_600_000;
+  return !Number.isFinite(ecart) || ecart >= repos;
+}
+
+/** Thème d'une publication, déduit de son identifiant. */
+function themeDe(id: string): string {
+  if (id.startsWith("operations")) return "operations";
+  if (id.startsWith("objectif")) return "objectifs";
+  if (id.startsWith("point")) return "point";
+  if (id.startsWith("collaboration")) return "collaboration";
+  if (id.startsWith("constat")) return "alerte";
+  return "general";
 }
 
 /**
@@ -197,12 +223,19 @@ export function construireVeille(
     suivante.dernierPoint = jour;
   }
 
-  // Filtrage : rien de redit avant la fin du repos, priorité aux alarmes.
+  for (const extra of entree.extras ?? []) candidates.push(extra);
+
+  // Filtrage : rien de redit avant la fin du repos, priorité aux alarmes,
+  // puis aux thèmes que l'utilisateur juge utiles.
+  const poidsDe = (id: string) => entree.apprentissage?.poids?.[themeDe(id)] ?? 1;
+  const maximum = Math.max(1, entree.apprentissage?.maxParPassage ?? MAX_PAR_PASSAGE);
   const ordre: Record<NiveauVeille, number> = { alarme: 0, alerte: 1, message: 2 };
   const publications = candidates
-    .filter((p) => reposEcoule(memoire, p.id, p.niveau, maintenant))
-    .sort((a, b) => ordre[a.niveau] - ordre[b.niveau])
-    .slice(0, MAX_PAR_PASSAGE);
+    .filter((p) => reposEcoule(memoire, p.id, p.niveau, maintenant, poidsDe(p.id)))
+    // Un thème rejeté par l'utilisateur ne reste que s'il est grave.
+    .filter((p) => p.niveau !== "message" || poidsDe(p.id) >= 0.6)
+    .sort((a, b) => ordre[a.niveau] - ordre[b.niveau] || poidsDe(b.id) - poidsDe(a.id))
+    .slice(0, maximum);
 
   for (const p of publications) suivante.publie[p.id] = maintenant.toISOString();
 

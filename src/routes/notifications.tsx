@@ -43,6 +43,7 @@ import {
   type MemoireCoach,
   type MessageCoach,
 } from "@/lib/coach";
+import { noterAvisConseiller } from "@/lib/apprentissage-conseiller";
 import { EVENEMENT_ALERTE } from "@/lib/alertes-conseiller";
 
 export const Route = createFileRoute("/notifications")({
@@ -271,6 +272,9 @@ function PageNotifications() {
   };
 
   const noter = (id: string, avis: "utile" | "inutile") => {
+    const message = memoireRef.current.messages.find((m) => m.id === id);
+    // Le conseiller apprend de chaque retour : thème, ton et fréquence.
+    if (message) noterAvisConseiller(message.texte, avis);
     enregistrer(apprendreAvis(memoireRef.current, id, avis));
     setSelection(null);
   };
