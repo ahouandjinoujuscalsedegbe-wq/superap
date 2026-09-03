@@ -187,7 +187,9 @@ function Accueil() {
             <span className="bouton-3d-brillance" aria-hidden />
             <Layers className="relative z-10 h-5 w-5" aria-hidden />
             <span className="relative z-10 font-semibold">Les enveloppes</span>
-            <span className="relative z-10 text-xs opacity-85">Toutes les enveloppes et leur état</span>
+            <span className="relative z-10 text-xs opacity-85">
+              Toutes les enveloppes et leur état
+            </span>
           </Link>
         </div>
         <div className="flex flex-col gap-3">

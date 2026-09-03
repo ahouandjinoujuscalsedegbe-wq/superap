@@ -208,12 +208,19 @@ export function BarreHaute() {
           )}
 
           <div className="min-w-0 flex-1">
-            {sousTitre && (
-              <p className="truncate text-[11px] leading-tight text-muted-foreground">{sousTitre}</p>
+            {accueil && sousTitre && (
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                {sousTitre}
+              </p>
             )}
             <p className="truncate text-base font-semibold leading-tight text-foreground">
               {titre}
             </p>
+            {!accueil && sousTitre && (
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                {sousTitre}
+              </p>
+            )}
           </div>
 
           {accueil && (
