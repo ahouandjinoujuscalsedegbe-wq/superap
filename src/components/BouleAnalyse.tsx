@@ -42,8 +42,6 @@ export function BouleAnalyse() {
   const [ouvert, setOuvert] = useState(false);
   const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
-  /** Note sur 5 donnée à chaque solution : obligatoire avant approbation ou rejet. */
-  const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
   /** Signature du contenu déjà consulté : sert à ne clignoter que sur du nouveau. */
@@ -53,6 +51,21 @@ export function BouleAnalyse() {
   const refBoule = useRef<HTMLButtonElement | null>(null);
   const aGlisse = useRef(false);
   const decalage = useRef({ x: 0, y: 0 });
+  /**
+   * Popup de notation obligatoire avant qu'une action (appliquer/ignorer)
+   * ne soit réellement prise en compte.
+   */
+  const [popupNote, setPopupNote] = useState<{
+    action: "appliquer" | "ignorer";
+    solutionId: string;
+    cle: string;
+    cibleId?: string;
+    cibleNom: string;
+    donneurId?: string;
+    donneurNom: string;
+    propose: number;
+  } | null>(null);
+  const [noteTemp, setNoteTemp] = useState(0);
 
   // Position mémorisée : la boule reste où l'utilisateur l'a posée, sur toutes les pages.
   useEffect(() => {
@@ -157,25 +170,15 @@ export function BouleAnalyse() {
   /** Du nouveau non encore consulté : seule situation où la boule clignote. */
   const nouveau = signature !== vu && signature !== "#";
 
-  /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
-  const noteManquante = (solutionId: string) => {
-    if (!notes[solutionId]) {
-      toast.error("Donnez d'abord une note de 1 à 5 à cette solution.");
-      return true;
-    }
-    return false;
-  };
-
   const appliquer = (
-    solutionId: string,
     cle: string,
     cibleId: string,
     cibleNom: string,
     donneurId: string,
     donneurNom: string,
     propose: number,
+    note: number,
   ) => {
-    if (noteManquante(solutionId)) return;
     const saisi = montants[cle];
     const montant = saisi ? Number(deGrouperMontant(saisi)) : propose;
     if (!montant || montant <= 0) {
@@ -183,6 +186,7 @@ export function BouleAnalyse() {
       return;
     }
     transfererEntreEnveloppes(donneurId, cibleId, montant);
+    noterQualiteSolution(note);
     setBilan(
       bilanSecours(
         enregistrerDecision({
@@ -199,13 +203,13 @@ export function BouleAnalyse() {
   };
 
   const ignorer = (
-    solutionId: string,
     cle: string,
     cibleNom: string,
     donneurNom: string,
     propose: number,
+    note: number,
   ) => {
-    if (noteManquante(solutionId)) return;
+    noterQualiteSolution(note);
     setBilan(
       bilanSecours(
         enregistrerDecision({
@@ -218,6 +222,26 @@ export function BouleAnalyse() {
       ),
     );
     setFaits((l) => [...l, cle]);
+  };
+
+  const ouvrirPopupNote = (ctx: NonNullable<typeof popupNote>) => {
+    setNoteTemp(0);
+    setPopupNote(ctx);
+  };
+
+  const confirmerNote = () => {
+    if (!popupNote || noteTemp < 1 || noteTemp > 5) {
+      toast.error("Veuillez donner une note de 1 à 5.");
+      return;
+    }
+    const { action, cle, cibleId, cibleNom, donneurId, donneurNom, propose } = popupNote;
+    if (action === "appliquer" && cibleId && donneurId) {
+      appliquer(cle, cibleId, cibleNom, donneurId, donneurNom, propose, noteTemp);
+    } else {
+      ignorer(cle, cibleNom, donneurNom, propose, noteTemp);
+    }
+    setPopupNote(null);
+    setNoteTemp(0);
   };
 
   return (
@@ -322,40 +346,6 @@ export function BouleAnalyse() {
                     <span>{s.impact}</span>
                   </p>
 
-                  {/* Note obligatoire de 1 à 5 avant d'approuver ou de rejeter. */}
-                  <div
-                    role="group"
-                    aria-label={`Noter la solution pour ${s.plan.enveloppe.nom}`}
-                    className="mt-2 flex flex-wrap items-center gap-1 text-[11px]"
-                  >
-                    <span className="mr-1 font-medium">Votre note sur 5 :</span>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        aria-label={`${n} sur 5`}
-                        aria-pressed={(notes[s.id] ?? 0) >= n}
-                        onClick={() => {
-                          setNotes((x) => ({ ...x, [s.id]: n }));
-                          setBilan(bilanSecours(noterQualiteSolution(n)));
-                        }}
-                        className="rounded-full p-0.5 hover:bg-secondary"
-                      >
-                        <Star
-                          aria-hidden
-                          className={`h-4 w-4 ${
-                            (notes[s.id] ?? 0) >= n
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                    <span className="text-muted-foreground">
-                      {notes[s.id] ? `${notes[s.id]}/5` : "Notez avant d'appliquer ou d'ignorer."}
-                    </span>
-                  </div>
-
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
                     if (faits.includes(cle)) return null;
@@ -385,38 +375,36 @@ export function BouleAnalyse() {
                           />
                           <button
                             type="button"
-                            disabled={!notes[s.id]}
-                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              appliquer(
-                                s.id,
+                              ouvrirPopupNote({
+                                action: "appliquer",
+                                solutionId: s.id,
                                 cle,
-                                s.plan.enveloppe.id,
-                                s.plan.enveloppe.nom,
-                                d.enveloppe.id,
-                                d.enveloppe.nom,
-                                d.montantPropose,
-                              )
+                                cibleId: s.plan.enveloppe.id,
+                                cibleNom: s.plan.enveloppe.nom,
+                                donneurId: d.enveloppe.id,
+                                donneurNom: d.enveloppe.nom,
+                                propose: d.montantPropose,
+                              })
                             }
-                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground"
                           >
                             <ArrowRight aria-hidden className="h-3 w-3" />
                             Appliquer
                           </button>
                           <button
                             type="button"
-                            disabled={!notes[s.id]}
-                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              ignorer(
-                                s.id,
+                              ouvrirPopupNote({
+                                action: "ignorer",
+                                solutionId: s.id,
                                 cle,
-                                s.plan.enveloppe.nom,
-                                d.enveloppe.nom,
-                                d.montantPropose,
-                              )
+                                cibleNom: s.plan.enveloppe.nom,
+                                donneurNom: d.enveloppe.nom,
+                                propose: d.montantPropose,
+                              })
                             }
-                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground disabled:opacity-50"
+                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
                           >
                             Ignorer
                           </button>
@@ -455,6 +443,79 @@ export function BouleAnalyse() {
             </div>
           )}
         </section>
+      )}
+
+      {/* Popup de notation obligatoire avant application ou rejet d'une solution. */}
+      {popupNote && (
+        <div
+          className="fixed inset-0 z-[68] flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPopupNote(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-note"
+            className="carte w-full max-w-sm space-y-4 p-4"
+          >
+            <h3 id="titre-note" className="text-sm font-semibold">
+              Noter la solution proposée
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Avant de{" "}
+              <strong className="text-foreground">
+                {popupNote.action === "appliquer" ? "appliquer" : "ignorer"}
+              </strong>{" "}
+              la proposition de secours, donnez une note de 1 à 5.
+            </p>
+
+            <div
+              role="group"
+              aria-label="Note sur 5"
+              className="flex items-center justify-center gap-1"
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} sur 5`}
+                  aria-pressed={noteTemp >= n}
+                  onClick={() => setNoteTemp(n)}
+                  className="rounded-full p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    aria-hidden
+                    className={`h-7 w-7 ${
+                      noteTemp >= n ? "fill-primary text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-xs font-medium text-muted-foreground">
+              {noteTemp > 0 ? `${noteTemp}/5` : "Touchez une étoile pour noter."}
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPopupNote(null)}
+                className="flex-1 rounded-full bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={noteTemp < 1 || noteTemp > 5}
+                onClick={confirmerNote}
+                className="flex-1 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Sphère 3D rose, déplaçable à la main, en lévitation permanente. */}
