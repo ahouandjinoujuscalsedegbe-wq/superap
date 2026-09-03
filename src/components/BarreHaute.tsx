@@ -7,11 +7,9 @@ import {
   Settings,
   HelpCircle,
   Stethoscope,
-  CalendarRange,
   ShieldCheck,
   RefreshCw,
   Scale,
-  TrendingUp,
   Search,
   MessageSquareText,
   FolderTree,
@@ -31,8 +29,6 @@ import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
 
 const ENTREES = [
-  { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
-  { to: "/previsions", label: "Prévisions mois par mois", icone: TrendingUp },
   { to: "/suivi", label: "Suivi réel / prévu", icone: Scale },
   { to: "/messages", label: "Messages de transaction", icone: MessageSquareText },
   { to: "/parametres", label: "Paramètres", icone: Settings },
