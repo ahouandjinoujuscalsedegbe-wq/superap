@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Inbox, MessageSquareText, RefreshCw, ShieldCheck, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { FiabiliteSms } from "@/components/FiabiliteSms";
 import { TableauApprentissageSms } from "@/components/TableauApprentissageSms";
 import { useSuperApp } from "@/lib/store";
@@ -150,7 +149,6 @@ function PageMessages() {
   return (
     <div className="space-y-4 pt-4">
       <header className="space-y-2">
-        <BoutonRetour to="/" label="Accueil" />
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <MessageSquareText className="h-6 w-6 text-primary" aria-hidden />
           Messages de transaction

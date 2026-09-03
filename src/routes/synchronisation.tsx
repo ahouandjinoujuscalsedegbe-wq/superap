@@ -15,7 +15,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { SectionSyncAuto } from "@/components/SectionSyncAuto";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp } from "@/lib/store";
@@ -461,7 +460,6 @@ function PageSynchronisation() {
   return (
     <div className="space-y-5 pb-8">
       <header className="space-y-2">
-        <BoutonRetour to="/parametres" label="Retour aux paramètres" />
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <RefreshCw className="h-6 w-6 text-primary" aria-hidden />
           Synchronisation par e-mail

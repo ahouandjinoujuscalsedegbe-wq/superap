@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { useSuperApp } from "@/lib/store";
 import { SectionRestauration } from "@/components/SectionRestauration";
 import { JournalDonnees } from "@/components/JournalDonnees";
@@ -30,7 +29,6 @@ function PageDonnees() {
 
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/parametres" label="Paramètres" />
       <h1 className="text-2xl font-bold tracking-tight">Données locales</h1>
 
       <section className="carte space-y-3 p-4">

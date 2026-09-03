@@ -6,7 +6,6 @@ import { suggererIcone } from "@/lib/icone-auto";
 import { Plus, Pencil, Trash2, ChevronDown, GripVertical, Undo2 } from "lucide-react";
 import type { CategorieEnveloppe } from "@/lib/store";
 import { useSuperApp } from "@/lib/store";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { PopupSaisie } from "@/components/PopupSaisie";
@@ -255,7 +254,6 @@ function PageCategories() {
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         <div className="flex-1">
-          <BoutonRetour to="/enveloppes/action" label="Retour à Action" compact />
         </div>
         <button
           type="button"

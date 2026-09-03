@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CalendarClock, Percent, Wallet } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
 import { prochainRenouvellement, totalVerse } from "@/lib/remplissage";
 import { useSuperApp, type Remplissage } from "@/lib/store";
@@ -69,7 +68,6 @@ function Renouvellements() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Détail des renouvellements</h1>

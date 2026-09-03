@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { SectionClavier } from "@/components/SectionClavier";
 
 export const Route = createFileRoute("/parametres/clavier")({
@@ -24,7 +23,6 @@ export const Route = createFileRoute("/parametres/clavier")({
 function PageClavier() {
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/parametres" label="Paramètres" />
       <h1 className="text-2xl font-bold tracking-tight">Clavier de l'application</h1>
       <SectionClavier />
     </div>

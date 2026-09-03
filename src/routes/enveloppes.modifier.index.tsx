@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ChevronDown, Pencil } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { grouperParCategorie } from "@/lib/categories";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { CarteEnveloppe } from "./enveloppes.details";
@@ -38,7 +37,6 @@ function ListeModification() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Modifier une enveloppe existante</h1>

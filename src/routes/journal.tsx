@@ -24,7 +24,6 @@ import {
   type NiveauJournal,
 } from "@/lib/journal";
 import { Confirmation } from "@/components/Confirmation";
-import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/journal")({
   head: () => ({
@@ -99,7 +98,6 @@ function PageJournal() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/parametres" label="Retour aux paramètres" />
 
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

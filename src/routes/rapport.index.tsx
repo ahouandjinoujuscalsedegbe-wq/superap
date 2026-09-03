@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ChevronRight, FileText, SlidersHorizontal, X } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { construireRapport, libelleMois, moisDisponibles } from "@/lib/rapport-mensuel";
@@ -75,7 +74,6 @@ function PageListeRapports() {
 
   return (
     <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
 
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">

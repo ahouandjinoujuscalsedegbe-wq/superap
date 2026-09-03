@@ -6,7 +6,6 @@ import { enregistrerActionEnveloppe } from "@/lib/historique-enveloppes";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { ChoixIcone } from "@/components/ChoixIcone";
 import { formatFCFA, grouperMontant } from "@/lib/format";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
@@ -303,7 +302,6 @@ function CreerEnveloppePage() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour aux actions" />
 
       <section className="carte space-y-1 p-4">
         <h2 className="text-lg font-semibold">Créer une nouvelle enveloppe</h2>

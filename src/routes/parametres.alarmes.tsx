@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlarmClock, Volume2 } from "lucide-react";
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import {
   debloquerAlarme,
   declencherAlarmeAppareil,
@@ -58,7 +57,6 @@ function PageAlarmes() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/parametres" label="Retour aux paramètres" />
 
       <section className="carte space-y-1 p-4">
         <h1 className="flex items-center gap-2 text-lg font-semibold">

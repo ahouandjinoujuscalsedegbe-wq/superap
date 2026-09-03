@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { SectionSecurite } from "@/components/SectionSecurite";
 
 export const Route = createFileRoute("/parametres/securite")({
@@ -24,7 +23,6 @@ export const Route = createFileRoute("/parametres/securite")({
 function PageSecurite() {
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/parametres" label="Paramètres" />
       <h1 className="text-2xl font-bold tracking-tight">Sécurité et verrouillage</h1>
       <SectionSecurite />
     </div>

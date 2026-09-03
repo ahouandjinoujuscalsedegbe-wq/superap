@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Bell, Lightbulb, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
@@ -124,7 +123,6 @@ function PageMois() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/" label="Retour à l'accueil" />
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Vue globale du mois</h1>

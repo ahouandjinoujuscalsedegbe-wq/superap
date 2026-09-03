@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { SectionMiseAJour } from "@/components/SectionMiseAJour";
 
 export const Route = createFileRoute("/parametres/mises-a-jour")({
@@ -23,7 +22,6 @@ export const Route = createFileRoute("/parametres/mises-a-jour")({
 function PageMisesAJour() {
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/parametres" label="Paramètres" />
       <h1 className="text-2xl font-bold tracking-tight">Mises à jour</h1>
       <SectionMiseAJour />
     </div>
