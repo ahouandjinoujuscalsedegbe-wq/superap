@@ -347,7 +347,6 @@ function CreerEnveloppePage() {
               setEmoji(e);
             }}
           />
-          </div>
         </section>
 
         <section className="carte space-y-3 p-4">
