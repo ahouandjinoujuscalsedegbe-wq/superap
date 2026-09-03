@@ -315,13 +315,17 @@ export async function recevoir(local: Etat, r: ReglagesAuto): Promise<ResultatFu
   let etat = local;
   let ajoutes = 0;
   let curseur = r.curseur;
+  let base = lireBase();
   for (const ligne of lignes) {
     curseur = Math.max(curseur, Number(ligne.id));
     try {
       const enveloppe = JSON.parse(ligne.contenu) as EnveloppeChiffree;
       const distant = await dechiffrer<Partial<Etat>>(enveloppe, r.phrase);
-      const fusion = fusionnerEtat(etat, distant);
+      const fusion = fusionnerEtat(etat, distant, base);
       etat = fusion.etat;
+      // Le dépôt qui vient d'être intégré devient la nouvelle référence
+      // commune : la prochaine modification distante sera donc reconnue.
+      base = { ...base, ...distant };
       ajoutes += fusion.ajoutes;
     } catch {
       journaliser(
