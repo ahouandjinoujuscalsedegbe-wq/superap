@@ -214,6 +214,17 @@ function titreDe(pathname: string): string {
   return "";
 }
 
+/** Renvoie le nom de la catégorie d'enveloppe lorsqu'on est sur une route /enveloppes/categorie/:nom. */
+function infosCategorie(pathname: string): { titre: string; sousTitre: string } | null {
+  const match = pathname.match(/^\/enveloppes\/categorie\/(.+)$/);
+  if (!match) return null;
+  const nom = decodeURIComponent(match[1]);
+  return {
+    titre: nom === CATEGORIE_LIBRE ? "Sans catégorie" : nom,
+    sousTitre: "Catégorie d'enveloppe",
+  };
+}
+
 /** Texte propre d'un nœud (espaces normalisés). */
 function texteDe(n: Element | null | undefined): string {
   return (n?.textContent ?? "").replace(/\s+/g, " ").trim();
