@@ -338,14 +338,14 @@ function Budgetisation() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setPopupOuvert(true)}
+        <Link
+          to="/budget/planifier"
           className="inline-flex items-center gap-1 rounded-xl bg-primary px-2 py-1.5 text-xs font-semibold text-primary-foreground"
         >
           <Plus aria-hidden className="h-3.5 w-3.5" />
           Planifier une dépense
-        </button>
+        </Link>
+
       </div>
 
       <section className="carte space-y-4 p-4">
