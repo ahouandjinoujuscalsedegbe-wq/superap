@@ -152,7 +152,9 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
                   ? "Précisez sur quel temps s'étend la périodicité."
                   : !debut
                     ? "Choisissez le jour de la dépense."
-                    : periodique && frequence && duree && occurrencesPrevues < 2
+                    : !existant && debut < jourISO(new Date())
+                      ? "Le jour de la dépense ne peut pas être dans le passé."
+                      : periodique && frequence && duree && occurrencesPrevues < 2
                       ? "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée."
                       : "";
     if (erreur) {
