@@ -122,6 +122,10 @@ const ACTIONS_COMPTES = [
 
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
+  ["/budget/plan", "Plan des dépenses"],
+  ["/budget/suivi", "Suivi du mois"],
+  ["/budget/auto", "Proposition auto"],
+  ["/budget", "Budgétisation"],
   ["/revenu", "Ajouter un revenu"],
   ["/depense", "Ajouter une dépense"],
   ["/saisie", "Saisie intelligente"],
@@ -131,7 +135,6 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/comptes/creer", "Créer un compte"],
   ["/comptes/action", "Comptes existants"],
   ["/comptes", "Comptes"],
-  ["/enveloppes/budgetisation", "Budgétisation"],
   ["/enveloppes/budget-mensuel", "Budget mensuel"],
   ["/enveloppes/categorie", "Catégorie"],
   ["/enveloppes/categories", "Catégories"],

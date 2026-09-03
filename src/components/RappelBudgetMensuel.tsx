@@ -157,8 +157,7 @@ export function RappelBudgetMensuel() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               <Link
-                to="/enveloppes/budgetisation"
-                search={{ onglet: "auto" }}
+                to="/budget/auto"
                 onClick={arreterSonnerie}
                 className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground"
               >

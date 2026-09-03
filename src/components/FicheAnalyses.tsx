@@ -255,7 +255,7 @@ export function FicheAnalyses() {
       </div>
 
       <Link
-        to="/enveloppes/budgetisation"
+        to="/budget"
         className="carte flex items-center justify-between gap-3 p-4 text-sm font-semibold"
       >
         Ouvrir la proposition de budget

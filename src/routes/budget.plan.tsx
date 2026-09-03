@@ -1,5 +1,5 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
@@ -7,10 +7,8 @@ import { formatFCFA, formatDateFr, grouperMontant } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
-import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
-import { SectionBudgetAuto } from "@/components/SectionBudgetAuto";
 
-export const Route = createFileRoute("/enveloppes/budgetisation")({
+export const Route = createFileRoute("/budget/plan")({
   head: () => ({
     meta: [
       { title: "Budgétisation — Prévoir vos dépenses par période en FCFA" },
@@ -133,16 +131,8 @@ function Budgetisation() {
     | null;
   const [demande, setDemande] = useState<Demande>(null);
 
-  const search = useSearch({ from: Route.id }) as { onglet?: "plan" | "suivi" | "auto" };
   const [popupOuvert, setPopupOuvert] = useState(false);
-  const [onglet, setOnglet] = useState<"plan" | "suivi" | "auto">(search.onglet ?? "plan");
   const [ouverte, setOuverte] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (search.onglet && ["plan", "suivi", "auto"].includes(search.onglet)) {
-      setOnglet(search.onglet);
-    }
-  }, [search.onglet]);
   const [calendrierOuvert, setCalendrierOuvert] = useState(false);
 
   // Réponses du questionnaire
@@ -330,34 +320,7 @@ function Budgetisation() {
         </button>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {(
-          [
-            { id: "plan", label: "Plan" },
-            { id: "suivi", label: "Suivi du mois" },
-            { id: "auto", label: "Proposition auto" },
-          ] as const
-        ).map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => setOnglet(o.id)}
-            aria-pressed={onglet === o.id}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${
-              onglet === o.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground"
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-
-      {onglet === "suivi" && <FicheSuiviBudget />}
-      {onglet === "auto" && <SectionBudgetAuto />}
-
-      <section className={onglet === "plan" ? "carte space-y-4 p-4" : "hidden"}>
+      <section className="carte space-y-4 p-4">
         <div>
           <h2 className="text-lg font-semibold">Budgétisation</h2>
           <p className="text-sm text-muted-foreground">

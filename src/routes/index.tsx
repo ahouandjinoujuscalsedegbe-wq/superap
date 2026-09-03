@@ -127,10 +127,7 @@ function Accueil() {
           <ul className="space-y-1.5 text-sm">
             {echeancesProches.map((b) => (
               <li key={b.id} className="flex justify-between gap-2">
-                <Link
-                  to="/enveloppes/budgetisation"
-                  className="truncate underline-offset-2 hover:underline"
-                >
+                <Link to="/budget" className="truncate underline-offset-2 hover:underline">
                   {b.libelle} · {formatDateFr(b.prochaine)}
                 </Link>
                 <span className="shrink-0 font-semibold">{formatFCFA(b.montant)}</span>
@@ -172,7 +169,7 @@ function Accueil() {
             <span className="relative z-10 text-xs opacity-85">Salaire, activité, aide…</span>
           </Link>
           <Link
-            to="/enveloppes/budgetisation"
+            to="/budget"
             className="bouton-3d bouton-3d-budget relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />

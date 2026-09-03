@@ -146,7 +146,7 @@ export function rechercher(requete: string, s: SourcesRecherche, maximum = 40): 
       montant: b.montant,
       sens: -1,
       date: b.prochaine,
-      lien: "/enveloppes/budgetisation",
+      lien: "/budget",
       score,
     });
   }
