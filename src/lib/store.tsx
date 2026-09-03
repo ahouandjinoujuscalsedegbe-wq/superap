@@ -292,6 +292,11 @@ export type Etat = {
    * Leur solde et les enveloppes qui en tirent leur source ne sont pas comptés.
    */
   comptesExclus: string[];
+  /**
+   * Ordre d'affichage personnalisé des comptes. Vide = tri alphabétique
+   * automatique ; sinon, les comptes listés ici priment sur l'alphabet.
+   */
+  ordreComptes: string[];
   transferts: Transfert[];
   /** Approvisionnements des enveloppes depuis les comptes. */
   remplissages: Remplissage[];
@@ -310,6 +315,17 @@ export type Etat = {
 export const JOURS_CORBEILLE = 30;
 
 /**
+ * Ordre d'affichage effectif des comptes : ordre personnalisé s'il existe
+ * (complété par les comptes nouveaux), sinon tri alphabétique français.
+ */
+export function ordreEffectifComptes(comptes: string[], ordre: string[]): string[] {
+  const personnalise = ordre.filter((c) => comptes.includes(c));
+  const base = personnalise.length > 0 ? personnalise : [...comptes].sort((a, b) => a.localeCompare(b, "fr"));
+  for (const c of comptes) if (!base.includes(c)) base.push(c);
+  return base;
+}
+
+/**
  * Ramène un état de provenance inconnue (stockage, sauvegarde importée,
  * dépôt de synchronisation) à un état sain : tout élément invalide est écarté
  * plutôt que d'empoisonner les soldes.
@@ -325,7 +341,9 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
     comptesExclus: brut.comptesExclus
       ? assainirComptes(brut.comptesExclus)
-      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+          : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+    ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
+
 
     transferts: assainirListe(brut.transferts, assainirTransfert),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
@@ -347,6 +365,7 @@ const ETAT_INITIAL: Etat = {
   categories: CATEGORIES_PAR_DEFAUT,
   comptes: [...COMPTES],
   comptesExclus: [],
+  ordreComptes: [],
   transferts: [],
   remplissages: [],
   budgets: [],
@@ -367,6 +386,10 @@ type Contexte = Etat & {
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
   renommerCompte: (ancien: string, nouveau: string) => void;
   supprimerCompte: (nom: string) => void;
+  /** Déplace un compte d'un cran dans l'ordre d'affichage personnalisé. */
+  deplacerCompte: (nom: string, sens: "haut" | "bas") => void;
+  /** Rétablit le tri alphabétique automatique des comptes. */
+  reinitialiserOrdreComptes: () => void;
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
   supprimerTransfert: (id: string) => void;
   /** Crée l'enveloppe et renvoie son identifiant (null si refusée). */
@@ -747,6 +770,21 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         comptesExclus: e.comptesExclus.filter((c) => c !== nom),
       };
     });
+  }, []);
+
+  const deplacerCompte = useCallback((nom: string, sens: "haut" | "bas") => {
+    setEtat((e) => {
+      const base = ordreEffectifComptes(e.comptes, e.ordreComptes);
+      const i = base.indexOf(nom);
+      const j = sens === "haut" ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= base.length) return e;
+      [base[i], base[j]] = [base[j]!, base[i]!];
+      return { ...e, ordreComptes: base };
+    });
+  }, []);
+
+  const reinitialiserOrdreComptes = useCallback(() => {
+    setEtat((e) => (e.ordreComptes.length === 0 ? e : { ...e, ordreComptes: [] }));
   }, []);
 
   const ajouterTransfert = useCallback((t: Omit<Transfert, "id">) => {
@@ -1211,6 +1249,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
+      deplacerCompte,
+      reinitialiserOrdreComptes,
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
@@ -1258,6 +1298,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
+      deplacerCompte,
+      reinitialiserOrdreComptes,
       ajouterTransfert,
       supprimerTransfert,
       ajouterEnveloppe,
