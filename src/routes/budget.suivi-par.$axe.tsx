@@ -88,48 +88,51 @@ function PageSuiviParAxe() {
         ))}
       </div>
 
-      <section className="carte grid grid-cols-3 gap-2 p-4 text-center">
-        <div>
-          <p className="text-[11px] uppercase text-muted-foreground">Planifié</p>
-          <p className="text-sm font-bold">{formatFCFA(totalPlanifie)}</p>
-        </div>
-        <div>
-          <p className="text-[11px] uppercase text-muted-foreground">Réel</p>
-          <p className="text-sm font-bold">{formatFCFA(totalReel)}</p>
-        </div>
-        <div>
-          <p className="text-[11px] uppercase text-muted-foreground">Écart</p>
-          <p className={`text-sm font-bold ${ecart > 0 ? "text-destructive" : "text-emerald-600"}`}>
-            {ecart > 0 ? "+" : ""}
-            {formatFCFA(ecart)}
-          </p>
-        </div>
+      <section className="carte space-y-3 p-4">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          Tout le mois de {moisLisible(mois)}
+        </p>
+        <BarreComparaison prevu={totalPlanifie} depense={totalReel} />
+        <p
+          className={`rounded-xl p-3 text-sm font-semibold ${
+            ecart > 0
+              ? "bg-destructive/10 text-destructive"
+              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          }`}
+        >
+          {ecart > 0
+            ? `Tu as dépensé ${formatFCFA(ecart)} de plus que prévu.`
+            : ecart === 0
+              ? "Tu as dépensé exactement ce qui était prévu."
+              : `Il te reste ${formatFCFA(-ecart)} sur ce qui était prévu.`}
+        </p>
       </section>
 
       {groupes.length === 0 ? (
         <p className="carte p-4 text-sm text-muted-foreground">
-          Rien de planifié ni de dépensé sur {moisLisible(mois)}.
+          Rien de prévu ni de dépensé sur {moisLisible(mois)}.
         </p>
       ) : (
         <ul className="space-y-2">
           {groupes.map((g) => (
-            <li key={g.cle} className="carte space-y-2 p-3">
+            <li key={g.cle} className="carte space-y-3 p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="min-w-0 truncate text-sm font-semibold">
                   <span aria-hidden>{g.emoji}</span> {g.cle}
                 </p>
                 <span
-                  className={`shrink-0 text-xs font-semibold ${
-                    g.ecart > 0 ? "text-destructive" : "text-emerald-600"
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    g.ecart > 0
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                   }`}
                 >
-                  {g.ecart > 0 ? "+" : ""}
-                  {formatFCFA(g.ecart)}
+                  {phraseEcart(g.planifie, g.reel)}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Planifié {formatFCFA(g.planifie)} — réel {formatFCFA(g.reel)}
-              </p>
+
+              <BarreComparaison prevu={g.planifie} depense={g.reel} compact />
+
               <ul className="space-y-1 border-t border-border pt-2">
                 {g.lignes.map((l, i) => (
                   <li
@@ -143,7 +146,7 @@ function PageSuiviParAxe() {
                           : "bg-primary/10 text-primary"
                       }`}
                     >
-                      {l.origine === "planifie" ? "Planifié" : "Réel"}
+                      {l.origine === "planifie" ? "📝 Prévu" : "💸 Dépensé"}
                     </span>
                     <span className="min-w-0 flex-1 truncate">
                       {jourLisible(l.date)} · {l.libelle || "Sans libellé"}
