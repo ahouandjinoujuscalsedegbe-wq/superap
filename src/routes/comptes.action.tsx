@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { PencilLine, Plus, Trash2, Wallet, X } from "lucide-react";
+import { PencilLine, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
@@ -8,9 +8,11 @@ import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
 import { analyserCompteDicte } from "@/lib/dictee-champs";
+import { ChoixIcone } from "@/components/ChoixIcone";
+import { suggererIcone } from "@/lib/icone-auto";
 
 type Demande =
-  | { type: "creation"; nom: string; solde: number; disponible: boolean }
+  | { type: "creation"; nom: string; solde: number; disponible: boolean; emoji: string }
   | { type: "renommage"; ancien: string; nom: string; ajustement: number }
   | { type: "suppression"; nom: string }
   | null;
@@ -41,6 +43,8 @@ function ActionComptes() {
   const {
     comptes,
     comptesExclus,
+    iconesComptes,
+    definirIconeCompte,
     definirCompteDisponible,
     transactions,
     transferts,
@@ -55,6 +59,8 @@ function ActionComptes() {
   const [nom, setNom] = useState("");
   const [solde, setSolde] = useState("");
   const [disponible, setDisponible] = useState(true);
+  const [emoji, setEmoji] = useState("👛");
+  const [emojiManuel, setEmojiManuel] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -63,6 +69,8 @@ function ActionComptes() {
     setNom("");
     setSolde("");
     setDisponible(true);
+    setEmoji("👛");
+    setEmojiManuel(false);
     setEnEdition(null);
     setModal("creer");
   }
@@ -72,6 +80,8 @@ function ActionComptes() {
     setNom(compte);
     setSolde(String(soldesParCompte[compte] ?? 0));
     setDisponible(!comptesExclus.includes(compte));
+    setEmoji(iconesComptes[compte] ?? suggererIcone(compte, "compte"));
+    setEmojiManuel(true);
     setModal("modifier");
   }
 
@@ -112,7 +122,13 @@ function ActionComptes() {
         setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
         return;
       }
-      setDemande({ type: "creation", nom: valeur, solde: soldeSaisi, disponible });
+      setDemande({
+        type: "creation",
+        nom: valeur,
+        solde: soldeSaisi,
+        disponible,
+        emoji: emoji.trim() || suggererIcone(valeur, "compte"),
+      });
       return;
     }
     if (!enEdition) return;
@@ -123,6 +139,7 @@ function ActionComptes() {
     }
     const disponibleChange = disponible === comptesExclus.includes(enEdition);
     if (disponibleChange) definirCompteDisponible(enEdition, disponible);
+    definirIconeCompte(valeur === enEdition ? enEdition : enEdition, emoji.trim());
     if (valeur === enEdition && ajustement === 0 && !disponibleChange) {
       setErreur("Rien n'a changé : modifiez le nom, le solde ou le disponible, ou annulez.");
       return;
@@ -154,7 +171,7 @@ function ActionComptes() {
   function confirmer() {
     if (!demande) return;
     if (demande.type === "creation") {
-      ajouterCompte(demande.nom, demande.disponible);
+      ajouterCompte(demande.nom, demande.disponible, demande.emoji);
       if (demande.solde > 0) {
         ajouterTransaction({
           type: "revenu",
@@ -167,7 +184,10 @@ function ActionComptes() {
       }
       toast.success(`Compte « ${demande.nom} » ajouté.`);
     } else if (demande.type === "renommage") {
-      if (demande.nom !== demande.ancien) renommerCompte(demande.ancien, demande.nom);
+      if (demande.nom !== demande.ancien) {
+        renommerCompte(demande.ancien, demande.nom);
+        definirIconeCompte(demande.nom, emoji.trim());
+      }
       if (demande.ajustement !== 0) {
         ajouterTransaction({
           type: demande.ajustement > 0 ? "revenu" : "depense",
@@ -247,7 +267,9 @@ function ActionComptes() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">
-                    <Wallet aria-hidden className="h-4 w-4 shrink-0 text-primary" />
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-lg">
+                      {iconesComptes[c] ?? suggererIcone(c, "compte")}
+                    </span>
                     <div className="min-w-0">
                       <p className="truncate font-medium">{c}</p>
                       <p className="text-xs text-muted-foreground">
@@ -329,12 +351,27 @@ function ActionComptes() {
                   id="c-nom"
                   autoFocus
                   value={nom}
-                  onChange={(ev) => setNom(ev.target.value)}
+                  onChange={(ev) => {
+                    const valeur = ev.target.value;
+                    setNom(valeur);
+                    if (!emojiManuel) setEmoji(suggererIcone(valeur, "compte"));
+                  }}
                   placeholder="Tontine du quartier"
                   className={champ}
                 />
                 <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
               </div>
+
+              <ChoixIcone
+                nom={nom}
+                domaine="compte"
+                valeur={emoji}
+                titre="Logo du compte proposé"
+                onChoisir={(e) => {
+                  setEmojiManuel(true);
+                  setEmoji(e);
+                }}
+              />
 
               <div>
                 <label htmlFor="c-solde" className="text-sm font-medium">
@@ -406,6 +443,7 @@ function ActionComptes() {
         details={
           demande?.type === "creation"
             ? [
+                { label: "Logo", apres: demande.emoji },
                 { label: "Nom", apres: demande.nom },
                 { label: "Solde initial", apres: formatFCFA(demande.solde) },
                 {
