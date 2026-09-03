@@ -109,6 +109,49 @@ export async function deposer(etat: Etat, r: ReglagesAuto): Promise<number> {
 
 type AvecId = { id: string };
 
+/* ------------------------------------------------------------------ */
+/* Référence commune (fusion à trois côtés)                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Dernier état connu des DEUX téléphones (le dernier dépôt envoyé ou reçu).
+ *
+ * Sans cette référence, une modification faite sur un téléphone ne pouvait
+ * jamais rejoindre l'autre : la fusion ignorait tout élément déjà connu.
+ * Avec elle, on sait distinguer « l'autre a modifié » de « j'ai modifié »,
+ * donc on peut propager les modifications sans jamais écraser une saisie
+ * locale plus récente.
+ */
+export const CLE_SYNC_BASE = "superapp:sync-auto:base:v1";
+
+export function lireBase(): Partial<Etat> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const brut = window.localStorage.getItem(CLE_SYNC_BASE);
+    return brut ? (JSON.parse(brut) as Partial<Etat>) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function ecrireBase(etat: Etat) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CLE_SYNC_BASE, JSON.stringify(etat));
+  } catch {
+    /* espace saturé : la fusion restera simplement additive */
+  }
+}
+
+/** Empreinte d'un élément, pour comparer deux versions sans ambiguïté. */
+function empreinteElement(x: unknown): string {
+  try {
+    return JSON.stringify(x);
+  } catch {
+    return "";
+  }
+}
+
 /**
  * Fusionne une liste distante dans la liste locale.
  *
@@ -116,26 +159,52 @@ type AvecId = { id: string };
  * forgé ou corrompu ne peut donc pas injecter de montant négatif, de NaN ou de
  * date impossible dans les comptes du foyer. Les éléments refusés sont comptés
  * et signalés dans le journal.
+ *
+ * Éléments déjà connus : la version distante est adoptée UNIQUEMENT si notre
+ * copie locale est restée identique à la référence commune. Si nous avons nous
+ * aussi modifié l'élément depuis, notre saisie est conservée (aucune perte).
  */
 function fusionner<T extends AvecId>(
   actuel: T[],
   entrant: unknown,
   assainir: (x: unknown) => T | null,
-): { liste: T[]; ajoutes: number; refuses: number } {
-  const connus = new Set(actuel.map((x) => x?.id));
+  base?: unknown,
+): { liste: T[]; ajoutes: number; modifies: number; refuses: number } {
+  const parId = new Map(actuel.filter(Boolean).map((x) => [x.id, x] as const));
+  const empreintesBase = new Map<string, string>();
+  for (const b of Array.isArray(base) ? base : []) {
+    const id = (b as Partial<AvecId>)?.id;
+    if (typeof id === "string") empreintesBase.set(id, empreinteElement(b));
+  }
+
   const nouveaux: T[] = [];
   let refuses = 0;
+  let modifies = 0;
+
   for (const brut of Array.isArray(entrant) ? entrant : []) {
     const propre = assainir(brut);
     if (!propre) {
       refuses += 1;
       continue;
     }
-    if (connus.has(propre.id)) continue;
-    connus.add(propre.id);
-    nouveaux.push(propre);
+    const local = parId.get(propre.id);
+    if (!local) {
+      parId.set(propre.id, propre);
+      nouveaux.push(propre);
+      continue;
+    }
+    const empreinteLocale = empreinteElement(local);
+    if (empreinteLocale === empreinteElement(propre)) continue;
+    // Modification venue de l'autre téléphone : on l'adopte seulement si notre
+    // copie n'a pas bougé depuis la dernière synchronisation.
+    if (empreintesBase.get(propre.id) === empreinteLocale) {
+      parId.set(propre.id, propre);
+      modifies += 1;
+    }
   }
-  return { liste: [...nouveaux, ...actuel], ajoutes: nouveaux.length, refuses };
+
+  const liste = [...nouveaux, ...actuel.map((x) => (x ? (parId.get(x.id) ?? x) : x))];
+  return { liste, ajoutes: nouveaux.length, modifies, refuses };
 }
 
 function fusionnerNoms(actuel: string[], entrant: unknown): string[] {
@@ -146,25 +215,62 @@ function fusionnerNoms(actuel: string[], entrant: unknown): string[] {
 
 export type ResultatFusion = { etat: Etat; ajoutes: number; curseur: number };
 
-/** Fusionne un état distant dans l'état local sans jamais écraser l'existant. */
+/**
+ * Fusionne un état distant dans l'état local.
+ *
+ * Toutes les collections du foyer sont couvertes : opérations, virements,
+ * enveloppes, catégories, budgets, dettes, objectifs, remplissages, corbeille,
+ * comptes et membres. Aucune saisie locale n'est perdue.
+ */
 export function fusionnerEtat(
   local: Etat,
   distant: Partial<Etat>,
+  base?: Partial<Etat> | null,
 ): { etat: Etat; ajoutes: number } {
-  const transactions = fusionner(local.transactions, distant.transactions, assainirTransaction);
-  const transferts = fusionner(local.transferts, distant.transferts, assainirTransfert);
-  const enveloppes = fusionner(local.enveloppes, distant.enveloppes, assainirEnveloppe);
-  const categories = fusionner(local.categories, distant.categories, assainirCategorie);
-  const budgets = fusionner(local.budgets, distant.budgets, assainirBudget);
-  const dettes = fusionner(local.dettes, distant.dettes, assainirDette);
+  const b = base ?? {};
+  const transactions = fusionner(
+    local.transactions,
+    distant.transactions,
+    assainirTransaction,
+    b.transactions,
+  );
+  const transferts = fusionner(local.transferts, distant.transferts, assainirTransfert, b.transferts);
+  const enveloppes = fusionner(local.enveloppes, distant.enveloppes, assainirEnveloppe, b.enveloppes);
+  const categories = fusionner(local.categories, distant.categories, assainirCategorie, b.categories);
+  const budgets = fusionner(local.budgets, distant.budgets, assainirBudget, b.budgets);
+  const dettes = fusionner(local.dettes, distant.dettes, assainirDette, b.dettes);
+  const objectifs = fusionner(local.objectifs, distant.objectifs, assainirObjectif, b.objectifs);
+  const remplissages = fusionner(
+    local.remplissages,
+    distant.remplissages,
+    assainirRemplissage,
+    b.remplissages,
+  );
+  const corbeille = fusionner(
+    local.corbeille,
+    distant.corbeille,
+    assainirElementCorbeille,
+    b.corbeille,
+  );
   const comptes = fusionnerNoms(local.comptes, distant.comptes);
-  const refuses =
-    transactions.refuses +
-    transferts.refuses +
-    enveloppes.refuses +
-    categories.refuses +
-    budgets.refuses +
-    dettes.refuses;
+  const comptesExclus = fusionnerNoms(local.comptesExclus, distant.comptesExclus).filter((c) =>
+    comptes.includes(c),
+  );
+  const membresDistants = assainirMembres(distant.membres);
+  const membres = [...local.membres, ...membresDistants.filter((m) => !local.membres.includes(m))];
+
+  const parts = [
+    transactions,
+    transferts,
+    enveloppes,
+    categories,
+    budgets,
+    dettes,
+    objectifs,
+    remplissages,
+    corbeille,
+  ];
+  const refuses = parts.reduce((s, p) => s + p.refuses, 0);
   if (refuses > 0) {
     journaliser(
       "avertissement",
@@ -181,15 +287,14 @@ export function fusionnerEtat(
       categories: categories.liste,
       budgets: budgets.liste,
       dettes: dettes.liste,
+      objectifs: objectifs.liste,
+      remplissages: remplissages.liste,
+      corbeille: corbeille.liste,
       comptes,
+      comptesExclus,
+      membres,
     },
-    ajoutes:
-      transactions.ajoutes +
-      transferts.ajoutes +
-      enveloppes.ajoutes +
-      categories.ajoutes +
-      budgets.ajoutes +
-      dettes.ajoutes,
+    ajoutes: parts.reduce((s, p) => s + p.ajoutes + p.modifies, 0),
   };
 }
 
