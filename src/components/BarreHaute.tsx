@@ -17,7 +17,13 @@ import {
   FolderTree,
   RefreshCcw,
   LifeBuoy,
+  Layers,
+  Plus,
+  Pencil,
+  ListOrdered,
+  History,
 } from "lucide-react";
+
 import { useSuperApp } from "@/lib/store";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
@@ -38,16 +44,34 @@ const ENTREES = [
 /** Options de la section « Action » de la page Enveloppes, ouvertes depuis la barre figée. */
 const ACTIONS_ENVELOPPES = [
   {
+    to: "/enveloppes/details",
+    label: "Toutes les enveloppes et leur état",
+    detail: "Voir le détail de chaque enveloppe et son solde restant.",
+    icone: Layers,
+  },
+  {
+    to: "/enveloppes/creer",
+    label: "Créer une enveloppe",
+    detail: "Ajouter une nouvelle enveloppe au budget.",
+    icone: Plus,
+  },
+  {
+    to: "/enveloppes/gerer",
+    label: "Gérer les enveloppes",
+    detail: "Modifier ou supprimer une enveloppe existante.",
+    icone: Pencil,
+  },
+  {
     to: "/enveloppes/categories",
     label: "Gérer les catégories et sous-catégories",
     detail: "Créez, renommez ou supprimez vos classements.",
     icone: FolderTree,
   },
   {
-    to: "/enveloppes/gerer",
-    label: "Gérer les enveloppes",
-    detail: "Créer ou modifier une enveloppe existante.",
-    icone: FolderTree,
+    to: "/enveloppes/classer",
+    label: "Classer les enveloppes",
+    detail: "Ranger chaque enveloppe dans sa catégorie.",
+    icone: ListOrdered,
   },
   {
     to: "/enveloppes/renouvellements",
@@ -62,12 +86,25 @@ const ACTIONS_ENVELOPPES = [
     icone: Scale,
   },
   {
+    to: "/enveloppes/budget-mensuel",
+    label: "Budget mensuel",
+    detail: "Le budget retenu pour le mois en cours.",
+    icone: CalendarRange,
+  },
+  {
+    to: "/enveloppes/chronologie",
+    label: "Chronologie des enveloppes",
+    detail: "Historique des mouvements et renouvellements.",
+    icone: History,
+  },
+  {
     to: "/enveloppes/secours",
     label: "Plan de secours (enveloppe épuisée)",
     detail: "Transferts sûrs depuis d'autres enveloppes.",
     icone: LifeBuoy,
   },
 ] as const;
+
 
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
@@ -150,7 +187,7 @@ export function BarreHaute() {
   });
 
   const accueil = pathname === "/";
-  const pageEnveloppes = pathname === "/enveloppes" || pathname === "/enveloppes/";
+  const pageEnveloppes = pathname === "/enveloppes" || pathname.startsWith("/enveloppes/");
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : entete.titre || titreDe(pathname);
