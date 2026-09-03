@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
@@ -59,6 +59,7 @@ type Demande =
   | null;
 
 function ModifierEnveloppe() {
+  const navigate = useNavigate();
   const {
     enveloppes,
     categories: listeCategories,
