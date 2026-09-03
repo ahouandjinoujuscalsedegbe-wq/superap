@@ -65,6 +65,7 @@ import { Route as ParametresSecuriteRouteImport } from './routes/parametres.secu
 import { Route as RapportIndexRouteImport } from './routes/rapport.index'
 import { Route as RapportMoisRouteImport } from './routes/rapport.$mois'
 import { Route as BudgetModifierIndexRouteImport } from './routes/budget.modifier.index'
+import { Route as BudgetModifierIdRouteImport } from './routes/budget.modifier.$id'
 import { Route as ComptesCategorieNomRouteImport } from './routes/comptes.categorie.$nom'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
@@ -353,6 +354,11 @@ const BudgetModifierIndexRoute = BudgetModifierIndexRouteImport.update({
   path: '/modifier/',
   getParentRoute: () => BudgetRoute,
 } as any)
+const BudgetModifierIdRoute = BudgetModifierIdRouteImport.update({
+  id: '/modifier/$id',
+  path: '/modifier/$id',
+  getParentRoute: () => BudgetRoute,
+} as any)
 const ComptesCategorieNomRoute = ComptesCategorieNomRouteImport.update({
   id: '/categorie/$nom',
   path: '/categorie/$nom',
@@ -441,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
+  '/budget/modifier/$id': typeof BudgetModifierIdRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
@@ -500,6 +507,7 @@ export interface FileRoutesByTo {
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
   '/rapport': typeof RapportIndexRoute
+  '/budget/modifier/$id': typeof BudgetModifierIdRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
@@ -565,6 +573,7 @@ export interface FileRoutesById {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
+  '/budget/modifier/$id': typeof BudgetModifierIdRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
@@ -631,6 +640,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/parametres/'
     | '/rapport/'
+    | '/budget/modifier/$id'
     | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
@@ -690,6 +700,7 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/parametres'
     | '/rapport'
+    | '/budget/modifier/$id'
     | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
@@ -754,6 +765,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/parametres/'
     | '/rapport/'
+    | '/budget/modifier/$id'
     | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
@@ -1186,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BudgetModifierIndexRouteImport
       parentRoute: typeof BudgetRoute
     }
+    '/budget/modifier/$id': {
+      id: '/budget/modifier/$id'
+      path: '/modifier/$id'
+      fullPath: '/budget/modifier/$id'
+      preLoaderRoute: typeof BudgetModifierIdRouteImport
+      parentRoute: typeof BudgetRoute
+    }
     '/comptes/categorie/$nom': {
       id: '/comptes/categorie/$nom'
       path: '/categorie/$nom'
@@ -1237,6 +1256,7 @@ interface BudgetRouteChildren {
   BudgetPlanifierRoute: typeof BudgetPlanifierRoute
   BudgetSuiviRoute: typeof BudgetSuiviRoute
   BudgetIndexRoute: typeof BudgetIndexRoute
+  BudgetModifierIdRoute: typeof BudgetModifierIdRoute
   BudgetModifierIndexRoute: typeof BudgetModifierIndexRoute
 }
 
@@ -1246,6 +1266,7 @@ const BudgetRouteChildren: BudgetRouteChildren = {
   BudgetPlanifierRoute: BudgetPlanifierRoute,
   BudgetSuiviRoute: BudgetSuiviRoute,
   BudgetIndexRoute: BudgetIndexRoute,
+  BudgetModifierIdRoute: BudgetModifierIdRoute,
   BudgetModifierIndexRoute: BudgetModifierIndexRoute,
 }
 
