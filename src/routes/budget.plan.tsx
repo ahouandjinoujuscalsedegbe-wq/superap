@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, ChevronDown, Plus } from "lucide-react";
@@ -345,7 +345,6 @@ function Budgetisation() {
           <Plus aria-hidden className="h-3.5 w-3.5" />
           Planifier une dépense
         </Link>
-
       </div>
 
       <section className="carte space-y-4 p-4">
@@ -530,9 +529,6 @@ function Budgetisation() {
           )}
         </div>
       </section>
-
-
-
 
       <Confirmation
         ouvert={demande !== null}
