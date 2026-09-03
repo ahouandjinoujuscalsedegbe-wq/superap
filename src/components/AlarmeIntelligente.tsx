@@ -87,13 +87,13 @@ export function AlarmeIntelligente() {
     for (const b of budgets) {
       for (const date of occurrencesEntre(b, debut, fin)) {
         const env = enveloppes.find((e) => e.id === b.enveloppeId);
-        // Sonnerie à 8 h, avec l'avance choisie dans les réglages.
-        const quand = new Date(`${date}T08:00:00`);
+        // Sonnerie à l'heure de rappel choisie, avec l'avance des réglages.
+        const quand = new Date(`${date}T${b.heureRappel ?? "07:30"}:00`);
         quand.setDate(quand.getDate() - reglages.avanceJours);
         rappels.push({
           id: idRappel(`${b.id}-${date}`),
           titre: `${env ? `${env.emoji} ` : "📌 "}${b.libelle}`,
-          texte: `Dépense planifiée de ${Math.round(b.montant).toLocaleString("fr-FR")} FCFA le ${date}.`,
+          texte: `Dépense planifiée de ${Math.round(b.montant).toLocaleString("fr-FR")} FCFA le ${date}${b.heure ? ` à ${b.heure}` : ""}. À confirmer dans l'application.`,
           quand,
         });
       }

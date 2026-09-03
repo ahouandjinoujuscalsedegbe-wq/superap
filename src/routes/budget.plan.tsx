@@ -366,17 +366,14 @@ function Budgetisation() {
         {nbDues > 0 && (
           <div className="rounded-xl border border-primary/40 bg-primary/10 p-3">
             <p className="text-sm font-semibold">
-              {nbDues} échéance{nbDues > 1 ? "s" : ""} à générer · {formatFCFA(montantDu)}
+              {nbDues} dépense{nbDues > 1 ? "s" : ""} à confirmer · {formatFCFA(montantDu)}
             </p>
-            <button
-              type="button"
-              onClick={() =>
-                setDemande({ type: "conversion-tout", nb: nbDues, montant: montantDu })
-              }
-              className="mt-2 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground"
+            <Link
+              to="/budget/confirmations"
+              className="mt-2 block w-full rounded-xl bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground"
             >
-              Convertir en dépenses réelles
-            </button>
+              Confirmer ces dépenses
+            </Link>
           </div>
         )}
 

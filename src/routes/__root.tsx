@@ -13,7 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SuperAppProvider } from "@/lib/store";
-import { EcheancesAuto } from "@/components/EcheancesAuto";
+import { RappelsDepensesPlanifiees } from "@/components/RappelsDepensesPlanifiees";
 import { RemplissageAuto } from "@/components/RemplissageAuto";
 import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
 import { SmsAuto } from "@/components/SmsAuto";
@@ -183,7 +183,7 @@ function RootComponent() {
             </div>
           </main>
 
-          <EcheancesAuto />
+          <RappelsDepensesPlanifiees />
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
           <SmsAuto />

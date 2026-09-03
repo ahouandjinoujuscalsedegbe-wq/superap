@@ -160,6 +160,10 @@ export type Budget = {
   ponctuel?: boolean;
   /** Nombre d'unités de période entre deux échéances (ex. 2 = tous les 2 jours) */
   intervalle?: number;
+  /** Heure prévue de la dépense au format HH:MM (ex. « 08:30 »). */
+  heure?: string;
+  /** Heure de l'alarme de rappel au format HH:MM. */
+  heureRappel?: string;
   actif: boolean;
 };
 
@@ -439,6 +443,8 @@ type Contexte = Etat & {
   ajouterBudget: (b: Omit<Budget, "id">) => void;
   convertirBudget: (id: string, fois?: number) => void;
   genererEcheancesDues: () => void;
+  /** L'échéance n'a pas été réalisée : on passe à la suivante sans dépense réelle. */
+  reporterBudget: (id: string) => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
   ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => void;
@@ -1168,6 +1174,17 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const reporterBudget = useCallback((id: string) => {
+    setEtat((e) => ({
+      ...e,
+      budgets: e.budgets.map((b) => {
+        if (b.id !== id) return b;
+        if (b.ponctuel !== false) return { ...b, actif: false };
+        return { ...b, prochaine: avancerDate(b.prochaine, b.periode, b.intervalle) };
+      }),
+    }));
+  }, []);
+
   const modifierBudget = useCallback((id: string, b: Partial<Omit<Budget, "id">>) => {
     if (b.montant !== undefined && !montantValide(b.montant)) return;
     setEtat((e) => ({
@@ -1338,6 +1355,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
+      reporterBudget,
       modifierBudget,
       supprimerBudget,
       ajouterDette,
@@ -1389,6 +1407,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterBudget,
       convertirBudget,
       genererEcheancesDues,
+      reporterBudget,
       modifierBudget,
       supprimerBudget,
       ajouterDette,

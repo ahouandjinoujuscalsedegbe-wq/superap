@@ -35,6 +35,7 @@ import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as BudgetIndexRouteImport } from './routes/budget.index'
 import { Route as BudgetAutoRouteImport } from './routes/budget.auto'
+import { Route as BudgetConfirmationsRouteImport } from './routes/budget.confirmations'
 import { Route as BudgetPlanRouteImport } from './routes/budget.plan'
 import { Route as BudgetPlanifierRouteImport } from './routes/budget.planifier'
 import { Route as BudgetSuiviRouteImport } from './routes/budget.suivi'
@@ -202,6 +203,11 @@ const BudgetIndexRoute = BudgetIndexRouteImport.update({
 const BudgetAutoRoute = BudgetAutoRouteImport.update({
   id: '/auto',
   path: '/auto',
+  getParentRoute: () => BudgetRoute,
+} as any)
+const BudgetConfirmationsRoute = BudgetConfirmationsRouteImport.update({
+  id: '/confirmations',
+  path: '/confirmations',
   getParentRoute: () => BudgetRoute,
 } as any)
 const BudgetPlanRoute = BudgetPlanRouteImport.update({
@@ -423,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
   '/budget/suivi': typeof BudgetSuiviRoute
@@ -485,6 +492,7 @@ export interface FileRoutesByTo {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
   '/budget/suivi': typeof BudgetSuiviRoute
@@ -551,6 +559,7 @@ export interface FileRoutesById {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
   '/budget/suivi': typeof BudgetSuiviRoute
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
     | '/budget/suivi'
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
     | '/budget/suivi'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
     | '/budget/suivi'
@@ -998,6 +1010,13 @@ declare module '@tanstack/react-router' {
       path: '/auto'
       fullPath: '/budget/auto'
       preLoaderRoute: typeof BudgetAutoRouteImport
+      parentRoute: typeof BudgetRoute
+    }
+    '/budget/confirmations': {
+      id: '/budget/confirmations'
+      path: '/confirmations'
+      fullPath: '/budget/confirmations'
+      preLoaderRoute: typeof BudgetConfirmationsRouteImport
       parentRoute: typeof BudgetRoute
     }
     '/budget/plan': {
@@ -1271,6 +1290,7 @@ declare module '@tanstack/react-router' {
 
 interface BudgetRouteChildren {
   BudgetAutoRoute: typeof BudgetAutoRoute
+  BudgetConfirmationsRoute: typeof BudgetConfirmationsRoute
   BudgetPlanRoute: typeof BudgetPlanRoute
   BudgetPlanifierRoute: typeof BudgetPlanifierRoute
   BudgetSuiviRoute: typeof BudgetSuiviRoute
@@ -1282,6 +1302,7 @@ interface BudgetRouteChildren {
 
 const BudgetRouteChildren: BudgetRouteChildren = {
   BudgetAutoRoute: BudgetAutoRoute,
+  BudgetConfirmationsRoute: BudgetConfirmationsRoute,
   BudgetPlanRoute: BudgetPlanRoute,
   BudgetPlanifierRoute: BudgetPlanifierRoute,
   BudgetSuiviRoute: BudgetSuiviRoute,

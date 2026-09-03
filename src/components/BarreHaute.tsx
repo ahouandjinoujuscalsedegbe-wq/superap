@@ -140,6 +140,7 @@ const ACTIONS_BUDGET = [
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/budget/planifier", "Planifier une dépense"],
   ["/budget/modifier", "Modifier une dépense planifiée"],
+  ["/budget/confirmations", "Dépenses à confirmer"],
   ["/budget/plan-par/mois", "Mois par mois"],
   ["/budget/plan-par/enveloppe", "Enveloppe par enveloppe"],
   ["/budget/plan-par/libelle", "Dépense par dépense"],
