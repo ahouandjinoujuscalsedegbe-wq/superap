@@ -207,7 +207,6 @@ function ModifierUneEnveloppe() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Modifier l'enveloppe</h1>
         <p className="text-sm text-muted-foreground">

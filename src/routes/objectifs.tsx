@@ -165,7 +165,6 @@ function PageObjectifs() {
 
   return (
     <div className="space-y-4 pt-4">
-
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Target className="h-6 w-6 text-primary" aria-hidden />

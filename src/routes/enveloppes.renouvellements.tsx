@@ -68,7 +68,6 @@ function Renouvellements() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Détail des renouvellements</h1>
         <p className="text-sm text-muted-foreground">

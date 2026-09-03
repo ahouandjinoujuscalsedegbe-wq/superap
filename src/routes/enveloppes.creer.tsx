@@ -302,7 +302,6 @@ function CreerEnveloppePage() {
 
   return (
     <div className="space-y-5">
-
       <section className="carte space-y-1 p-4">
         <h2 className="text-lg font-semibold">Créer une nouvelle enveloppe</h2>
         <p className="text-sm text-muted-foreground">

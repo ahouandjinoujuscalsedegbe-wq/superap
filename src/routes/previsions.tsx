@@ -115,7 +115,6 @@ function PagePrevisions() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Prévisions</h1>
         <p className="text-sm text-muted-foreground">

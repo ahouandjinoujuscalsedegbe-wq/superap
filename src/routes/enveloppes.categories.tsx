@@ -253,8 +253,7 @@ function PageCategories() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-2">
-        <div className="flex-1">
-        </div>
+        <div className="flex-1"></div>
         <button
           type="button"
           onClick={() => ouvrirSaisie({ type: "creation-categorie" })}

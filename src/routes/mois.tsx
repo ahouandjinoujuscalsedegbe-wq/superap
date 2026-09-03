@@ -123,7 +123,6 @@ function PageMois() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Vue globale du mois</h1>
         <p className="text-sm text-muted-foreground capitalize">{libelleMois(mois)}</p>

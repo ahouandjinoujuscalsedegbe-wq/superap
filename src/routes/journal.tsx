@@ -98,7 +98,6 @@ function PageJournal() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Stethoscope className="h-5 w-5" aria-hidden />

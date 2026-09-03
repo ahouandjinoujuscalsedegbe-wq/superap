@@ -69,7 +69,6 @@ function ClasserEnveloppes() {
 
   return (
     <div className="space-y-5">
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégoriser les enveloppes existantes</h1>
         <p className="text-sm text-muted-foreground">
