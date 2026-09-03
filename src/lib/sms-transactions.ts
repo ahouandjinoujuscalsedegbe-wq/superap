@@ -9,6 +9,8 @@
  * sont mémorisées : le moteur devient de plus en plus juste avec le temps.
  */
 
+import { noterAction } from "./memoire-utilisateur";
+
 export type MessageSms = {
   /** Identifiant stable du message (fourni par le téléphone ou calculé). */
   id: string;
@@ -220,6 +222,8 @@ export function apprendreSms(
   choix: { type: "revenu" | "depense"; enveloppeId?: string | undefined; compte?: string },
 ): void {
   const memoire = lireJson<Memoire>(CLE_MEMOIRE, {});
+  // Le réseau d'intelligences apprend de cette correction.
+  noterAction("correction-sms", choix.enveloppeId ?? operation.expediteur, operation.montant);
   const signature = signatureSms(operation.expediteur, operation.source);
   const existant = memoire[signature];
   memoire[signature] = {

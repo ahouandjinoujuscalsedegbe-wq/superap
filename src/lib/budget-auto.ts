@@ -7,6 +7,7 @@
  */
 import type { Enveloppe, Transaction } from "./store";
 import { dotationDe } from "./enveloppe-etat";
+import { noterAction } from "./memoire-utilisateur";
 
 export type Tendance = "hausse" | "baisse" | "stable";
 
@@ -259,6 +260,7 @@ export function apprendreCorrections(
 ): void {
   if (typeof window === "undefined") return;
   const memoire = chargerPreferencesBudget();
+  for (const c of corrections) noterAction("budget", c.enveloppeId, c.retenue);
   for (const c of corrections) {
     if (c.proposee <= 0 || c.retenue <= 0) continue;
     const brut = c.retenue / c.proposee;

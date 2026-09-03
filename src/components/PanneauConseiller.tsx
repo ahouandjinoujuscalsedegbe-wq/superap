@@ -4,6 +4,7 @@ import { FicheAnalyses } from "@/components/FicheAnalyses";
 import { FicheOutils } from "@/components/FicheOutils";
 import { vocalisationDisponible } from "@/lib/vocalisation";
 import { useCerveau } from "@/lib/cerveau/hook";
+import { etatApprentissage, resumeReseau, useIaUnifiee } from "@/lib/ia-unifiee";
 import { enTexteVocal } from "@/lib/cerveau";
 import { texteBilanMensuel, type BilanMensuel } from "@/lib/coach";
 import {
@@ -43,6 +44,7 @@ export function PanneauConseiller({
 }) {
   const [onglet, setOnglet] = useState<"bilan" | "analyses" | "outils">("bilan");
   const cerveau = useCerveau();
+  const ia = useIaUnifiee();
 
   if (!ouvert) return null;
 
@@ -140,6 +142,35 @@ export function PanneauConseiller({
                 <dd className="font-semibold">{fcfa(mensuel.projection)}</dd>
               </div>
             </dl>
+          </section>
+
+          <section className="carte space-y-2 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Brain className="h-4 w-4 text-primary" aria-hidden />
+                Réseau d'intelligences
+              </h3>
+              {boutonLecture(
+                "reseau",
+                [...resumeReseau(ia), ...etatApprentissage(ia)].join(" "),
+                "Écouter l'état du réseau d'intelligences",
+              )}
+            </div>
+            <div
+              className="h-2 overflow-hidden rounded-full bg-muted"
+              role="progressbar"
+              aria-valuenow={ia.maturite}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Maturité du réseau d'intelligences"
+            >
+              <div className="h-full bg-primary" style={{ width: `${ia.maturite}%` }} />
+            </div>
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              {[...resumeReseau(ia), ...etatApprentissage(ia)].map((l) => (
+                <li key={l}>• {l}</li>
+              ))}
+            </ul>
           </section>
 
           <section className="carte space-y-2 p-3">

@@ -45,6 +45,9 @@ import {
   type MessageCoach,
 } from "@/lib/coach";
 import { noterAvisConseiller } from "@/lib/apprentissage-conseiller";
+import { useIaUnifiee } from "@/lib/ia-unifiee";
+import { repondreGeneral, repondreParDefaut } from "@/lib/reponse-generale";
+import { noterAction, sujetDeQuestion } from "@/lib/memoire-utilisateur";
 import { EVENEMENT_ALERTE, ouvrirPlanSecours } from "@/lib/alertes-conseiller";
 
 export const Route = createFileRoute("/notifications")({
@@ -124,6 +127,10 @@ function PageNotifications() {
     () => ({ transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde, objectifs }),
     [transactions, enveloppes, budgets, dettes, depensesParEnveloppe, solde, objectifs],
   );
+  const ia = useIaUnifiee();
+  const iaRef = useRef(ia);
+  iaRef.current = ia;
+
   const donneesCoachRef = useRef(donneesCoach);
   donneesCoachRef.current = donneesCoach;
 
@@ -216,12 +223,20 @@ function PageNotifications() {
     const propre = texte.trim();
     if (!propre) return "";
     const courante = memoireRef.current;
-    const { reponse, enveloppeId, conseilDit } = repondreCoach(
-      courante,
-      propre,
-      donneesAssistantRef.current,
-      donneesCoachRef.current,
-    );
+    // La question est mémorisée : toutes les intelligences apprennent des
+    // sujets que l'utilisateur ramène le plus souvent.
+    noterAction("question", sujetDeQuestion(propre));
+    // 1. Le réseau unifié répond aux questions générales (comptes, dettes,
+    //    objectifs, planifié, prévisions, alertes, apprentissage).
+    const general = repondreGeneral(propre, iaRef.current);
+    const brut = general
+      ? { reponse: { ...general, incompris: false }, enveloppeId: undefined, conseilDit: undefined }
+      : repondreCoach(courante, propre, donneesAssistantRef.current, donneesCoachRef.current);
+    // 2. Rien de compris : le conseiller répond quand même avec ce qu'il sait.
+    const { enveloppeId, conseilDit } = brut;
+    const reponse = brut.reponse.incompris
+      ? { ...repondreParDefaut(iaRef.current), incompris: false }
+      : brut.reponse;
     const maintenant = new Date();
     const messageUtilisateur: MessageCoach = {
       id: crypto.randomUUID(),
@@ -275,6 +290,7 @@ function PageNotifications() {
     const message = memoireRef.current.messages.find((m) => m.id === id);
     // Le conseiller apprend de chaque retour : thème, ton et fréquence.
     if (message) noterAvisConseiller(message.texte, avis);
+    noterAction(avis === "utile" ? "conseil-utile" : "conseil-inutile", message?.texte ?? "");
     enregistrer(apprendreAvis(memoireRef.current, id, avis));
     setSelection(null);
   };
