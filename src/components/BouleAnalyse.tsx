@@ -479,7 +479,7 @@ export function BouleAnalyse() {
           className={`boule-levite relative h-16 w-16 touch-none rounded-full ${nouveau ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
           <span
-            className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`}
+            className={`boule-halo-rose absolute -inset-2 rounded-full ${nouveau && urgentes > 0 ? "boule-halo-alerte" : ""}`}
             aria-hidden
           />
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
