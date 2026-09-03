@@ -324,7 +324,6 @@ export function BarreHaute() {
         el.classList.add("barre-haute-masque");
         masques.add(el);
       });
-
     };
     const planifier = () => {
       cancelAnimationFrame(brut);

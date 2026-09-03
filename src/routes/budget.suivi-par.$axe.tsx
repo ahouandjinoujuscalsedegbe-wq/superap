@@ -55,7 +55,8 @@ function PageSuiviParAxe() {
     [moisActuel],
   );
 
-  const axeValide: AxeSuivi = (AXES_SUIVI.find((a) => a.axe === axe)?.axe ?? "enveloppe") as AxeSuivi;
+  const axeValide: AxeSuivi = (AXES_SUIVI.find((a) => a.axe === axe)?.axe ??
+    "enveloppe") as AxeSuivi;
   const definition = AXES_SUIVI.find((a) => a.axe === axeValide)!;
 
   const groupes = useMemo(

@@ -179,10 +179,7 @@ export function comparerParAxe(
   }
 
   for (const d of depensesDuMois(transactions, enveloppes, mois)) {
-    const g = groupe(
-      cleDe(axe, d.enveloppe, d.transaction.libelle),
-      d.enveloppe?.emoji ?? "📄",
-    );
+    const g = groupe(cleDe(axe, d.enveloppe, d.transaction.libelle), d.enveloppe?.emoji ?? "📄");
     g.reel += d.transaction.montant;
     g.lignes.push({
       libelle: d.transaction.libelle,
