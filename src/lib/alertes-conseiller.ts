@@ -49,7 +49,7 @@ export async function publierAlerteConseiller(alerte: AlerteConseiller): Promise
       id: `alerte-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       auteur: "coach",
       texte: `${alerte.urgent ? "🚨" : "🔔"} ${alerte.titre}\n${alerte.texte}`,
-      details: alerte.details,
+      ...(alerte.details && alerte.details.length > 0 ? { details: alerte.details } : {}),
       categorie: "bilan",
       date: new Date().toISOString(),
       lu: false,
