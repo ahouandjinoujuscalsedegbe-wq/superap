@@ -179,17 +179,19 @@ export function BouleAnalyse() {
       {ouvert && (
         <section
           role="dialog"
-          aria-label="Analyse intelligente"
-          className="carte animate-scale-in fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 right-3 z-[66] max-h-[55vh] space-y-2 overflow-y-auto p-4"
+          aria-label="Analyse intelligente et plan de secours"
+          className="carte animate-scale-in fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 right-3 z-[66] max-h-[70vh] space-y-2 overflow-y-auto p-4"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="flex items-center gap-1.5 text-sm font-semibold">
                 <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-                Analyse intelligente
+                Analyse & plan de secours
               </h2>
               <p className="text-xs text-muted-foreground">
-                Calculée sur votre téléphone, sans aucune connexion.
+                Calculée sur votre téléphone. Fiabilité apprise : {bilan.maturite}% · propositions
+                suivies : {bilan.adoption}%
+                {bilan.montantSauve > 0 ? ` · ${formatFCFA(bilan.montantSauve)} déjà sauvés` : ""}
               </p>
             </div>
             <button
