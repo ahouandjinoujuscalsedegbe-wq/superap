@@ -24,9 +24,12 @@ import {
   History,
   Landmark,
   ArrowLeftRight,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
 } from "lucide-react";
 
-import { useSuperApp } from "@/lib/store";
+import { ordreEffectifComptes, useSuperApp } from "@/lib/store";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
@@ -227,7 +230,8 @@ export function BarreHaute() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
   const actionBtnRef = useRef<HTMLButtonElement>(null);
-  const { nomUtilisateur } = useSuperApp();
+  const { nomUtilisateur, comptes, ordreComptes, deplacerCompte, reinitialiserOrdreComptes } =
+    useSuperApp();
   const [entete, setEntete] = useState<{ titre: string; sousTitre: string }>({
     titre: "",
     sousTitre: "",
