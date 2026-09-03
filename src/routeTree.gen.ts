@@ -58,6 +58,7 @@ import { Route as ParametresProfilRouteImport } from './routes/parametres.profil
 import { Route as ParametresSecuriteRouteImport } from './routes/parametres.securite'
 import { Route as RapportIndexRouteImport } from './routes/rapport.index'
 import { Route as RapportMoisRouteImport } from './routes/rapport.$mois'
+import { Route as ComptesCategorieNomRouteImport } from './routes/comptes.categorie.$nom'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
@@ -308,6 +309,11 @@ const RapportMoisRoute = RapportMoisRouteImport.update({
   path: '/rapport/$mois',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComptesCategorieNomRoute = ComptesCategorieNomRouteImport.update({
+  id: '/categorie/$nom',
+  path: '/categorie/$nom',
+  getParentRoute: () => ComptesRoute,
+} as any)
 const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -375,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
+  '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -425,6 +432,7 @@ export interface FileRoutesByTo {
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
   '/rapport': typeof RapportIndexRoute
+  '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
@@ -480,6 +488,7 @@ export interface FileRoutesById {
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
+  '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
@@ -536,6 +545,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/parametres/'
     | '/rapport/'
+    | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -586,6 +596,7 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/parametres'
     | '/rapport'
+    | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts'
@@ -640,6 +651,7 @@ export interface FileRouteTypes {
     | '/enveloppes/'
     | '/parametres/'
     | '/rapport/'
+    | '/comptes/categorie/$nom'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/comptes/transferts/'
@@ -1018,6 +1030,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RapportMoisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comptes/categorie/$nom': {
+      id: '/comptes/categorie/$nom'
+      path: '/categorie/$nom'
+      fullPath: '/comptes/categorie/$nom'
+      preLoaderRoute: typeof ComptesCategorieNomRouteImport
+      parentRoute: typeof ComptesRoute
+    }
     '/comptes/transferts/': {
       id: '/comptes/transferts/'
       path: '/'
@@ -1060,6 +1079,7 @@ interface ComptesRouteChildren {
   ComptesActionRoute: typeof ComptesActionRoute
   ComptesTransfertsRoute: typeof ComptesTransfertsRouteWithChildren
   ComptesIndexRoute: typeof ComptesIndexRoute
+  ComptesCategorieNomRoute: typeof ComptesCategorieNomRoute
 }
 
 const ComptesRouteChildren: ComptesRouteChildren = {
@@ -1067,6 +1087,7 @@ const ComptesRouteChildren: ComptesRouteChildren = {
   ComptesActionRoute: ComptesActionRoute,
   ComptesTransfertsRoute: ComptesTransfertsRouteWithChildren,
   ComptesIndexRoute: ComptesIndexRoute,
+  ComptesCategorieNomRoute: ComptesCategorieNomRoute,
 }
 
 const ComptesRouteWithChildren =

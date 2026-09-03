@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ChevronRight, ShieldOff } from "lucide-react";
+import { ChevronRight, ShieldOff, Wallet, PiggyBank } from "lucide-react";
 import { ordreEffectifComptes, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { suggererIcone } from "@/lib/icone-auto";
