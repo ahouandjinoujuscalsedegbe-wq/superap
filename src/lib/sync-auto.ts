@@ -104,6 +104,10 @@ export async function deposer(etat: Etat, r: ReglagesAuto): Promise<number> {
     p_contenu: JSON.stringify(enveloppe),
   });
   if (error) throw new Error(error.message);
+  // Ce qui vient d'être envoyé devient la référence commune aux deux
+  // téléphones : c'est elle qui permettra de reconnaître, au retour, une
+  // modification faite par l'autre appareil.
+  ecrireBase(etat);
   return Number(data ?? 0);
 }
 
