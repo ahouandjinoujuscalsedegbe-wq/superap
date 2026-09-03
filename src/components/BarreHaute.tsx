@@ -149,6 +149,7 @@ export function BarreHaute() {
   });
 
   const accueil = pathname === "/";
+  const pageEnveloppes = pathname === "/enveloppes" || pathname === "/enveloppes/";
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : entete.titre || titreDe(pathname);
