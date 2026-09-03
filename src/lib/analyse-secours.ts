@@ -76,7 +76,42 @@ function assainir(brut: unknown): MemoireSecours {
           .filter((n) => n >= 1)
           .slice(-MAX_DECISIONS)
       : [],
+    traitees:
+      o.traitees && typeof o.traitees === "object"
+        ? Object.fromEntries(
+            Object.entries(o.traitees as Record<string, unknown>)
+              .filter(([, v]) => typeof v === "string")
+              .map(([k, v]) => [k, String(v)]),
+          )
+        : {},
   };
+}
+
+/** Marque une proposition comme déjà consultée et traitée. */
+export function marquerTraitee(cle: string): MemoireSecours {
+  const m = lireMemoireSecours();
+  const suite: MemoireSecours = {
+    ...m,
+    traitees: { ...m.traitees, [cle]: new Date().toISOString() },
+  };
+  ecrire(suite);
+  return suite;
+}
+
+/**
+ * Oublie les propositions traitées qui ne concernent plus une enveloppe en
+ * défaillance : dès qu'une enveloppe redevient saine puis retombe en difficulté,
+ * l'intelligence repart d'une page blanche pour elle.
+ */
+export function purgerTraitees(ciblesEnDetresse: string[]): MemoireSecours {
+  const m = lireMemoireSecours();
+  const gardees = Object.entries(m.traitees).filter(([cle]) =>
+    ciblesEnDetresse.some((id) => cle.startsWith(`${id}-`)),
+  );
+  if (gardees.length === Object.keys(m.traitees).length) return m;
+  const suite: MemoireSecours = { ...m, traitees: Object.fromEntries(gardees) };
+  ecrire(suite);
+  return suite;
 }
 
 /** Note de 1 à 5 donnée par l'utilisateur avant d'approuver ou de rejeter une solution. */
