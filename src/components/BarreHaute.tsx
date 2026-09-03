@@ -22,7 +22,6 @@ import {
   Pencil,
   ListOrdered,
   History,
-  
   ArrowLeftRight,
 } from "lucide-react";
 
@@ -119,9 +118,9 @@ const ACTIONS_COMPTES = [
   },
   {
     cle: "comptes-transferts",
-    to: "/comptes/transferts",
+    to: "/comptes/historique",
     label: "Historique des comptes",
-    detail: "Tous les mouvements d'un compte vers un autre.",
+    detail: "Toutes les opérations, transferts et actions sur les comptes.",
     icone: ArrowLeftRight,
   },
   {
@@ -147,6 +146,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/saisie", "Saisie intelligente"],
   ["/comptes/transferts/nouveau", "Nouveau transfert"],
   ["/comptes/transferts", "Transferts"],
+  ["/comptes/historique", "Historique des comptes"],
   ["/comptes/creer", "Créer un compte"],
   ["/comptes/action", "Comptes existants"],
   ["/comptes", "Comptes"],
@@ -246,14 +246,18 @@ export function BarreHaute() {
   const pageEnveloppesAccueil =
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
   const pageComptesAccueil = pathname === "/comptes" || pathname === "/comptes/";
-  const actions = pageComptesAccueil ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
-  const categorieInfos = !accueil ? infosCategorie(pathname) || infosCategorieComptes(pathname) : null;
+  const actions = pageComptesAccueil
+    ? ACTIONS_COMPTES
+    : pageEnveloppesAccueil
+      ? ACTIONS_ENVELOPPES
+      : null;
+  const categorieInfos = !accueil
+    ? infosCategorie(pathname) || infosCategorieComptes(pathname)
+    : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : categorieInfos?.titre || entete.titre || titreDe(pathname);
-  const sousTitre = accueil
-    ? "Bonjour 👋"
-    : categorieInfos?.sousTitre || entete.sousTitre;
+  const sousTitre = accueil ? "Bonjour 👋" : categorieInfos?.sousTitre || entete.sousTitre;
 
   // Fermer après une navigation.
   useEffect(() => {
@@ -566,7 +570,6 @@ export function BarreHaute() {
             })}
           </ul>
         </nav>
-
       </aside>
     </>
   );

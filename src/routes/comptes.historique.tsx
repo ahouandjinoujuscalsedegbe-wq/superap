@@ -75,11 +75,7 @@ function HistoriqueComptes() {
 
     return tout
       .filter((l) => (filtre === "tout" ? true : l.genre === filtre.slice(0, -1)))
-      .filter((l) =>
-        compte
-          ? l.titre.includes(compte) || l.detail.includes(compte)
-          : true,
-      )
+      .filter((l) => (compte ? l.titre.includes(compte) || l.detail.includes(compte) : true))
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 300);
   }, [transactions, transferts, filtre, compte]);
