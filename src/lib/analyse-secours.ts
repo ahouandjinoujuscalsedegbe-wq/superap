@@ -32,9 +32,11 @@ export type MemoireSecours = {
   /** Retours explicites de l'utilisateur sur l'utilité d'une solution. */
   utiles: number;
   inutiles: number;
+  /** Notes de 1 à 5 données aux solutions avant approbation ou rejet. */
+  notes: number[];
 };
 
-export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0 };
+export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0, notes: [] };
 
 const MAX_DECISIONS = 200;
 
