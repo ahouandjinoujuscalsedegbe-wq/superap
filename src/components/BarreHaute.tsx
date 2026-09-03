@@ -35,6 +35,40 @@ const ENTREES = [
   { to: "/aide", label: "Aide", icone: HelpCircle },
 ] as const;
 
+/** Options de la section « Action » de la page Enveloppes, ouvertes depuis la barre figée. */
+const ACTIONS_ENVELOPPES = [
+  {
+    to: "/enveloppes/categories",
+    label: "Gérer les catégories et sous-catégories",
+    detail: "Créez, renommez ou supprimez vos classements.",
+    icone: FolderTree,
+  },
+  {
+    to: "/enveloppes/gerer",
+    label: "Gérer les enveloppes",
+    detail: "Créer ou modifier une enveloppe existante.",
+    icone: FolderTree,
+  },
+  {
+    to: "/enveloppes/renouvellements",
+    label: "Détail des renouvellements",
+    detail: "Période, montant débité, compte source et part de revenu.",
+    icone: RefreshCcw,
+  },
+  {
+    to: "/enveloppes/budgetisation",
+    label: "Budget : plan, suivi et proposition",
+    detail: "Dépenses planifiées, comparaison au réel, budget auto.",
+    icone: Scale,
+  },
+  {
+    to: "/enveloppes/secours",
+    label: "Plan de secours (enveloppe épuisée)",
+    detail: "Transferts sûrs depuis d'autres enveloppes.",
+    icone: LifeBuoy,
+  },
+] as const;
+
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/revenu", "Ajouter un revenu"],
