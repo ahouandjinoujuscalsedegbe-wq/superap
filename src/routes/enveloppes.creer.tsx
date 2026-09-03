@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
+import { ChoixIcone } from "@/components/ChoixIcone";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
@@ -320,37 +321,32 @@ function CreerEnveloppePage() {
       <form onSubmit={valider} className="space-y-4">
         <section className="carte space-y-3 p-4">
           <p className="text-sm font-semibold">Comment s'appelle cette enveloppe ?</p>
-          <div className="flex gap-2">
-            <div className="w-20">
-              <label htmlFor="e-emoji" className="text-xs text-muted-foreground">
-                Emoji
-              </label>
-              <input
-                id="e-emoji"
-                value={emoji}
-                onChange={(ev) => {
-                  setEmojiManuel(true);
-                  setEmoji(ev.target.value);
-                }}
-                className={champ}
-              />
-            </div>
-            <div className="flex-1">
-              <label htmlFor="e-nom" className="text-xs text-muted-foreground">
-                Nom
-              </label>
-              <input
-                id="e-nom"
-                value={nom}
-                onChange={(ev) => {
-                  const valeur = ev.target.value;
-                  setNom(valeur);
-                  if (!emojiManuel) setEmoji(suggererIcone(valeur, "enveloppe"));
-                }}
-                placeholder="Santé"
-                className={champ}
-              />
-            </div>
+          <div>
+            <label htmlFor="e-nom" className="text-xs text-muted-foreground">
+              Nom
+            </label>
+            <input
+              id="e-nom"
+              value={nom}
+              onChange={(ev) => {
+                const valeur = ev.target.value;
+                setNom(valeur);
+                if (!emojiManuel) setEmoji(suggererIcone(valeur, "enveloppe"));
+              }}
+              placeholder="Santé"
+              className={champ}
+            />
+          </div>
+          <ChoixIcone
+            nom={nom}
+            domaine="enveloppe"
+            valeur={emoji}
+            titre="Logo de l'enveloppe proposé"
+            onChoisir={(e) => {
+              setEmojiManuel(true);
+              setEmoji(e);
+            }}
+          />
           </div>
         </section>
 

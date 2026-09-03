@@ -947,7 +947,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             ...e,
             categories: [
               ...e.categories,
-              { id: crypto.randomUUID(), nom, sousCategories: [], ...(icone ? { emoji: icone } : {}) },
+              {
+                id: crypto.randomUUID(),
+                nom,
+                sousCategories: [],
+                ...(icone ? { emoji: icone } : {}),
+              },
             ],
           },
     );

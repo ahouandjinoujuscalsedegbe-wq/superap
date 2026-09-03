@@ -168,7 +168,11 @@ const PALETTES: Record<Domaine, string[]> = {
  * Propose plusieurs icônes pertinentes pour un libellé : d'abord ce qui a été
  * appris, puis le lexique, puis une palette du domaine. Sans doublon.
  */
-export function suggererIcones(texte: string, domaine: Domaine = "enveloppe", nombre = 8): string[] {
+export function suggererIcones(
+  texte: string,
+  domaine: Domaine = "enveloppe",
+  nombre = 8,
+): string[] {
   const sortie: string[] = [];
   const ajouter = (e: string) => {
     if (e && !sortie.includes(e) && sortie.length < nombre) sortie.push(e);
