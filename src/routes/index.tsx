@@ -15,9 +15,6 @@ import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
-import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
-const logoSuperApp = logoSuperAppAsset.url;
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -47,7 +44,6 @@ function Accueil() {
     dettes,
     enveloppes,
     depensesParEnveloppe,
-    nomUtilisateur,
     chargement,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
