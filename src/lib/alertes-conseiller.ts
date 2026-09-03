@@ -20,6 +20,22 @@ function empreinte(titre: string, texte: string): string {
   return `${titre}|${texte}|${new Date().toISOString().slice(0, 13)}`;
 }
 
+/** Événement global : ouvre le panneau « Analyse & plan de secours ». */
+export const EVENEMENT_OUVRIR_SECOURS = "super-app:ouvrir-secours";
+
+/** Ouvre immédiatement le panneau d'analyse et de plan de secours, où qu'on soit. */
+export function ouvrirPlanSecours(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(EVENEMENT_OUVRIR_SECOURS));
+}
+
+/** Une alerte parle-t-elle d'une défaillance à secourir ? */
+function concerneSecours(titre: string, texte: string): boolean {
+  return /secours|défaillance|defaillance|détresse|detresse|dépass|depass|manque|à sec|epuis|épuis/i.test(
+    `${titre} ${texte}`,
+  );
+}
+
 export type AlerteConseiller = {
   titre: string;
   texte: string;
@@ -27,6 +43,8 @@ export type AlerteConseiller = {
   details?: string[];
   /** Alerte grave (affichée avec une pastille rouge dans la discussion). */
   urgent?: boolean;
+  /** Force le lien direct vers « Analyse & plan de secours ». */
+  secours?: boolean;
 };
 
 /**
@@ -51,6 +69,7 @@ export async function publierAlerteConseiller(alerte: AlerteConseiller): Promise
       texte: `${alerte.urgent ? "🚨" : "🔔"} ${alerte.titre}\n${alerte.texte}`,
       ...(alerte.details && alerte.details.length > 0 ? { details: alerte.details } : {}),
       categorie: "bilan",
+      ...((alerte.secours ?? concerneSecours(alerte.titre, alerte.texte)) ? { secours: true } : {}),
       date: new Date().toISOString(),
       lu: false,
     };

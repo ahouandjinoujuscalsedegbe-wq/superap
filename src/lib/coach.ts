@@ -52,6 +52,8 @@ export type MessageCoach = {
   supprime?: boolean;
   /** Message épinglé en haut de la discussion. */
   epingle?: boolean;
+  /** Alerte de défaillance : un appui ouvre « Analyse & plan de secours ». */
+  secours?: boolean;
 };
 
 export type MemoireCoach = {

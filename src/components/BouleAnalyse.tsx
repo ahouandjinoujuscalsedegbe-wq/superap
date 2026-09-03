@@ -21,7 +21,7 @@ import {
   purgerTraitees,
   solutionsSecours,
 } from "@/lib/analyse-secours";
-import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
+import { EVENEMENT_OUVRIR_SECOURS, publierAlerteConseiller } from "@/lib/alertes-conseiller";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
@@ -85,6 +85,16 @@ export function BouleAnalyse() {
     } catch {
       /* rien vu */
     }
+  }, []);
+
+  // Un appui sur une notification de défaillance ouvre directement les solutions.
+  useEffect(() => {
+    const ouvrirSecours = () => {
+      setOnglet("solutions");
+      setOuvert(true);
+    };
+    window.addEventListener(EVENEMENT_OUVRIR_SECOURS, ouvrirSecours);
+    return () => window.removeEventListener(EVENEMENT_OUVRIR_SECOURS, ouvrirSecours);
   }, []);
 
   const debutGlisse = useCallback((e: PointerEventReact<HTMLButtonElement>) => {
@@ -158,6 +168,7 @@ export function BouleAnalyse() {
         texte: `Toutes les pistes de secours ont été traitées ou épuisées, et ${s.plan.enveloppe.nom} reste en difficulté (${formatFCFA(s.plan.manque)} manquants). Voici ce que je conseille.`,
         details: s.conseils,
         urgent: true,
+        secours: true,
       });
     }
   }, [solutions]);
