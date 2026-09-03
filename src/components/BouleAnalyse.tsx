@@ -157,7 +157,7 @@ export function BouleAnalyse() {
   // Une enveloppe redevenue saine libère son historique de propositions traitées.
   useEffect(() => {
     const suite = purgerTraitees(solutions.map((s) => s.id));
-    setMemoire((m) => (suite === m ? m : suite));
+    setMemoire((m) => (JSON.stringify(m) === JSON.stringify(suite) ? m : suite));
   }, [solutions]);
 
   // Enveloppe toujours en défaillance sans aucune piste de transfert : l'intelligence prévient.
