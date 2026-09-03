@@ -80,8 +80,15 @@ function jourLong(iso: string): string {
  * ou supprime la prévision existante, puis revient au plan des dépenses.
  */
 export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
-  const { enveloppes, budgets, comptes, transactions, ajouterBudget, modifierBudget, supprimerBudget } =
-    useSuperApp();
+  const {
+    enveloppes,
+    budgets,
+    comptes,
+    transactions,
+    ajouterBudget,
+    modifierBudget,
+    supprimerBudget,
+  } = useSuperApp();
   const navigate = useNavigate();
   const existant = budgetId ? budgets.find((b) => b.id === budgetId) : undefined;
 
@@ -101,7 +108,8 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
   const [bCompte, setBCompte] = useState(existant?.compte ?? comptes[0] ?? "");
   const [dureeId, setDureeId] = useState("");
   const [debut, setDebut] = useState(
-    () => existant?.debut ?? (existant ? jourISO(new Date(existant.prochaine)) : jourISO(new Date())),
+    () =>
+      existant?.debut ?? (existant ? jourISO(new Date(existant.prochaine)) : jourISO(new Date())),
   );
   const [calendrierOuvert, setCalendrierOuvert] = useState(false);
   const [demande, setDemande] = useState<null | { type: "enregistrer" | "suppression" }>(null);
@@ -128,26 +136,25 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
 
   function valider(ev: React.FormEvent): void {
     ev.preventDefault();
-    const erreur =
-      !sujet.trim()
-        ? "Indiquez le sujet de votre dépense."
-        : periodique === null
-          ? "Précisez si votre dépense est périodique."
-          : periodique && !frequence
-            ? "Choisissez la périodicité de cette dépense."
-            : !Number.isFinite(montant) || montant <= 0
-              ? "Montant invalide : saisissez un montant positif en FCFA."
-              : !bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe)
-                ? "Choisissez l'enveloppe de prélèvement."
-                : !bCompte
-                  ? "Choisissez le compte à débiter."
-                  : periodique && !duree && !existant
-                    ? "Précisez sur quel temps s'étend la périodicité."
-                    : !debut
-                      ? "Choisissez le jour de la dépense."
-                      : periodique && frequence && duree && occurrencesPrevues < 2
-                        ? "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée."
-                        : "";
+    const erreur = !sujet.trim()
+      ? "Indiquez le sujet de votre dépense."
+      : periodique === null
+        ? "Précisez si votre dépense est périodique."
+        : periodique && !frequence
+          ? "Choisissez la périodicité de cette dépense."
+          : !Number.isFinite(montant) || montant <= 0
+            ? "Montant invalide : saisissez un montant positif en FCFA."
+            : !bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe)
+              ? "Choisissez l'enveloppe de prélèvement."
+              : !bCompte
+                ? "Choisissez le compte à débiter."
+                : periodique && !duree && !existant
+                  ? "Précisez sur quel temps s'étend la périodicité."
+                  : !debut
+                    ? "Choisissez le jour de la dépense."
+                    : periodique && frequence && duree && occurrencesPrevues < 2
+                      ? "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée."
+                      : "";
     if (erreur) {
       toast.error(erreur);
       return;
@@ -377,8 +384,7 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
             />
           )}
           <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
-            Période couverte :{" "}
-            <span className="font-semibold">{libellePlage({ debut, fin })}</span>
+            Période couverte : <span className="font-semibold">{libellePlage({ debut, fin })}</span>
             {periodique === true && frequence && duree && (
               <>
                 {" · "}
@@ -426,7 +432,11 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
         details={
           demande?.type === "enregistrer"
             ? [
-                { label: "Sujet de la dépense", avant: existant?.libelle ?? "—", apres: sujet.trim() },
+                {
+                  label: "Sujet de la dépense",
+                  avant: existant?.libelle ?? "—",
+                  apres: sujet.trim(),
+                },
                 {
                   label: "Montant par échéance",
                   avant: existant ? formatFCFA(existant.montant) : "—",
