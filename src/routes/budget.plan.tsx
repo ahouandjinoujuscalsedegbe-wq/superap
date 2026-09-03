@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ChevronDown, Plus } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr, grouperMontant } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
+import { AXES_PLAN } from "@/components/ListePlansGroupes";
 
 export const Route = createFileRoute("/budget/plan")({
   head: () => ({
