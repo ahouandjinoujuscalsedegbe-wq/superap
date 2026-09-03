@@ -31,10 +31,14 @@ function normaliser(v: string): string {
 
 /** Domaines couverts par le moteur général, dans l'ordre de priorité. */
 const DOMAINES: { id: string; motif: RegExp }[] = [
-  { id: "capacites", motif: /que sais tu|que peux tu|tes capacites|aide moi a te parler|tu sais quoi/ },
+  {
+    id: "capacites",
+    motif: /que sais tu|que peux tu|tes capacites|aide moi a te parler|tu sais quoi/,
+  },
   {
     id: "apprentissage",
-    motif: /apprentissage|apprends|tu apprends|intelligence|ia\b|memoire|habitude|tu me connais|fiabilite/,
+    motif:
+      /apprentissage|apprends|tu apprends|intelligence|ia\b|memoire|habitude|tu me connais|fiabilite/,
   },
   { id: "comptes", motif: /\bcompte|solde|banque|momo|moov|wave|especes|caisse|disponible/ },
   { id: "dettes", motif: /dette|creance|je dois|on me doit|rembours|prete|emprunt/ },
@@ -42,7 +46,10 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
   { id: "planifie", motif: /planifi|prevu|suivi|compare|ecart|reel/ },
   { id: "previsions", motif: /prevision|projection|fin du mois|prochain mois|futur|tiendrai/ },
   { id: "alertes", motif: /alerte|probleme|risque|danger|attention|vigilance/ },
-  { id: "resume", motif: /resume|point global|situation generale|ou en est|comment ca va|bilan general/ },
+  {
+    id: "resume",
+    motif: /resume|point global|situation generale|ou en est|comment ca va|bilan general/,
+  },
 ];
 
 /**
@@ -92,12 +99,14 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
       const { aPayer, aRecevoir, lignes } = photoDettes(etat);
       if (lignes.length === 0) {
         return {
-          reponse: "Vous n'avez aucune dette ni créance en cours. Rien à rembourser, rien à récupérer.",
+          reponse:
+            "Vous n'avez aucune dette ni créance en cours. Rien à rembourser, rien à récupérer.",
           details: [],
         };
       }
       const enRetard = etat.donnees.dettes.filter(
-        (d) => resteDu(d) > 0 && d.dateLimite && d.dateLimite < new Date().toISOString().slice(0, 10),
+        (d) =>
+          resteDu(d) > 0 && d.dateLimite && d.dateLimite < new Date().toISOString().slice(0, 10),
       );
       return {
         reponse: `Vous devez ${fcfa(aPayer)} et on vous doit ${fcfa(aRecevoir)}, soit une position nette de ${fcfa(
@@ -224,6 +233,9 @@ export function repondreParDefaut(etat: EtatIA): ReponseGenerale {
   return {
     reponse:
       "Je n'ai pas bien saisi la question, mais voici où vous en êtes, d'après tout ce que j'observe.",
-    details: [...resumeReseau(etat), "Demandez-moi : comptes, dettes, objectifs, planifié, alertes."],
+    details: [
+      ...resumeReseau(etat),
+      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes.",
+    ],
   };
 }

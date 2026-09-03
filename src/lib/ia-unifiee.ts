@@ -163,11 +163,7 @@ export function useIaUnifiee(): EtatIA {
     soldeDisponible,
   } = useSuperApp();
 
-  const version = useSyncExternalStore(
-    abonnerHabitudes,
-    versionHabitudes,
-    () => 0,
-  );
+  const version = useSyncExternalStore(abonnerHabitudes, versionHabitudes, () => 0);
 
   return useMemo(() => {
     void version; // recalcul dès qu'une nouvelle habitude est mémorisée

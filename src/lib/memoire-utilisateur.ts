@@ -178,15 +178,7 @@ export const HABITUDES_VIDES: Habitudes = {
   maturite: 0,
 };
 
-const JOURS_FR = [
-  "dimanche",
-  "lundi",
-  "mardi",
-  "mercredi",
-  "jeudi",
-  "vendredi",
-  "samedi",
-] as const;
+const JOURS_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"] as const;
 
 function premiers(compte: Map<string, number>, combien: number): string[] {
   return [...compte.entries()]
@@ -260,7 +252,9 @@ export function calculerHabitudes(journal: JournalHabitudes = lireJournalHabitud
 export function phrasesHabitudes(h: Habitudes): string[] {
   const phrases: string[] = [];
   if (h.observees === 0) {
-    return ["Je commence tout juste à observer vos habitudes : utilisez l'application normalement."];
+    return [
+      "Je commence tout juste à observer vos habitudes : utilisez l'application normalement.",
+    ];
   }
   if (h.heuresActives.length > 0) {
     phrases.push(`Vous utilisez surtout l'application vers ${h.heuresActives.join(" et ")}.`);
@@ -280,7 +274,9 @@ export function phrasesHabitudes(h: Habitudes): string[] {
   if (h.satisfaction >= 0) {
     phrases.push(`${h.satisfaction} % de mes conseils vous ont été utiles jusqu'ici.`);
   }
-  phrases.push(`Mémoire des habitudes : ${h.maturite} % de maturité (${h.total} actions apprises).`);
+  phrases.push(
+    `Mémoire des habitudes : ${h.maturite} % de maturité (${h.total} actions apprises).`,
+  );
   return phrases;
 }
 
