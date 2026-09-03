@@ -9,8 +9,9 @@
  * sont mémorisées : le moteur devient de plus en plus juste avec le temps.
  */
 
-export type MessageSms = {
 import { noterAction } from "./memoire-utilisateur";
+
+export type MessageSms = {
   /** Identifiant stable du message (fourni par le téléphone ou calculé). */
   id: string;
   expediteur: string;
