@@ -35,8 +35,7 @@ export function TableauSuiviReel() {
   );
 
   const depassement = totaux.ecart > 0;
-  const consommation =
-    totaux.planifie > 0 ? Math.round((totaux.reel / totaux.planifie) * 100) : 0;
+  const consommation = totaux.planifie > 0 ? Math.round((totaux.reel / totaux.planifie) * 100) : 0;
 
   return (
     <section className="carte space-y-3 p-4">
