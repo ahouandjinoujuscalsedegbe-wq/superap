@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { formatFCFA } from "@/lib/format";
-import { BarreComparaison, phraseEcart } from "@/components/BarreComparaison";
+import { CarteComparaison } from "@/components/BarreComparaison";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
 import { AXES_SUIVI, comparerParAxe, type AxeSuivi } from "@/lib/suivi-planifie";
@@ -89,52 +89,23 @@ function PageSuiviParAxe() {
         ))}
       </div>
 
-      <section className="carte space-y-3 p-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Tout le mois de {moisLisible(mois)}
-        </p>
-        <BarreComparaison prevu={totalPlanifie} depense={totalReel} />
-        <p
-          className={`rounded-xl p-3 text-sm font-semibold ${
-            ecart > 0
-              ? "bg-destructive/10 text-destructive"
-              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-          }`}
-        >
-          {ecart > 0
-            ? `Tu as dépensé ${formatFCFA(ecart)} de plus que prévu.`
-            : ecart === 0
-              ? "Tu as dépensé exactement ce qui était prévu."
-              : `Il te reste ${formatFCFA(-ecart)} sur ce qui était prévu.`}
-        </p>
-      </section>
+      <CarteComparaison
+        titre={`Tout le mois de ${moisLisible(mois)}`}
+        prevu={totalPlanifie}
+        depense={totalReel}
+      />
 
       {groupes.length === 0 ? (
         <p className="carte p-4 text-sm text-muted-foreground">
           Rien de prévu ni de dépensé sur {moisLisible(mois)}.
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {groupes.map((g) => (
-            <li key={g.cle} className="carte space-y-3 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="min-w-0 truncate text-sm font-semibold">
-                  <span aria-hidden>{g.emoji}</span> {g.cle}
-                </p>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    g.ecart > 0
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                  }`}
-                >
-                  {phraseEcart(g.planifie, g.reel)}
-                </span>
-              </div>
+            <li key={g.cle}>
+              <CarteComparaison titre={`${g.emoji} ${g.cle}`} prevu={g.planifie} depense={g.reel} />
 
-              <BarreComparaison prevu={g.planifie} depense={g.reel} compact />
-
-              <ul className="space-y-1 border-t border-border pt-2">
+              <ul className="carte -mt-2 space-y-1 rounded-t-none border-t-0 p-3 pt-5">
                 {g.lignes.map((l, i) => (
                   <li
                     key={`${l.origine}-${l.libelle}-${l.date}-${i}`}
