@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useSuperApp } from "@/lib/store";
 import { useCerveau } from "@/lib/cerveau/hook";
 import { lireReglagesAlarme } from "@/lib/alarme";
-import { declencherAlarmeAppareil } from "@/lib/alarme-appareil";
+import {
+  declencherAlarmeAppareil,
+  idConseiller,
+  notifierAlarme,
+  programmerRappelsConseiller,
+} from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {
   construireVeille,
