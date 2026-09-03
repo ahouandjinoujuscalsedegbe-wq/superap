@@ -126,10 +126,36 @@ export function BouleAnalyse() {
     [enveloppes, depensesParEnveloppe, transactions],
   );
 
+  /** Empreinte du contenu en attente d'action : change dès qu'il y a du nouveau. */
+  const signature = useMemo(() => {
+    const a = alertes.map((x) => `${x.id}:${x.niveau}`).join("|");
+    const s = solutions
+      .flatMap((x) =>
+        x.donneurs
+          .map((d) => `${x.id}-${d.enveloppe.id}-${d.montantPropose}`)
+          .filter((cle) => !faits.includes(cle)),
+      )
+      .join("|");
+    return `${a}#${s}`;
+  }, [alertes, solutions, faits]);
+
+  // Tant que l'onglet est ouvert, ce qui s'affiche est considéré comme consulté.
+  useEffect(() => {
+    if (!ouvert) return;
+    setVu(signature);
+    try {
+      localStorage.setItem("boule-analyse-vu", signature);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [ouvert, signature]);
+
   if (alertes.length === 0 && solutions.length === 0) return null;
 
   const urgentes = alertes.filter((a) => a.niveau === "alerte").length + solutions.length;
   const total = alertes.length + solutions.length;
+  /** Du nouveau non encore consulté : seule situation où la boule clignote. */
+  const nouveau = signature !== vu && signature !== "#";
 
   /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
   const noteManquante = (solutionId: string) => {
