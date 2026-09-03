@@ -165,7 +165,14 @@ export function BouleAnalyse() {
     toast.success(`${formatFCFA(montant)} transférés vers ${cibleNom}`);
   };
 
-  const ignorer = (cle: string, cibleNom: string, donneurNom: string, propose: number) => {
+  const ignorer = (
+    solutionId: string,
+    cle: string,
+    cibleNom: string,
+    donneurNom: string,
+    propose: number,
+  ) => {
+    if (noteManquante(solutionId)) return;
     setBilan(
       bilanSecours(
         enregistrerDecision({
