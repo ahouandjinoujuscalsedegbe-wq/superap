@@ -281,3 +281,56 @@ export function apprendreCorrections(
     /* stockage saturé : l'apprentissage reprendra plus tard */
   }
 }
+
+/* ------------------------------------------------------------------
+ * Notation du budget proposé
+ * ------------------------------------------------------------------ */
+
+const CLE_NOTES = "superapp.budget.notes";
+
+export type NoteBudget = {
+  /** Note de 1 à 5 donnée par l'utilisateur. */
+  note: number;
+  /** Total proposé au moment de la note. */
+  totalPropose: number;
+  /** L'utilisateur a-t-il choisi de modifier le budget ? */
+  modifie: boolean;
+  /** Commentaire libre facultatif. */
+  commentaire?: string;
+  le: string;
+};
+
+export function chargerNotesBudget(): NoteBudget[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const brut = window.localStorage.getItem(CLE_NOTES);
+    const liste = brut ? (JSON.parse(brut) as NoteBudget[]) : [];
+    return Array.isArray(liste) ? liste : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Moyenne des notes reçues, 0 si aucune note. */
+export function moyenneNotesBudget(): number {
+  const liste = chargerNotesBudget();
+  if (liste.length === 0) return 0;
+  const s = liste.reduce((t, n) => t + n.note, 0);
+  return Math.round((s / liste.length) * 10) / 10;
+}
+
+/**
+ * Enregistre la notation obligatoire du budget proposé : elle sert de retour
+ * d'expérience local au moteur, sans jamais quitter l'appareil.
+ */
+export function noterBudget(entree: Omit<NoteBudget, "le">): void {
+  if (typeof window === "undefined") return;
+  const note = Math.min(5, Math.max(1, Math.round(entree.note)));
+  const liste = chargerNotesBudget();
+  liste.push({ ...entree, note, le: new Date().toISOString() });
+  try {
+    window.localStorage.setItem(CLE_NOTES, JSON.stringify(liste.slice(-200)));
+  } catch {
+    /* stockage saturé : la notation reprendra plus tard */
+  }
+}
