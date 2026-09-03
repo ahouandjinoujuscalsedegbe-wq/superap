@@ -584,7 +584,7 @@ export function BarreHaute() {
           </ul>
         </nav>
 
-        {pageComptes && comptes.length > 1 && (
+        {pageComptesAccueil && comptes.length > 1 && (
           <section
             aria-label="Ordre d'affichage des comptes"
             className="mt-4 border-t border-border pt-3"
