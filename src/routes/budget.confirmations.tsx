@@ -31,6 +31,8 @@ function Page() {
   const { budgets, enveloppes, convertirBudget, reporterBudget } = useSuperApp();
   const [maintenant] = useState(() => new Date());
   const [traitees, setTraitees] = useState<string[]>([]);
+  /** Report choisi pour une dépense ponctuelle non réalisée (en jours). */
+  const [reports, setReports] = useState<Record<string, number>>({});
   const dues = echeancesDues(budgets, maintenant).filter((d) => !traitees.includes(d.cle));
 
   return (
@@ -59,9 +61,27 @@ function Page() {
                 {formatFCFA(d.budget.montant)} · {env?.nom ?? "Sans enveloppe"} · {d.budget.compte}
               </p>
               <p className="text-xs text-muted-foreground">
-                Prévue le {d.quand.toLocaleDateString("fr-FR")}
+                Prévue le {d.quand.toLocaleDateString("fr-FR")} (heure locale)
                 {d.budget.heure ? ` à ${d.budget.heure}` : ""}
               </p>
+              {d.budget.ponctuel !== false && (
+                <label className="mt-3 block text-xs text-muted-foreground">
+                  Si elle n'a pas été réalisée, la replanifier automatiquement :
+                  <select
+                    value={reports[d.cle] ?? 1}
+                    onChange={(ev) =>
+                      setReports((r) => ({ ...r, [d.cle]: Number(ev.target.value) }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-input bg-background/60 px-3 py-2 text-sm text-foreground"
+                  >
+                    <option value={1}>Demain</option>
+                    <option value={3}>Dans 3 jours</option>
+                    <option value={7}>Dans 7 jours</option>
+                    <option value={30}>Dans 30 jours</option>
+                  </select>
+                </label>
+              )}
+
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -78,9 +98,14 @@ function Page() {
                 <button
                   type="button"
                   onClick={() => {
-                    reporterBudget(d.budget.id);
+                    const jours = reports[d.cle] ?? 1;
+                    reporterBudget(d.budget.id, jours);
                     setTraitees((t) => [...t, d.cle]);
-                    toast.success("Dépense marquée comme non réalisée.");
+                    toast.success(
+                      d.budget.ponctuel !== false
+                        ? `Non réalisée : replanifiée dans ${jours} jour${jours > 1 ? "s" : ""}.`
+                        : "Non réalisée : reportée à la prochaine échéance.",
+                    );
                   }}
                   className="flex items-center justify-center gap-2 rounded-xl border border-destructive/50 py-3 text-sm font-semibold text-destructive"
                 >
