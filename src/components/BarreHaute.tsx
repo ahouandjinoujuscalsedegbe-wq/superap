@@ -378,6 +378,64 @@ export function BarreHaute() {
           </ul>
         </nav>
       </aside>
+
+      {/* Panneau latéral « Action » réservé à la page Enveloppes. */}
+      <div
+        onClick={() => setActionOuvert(false)}
+        aria-hidden
+        className={`fixed inset-0 z-[70] bg-foreground/30 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
+          actionOuvert ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      <aside
+        id="menu-actions-enveloppes"
+        role="menu"
+        aria-label="Actions sur les enveloppes"
+        aria-hidden={!actionOuvert}
+        className={`fixed right-0 top-0 z-[70] flex h-[100dvh] w-[19rem] max-w-[88vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+          actionOuvert ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <span className="font-semibold">Action</span>
+          <button
+            type="button"
+            onClick={() => setActionOuvert(false)}
+            aria-label="Fermer les actions"
+            className="rounded-full p-1.5 text-foreground transition-transform duration-200 active:scale-95"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto overscroll-contain p-3">
+          <ul className="space-y-2">
+            {ACTIONS_ENVELOPPES.map((a) => {
+              const Icone = a.icone;
+              return (
+                <li key={a.to}>
+                  <Link
+                    to={a.to}
+                    role="menuitem"
+                    tabIndex={actionOuvert ? 0 : -1}
+                    onClick={() => setActionOuvert(false)}
+                    className="carte flex items-center gap-3 p-3 text-left transition-colors hover:bg-accent/40"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Icone className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{a.label}</span>
+                      <span className="block text-xs text-muted-foreground">{a.detail}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
     </>
   );
 }
