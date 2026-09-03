@@ -32,9 +32,11 @@ export type MemoireSecours = {
   /** Retours explicites de l'utilisateur sur l'utilité d'une solution. */
   utiles: number;
   inutiles: number;
+  /** Notes de 1 à 5 données aux solutions avant approbation ou rejet. */
+  notes: number[];
 };
 
-export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0 };
+export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0, notes: [] };
 
 const MAX_DECISIONS = 200;
 
@@ -60,7 +62,22 @@ function assainir(brut: unknown): MemoireSecours {
     decisions,
     utiles: Number(o.utiles) || 0,
     inutiles: Number(o.inutiles) || 0,
+    notes: Array.isArray(o.notes)
+      ? o.notes
+          .map((n) => Math.max(1, Math.min(5, Math.round(Number(n)) || 0)))
+          .filter((n) => n >= 1)
+          .slice(-MAX_DECISIONS)
+      : [],
   };
+}
+
+/** Note de 1 à 5 donnée par l'utilisateur avant d'approuver ou de rejeter une solution. */
+export function noterQualiteSolution(note: number): MemoireSecours {
+  const m = lireMemoireSecours();
+  const valeur = Math.max(1, Math.min(5, Math.round(note)));
+  const suite: MemoireSecours = { ...m, notes: [...m.notes, valeur].slice(-MAX_DECISIONS) };
+  ecrire(suite);
+  return suite;
 }
 
 export function lireMemoireSecours(): MemoireSecours {
@@ -198,6 +215,9 @@ export type BilanSecours = {
   inutiles: number;
   /** Maturité de l'intelligence 0–100. */
   maturite: number;
+  /** Note moyenne sur 5 donnée aux solutions (0 si aucune note). */
+  noteMoyenne: number;
+  notes: number;
 };
 
 export function bilanSecours(memoire = lireMemoireSecours()): BilanSecours {
@@ -225,6 +245,10 @@ export function bilanSecours(memoire = lireMemoireSecours()): BilanSecours {
     utiles: memoire.utiles,
     inutiles: memoire.inutiles,
     maturite,
+    noteMoyenne: memoire.notes.length
+      ? Math.round((memoire.notes.reduce((s, n) => s + n, 0) / memoire.notes.length) * 10) / 10
+      : 0,
+    notes: memoire.notes.length,
   };
 }
 

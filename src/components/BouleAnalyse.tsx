@@ -6,7 +6,7 @@ import {
   useState,
   type PointerEvent as PointerEventReact,
 } from "react";
-import { ArrowRight, LifeBuoy, Sparkles, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { ArrowRight, LifeBuoy, Sparkles, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCerveau } from "@/lib/cerveau/hook";
 import { useSuperApp } from "@/lib/store";
@@ -14,6 +14,7 @@ import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import {
   bilanSecours,
   enregistrerDecision,
+  noterQualiteSolution,
   noterSolution,
   solutionsSecours,
 } from "@/lib/analyse-secours";
@@ -41,6 +42,8 @@ export function BouleAnalyse() {
   const [ouvert, setOuvert] = useState(false);
   const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
+  /** Note sur 5 donnée à chaque solution : obligatoire avant approbation ou rejet. */
+  const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -121,7 +124,17 @@ export function BouleAnalyse() {
   const urgentes = alertes.filter((a) => a.niveau === "alerte").length + solutions.length;
   const total = alertes.length + solutions.length;
 
+  /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
+  const noteManquante = (solutionId: string) => {
+    if (!notes[solutionId]) {
+      toast.error("Donnez d'abord une note de 1 à 5 à cette solution.");
+      return true;
+    }
+    return false;
+  };
+
   const appliquer = (
+    solutionId: string,
     cle: string,
     cibleId: string,
     cibleNom: string,
@@ -129,6 +142,7 @@ export function BouleAnalyse() {
     donneurNom: string,
     propose: number,
   ) => {
+    if (noteManquante(solutionId)) return;
     const saisi = montants[cle];
     const montant = saisi ? Number(deGrouperMontant(saisi)) : propose;
     if (!montant || montant <= 0) {
@@ -151,7 +165,14 @@ export function BouleAnalyse() {
     toast.success(`${formatFCFA(montant)} transférés vers ${cibleNom}`);
   };
 
-  const ignorer = (cle: string, cibleNom: string, donneurNom: string, propose: number) => {
+  const ignorer = (
+    solutionId: string,
+    cle: string,
+    cibleNom: string,
+    donneurNom: string,
+    propose: number,
+  ) => {
+    if (noteManquante(solutionId)) return;
     setBilan(
       bilanSecours(
         enregistrerDecision({
@@ -268,6 +289,40 @@ export function BouleAnalyse() {
                     <span>{s.impact}</span>
                   </p>
 
+                  {/* Note obligatoire de 1 à 5 avant d'approuver ou de rejeter. */}
+                  <div
+                    role="group"
+                    aria-label={`Noter la solution pour ${s.plan.enveloppe.nom}`}
+                    className="mt-2 flex flex-wrap items-center gap-1 text-[11px]"
+                  >
+                    <span className="mr-1 font-medium">Votre note sur 5 :</span>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        aria-label={`${n} sur 5`}
+                        aria-pressed={(notes[s.id] ?? 0) >= n}
+                        onClick={() => {
+                          setNotes((x) => ({ ...x, [s.id]: n }));
+                          setBilan(bilanSecours(noterQualiteSolution(n)));
+                        }}
+                        className="rounded-full p-0.5 hover:bg-secondary"
+                      >
+                        <Star
+                          aria-hidden
+                          className={`h-4 w-4 ${
+                            (notes[s.id] ?? 0) >= n
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-muted-foreground">
+                      {notes[s.id] ? `${notes[s.id]}/5` : "Notez avant d'appliquer ou d'ignorer."}
+                    </span>
+                  </div>
+
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
                     if (faits.includes(cle)) return null;
@@ -297,8 +352,11 @@ export function BouleAnalyse() {
                           />
                           <button
                             type="button"
+                            disabled={!notes[s.id]}
+                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
                               appliquer(
+                                s.id,
                                 cle,
                                 s.plan.enveloppe.id,
                                 s.plan.enveloppe.nom,
@@ -307,17 +365,25 @@ export function BouleAnalyse() {
                                 d.montantPropose,
                               )
                             }
-                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground"
+                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
                           >
                             <ArrowRight aria-hidden className="h-3 w-3" />
                             Appliquer
                           </button>
                           <button
                             type="button"
+                            disabled={!notes[s.id]}
+                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              ignorer(cle, s.plan.enveloppe.nom, d.enveloppe.nom, d.montantPropose)
+                              ignorer(
+                                s.id,
+                                cle,
+                                s.plan.enveloppe.nom,
+                                d.enveloppe.nom,
+                                d.montantPropose,
+                              )
                             }
-                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
+                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground disabled:opacity-50"
                           >
                             Ignorer
                           </button>
