@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { SectionCouple } from "@/components/SectionCouple";
 import { useSuperApp } from "@/lib/store";
 
@@ -28,7 +27,6 @@ function PageProfil() {
 
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/parametres" label="Paramètres" />
       <h1 className="text-2xl font-bold tracking-tight">Profil et apparence</h1>
 
       <section className="carte space-y-3 p-4">

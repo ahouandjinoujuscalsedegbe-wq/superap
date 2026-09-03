@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Pencil, FolderTree, RefreshCcw, Scale, LifeBuoy } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 
 export const Route = createFileRoute("/enveloppes/action")({
   head: () => ({
@@ -25,7 +24,6 @@ export const Route = createFileRoute("/enveloppes/action")({
 function ActionEnveloppes() {
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
       <section className="carte space-y-4 p-4">
         <h2 className="text-lg font-semibold">Action</h2>
 

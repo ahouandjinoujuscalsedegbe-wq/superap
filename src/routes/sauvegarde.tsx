@@ -11,7 +11,6 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
@@ -205,7 +204,6 @@ function PageSauvegarde() {
   return (
     <div className="space-y-5 pb-8">
       <header className="space-y-2">
-        <BoutonRetour to="/parametres" label="Retour aux paramètres" />
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <ShieldCheck className="h-6 w-6 text-primary" aria-hidden />
           Sauvegarde et chiffrement

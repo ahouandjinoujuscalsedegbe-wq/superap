@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { LifeBuoy, ShieldAlert, ArrowRight } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
 import { plansSecours } from "@/lib/sauvetage";
 import { useSuperApp } from "@/lib/store";
@@ -40,8 +39,6 @@ function Secours() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Plan de secours</h1>
         <p className="text-sm text-muted-foreground">

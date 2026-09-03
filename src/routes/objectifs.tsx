@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp, type Objectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
@@ -166,8 +165,6 @@ function PageObjectifs() {
 
   return (
     <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
-
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Target className="h-6 w-6 text-primary" aria-hidden />

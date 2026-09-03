@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 import { LIBELLES_TYPE, rechercher, type TypeResultat } from "@/lib/recherche";
@@ -74,8 +73,6 @@ function PageRecherche() {
 
   return (
     <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
-
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Search className="h-6 w-6 text-primary" aria-hidden />

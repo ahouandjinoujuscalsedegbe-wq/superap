@@ -18,7 +18,6 @@ import {
   ChevronRight,
   ShieldCheck,
 } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
@@ -478,7 +477,6 @@ function SaisieIntelligente() {
   return (
     <div className="space-y-5">
       <header className="space-y-2">
-        <BoutonRetour to="/" label="Accueil" />
         <h1 className="text-2xl font-bold tracking-tight">Saisie intelligente</h1>
         <p className="text-sm text-muted-foreground">
           Photographiez plusieurs tickets ou dictez vos opérations : montant, date, libellé et

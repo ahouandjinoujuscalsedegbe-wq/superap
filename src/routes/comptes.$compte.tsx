@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { History } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { historiqueDuCompte, libelleAction } from "@/lib/historique-comptes";
@@ -88,13 +87,7 @@ function DetailCompte() {
   return (
     <div className="space-y-5">
       <header className="pr-12">
-        <Link
-          to="/comptes"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden /> Comptes
-        </Link>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight break-words">{compte}</h1>
+        <h1 className="text-2xl font-bold tracking-tight break-words">{compte}</h1>
       </header>
 
       {!existe ? (

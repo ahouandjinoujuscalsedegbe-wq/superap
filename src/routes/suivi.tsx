@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Scale, TrendingDown, TrendingUp } from "lucide-react";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import { lireProjets, type ProjetFutur } from "@/lib/previsions";
@@ -67,8 +66,6 @@ function PageSuivi() {
 
   return (
     <div className="space-y-4 pt-4">
-      <BoutonRetour to="/" label="Accueil" />
-
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Scale className="h-6 w-6 text-primary" aria-hidden />

@@ -19,7 +19,6 @@ export const Route = createFileRoute("/enveloppes/")({
   component: EnveloppesAccueil,
 });
 
-
 /** Adapte la densité des cases au nombre de catégories affichées. */
 function grilleDynamique(nombre: number) {
   if (nombre === 1) {
@@ -122,7 +121,6 @@ function EnveloppesAccueil() {
           </ul>
         )}
       </section>
-
     </div>
   );
 }

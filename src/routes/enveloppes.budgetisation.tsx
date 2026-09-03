@@ -5,7 +5,6 @@ import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, formatDateFr, grouperMontant } from "@/lib/format";
 import { nombreEcheancesDues, equivalentMensuel, libellePlage, avancerDate } from "@/lib/periodes";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { Calendrier, jourISO } from "@/components/Calendrier";
 import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
@@ -321,7 +320,6 @@ function Budgetisation() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
-        <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
         <button
           type="button"
           onClick={() => setPopupOuvert(true)}

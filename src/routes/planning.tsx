@@ -16,7 +16,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
@@ -253,8 +252,6 @@ function PagePlanning() {
 
   return (
     <div className="space-y-4">
-      <BoutonRetour to="/" label="Retour à l'accueil" />
-
       <header className="space-y-1">
         <h1 className="flex items-center gap-2 text-xl font-semibold">
           <CalendarRange aria-hidden className="h-5 w-5 text-primary" />

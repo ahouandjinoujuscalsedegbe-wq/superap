@@ -191,7 +191,6 @@ function Accueil() {
               Tout gérer : état, budget, actions
             </span>
           </Link>
-
         </div>
         <div className="flex flex-col gap-3">
           <Link

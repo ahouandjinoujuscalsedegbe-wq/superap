@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { CATEGORIE_LIBRE, grouperParCategorie } from "@/lib/categories";
 
@@ -70,8 +69,6 @@ function ClasserEnveloppes() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/action" label="Retour à Action" />
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Catégoriser les enveloppes existantes</h1>
         <p className="text-sm text-muted-foreground">

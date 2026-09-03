@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarPlus, Scale, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 
 import { toast } from "sonner";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { useSuperApp } from "@/lib/store";
 import {
@@ -116,8 +115,6 @@ function PagePrevisions() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/" label="Retour à l'accueil" />
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Prévisions</h1>
         <p className="text-sm text-muted-foreground">

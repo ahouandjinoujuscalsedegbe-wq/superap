@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ChoixIcone } from "@/components/ChoixIcone";
 import { apprendreIcone, suggererIcone } from "@/lib/icone-auto";
@@ -89,7 +88,6 @@ function ModifierUneEnveloppe() {
   if (!enveloppe) {
     return (
       <div className="space-y-4">
-        <BoutonRetour to="/enveloppes/modifier" label="Retour aux enveloppes" />
         <p className="carte p-4 text-sm text-muted-foreground">
           Cette enveloppe n'existe plus. Revenez à la liste pour en choisir une autre.
         </p>
@@ -209,8 +207,6 @@ function ModifierUneEnveloppe() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/modifier" label="Retour aux enveloppes" />
-
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Modifier l'enveloppe</h1>
         <p className="text-sm text-muted-foreground">
