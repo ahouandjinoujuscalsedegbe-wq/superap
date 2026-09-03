@@ -34,3 +34,8 @@ dist-ssr
 # Mobile build artifacts
 dist-mobile
 /android
+
+# Clés de signature Android (ne doivent JAMAIS être versionnées)
+*.jks
+*.keystore
+*.p12
