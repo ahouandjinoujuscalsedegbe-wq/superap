@@ -195,7 +195,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
-            <AlertesVersConseiller />
+          <AlertesVersConseiller />
           <RappelBudgetMensuel />
           <BouleAnalyse />
         </SuperAppProvider>

@@ -30,9 +30,7 @@ export function AlertesVersConseiller() {
             void publierAlerteConseiller({
               titre: notif.title ?? "Notification",
               texte: notif.body ?? "",
-              urgent: Boolean(
-                (notif.extra as { urgent?: boolean } | undefined | null)?.urgent,
-              ),
+              urgent: Boolean((notif.extra as { urgent?: boolean } | undefined | null)?.urgent),
             });
             void navigate({ to: "/notifications" });
           },

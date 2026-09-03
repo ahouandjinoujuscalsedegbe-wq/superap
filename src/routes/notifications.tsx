@@ -43,6 +43,7 @@ import {
   type MemoireCoach,
   type MessageCoach,
 } from "@/lib/coach";
+import { EVENEMENT_ALERTE } from "@/lib/alertes-conseiller";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
@@ -172,6 +173,23 @@ function PageNotifications() {
       vivant = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Une alerte publiée pendant que la page est ouverte s'ajoute au fil.
+  useEffect(() => {
+    const recharger = () => {
+      void (async () => {
+        const chargee = await lireMemoire();
+        const lue: MemoireCoach = {
+          ...chargee,
+          messages: chargee.messages.map((m) => ({ ...m, lu: true })),
+        };
+        setMemoire(lue);
+        memoireRef.current = lue;
+      })();
+    };
+    window.addEventListener(EVENEMENT_ALERTE, recharger);
+    return () => window.removeEventListener(EVENEMENT_ALERTE, recharger);
   }, []);
 
   useEffect(() => {
