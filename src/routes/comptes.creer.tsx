@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
+import { enregistrerActionCompte } from "@/lib/historique-comptes";
 import { formatFCFA } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { FormulaireCompte, type DemandeCompte } from "@/components/FormulaireCompte";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/comptes/creer")({
 
 function CreerCompte() {
   const navigate = useNavigate();
-  const { ajouterCompte, ajouterTransaction } = useSuperApp();
+  const { ajouterCompte, ajouterTransaction, nomUtilisateur } = useSuperApp();
   const [demande, setDemande] = useState<DemandeCompte | null>(null);
 
   function confirmer() {
@@ -43,7 +44,15 @@ function CreerCompte() {
         date: new Date().toISOString().slice(0, 10),
       });
     }
-    toast.success(`Compte « ${demande.nom} » ajouté.`);
+    enregistrerActionCompte({
+      compte: demande.nom,
+      action: "creation",
+      auteur: nomUtilisateur?.trim() || "Utilisateur",
+      details: `Solde initial ${formatFCFA(demande.solde)} · ${demande.disponible ? "compté dans" : "exclu du"} solde disponible`,
+    });
+    toast.success(`Compte « ${demande.nom} » créé.`, {
+      description: "Retour à la liste des comptes.",
+    });
     setDemande(null);
     navigate({ to: "/comptes" });
   }
@@ -60,7 +69,7 @@ function CreerCompte() {
       <Confirmation
         ouvert={demande !== null}
         titre="Confirmer la création"
-        message="Vérifiez le nom du nouveau compte avant de valider."
+        message="Vérifiez le récapitulatif complet avant de valider la création."
         details={
           demande?.type === "creation"
             ? [
