@@ -4,20 +4,37 @@ import { journalAvertissement, journalErreur, journalInfo } from "@/lib/journal"
 import { MESSAGE_MICRO_REFUSE, assurerMicro } from "@/lib/micro";
 import { nettoyerDictee } from "@/lib/dictee-texte";
 
+/** Résultat brut renvoyé par la reconnaissance vocale du navigateur. */
+type ResultatVocal = {
+  isFinal: boolean;
+  length: number;
+  [index: number]: { transcript: string; confidence?: number };
+};
+
+type EvenementResultat = { results: ArrayLike<ResultatVocal> };
+type EvenementErreur = { error?: unknown };
+
+type ConstructeurRecognition = new () => Recognition;
+
+type FenetreVocale = Window & {
+  SpeechRecognition?: ConstructeurRecognition;
+  webkitSpeechRecognition?: ConstructeurRecognition;
+};
+
 type Recognition = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
   start: () => void;
   stop: () => void;
-  onresult: ((e: any) => void) | null;
-  onerror: ((e: any) => void) | null;
+  onresult: ((e: EvenementResultat) => void) | null;
+  onerror: ((e: EvenementErreur) => void) | null;
   onend: (() => void) | null;
 };
 
 export function dicteeDisponible(): boolean {
   if (typeof window === "undefined") return false;
-  const w = window as any;
+  const w = window as FenetreVocale;
   return Boolean(w.SpeechRecognition || w.webkitSpeechRecognition);
 }
 
@@ -27,18 +44,21 @@ export function creerDictee(
   onFin: () => void,
 ): Recognition | null {
   if (!dicteeDisponible()) return null;
-  const w = window as any;
-  const Constructeur = w.SpeechRecognition || w.webkitSpeechRecognition;
+  const w = window as FenetreVocale;
+  const Constructeur = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+  if (!Constructeur) return null;
   const reco: Recognition = new Constructeur();
   reco.lang = "fr-FR";
   reco.continuous = false;
   reco.interimResults = true;
-  reco.onresult = (e: any) => {
+  reco.onresult = (e: EvenementResultat) => {
     let texte = "";
     let definitif = false;
     for (let i = 0; i < e.results.length; i += 1) {
-      texte += e.results[i][0].transcript;
-      if (e.results[i].isFinal) definitif = true;
+      const resultat = e.results[i];
+      if (!resultat) continue;
+      texte += resultat[0]?.transcript ?? "";
+      if (resultat.isFinal) definitif = true;
     }
     // Le texte brut est remis au propre : vocabulaire du budget, nombres en
     // chiffres, ponctuation dictée, hésitations retirées.
@@ -46,12 +66,12 @@ export function creerDictee(
     if (definitif) {
       journalInfo("dictee", "Dictée transcrite", {
         caracteres: propre.length,
-        confiance: Math.round(((e?.results?.[0]?.[0]?.confidence ?? 0) as number) * 100),
+        confiance: Math.round((e.results[0]?.[0]?.confidence ?? 0) * 100),
       });
     }
     onTexte(propre, definitif);
   };
-  reco.onerror = (e: any) => {
+  reco.onerror = (e: EvenementErreur) => {
     const code = String(e?.error ?? "");
     const messages: Record<string, string> = {
       "not-allowed": "Micro refusé : autorisez l'accès au microphone dans votre navigateur.",

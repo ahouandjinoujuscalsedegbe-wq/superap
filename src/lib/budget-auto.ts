@@ -162,8 +162,8 @@ export function proposerDotations(
         : observes === 1
           ? `Un seul mois observé (${Math.round(moyenne).toLocaleString("fr-FR")} FCFA) : proposition prudente.`
           : reguliere
-            ? `Charge régulière sur ${observes} mois (${Math.round(moyenne).toLocaleString("fr-FR")} FCFA) : montant conservé au plus juste.`
-            : `Moyenne pondérée de ${observes} mois : ${Math.round(moyenne).toLocaleString("fr-FR")} FCFA, marge de sécurité incluse.`;
+            ? `Charge régulière sur ${observes} mois (moyenne ${Math.round(moyenne).toLocaleString("fr-FR")} FCFA, plus fort mois ${Math.round(maxi).toLocaleString("fr-FR")} FCFA) : le montant retenu couvre le plus fort mois, sans marge supplémentaire.`
+            : `Moyenne pondérée de ${observes} mois (${Math.round(moyenne).toLocaleString("fr-FR")} FCFA) avec marge de sécurité, comparée à 90 % du plus fort mois (${Math.round(maxi).toLocaleString("fr-FR")} FCFA) : le plus élevé des deux est retenu.`;
 
     const raisonTendance =
       tendance === "hausse"

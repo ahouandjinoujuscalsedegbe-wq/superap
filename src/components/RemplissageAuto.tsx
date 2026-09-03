@@ -14,7 +14,7 @@ export function RemplissageAuto() {
 
   const appliquer = useCallback(() => {
     if (chargement || enCours.current) return;
-    const dus = remplissagesDus(enveloppes, transactions);
+    const dus = remplissagesDus(enveloppes, transactions, new Date(), remplissages);
     if (dus.length === 0) return;
     // Avant tout renouvellement, le mois écoulé est figé dans le rapport
     // d'utilisation quotidienne des enveloppes.

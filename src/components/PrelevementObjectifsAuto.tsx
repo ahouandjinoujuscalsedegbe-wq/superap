@@ -9,14 +9,23 @@ import { noteObjectif, prelevementsDus } from "@/lib/prelevement-objectifs";
  * disponible) est crédité du montant nécessaire pour tenir l'échéance.
  */
 export function PrelevementObjectifsAuto() {
-  const { objectifs, transactions, transferts, chargement, ajouterTransfert, remplirEnveloppe } =
-    useSuperApp();
+  const {
+    objectifs,
+    transactions,
+    transferts,
+    chargement,
+    soldesParCompte,
+    ajouterTransfert,
+    remplirEnveloppe,
+  } = useSuperApp();
   const enCours = useRef(false);
 
   const appliquer = useCallback(() => {
     if (chargement || enCours.current) return;
     const suivis = suivreObjectifs(objectifs, transactions, new Date(), transferts);
-    const dus = prelevementsDus(suivis, transferts);
+    // Le solde réel de chaque compte est vérifié : aucun virement d'épargne
+    // ne peut mettre un compte à découvert sans que l'utilisateur le sache.
+    const dus = prelevementsDus(suivis, transferts, new Date(), soldesParCompte);
     if (dus.length === 0) return;
     enCours.current = true;
     for (const d of dus) {
@@ -32,7 +41,15 @@ export function PrelevementObjectifsAuto() {
       }
     }
     enCours.current = false;
-  }, [chargement, objectifs, transactions, transferts, ajouterTransfert, remplirEnveloppe]);
+  }, [
+    chargement,
+    objectifs,
+    transactions,
+    transferts,
+    soldesParCompte,
+    ajouterTransfert,
+    remplirEnveloppe,
+  ]);
 
   useEffect(() => {
     appliquer();

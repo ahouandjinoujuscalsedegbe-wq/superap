@@ -33,6 +33,9 @@ function DetailsActuels() {
   const { enveloppes, depensesParEnveloppe } = useSuperApp();
 
   const groupes = useMemo(() => grouperParCategorie(enveloppes), [enveloppes]);
+  // Le journal est relu volontairement à chaque changement d'enveloppe :
+  // c'est le seul signal disponible pour rafraîchir l'historique local.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const journal = useMemo(() => lireHistoriqueEnveloppes().slice(0, 30), [enveloppes]);
   const [journalOuvert, setJournalOuvert] = useState(false);
 

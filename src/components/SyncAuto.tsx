@@ -6,6 +6,7 @@ import {
   lireReglagesAuto,
   ecrireReglagesAuto,
   recevoir,
+  ecrireBase,
   type ReglagesAuto,
 } from "@/lib/sync-auto";
 
@@ -19,7 +20,7 @@ const DELAI_LECTURE = 5000; // relève du coffre toutes les 5 s
  * et récupère celles de l'autre téléphone, sans aucune action manuelle.
  */
 export function SyncAuto() {
-  const { etatComplet, remplacerEtat } = useSuperApp();
+  const { etatComplet, remplacerEtat, chargement, stockageIllisible } = useSuperApp();
   const [reglages, setReglages] = useState<ReglagesAuto>(() => lireReglagesAuto());
   const derniereEmpreinte = useRef<string>("");
   const occupe = useRef(false);
@@ -31,8 +32,13 @@ export function SyncAuto() {
     return () => window.removeEventListener(EVENEMENT_SYNC_AUTO, recharger);
   }, []);
 
+  // Garde-fou vital : tant que le coffre chiffré n'est pas déchiffré (ou s'il
+  // est illisible), l'état en mémoire n'est qu'un état d'usine. Le déposer
+  // écraserait le foyer avec des enveloppes vides sur l'autre téléphone.
+  const pret = !chargement && !stockageIllisible;
+
   const actif =
-    reglages.actif && reglages.phrase.length >= PHRASE_MIN && reglages.appareil.length > 0;
+    pret && reglages.actif && reglages.phrase.length >= PHRASE_MIN && reglages.appareil.length > 0;
 
   // L'état ne change d'identité qu'à chaque modification réelle : l'empreinte
   // n'est donc plus recalculée à chaque rendu (coûteux sur téléphone).
@@ -80,6 +86,8 @@ export function SyncAuto() {
             // ont déjà été envoyées, et redéposer relançait un aller-retour
             // permanent entre les deux téléphones.
             derniereEmpreinte.current = JSON.stringify(resultat.etat);
+            // Nouvelle référence commune après fusion.
+            ecrireBase(resultat.etat);
           }
           const suite = {
             ...courant,
