@@ -80,7 +80,10 @@ export function BouleAnalyse() {
   const planifiees = useMemo(() => {
     const debut = new Date().toISOString().slice(0, 10);
     const fin = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
-    const parMois = new Map<string, { enveloppe: string; emoji: string; libelle: string; montant: number }[]>();
+    const parMois = new Map<
+      string,
+      { enveloppe: string; emoji: string; libelle: string; montant: number }[]
+    >();
     for (const b of budgets) {
       if (!b.actif) continue;
       const env = enveloppes.find((e) => e.id === b.enveloppeId);

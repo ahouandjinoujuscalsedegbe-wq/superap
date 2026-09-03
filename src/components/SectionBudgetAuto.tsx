@@ -271,8 +271,6 @@ export function SectionBudgetAuto() {
         </p>
       )}
 
-
-
       {modeEdition && (
         <p className="text-xs text-muted-foreground">
           Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)},
