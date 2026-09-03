@@ -215,7 +215,7 @@ export function resumeReseau(etat: EtatIA): string[] {
   const lignes: string[] = [etat.cerveau.resume];
   const alerte = etat.cerveau.constats.find((c) => c.gravite === "alerte");
   if (alerte) lignes.push(`Point de vigilance : ${alerte.titre} — ${alerte.detail}`);
-  const depassees = etat.suivi.filter((s) => s.ecart < 0).length;
+  const depassees = etat.suivi.filter((s) => s.ecart > 0).length;
   if (etat.suivi.length > 0) {
     lignes.push(
       depassees === 0
