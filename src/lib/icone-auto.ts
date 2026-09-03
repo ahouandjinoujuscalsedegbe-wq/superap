@@ -155,3 +155,37 @@ export function suggererIconeDetail(
 export function suggererIcone(texte: string, domaine: Domaine = "enveloppe"): string {
   return suggererIconeDetail(texte, domaine).emoji;
 }
+
+/** Palettes de secours proposées quand le lexique ne suffit pas. */
+const PALETTES: Record<Domaine, string[]> = {
+  enveloppe: ["💡", "🧾", "🍲", "🚌", "🏠", "🏥", "🎓", "👗", "🎉", "🐖", "📶", "🙏"],
+  depense: ["🧾", "🛒", "🚕", "💊", "🍔", "⛽", "🔧", "📚"],
+  revenu: ["💰", "💼", "🧺", "📈", "🎁", "🤝"],
+  compte: ["👛", "🏦", "📱", "💵", "💳", "🐖", "🏧", "🧰", "💎", "🪙"],
+};
+
+/**
+ * Propose plusieurs icônes pertinentes pour un libellé : d'abord ce qui a été
+ * appris, puis le lexique, puis une palette du domaine. Sans doublon.
+ */
+export function suggererIcones(texte: string, domaine: Domaine = "enveloppe", nombre = 8): string[] {
+  const sortie: string[] = [];
+  const ajouter = (e: string) => {
+    if (e && !sortie.includes(e) && sortie.length < nombre) sortie.push(e);
+  };
+  const mots = motsCles(texte);
+  if (mots.length > 0) {
+    ajouter(suggererIcone(texte, domaine));
+    for (const entree of LEXIQUE) {
+      if (entree.domaines && !entree.domaines.includes(domaine)) continue;
+      if (entree.mots.some((m) => mots.some((mot) => mot.includes(m) || m.includes(mot))))
+        ajouter(entree.emoji);
+    }
+    for (const entree of LEXIQUE) {
+      if (entree.mots.some((m) => mots.some((mot) => mot.includes(m) || m.includes(mot))))
+        ajouter(entree.emoji);
+    }
+  }
+  for (const e of PALETTES[domaine]) ajouter(e);
+  return sortie;
+}
