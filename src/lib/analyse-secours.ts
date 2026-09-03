@@ -275,7 +275,15 @@ export function solutionsSecours(
         ? `Aucun transfert sûr possible : la seule action utile est de suspendre les dépenses de ${plan.enveloppe.nom}.`
         : `En appliquant ces transferts, ${part}% du manque de ${plan.enveloppe.nom} est comblé et aucune autre enveloppe ne passe en dessous de ses dépenses prévues.`;
 
-    return { id: plan.enveloppe.id, plan, donneurs, gravite, impact };
+    return {
+      id: plan.enveloppe.id,
+      plan,
+      donneurs,
+      gravite,
+      impact,
+      sansTransfert: donneurs.length === 0,
+      conseils: conseilsRepli(plan, couverture),
+    };
   });
 }
 
