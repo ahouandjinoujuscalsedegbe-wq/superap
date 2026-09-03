@@ -20,7 +20,6 @@ import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as MessagesRouteImport } from './routes/messages'
-import { Route as MoisRouteImport } from './routes/mois'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ObjectifsRouteImport } from './routes/objectifs'
 import { Route as OutilsRouteImport } from './routes/outils'
@@ -35,6 +34,7 @@ import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as BudgetIndexRouteImport } from './routes/budget.index'
 import { Route as BudgetAutoRouteImport } from './routes/budget.auto'
+import { Route as BudgetBilanRouteImport } from './routes/budget.bilan'
 import { Route as BudgetConfirmationsRouteImport } from './routes/budget.confirmations'
 import { Route as BudgetPlanRouteImport } from './routes/budget.plan'
 import { Route as BudgetPlanifierRouteImport } from './routes/budget.planifier'
@@ -131,11 +131,6 @@ const MessagesRoute = MessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MoisRoute = MoisRouteImport.update({
-  id: '/mois',
-  path: '/mois',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -204,6 +199,11 @@ const BudgetIndexRoute = BudgetIndexRouteImport.update({
 const BudgetAutoRoute = BudgetAutoRouteImport.update({
   id: '/auto',
   path: '/auto',
+  getParentRoute: () => BudgetRoute,
+} as any)
+const BudgetBilanRoute = BudgetBilanRouteImport.update({
+  id: '/bilan',
+  path: '/bilan',
   getParentRoute: () => BudgetRoute,
 } as any)
 const BudgetConfirmationsRoute = BudgetConfirmationsRouteImport.update({
@@ -421,7 +421,6 @@ export interface FileRoutesByFullPath {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/messages': typeof MessagesRoute
-  '/mois': typeof MoisRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
@@ -435,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
@@ -486,7 +486,6 @@ export interface FileRoutesByTo {
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/messages': typeof MessagesRoute
-  '/mois': typeof MoisRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
@@ -499,6 +498,7 @@ export interface FileRoutesByTo {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
@@ -553,7 +553,6 @@ export interface FileRoutesById {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/messages': typeof MessagesRoute
-  '/mois': typeof MoisRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
   '/outils': typeof OutilsRoute
@@ -567,6 +566,7 @@ export interface FileRoutesById {
   '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
+  '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
   '/budget/plan': typeof BudgetPlanRoute
   '/budget/planifier': typeof BudgetPlanifierRoute
@@ -623,7 +623,6 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/journal'
     | '/messages'
-    | '/mois'
     | '/notifications'
     | '/objectifs'
     | '/outils'
@@ -637,6 +636,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/bilan'
     | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
@@ -688,7 +688,6 @@ export interface FileRouteTypes {
     | '/dettes'
     | '/journal'
     | '/messages'
-    | '/mois'
     | '/notifications'
     | '/objectifs'
     | '/outils'
@@ -701,6 +700,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/bilan'
     | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
@@ -754,7 +754,6 @@ export interface FileRouteTypes {
     | '/enveloppes'
     | '/journal'
     | '/messages'
-    | '/mois'
     | '/notifications'
     | '/objectifs'
     | '/outils'
@@ -768,6 +767,7 @@ export interface FileRouteTypes {
     | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
+    | '/budget/bilan'
     | '/budget/confirmations'
     | '/budget/plan'
     | '/budget/planifier'
@@ -823,7 +823,6 @@ export interface RootRouteChildren {
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
   JournalRoute: typeof JournalRoute
   MessagesRoute: typeof MessagesRoute
-  MoisRoute: typeof MoisRoute
   NotificationsRoute: typeof NotificationsRoute
   ObjectifsRoute: typeof ObjectifsRoute
   OutilsRoute: typeof OutilsRoute
@@ -917,13 +916,6 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mois': {
-      id: '/mois'
-      path: '/mois'
-      fullPath: '/mois'
-      preLoaderRoute: typeof MoisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -1022,6 +1014,13 @@ declare module '@tanstack/react-router' {
       path: '/auto'
       fullPath: '/budget/auto'
       preLoaderRoute: typeof BudgetAutoRouteImport
+      parentRoute: typeof BudgetRoute
+    }
+    '/budget/bilan': {
+      id: '/budget/bilan'
+      path: '/bilan'
+      fullPath: '/budget/bilan'
+      preLoaderRoute: typeof BudgetBilanRouteImport
       parentRoute: typeof BudgetRoute
     }
     '/budget/confirmations': {
@@ -1309,6 +1308,7 @@ declare module '@tanstack/react-router' {
 
 interface BudgetRouteChildren {
   BudgetAutoRoute: typeof BudgetAutoRoute
+  BudgetBilanRoute: typeof BudgetBilanRoute
   BudgetConfirmationsRoute: typeof BudgetConfirmationsRoute
   BudgetPlanRoute: typeof BudgetPlanRoute
   BudgetPlanifierRoute: typeof BudgetPlanifierRoute
@@ -1322,6 +1322,7 @@ interface BudgetRouteChildren {
 
 const BudgetRouteChildren: BudgetRouteChildren = {
   BudgetAutoRoute: BudgetAutoRoute,
+  BudgetBilanRoute: BudgetBilanRoute,
   BudgetConfirmationsRoute: BudgetConfirmationsRoute,
   BudgetPlanRoute: BudgetPlanRoute,
   BudgetPlanifierRoute: BudgetPlanifierRoute,
@@ -1446,7 +1447,6 @@ const rootRouteChildren: RootRouteChildren = {
   EnveloppesRoute: EnveloppesRouteWithChildren,
   JournalRoute: JournalRoute,
   MessagesRoute: MessagesRoute,
-  MoisRoute: MoisRoute,
   NotificationsRoute: NotificationsRoute,
   ObjectifsRoute: ObjectifsRoute,
   OutilsRoute: OutilsRoute,
