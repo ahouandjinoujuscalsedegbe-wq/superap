@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   ChevronRight,
   User,
   ShieldCheck,
@@ -113,13 +112,6 @@ function ParametresAccueil() {
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3">
-        <Link
-          to="/"
-          aria-label="Retour à l'accueil"
-          className="surface rounded-full border border-border p-2 text-muted-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" aria-hidden />
-        </Link>
         <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
       </header>
 
