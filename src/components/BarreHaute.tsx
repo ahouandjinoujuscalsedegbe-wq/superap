@@ -307,18 +307,19 @@ export function BarreHaute() {
       const t = texteDe(h1);
       if (!t) return;
       const suivant = h1.nextElementSibling;
-      const s =
-        suivant instanceof HTMLParagraphElement && texteDe(suivant).length <= 90
-          ? texteDe(suivant)
-          : "";
+      const sousTitreElement =
+        suivant instanceof HTMLParagraphElement && texteDe(suivant).length <= 90 ? suivant : null;
+      const s = sousTitreElement ? texteDe(sousTitreElement) : "";
       setEntete((p) => (p.titre === t && p.sousTitre === s ? p : { titre: t, sousTitre: s }));
 
-      // Masquer visuellement le titre et son sous-titre dans la page pour éviter le doublon.
-      [h1, suivant].forEach((el) => {
+      // Masquer visuellement le titre (et uniquement son sous-titre) dans la page
+      // pour éviter le doublon, sans jamais masquer le contenu de la page.
+      [h1, sousTitreElement].forEach((el) => {
         if (!el) return;
         el.classList.add("barre-haute-masque");
         masques.add(el);
       });
+
     };
     const planifier = () => {
       cancelAnimationFrame(brut);
