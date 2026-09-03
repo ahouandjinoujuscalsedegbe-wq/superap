@@ -806,7 +806,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       const utilise =
         e.transactions.some((t) => t.compte === nom) ||
         e.transferts.some((t) => t.source === nom || t.destination === nom) ||
-        e.budgets.some((b) => b.compte === nom);
+        e.budgets.some((b) => b.compte === nom) ||
+        // Une enveloppe alimentée par ce compte continuerait de tirer de
+        // l'argent d'un compte disparu : le renouvellement deviendrait invisible.
+        e.enveloppes.some((v) => v.compteSource === nom) ||
+        // Idem pour l'épargne automatique des objectifs.
+        e.objectifs.some((o) => o.compteSource === nom || o.compteEpargne === nom) ||
+        e.remplissages.some((r) => r.compte === nom);
       if (utilise) {
         journaliser(
           "avertissement",
