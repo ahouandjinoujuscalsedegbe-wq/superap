@@ -46,6 +46,8 @@ export function BouleAnalyse() {
   const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
+  /** Signature du contenu déjà consulté : sert à ne clignoter que sur du nouveau. */
+  const [vu, setVu] = useState("");
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [glisse, setGlisse] = useState(false);
   const refBoule = useRef<HTMLButtonElement | null>(null);
@@ -59,6 +61,11 @@ export function BouleAnalyse() {
       if (brut) setPos(JSON.parse(brut));
     } catch {
       /* position par défaut */
+    }
+    try {
+      setVu(localStorage.getItem("boule-analyse-vu") ?? "");
+    } catch {
+      /* rien vu */
     }
   }, []);
 
@@ -119,10 +126,36 @@ export function BouleAnalyse() {
     [enveloppes, depensesParEnveloppe, transactions],
   );
 
+  /** Empreinte du contenu en attente d'action : change dès qu'il y a du nouveau. */
+  const signature = useMemo(() => {
+    const a = alertes.map((x) => `${x.id}:${x.niveau}`).join("|");
+    const s = solutions
+      .flatMap((x) =>
+        x.donneurs
+          .map((d) => `${x.id}-${d.enveloppe.id}-${d.montantPropose}`)
+          .filter((cle) => !faits.includes(cle)),
+      )
+      .join("|");
+    return `${a}#${s}`;
+  }, [alertes, solutions, faits]);
+
+  // Tant que l'onglet est ouvert, ce qui s'affiche est considéré comme consulté.
+  useEffect(() => {
+    if (!ouvert) return;
+    setVu(signature);
+    try {
+      localStorage.setItem("boule-analyse-vu", signature);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [ouvert, signature]);
+
   if (alertes.length === 0 && solutions.length === 0) return null;
 
   const urgentes = alertes.filter((a) => a.niveau === "alerte").length + solutions.length;
   const total = alertes.length + solutions.length;
+  /** Du nouveau non encore consulté : seule situation où la boule clignote. */
+  const nouveau = signature !== vu && signature !== "#";
 
   /** Sans note sur 5, aucune approbation ni rejet n'est possible. */
   const noteManquante = (solutionId: string) => {
@@ -443,10 +476,10 @@ export function BouleAnalyse() {
           }}
           aria-label={`Analyse intelligente et plan de secours : ${total} élément${total > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
-          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${nouveau ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
           <span
-            className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`}
+            className={`boule-halo-rose absolute -inset-2 rounded-full ${nouveau && urgentes > 0 ? "boule-halo-alerte" : ""}`}
             aria-hidden
           />
           <span className="boule-orbite-rose absolute -inset-1 rounded-full" aria-hidden />
