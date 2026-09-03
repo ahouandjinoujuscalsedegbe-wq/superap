@@ -957,7 +957,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     const icone = texteSur(emoji, 8);
     setEtat((e) => ({
       ...e,
-      categories: e.categories.map((c) => (c.id === id ? { ...c, emoji: icone || undefined } : c)),
+      categories: e.categories.map((c) => {
+        if (c.id !== id) return c;
+        const { emoji: _ancien, ...reste } = c;
+        return icone ? { ...reste, emoji: icone } : reste;
+      }),
     }));
   }, []);
 
