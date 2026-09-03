@@ -1,8 +1,7 @@
-// @vitest-environment jsdom
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { construireEtatIA, type DonneesUnifiees } from "./ia-unifiee";
 import { repondreGeneral } from "./reponse-generale";
-import { calculerHabitudes, noterAction, oublierHabitudes } from "./memoire-utilisateur";
+import { calculerHabitudes, HABITUDES_VIDES } from "./memoire-utilisateur";
 import type { Transaction } from "./store";
 
 const maintenant = new Date("2026-03-15T10:00:00.000Z");
@@ -46,7 +45,7 @@ function donnees(): DonneesUnifiees {
     depensesParEnveloppe: { Nourriture: 30000 },
     solde: 170000,
     soldeDisponible: 170000,
-    habitudes: calculerHabitudes(),
+    habitudes: HABITUDES_VIDES,
     collaboration: {
       ocr: 80,
       ticketsAppris: 2,
@@ -60,10 +59,6 @@ function donnees(): DonneesUnifiees {
 }
 
 describe("réseau unifié des intelligences", () => {
-  beforeEach(() => {
-    oublierHabitudes();
-  });
-
   it("assemble un état commun à toutes les intelligences", () => {
     const etat = construireEtatIA(donnees());
     expect(etat.cerveau.faits).toBeTruthy();
@@ -88,9 +83,13 @@ describe("réseau unifié des intelligences", () => {
   });
 
   it("mémorise les habitudes et les restitue au conseiller", () => {
-    noterAction("depense", "Nourriture", 5000, new Date("2026-03-14T12:00:00.000Z"));
-    noterAction("question", "épargne", 0, new Date("2026-03-14T13:00:00.000Z"));
-    const h = calculerHabitudes();
+    const h = calculerHabitudes({
+      total: 2,
+      actions: [
+        { type: "depense", cible: "Nourriture", montant: 5000, date: "2026-03-14T12:00:00.000Z" },
+        { type: "question", cible: "épargne", montant: 0, date: "2026-03-14T13:00:00.000Z" },
+      ],
+    });
     expect(h.observees).toBe(2);
     expect(h.ciblesFrequentes).toContain("Nourriture");
     const etat = construireEtatIA({ ...donnees(), habitudes: h });
