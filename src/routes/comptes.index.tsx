@@ -84,34 +84,44 @@ function ComptesAccueil() {
         {comptes.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun compte pour le moment.</p>
         ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">Comptes actifs</h3>
-                <span className="text-[11px] text-muted-foreground">
-                  Comptés dans le solde disponible · {actifs.length}
+          <div className="space-y-3">
+            <Link
+              to="/comptes/categorie/$nom"
+              params={{ nom: "actifs" }}
+              className="flex items-center gap-3 rounded-xl border border-border/70 bg-secondary/40 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Wallet className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Comptes actifs</span>
+                <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">
+                  Comptés dans le solde disponible · {actifs.length} compte
+                  {actifs.length > 1 ? "s" : ""}
                 </span>
-              </div>
-              {actifs.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Aucun compte actif.</p>
-              ) : (
-                <ul className="space-y-2">{actifs.map(bande)}</ul>
-              )}
-            </div>
+              </span>
+              <span className="shrink-0 text-sm font-bold">{formatFCFA(totalActifs)}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            </Link>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">Comptes passifs</h3>
-                <span className="text-[11px] text-muted-foreground">
-                  Hors solde disponible · {passifs.length}
+            <Link
+              to="/comptes/categorie/$nom"
+              params={{ nom: "passifs" }}
+              className="flex items-center gap-3 rounded-xl border border-border/70 bg-secondary/40 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <PiggyBank className="h-5 w-5" aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Comptes passifs</span>
+                <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">
+                  Hors solde disponible · {passifs.length} compte
+                  {passifs.length > 1 ? "s" : ""}
                 </span>
-              </div>
-              {passifs.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Aucun compte passif.</p>
-              ) : (
-                <ul className="space-y-2">{passifs.map(bande)}</ul>
-              )}
-            </div>
+              </span>
+              <span className="shrink-0 text-sm font-bold">{formatFCFA(totalPassifs)}</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            </Link>
           </div>
         )}
       </section>
