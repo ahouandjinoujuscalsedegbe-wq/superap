@@ -54,9 +54,7 @@ function ComptesAccueil() {
     <div className="page-anim space-y-4">
       <section className="carte p-4">
         <p className="text-xs text-muted-foreground">Total disponible</p>
-        <p className="mt-0.5 text-2xl font-bold tracking-tight text-primary">
-          {formatFCFA(total)}
-        </p>
+        <p className="mt-0.5 text-2xl font-bold tracking-tight text-primary">{formatFCFA(total)}</p>
       </section>
 
       <section className="carte space-y-2 p-3">
@@ -109,10 +107,7 @@ function ComptesAccueil() {
                       </span>
                     </span>
 
-                    <ChevronRight
-                      className="h-4 w-4 shrink-0 text-muted-foreground"
-                      aria-hidden
-                    />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                   </Link>
                 </li>
               );

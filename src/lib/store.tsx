@@ -320,7 +320,8 @@ export const JOURS_CORBEILLE = 30;
  */
 export function ordreEffectifComptes(comptes: string[], ordre: string[]): string[] {
   const personnalise = ordre.filter((c) => comptes.includes(c));
-  const base = personnalise.length > 0 ? personnalise : [...comptes].sort((a, b) => a.localeCompare(b, "fr"));
+  const base =
+    personnalise.length > 0 ? personnalise : [...comptes].sort((a, b) => a.localeCompare(b, "fr"));
   for (const c of comptes) if (!base.includes(c)) base.push(c);
   return base;
 }
@@ -341,9 +342,8 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     comptes: comptes.length > 0 ? comptes : [...COMPTES],
     comptesExclus: brut.comptesExclus
       ? assainirComptes(brut.comptesExclus)
-          : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
-
 
     transferts: assainirListe(brut.transferts, assainirTransfert),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),

@@ -559,7 +559,10 @@ export function BarreHaute() {
         </nav>
 
         {pageComptes && comptes.length > 1 && (
-          <section aria-label="Ordre d'affichage des comptes" className="mt-4 border-t border-border pt-3">
+          <section
+            aria-label="Ordre d'affichage des comptes"
+            className="mt-4 border-t border-border pt-3"
+          >
             <div className="flex items-center justify-between px-1 pb-2">
               <span className="text-sm font-semibold">Ordre d'affichage</span>
               {ordreComptes.length > 0 && (
