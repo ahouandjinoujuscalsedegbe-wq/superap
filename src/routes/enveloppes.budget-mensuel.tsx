@@ -2,7 +2,7 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 /**
  * Ancienne page « Budget mensuel » : le suivi est désormais un onglet de la
- * page unique Budget (/enveloppes/budgetisation). On redirige pour ne casser
+ * page unique Budget (/budget). On redirige pour ne casser
  * aucun ancien lien.
  */
 export const Route = createFileRoute("/enveloppes/budget-mensuel")({
@@ -24,5 +24,5 @@ export const Route = createFileRoute("/enveloppes/budget-mensuel")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: () => <Navigate to="/enveloppes/budgetisation" replace />,
+  component: () => <Navigate to="/budget" replace />,
 });
