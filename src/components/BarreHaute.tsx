@@ -190,6 +190,22 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/aide", "Aide"],
 ];
 
+/**
+ * Titres issus du menu « Action » : lorsqu'une option est ouverte, la barre
+ * figée affiche exactement le libellé de l'action en cours.
+ */
+const TITRES_ACTIONS: ReadonlyArray<readonly [chemin: string, titre: string]> = [
+  ...ACTIONS_COMPTES.map((a) => [a.to, a.label] as const),
+  ...ACTIONS_ENVELOPPES.map((a) => [a.to, a.label] as const),
+].sort((a, b) => b[0].length - a[0].length);
+
+function titreAction(pathname: string): string {
+  for (const [chemin, titre] of TITRES_ACTIONS) {
+    if (pathname === chemin || pathname.startsWith(`${chemin}/`)) return titre;
+  }
+  return "";
+}
+
 function titreDe(pathname: string): string {
   if (pathname === "/") return "";
   for (const [prefix, titre] of TITRES) {
@@ -256,7 +272,7 @@ export function BarreHaute() {
     : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
-    : categorieInfos?.titre || entete.titre || titreDe(pathname);
+    : categorieInfos?.titre || titreAction(pathname) || entete.titre || titreDe(pathname);
   const sousTitre = accueil ? "Bonjour 👋" : categorieInfos?.sousTitre || entete.sousTitre;
 
   // Fermer après une navigation.
