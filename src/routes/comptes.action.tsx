@@ -4,7 +4,6 @@ import { PencilLine, Plus, Trash2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
@@ -206,8 +205,6 @@ function ActionComptes() {
 
   return (
     <div className="page-anim space-y-5">
-      <BoutonRetour to="/comptes/" label="Retour aux comptes" />
-
       <section className="carte space-y-4 p-4">
         <h2 className="text-lg font-semibold">Action</h2>
 

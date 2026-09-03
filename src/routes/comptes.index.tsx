@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeftRight, Plus, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -22,21 +22,6 @@ export const Route = createFileRoute("/comptes/")({
   }),
   component: ComptesAccueil,
 });
-
-const liens = [
-  {
-    to: "/comptes/action",
-    titre: "Action",
-    texte: "Ajoutez, renommez ou supprimez vos comptes.",
-    icone: Plus,
-  },
-  {
-    to: "/comptes/transferts",
-    titre: "Transferts",
-    texte: "Déplacez de l'argent d'un compte vers un autre.",
-    icone: ArrowLeftRight,
-  },
-] as const;
 
 function grilleDynamique(nombre: number) {
   if (nombre === 1) {
@@ -164,28 +149,6 @@ function ComptesAccueil() {
           </ul>
         )}
       </section>
-
-      <ul className="grid gap-3">
-        {liens.map((l) => {
-          const Icone = l.icone;
-          return (
-            <li key={l.to}>
-              <Link
-                to={l.to}
-                className="carte flex w-full items-center gap-3 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-accent/40 active:scale-[0.99]"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Icone aria-hidden className="h-5 w-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold">{l.titre}</span>
-                  <span className="block text-sm text-muted-foreground">{l.texte}</span>
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }

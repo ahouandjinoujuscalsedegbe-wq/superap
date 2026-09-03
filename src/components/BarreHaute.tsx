@@ -153,7 +153,6 @@ const ACTIONS_COMPTES = [
   },
 ] as const;
 
-
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/revenu", "Ajouter un revenu"],
@@ -237,11 +236,7 @@ export function BarreHaute() {
   const accueil = pathname === "/";
   const pageEnveloppes = pathname === "/enveloppes" || pathname.startsWith("/enveloppes/");
   const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
-  const actions = pageComptes
-    ? ACTIONS_COMPTES
-    : pageEnveloppes
-      ? ACTIONS_ENVELOPPES
-      : null;
+  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppes ? ACTIONS_ENVELOPPES : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : entete.titre || titreDe(pathname);
@@ -307,7 +302,12 @@ export function BarreHaute() {
         })
       : null;
     if (cible) {
-      observateur?.observe(cible, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+      observateur?.observe(cible, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
     }
     return () => {
       cancelAnimationFrame(brut);
@@ -316,8 +316,6 @@ export function BarreHaute() {
       masques.clear();
     };
   }, [pathname, accueil]);
-
-
 
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
@@ -349,7 +347,6 @@ export function BarreHaute() {
       document.body.style.overflow = precedent;
     };
   }, [actionOuvert]);
-
 
   return (
     <>
@@ -454,7 +451,6 @@ export function BarreHaute() {
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >
-
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="font-semibold">Menu</span>
           <button
@@ -517,7 +513,6 @@ export function BarreHaute() {
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
         }`}
       >
-
         <div className="flex items-center justify-between px-1 pb-2">
           <span className="font-semibold">Action</span>
           <button

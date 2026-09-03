@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
-import { BoutonRetour } from "@/components/BoutonRetour";
 
 type Demande = { id: string; libelle: string } | null;
 
@@ -41,8 +40,6 @@ function Transferts() {
 
   return (
     <div className="page-anim space-y-5">
-      <BoutonRetour to="/comptes/" label="Retour aux comptes" />
-
       <Link
         to="/comptes/transferts/nouveau"
         className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99]"
