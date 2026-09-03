@@ -128,21 +128,30 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
 
   function valider(ev: React.FormEvent): void {
     ev.preventDefault();
-    if (!sujet.trim()) { toast.error("Indiquez le sujet de votre dépense.");
-    if (periodique === null) return toast.error("Précisez si votre dépense est périodique.");
-    if (periodique && !frequence) return toast.error("Choisissez la périodicité de cette dépense.");
-    if (!Number.isFinite(montant) || montant <= 0)
-      return toast.error("Montant invalide : saisissez un montant positif en FCFA.");
-    if (!bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe))
-      return toast.error("Choisissez l'enveloppe de prélèvement.");
-    if (!bCompte) return toast.error("Choisissez le compte à débiter.");
-    if (periodique && !duree && !existant)
-      return toast.error("Précisez sur quel temps s'étend la périodicité.");
-    if (!debut) return toast.error("Choisissez le jour de la dépense.");
-    if (periodique && frequence && duree && occurrencesPrevues < 2)
-      return toast.error(
-        "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée.",
-      );
+    const erreur =
+      !sujet.trim()
+        ? "Indiquez le sujet de votre dépense."
+        : periodique === null
+          ? "Précisez si votre dépense est périodique."
+          : periodique && !frequence
+            ? "Choisissez la périodicité de cette dépense."
+            : !Number.isFinite(montant) || montant <= 0
+              ? "Montant invalide : saisissez un montant positif en FCFA."
+              : !bEnveloppe || !enveloppes.some((e) => e.id === bEnveloppe)
+                ? "Choisissez l'enveloppe de prélèvement."
+                : !bCompte
+                  ? "Choisissez le compte à débiter."
+                  : periodique && !duree && !existant
+                    ? "Précisez sur quel temps s'étend la périodicité."
+                    : !debut
+                      ? "Choisissez le jour de la dépense."
+                      : periodique && frequence && duree && occurrencesPrevues < 2
+                        ? "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée."
+                        : "";
+    if (erreur) {
+      toast.error(erreur);
+      return;
+    }
     setDemande({ type: "enregistrer" });
   }
 
