@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ChoixIcone } from "@/components/ChoixIcone";
+import { suggererIcone } from "@/lib/icone-auto";
 import { Plus, Pencil, Trash2, ChevronDown, GripVertical, Undo2 } from "lucide-react";
 import type { CategorieEnveloppe } from "@/lib/store";
 import { useSuperApp } from "@/lib/store";
@@ -52,6 +54,7 @@ function PageCategories() {
     categories,
     enveloppes,
     ajouterCategorie,
+    definirIconeCategorie,
     renommerCategorie,
     supprimerCategorie,
     ajouterSousCategorie,
@@ -68,6 +71,8 @@ function PageCategories() {
   const [erreurPopup, setErreurPopup] = useState<string | null>(null);
   const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
   const [dragCat, setDragCat] = useState<number | null>(null);
+  /** Catégorie dont on choisit le logo. */
+  const [iconeCat, setIconeCat] = useState<{ id: string; nom: string; emoji: string } | null>(null);
   const [dragSous, setDragSous] = useState<{ id: string; index: number } | null>(null);
   /** Ordre enregistré avant la dernière réorganisation — permet de l’annuler. */
   const [ordrePrecedent, setOrdrePrecedent] = useState<CategorieEnveloppe[] | null>(null);
@@ -165,7 +170,7 @@ function PageCategories() {
     if (!demande) return;
     switch (demande.type) {
       case "creation-categorie":
-        ajouterCategorie(demande.nom);
+        ajouterCategorie(demande.nom, suggererIcone(demande.nom, "enveloppe"));
         toast.success("Catégorie créée.");
         break;
       case "renommage-categorie":
@@ -322,6 +327,20 @@ function PageCategories() {
                 >
                   <GripVertical aria-hidden className="h-4 w-4" />
                 </span>
+                <button
+                  type="button"
+                  aria-label={`Choisir le logo de ${c.nom}`}
+                  onClick={() =>
+                    setIconeCat({
+                      id: c.id,
+                      nom: c.nom,
+                      emoji: c.emoji ?? suggererIcone(c.nom, "enveloppe"),
+                    })
+                  }
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-lg"
+                >
+                  {c.emoji ?? suggererIcone(c.nom, "enveloppe")}
+                </button>
                 <button
                   type="button"
                   onClick={() => setCategorieOuverte(ouverte ? null : c.id)}
@@ -506,6 +525,49 @@ function PageCategories() {
         message={erreurPopup ?? ""}
         onFermer={() => setErreurPopup(null)}
       />
+
+      {iconeCat && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Logo de ${iconeCat.nom}`}
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          onClick={() => setIconeCat(null)}
+        >
+          <div
+            className="carte popup-anim w-full max-w-md space-y-3 p-5"
+            onClick={(ev) => ev.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold">Logo de « {iconeCat.nom} »</h3>
+            <ChoixIcone
+              nom={iconeCat.nom}
+              domaine="enveloppe"
+              valeur={iconeCat.emoji}
+              onChoisir={(emoji) => setIconeCat({ ...iconeCat, emoji })}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  definirIconeCategorie(iconeCat.id, iconeCat.emoji);
+                  setIconeCat(null);
+                  toast.success("Logo enregistré.");
+                }}
+                className="flex-1 rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
+              >
+                Enregistrer
+              </button>
+              <button
+                type="button"
+                onClick={() => setIconeCat(null)}
+                className="flex-1 rounded-xl border border-input py-3 font-medium"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
