@@ -9,7 +9,7 @@ import { libelleMois } from "@/lib/rapport-mensuel";
 import { calculerAlarmes, lireReglagesAlarme, type Alarme } from "@/lib/alarme";
 import { conseiller } from "@/lib/conseil";
 
-export const Route = createFileRoute("/mois")({
+export const Route = createFileRoute("/budget/bilan")({
   head: () => ({
     meta: [
       { title: "Vue globale du mois — Revenus, dépenses et alarmes" },
@@ -28,10 +28,10 @@ export const Route = createFileRoute("/mois")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: PageMois,
+  component: BilanDuMois,
 });
 
-function PageMois() {
+function BilanDuMois() {
   const { transactions, enveloppes, budgets, dettes, soldesParCompte, depensesParEnveloppe } =
     useSuperApp();
   const moisActuel = new Date().toISOString().slice(0, 7);
