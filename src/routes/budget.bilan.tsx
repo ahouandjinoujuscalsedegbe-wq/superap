@@ -9,16 +9,16 @@ import { libelleMois } from "@/lib/rapport-mensuel";
 import { calculerAlarmes, lireReglagesAlarme, type Alarme } from "@/lib/alarme";
 import { conseiller } from "@/lib/conseil";
 
-export const Route = createFileRoute("/mois")({
+export const Route = createFileRoute("/budget/bilan")({
   head: () => ({
     meta: [
-      { title: "Vue globale du mois — Revenus, dépenses et alarmes" },
+      { title: "Bilan du mois — Budgétisation en FCFA" },
       {
         name: "description",
         content:
           "Tout le mois en un écran : revenus, dépenses, solde global, enveloppes épuisées, alarmes actives et un conseil personnalisé, calculés hors ligne.",
       },
-      { property: "og:title", content: "Vue globale du mois — SUPER APP" },
+      { property: "og:title", content: "Bilan du mois — SUPER APP" },
       {
         property: "og:description",
         content:
@@ -28,10 +28,10 @@ export const Route = createFileRoute("/mois")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: PageMois,
+  component: BilanDuMois,
 });
 
-function PageMois() {
+function BilanDuMois() {
   const { transactions, enveloppes, budgets, dettes, soldesParCompte, depensesParEnveloppe } =
     useSuperApp();
   const moisActuel = new Date().toISOString().slice(0, 7);
@@ -124,7 +124,7 @@ function PageMois() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Vue globale du mois</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Bilan du mois</h1>
         <p className="text-sm text-muted-foreground capitalize">{libelleMois(mois)}</p>
       </header>
 

@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
-  CalendarCheck,
   FileText,
   HandCoins,
   Layers,
@@ -189,15 +188,6 @@ function Accueil() {
             <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
             <span className="relative z-10 font-semibold">Ajouter une dépense</span>
             <span className="relative z-10 text-xs opacity-85">En 2 secondes</span>
-          </Link>
-          <Link
-            to="/mois"
-            className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <CalendarCheck className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Vue globale du mois</span>
-            <span className="relative z-10 text-xs opacity-85">Bilan et conseils</span>
           </Link>
           <Link
             to="/rapport"
