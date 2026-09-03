@@ -111,11 +111,18 @@ const ACTIONS_ENVELOPPES = [
 /** Options de la section « Action » de la page Comptes, ouvertes depuis la barre figée. */
 const ACTIONS_COMPTES = [
   {
-    cle: "comptes-details",
-    to: "/comptes",
-    label: "Tous les comptes et leurs soldes",
-    detail: "Solde, entrées, sorties et nombre d'opérations par compte.",
-    icone: Landmark,
+    cle: "comptes-transfert-nouveau",
+    to: "/comptes/transferts/nouveau",
+    label: "Nouveau transfert entre comptes",
+    detail: "Déplacer de l'argent d'un compte vers un autre.",
+    icone: ArrowLeftRight,
+  },
+  {
+    cle: "comptes-transferts",
+    to: "/comptes/transferts",
+    label: "Historique des comptes",
+    detail: "Tous les mouvements d'un compte vers un autre.",
+    icone: ArrowLeftRight,
   },
   {
     cle: "comptes-creer",
@@ -130,20 +137,6 @@ const ACTIONS_COMPTES = [
     label: "Renommer ou supprimer un compte",
     detail: "Corriger un nom, ajuster un solde ou retirer un compte.",
     icone: Pencil,
-  },
-  {
-    cle: "comptes-transferts",
-    to: "/comptes/transferts",
-    label: "Historique des transferts",
-    detail: "Tous les mouvements d'un compte vers un autre.",
-    icone: ArrowLeftRight,
-  },
-  {
-    cle: "comptes-transfert-nouveau",
-    to: "/comptes/transferts/nouveau",
-    label: "Nouveau transfert entre comptes",
-    detail: "Déplacer de l'argent d'un compte vers un autre.",
-    icone: ArrowLeftRight,
   },
 ] as const;
 
