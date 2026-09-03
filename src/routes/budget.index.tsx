@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarRange, ListChecks, Sparkles } from "lucide-react";
+import { CalendarRange, Gauge, ListChecks, Sparkles } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
@@ -38,6 +38,13 @@ const ENTREES = [
     icone: ListChecks,
     titre: "Suivi du mois",
     texte: "Comparer le budget prévu et les dépenses réelles de chaque enveloppe.",
+  },
+  {
+    to: "/budget/bilan",
+    icone: Gauge,
+    titre: "Bilan du mois",
+    texte:
+      "Revenus, dépenses, solde global tous comptes, enveloppes épuisées, alarmes et conseil du mois.",
   },
   {
     to: "/budget/auto",
