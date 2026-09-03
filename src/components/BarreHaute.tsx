@@ -9,9 +9,7 @@ import {
   Stethoscope,
   ShieldCheck,
   RefreshCw,
-  Scale,
   Search,
-  MessageSquareText,
   FolderTree,
   RefreshCcw,
   LifeBuoy,
@@ -29,8 +27,6 @@ import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
 
 const ENTREES = [
-  { to: "/suivi", label: "Suivi réel / prévu", icone: Scale },
-  { to: "/messages", label: "Messages de transaction", icone: MessageSquareText },
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
   { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
