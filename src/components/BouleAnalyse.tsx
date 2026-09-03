@@ -42,8 +42,6 @@ export function BouleAnalyse() {
   const [ouvert, setOuvert] = useState(false);
   const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
-  /** Note sur 5 donnée à chaque solution : obligatoire avant approbation ou rejet. */
-  const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
   /** Signature du contenu déjà consulté : sert à ne clignoter que sur du nouveau. */
@@ -53,6 +51,24 @@ export function BouleAnalyse() {
   const refBoule = useRef<HTMLButtonElement | null>(null);
   const aGlisse = useRef(false);
   const decalage = useRef({ x: 0, y: 0 });
+  /**
+   * Popup de notation obligatoire avant qu'une action (appliquer/ignorer)
+   * ne soit réellement prise en compte.
+   */
+  const [popupNote, setPopupNote] = useState<
+    | {
+        action: "appliquer" | "ignorer";
+        solutionId: string;
+        cle: string;
+        cibleId?: string;
+        cibleNom: string;
+        donneurId?: string;
+        donneurNom: string;
+        propose: number;
+      }
+    | null
+  >(null);
+  const [noteTemp, setNoteTemp] = useState(0);
 
   // Position mémorisée : la boule reste où l'utilisateur l'a posée, sur toutes les pages.
   useEffect(() => {
