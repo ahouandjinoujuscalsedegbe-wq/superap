@@ -126,9 +126,9 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
   const enveloppeChoisie = enveloppes.find((e) => e.id === bEnveloppe);
   const montant = Number(bMontant);
 
-  function valider(ev: React.FormEvent) {
+  function valider(ev: React.FormEvent): void {
     ev.preventDefault();
-    if (!sujet.trim()) return toast.error("Indiquez le sujet de votre dépense.");
+    if (!sujet.trim()) { toast.error("Indiquez le sujet de votre dépense.");
     if (periodique === null) return toast.error("Précisez si votre dépense est périodique.");
     if (periodique && !frequence) return toast.error("Choisissez la périodicité de cette dépense.");
     if (!Number.isFinite(montant) || montant <= 0)
