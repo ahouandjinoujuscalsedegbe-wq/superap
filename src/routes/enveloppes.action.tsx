@@ -46,7 +46,7 @@ function ActionEnveloppes() {
           </Link>
 
           <Link
-            to="/enveloppes/gerer"
+            to="/enveloppes/modifier"
             className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent/40"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
