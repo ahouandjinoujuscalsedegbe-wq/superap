@@ -319,12 +319,9 @@ export function BouleAnalyse() {
                       </button>
                     ))}
                     <span className="text-muted-foreground">
-                      {notes[s.id]
-                        ? `${notes[s.id]}/5`
-                        : "Notez avant d'appliquer ou d'ignorer."}
+                      {notes[s.id] ? `${notes[s.id]}/5` : "Notez avant d'appliquer ou d'ignorer."}
                     </span>
                   </div>
-
 
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
