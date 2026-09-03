@@ -111,6 +111,8 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
     () =>
       existant?.debut ?? (existant ? jourISO(new Date(existant.prochaine)) : jourISO(new Date())),
   );
+  const [heure, setHeure] = useState(existant?.heure ?? "08:00");
+  const [heureRappel, setHeureRappel] = useState(existant?.heureRappel ?? "07:30");
   const [calendrierOuvert, setCalendrierOuvert] = useState(false);
   const [demande, setDemande] = useState<null | { type: "enregistrer" | "suppression" }>(null);
 
@@ -157,8 +159,13 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
                       : periodique && frequence && duree && occurrencesPrevues < 2
                         ? "Incohérence : cette combinaison ne produit qu'une seule échéance. Choisissez une étendue plus longue ou une fréquence plus rapprochée."
                         : "";
-    if (erreur) {
-      toast.error(erreur);
+    const erreurHeure = !/^\d{2}:\d{2}$/.test(heure)
+      ? "Indiquez l'heure à laquelle la dépense doit être faite."
+      : !/^\d{2}:\d{2}$/.test(heureRappel)
+        ? "Indiquez l'heure de l'alarme de rappel."
+        : "";
+    if (erreur || erreurHeure) {
+      toast.error(erreur || erreurHeure);
       return;
     }
     setDemande({ type: "enregistrer" });
@@ -175,7 +182,9 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
         enveloppeId: bEnveloppe,
         montant,
         compte: bCompte,
-        prochaine: new Date(`${debut}T08:00:00`).toISOString(),
+        prochaine: new Date(`${debut}T${heure}:00`).toISOString(),
+        heure,
+        heureRappel,
         debut,
         fin,
         ponctuel: !periodique,
@@ -398,6 +407,36 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
           </p>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="b-heure" className="text-sm font-medium">
+              À quelle heure la dépense doit-elle être faite ?
+            </label>
+            <input
+              id="b-heure"
+              type="time"
+              value={heure}
+              onChange={(ev) => setHeure(ev.target.value)}
+              className={champ}
+            />
+          </div>
+          <div>
+            <label htmlFor="b-heure-rappel" className="text-sm font-medium">
+              À quelle heure l'alarme doit-elle vous rappeler ?
+            </label>
+            <input
+              id="b-heure-rappel"
+              type="time"
+              value={heureRappel}
+              onChange={(ev) => setHeureRappel(ev.target.value)}
+              className={champ}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              L'alarme sonne même si l'application est fermée.
+            </p>
+          </div>
+        </div>
+
         <button
           type="submit"
           className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground"
@@ -454,6 +493,12 @@ export function FormulaireBudget({ budgetId }: { budgetId?: string }) {
                   apres: enveloppeChoisie?.nom ?? "—",
                 },
                 { label: "Compte débité", avant: existant?.compte ?? "—", apres: bCompte },
+                { label: "Heure de la dépense", avant: existant?.heure ?? "—", apres: heure },
+                {
+                  label: "Heure de l'alarme",
+                  avant: existant?.heureRappel ?? "—",
+                  apres: heureRappel,
+                },
                 {
                   label: "Période couverte",
                   avant: "—",
