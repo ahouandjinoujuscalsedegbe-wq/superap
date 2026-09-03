@@ -120,8 +120,26 @@ const ACTIONS_COMPTES = [
   },
 ] as const;
 
+/** Options de la section « Action » de l'onglet Budgétisation. */
+const ACTIONS_BUDGET = [
+  {
+    to: "/budget/planifier",
+    label: "Planifier une dépense",
+    detail: "Créer une nouvelle dépense prévue avec son enveloppe et son compte.",
+    icone: Plus,
+  },
+  {
+    to: "/budget/modifier",
+    label: "Modifier une dépense planifiée existante",
+    detail: "Corriger ou supprimer une prévision déjà enregistrée.",
+    icone: Pencil,
+  },
+] as const;
+
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
+  ["/budget/planifier", "Planifier une dépense"],
+  ["/budget/modifier", "Modifier une dépense planifiée"],
   ["/budget/plan", "Plan des dépenses"],
   ["/budget/suivi", "Suivi du mois"],
   ["/budget/auto", "Proposition auto"],
@@ -179,6 +197,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
  * figée affiche exactement le libellé de l'action en cours.
  */
 const TITRES_ACTIONS: ReadonlyArray<readonly [chemin: string, titre: string]> = [
+  ...ACTIONS_BUDGET.map((a) => [a.to, a.label] as const),
   ...ACTIONS_COMPTES.map((a) => [a.to, a.label] as const),
   ...ACTIONS_ENVELOPPES.map((a) => [a.to, a.label] as const),
 ].sort((a, b) => b[0].length - a[0].length);
@@ -246,11 +265,14 @@ export function BarreHaute() {
   const pageEnveloppesAccueil =
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
   const pageComptesAccueil = pathname === "/comptes" || pathname === "/comptes/";
-  const actions = pageComptesAccueil
-    ? ACTIONS_COMPTES
-    : pageEnveloppesAccueil
-      ? ACTIONS_ENVELOPPES
-      : null;
+  const pageBudgetAccueil = pathname === "/budget" || pathname === "/budget/";
+  const actions = pageBudgetAccueil
+    ? ACTIONS_BUDGET
+    : pageComptesAccueil
+      ? ACTIONS_COMPTES
+      : pageEnveloppesAccueil
+        ? ACTIONS_ENVELOPPES
+        : null;
   const categorieInfos = !accueil
     ? infosCategorie(pathname) || infosCategorieComptes(pathname)
     : null;
@@ -524,7 +546,13 @@ export function BarreHaute() {
       <aside
         id="menu-actions-page"
         role="menu"
-        aria-label={pageComptesAccueil ? "Actions sur les comptes" : "Actions sur les enveloppes"}
+        aria-label={
+          pageBudgetAccueil
+            ? "Actions de budgétisation"
+            : pageComptesAccueil
+              ? "Actions sur les comptes"
+              : "Actions sur les enveloppes"
+        }
         aria-hidden={!actionOuvert}
         className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
