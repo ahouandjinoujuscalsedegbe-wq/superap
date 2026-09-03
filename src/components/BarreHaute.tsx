@@ -15,6 +15,10 @@ import {
   Search,
   MessageSquareText,
 } from "lucide-react";
+import { useSuperApp } from "@/lib/store";
+
+import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
+const logoSuperApp = logoSuperAppAsset.url;
 
 const ENTREES = [
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
@@ -78,11 +82,16 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
 ];
 
 function titreDe(pathname: string): string {
-  if (pathname === "/") return "SUPER APP";
+  if (pathname === "/") return "";
   for (const [prefix, titre] of TITRES) {
     if (pathname.startsWith(prefix)) return titre;
   }
-  return "SUPER APP";
+  return "";
+}
+
+/** Texte propre d'un nœud (espaces normalisés). */
+function texteDe(n: Element | null | undefined): string {
+  return (n?.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -95,14 +104,63 @@ export function BarreHaute() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
+  const { nomUtilisateur } = useSuperApp();
+  const [entete, setEntete] = useState<{ titre: string; sousTitre: string }>({
+    titre: "",
+    sousTitre: "",
+  });
 
   const accueil = pathname === "/";
-  const titre = titreDe(pathname);
+  const titre = accueil
+    ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
+    : entete.titre || titreDe(pathname);
+  const sousTitre = accueil ? "Bonjour 👋" : entete.sousTitre;
 
   // Fermer après une navigation.
   useEffect(() => {
     setOuvert(false);
   }, [pathname]);
+
+  /**
+   * Reprise automatique de l'en-tête de la page dans la barre figée :
+   * le premier titre de la page (et son sous-titre) alimente la barre puis
+   * est masqué dans la page, afin de ne jamais afficher deux fois la même
+   * information. Fonctionne pour toutes les pages, sans réécrire chacune.
+   */
+  useEffect(() => {
+    if (accueil) {
+      setEntete({ titre: "", sousTitre: "" });
+      return;
+    }
+    let brut = 0;
+    const lire = () => {
+      const zone = document.querySelector("main");
+      const h1 = zone?.querySelector("h1");
+      if (!h1) return;
+      const t = texteDe(h1);
+      if (!t) return;
+      const suivant = h1.nextElementSibling;
+      const s =
+        suivant instanceof HTMLParagraphElement && texteDe(suivant).length <= 90
+          ? texteDe(suivant)
+          : "";
+      (h1 as HTMLElement).style.display = "none";
+      if (s) (suivant as HTMLElement).style.display = "none";
+      setEntete((p) => (p.titre === t && p.sousTitre === s ? p : { titre: t, sousTitre: s }));
+    };
+    const planifier = () => {
+      cancelAnimationFrame(brut);
+      brut = requestAnimationFrame(lire);
+    };
+    planifier();
+    const cible = document.querySelector("main");
+    const observateur = cible ? new MutationObserver(planifier) : null;
+    if (cible) observateur?.observe(cible, { childList: true, subtree: true });
+    return () => {
+      cancelAnimationFrame(brut);
+      observateur?.disconnect();
+    };
+  }, [pathname, accueil]);
 
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
@@ -127,23 +185,43 @@ export function BarreHaute() {
     <>
       <header className="fixed inset-x-0 top-0 z-[60] border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] shadow-sm backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-md items-center gap-2 px-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (accueil) return;
-              if (window.history.length > 1) router.history.back();
-              else router.navigate({ to: "/" });
-            }}
-            aria-label="Retour"
-            disabled={accueil}
-            className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95 disabled:opacity-30"
-          >
-            <ArrowLeft className="h-5 w-5" aria-hidden />
-          </button>
+          {accueil ? (
+            <img
+              src={logoSuperApp}
+              alt="Logo SUPER APP"
+              width={36}
+              height={36}
+              className="ml-1 h-9 w-9 shrink-0 rounded-xl object-cover shadow-sm"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) router.history.back();
+                else router.navigate({ to: "/" });
+              }}
+              aria-label="Retour"
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden />
+            </button>
+          )}
 
-          <span className="min-w-0 flex-1 truncate text-base font-semibold text-foreground">
-            {titre}
-          </span>
+          <div className="min-w-0 flex-1">
+            {accueil && sousTitre && (
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                {sousTitre}
+              </p>
+            )}
+            <p className="truncate text-base font-semibold leading-tight text-foreground">
+              {titre}
+            </p>
+            {!accueil && sousTitre && (
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                {sousTitre}
+              </p>
+            )}
+          </div>
 
           {accueil && (
             <Link
