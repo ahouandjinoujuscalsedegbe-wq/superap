@@ -181,7 +181,7 @@ function Accueil() {
             <span className="relative z-10 text-xs opacity-85">Planifier vos enveloppes</span>
           </Link>
           <Link
-            to="/enveloppes"
+            to="/enveloppes/details"
             className="bouton-3d bouton-3d-enveloppes relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />

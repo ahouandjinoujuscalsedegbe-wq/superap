@@ -4,7 +4,6 @@ import { AlertTriangle, ChevronDown } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
@@ -38,7 +37,6 @@ function DetailsActuels() {
 
   return (
     <div className="space-y-5">
-      <BoutonRetour to="/enveloppes/" label="Retour aux enveloppes" />
       <section className="carte space-y-4 p-4">
         <div>
           <h2 className="text-lg font-semibold">Détails actuels</h2>
