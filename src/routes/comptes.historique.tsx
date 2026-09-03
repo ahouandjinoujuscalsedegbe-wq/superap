@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, History } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
-import { lireHistoriqueComptes, libelleActionCompte } from "@/lib/historique-comptes";
+import { lireHistoriqueComptes, libelleAction } from "@/lib/historique-comptes";
 
 export const Route = createFileRoute("/comptes/historique")({
   head: () => ({
@@ -68,7 +68,7 @@ function HistoriqueComptes() {
         id: `ac-${e.id}`,
         date: e.date,
         genre: "action" as const,
-        titre: `${libelleActionCompte(e.action)} · ${e.compte}`,
+        titre: `${libelleAction(e.action)} · ${e.compte}`,
         detail: `${e.details} · ${e.auteur}`,
       })),
     ];
@@ -131,8 +131,8 @@ function HistoriqueComptes() {
           >
             <option value="">Tous les comptes</option>
             {comptes.map((c) => (
-              <option key={c.id} value={c.nom}>
-                {c.nom}
+              <option key={c} value={c}>
+                {c}
               </option>
             ))}
           </select>

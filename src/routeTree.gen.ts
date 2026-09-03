@@ -36,6 +36,7 @@ import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
 import { Route as ComptesActionRouteImport } from './routes/comptes.action'
 import { Route as ComptesCreerRouteImport } from './routes/comptes.creer'
+import { Route as ComptesHistoriqueRouteImport } from './routes/comptes.historique'
 import { Route as ComptesTransfertsRouteImport } from './routes/comptes.transferts'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
@@ -197,6 +198,11 @@ const ComptesActionRoute = ComptesActionRouteImport.update({
 const ComptesCreerRoute = ComptesCreerRouteImport.update({
   id: '/creer',
   path: '/creer',
+  getParentRoute: () => ComptesRoute,
+} as any)
+const ComptesHistoriqueRoute = ComptesHistoriqueRouteImport.update({
+  id: '/historique',
+  path: '/historique',
   getParentRoute: () => ComptesRoute,
 } as any)
 const ComptesTransfertsRoute = ComptesTransfertsRouteImport.update({
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/creer': typeof ComptesCreerRoute
+  '/comptes/historique': typeof ComptesHistoriqueRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
@@ -417,6 +424,7 @@ export interface FileRoutesByTo {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/creer': typeof ComptesCreerRoute
+  '/comptes/historique': typeof ComptesHistoriqueRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
@@ -473,6 +481,7 @@ export interface FileRoutesById {
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/creer': typeof ComptesCreerRoute
+  '/comptes/historique': typeof ComptesHistoriqueRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
@@ -531,6 +540,7 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/comptes/action'
     | '/comptes/creer'
+    | '/comptes/historique'
     | '/comptes/transferts'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/comptes/action'
     | '/comptes/creer'
+    | '/comptes/historique'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
     | '/enveloppes/budgetisation'
@@ -639,6 +650,7 @@ export interface FileRouteTypes {
     | '/comptes/$compte'
     | '/comptes/action'
     | '/comptes/creer'
+    | '/comptes/historique'
     | '/comptes/transferts'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
@@ -888,6 +900,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComptesCreerRouteImport
       parentRoute: typeof ComptesRoute
     }
+    '/comptes/historique': {
+      id: '/comptes/historique'
+      path: '/historique'
+      fullPath: '/comptes/historique'
+      preLoaderRoute: typeof ComptesHistoriqueRouteImport
+      parentRoute: typeof ComptesRoute
+    }
     '/comptes/transferts': {
       id: '/comptes/transferts'
       path: '/transferts'
@@ -1097,6 +1116,7 @@ interface ComptesRouteChildren {
   ComptesCompteRoute: typeof ComptesCompteRoute
   ComptesActionRoute: typeof ComptesActionRoute
   ComptesCreerRoute: typeof ComptesCreerRoute
+  ComptesHistoriqueRoute: typeof ComptesHistoriqueRoute
   ComptesTransfertsRoute: typeof ComptesTransfertsRouteWithChildren
   ComptesIndexRoute: typeof ComptesIndexRoute
   ComptesCategorieNomRoute: typeof ComptesCategorieNomRoute
@@ -1106,6 +1126,7 @@ const ComptesRouteChildren: ComptesRouteChildren = {
   ComptesCompteRoute: ComptesCompteRoute,
   ComptesActionRoute: ComptesActionRoute,
   ComptesCreerRoute: ComptesCreerRoute,
+  ComptesHistoriqueRoute: ComptesHistoriqueRoute,
   ComptesTransfertsRoute: ComptesTransfertsRouteWithChildren,
   ComptesIndexRoute: ComptesIndexRoute,
   ComptesCategorieNomRoute: ComptesCategorieNomRoute,
