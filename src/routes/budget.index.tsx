@@ -61,6 +61,8 @@ function BudgetAccueil() {
         </p>
       </section>
 
+      <TableauSuiviReel />
+
       <nav className="space-y-2">
         {ENTREES.map((e) => (
           <Link
