@@ -19,23 +19,6 @@ export const Route = createFileRoute("/enveloppes/")({
   component: EnveloppesAccueil,
 });
 
-const liens = [
-  {
-    to: "/enveloppes/budgetisation",
-    titre: "Budgétisation",
-    texte: "Planifiez vos dépenses période par période.",
-  },
-  {
-    to: "/enveloppes/action",
-    titre: "Action",
-    texte: "Ajoutez, modifiez ou supprimez vos enveloppes.",
-  },
-  {
-    to: "/enveloppes/chronologie",
-    titre: "Chronologie et suivi",
-    texte: "Échéances à venir et prévu contre réel.",
-  },
-] as const;
 
 /** Adapte la densité des cases au nombre de catégories affichées. */
 function grilleDynamique(nombre: number) {
@@ -140,16 +123,6 @@ function EnveloppesAccueil() {
         )}
       </section>
 
-      <ul className="grid gap-3">
-        {liens.map((l) => (
-          <li key={l.to}>
-            <Link to={l.to} className="carte block p-4 transition-colors hover:bg-accent/40">
-              <p className="font-semibold">{l.titre}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{l.texte}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

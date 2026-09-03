@@ -142,6 +142,7 @@ export function BarreHaute() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
+  const actionBtnRef = useRef<HTMLButtonElement>(null);
   const { nomUtilisateur } = useSuperApp();
   const [entete, setEntete] = useState<{ titre: string; sousTitre: string }>({
     titre: "",
@@ -173,6 +174,7 @@ export function BarreHaute() {
       return;
     }
     let brut = 0;
+    const masques = new Set<Element>();
     const lire = () => {
       const zone = document.querySelector("main");
       const h1 = zone?.querySelector("h1");
@@ -184,9 +186,14 @@ export function BarreHaute() {
         suivant instanceof HTMLParagraphElement && texteDe(suivant).length <= 90
           ? texteDe(suivant)
           : "";
-      (h1 as HTMLElement).style.display = "none";
-      if (s) (suivant as HTMLElement).style.display = "none";
       setEntete((p) => (p.titre === t && p.sousTitre === s ? p : { titre: t, sousTitre: s }));
+
+      // Masquer visuellement le titre et son sous-titre dans la page pour éviter le doublon.
+      [h1, suivant].forEach((el) => {
+        if (!el) return;
+        el.classList.add("barre-haute-masque");
+        masques.add(el);
+      });
     };
     const planifier = () => {
       cancelAnimationFrame(brut);
@@ -194,13 +201,32 @@ export function BarreHaute() {
     };
     planifier();
     const cible = document.querySelector("main");
-    const observateur = cible ? new MutationObserver(planifier) : null;
-    if (cible) observateur?.observe(cible, { childList: true, subtree: true });
+    const observateur = cible
+      ? new MutationObserver((mutations) => {
+          // Réappliquer le masque si React recrée ou nettoie les classes.
+          mutations.forEach((m) => {
+            if (m.type === "attributes" && m.target instanceof Element) {
+              const el = m.target;
+              if (masques.has(el) && !el.classList.contains("barre-haute-masque")) {
+                el.classList.add("barre-haute-masque");
+              }
+            }
+          });
+          planifier();
+        })
+      : null;
+    if (cible) {
+      observateur?.observe(cible, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    }
     return () => {
       cancelAnimationFrame(brut);
       observateur?.disconnect();
+      masques.forEach((el) => el.classList.remove("barre-haute-masque"));
+      masques.clear();
     };
   }, [pathname, accueil]);
+
+
 
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
@@ -232,6 +258,7 @@ export function BarreHaute() {
       document.body.style.overflow = precedent;
     };
   }, [actionOuvert]);
+
 
   return (
     <>
@@ -287,6 +314,7 @@ export function BarreHaute() {
 
           {pageEnveloppes ? (
             <button
+              ref={actionBtnRef}
               type="button"
               onClick={() => setActionOuvert((v) => !v)}
               aria-label={actionOuvert ? "Fermer les actions" : "Ouvrir les actions"}
@@ -321,7 +349,7 @@ export function BarreHaute() {
         onClick={() => setOuvert(false)}
         aria-hidden
         className={`fixed inset-0 z-[70] bg-foreground/30 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
-          ouvert ? "opacity-100" : "pointer-events-none opacity-0"
+          ouvert ? "block opacity-100" : "hidden opacity-0"
         }`}
       />
 
@@ -331,10 +359,11 @@ export function BarreHaute() {
         role="menu"
         aria-label="Menu principal"
         aria-hidden={!ouvert}
-        className={`fixed right-0 top-0 z-[70] flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+        className={`fixed right-0 top-0 z-[71] flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >
+
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="font-semibold">Menu</span>
           <button
@@ -384,7 +413,7 @@ export function BarreHaute() {
         onClick={() => setActionOuvert(false)}
         aria-hidden
         className={`fixed inset-0 z-[70] bg-foreground/30 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
-          actionOuvert ? "opacity-100" : "pointer-events-none opacity-0"
+          actionOuvert ? "block opacity-100" : "hidden opacity-0"
         }`}
       />
 
@@ -393,11 +422,12 @@ export function BarreHaute() {
         role="menu"
         aria-label="Actions sur les enveloppes"
         aria-hidden={!actionOuvert}
-        className={`fixed right-0 top-0 z-[70] flex h-[100dvh] w-[19rem] max-w-[88vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-          actionOuvert ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+          actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+
+        <div className="flex items-center justify-between px-1 pb-2">
           <span className="font-semibold">Action</span>
           <button
             type="button"
@@ -409,7 +439,7 @@ export function BarreHaute() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto overscroll-contain p-3">
+        <nav>
           <ul className="space-y-2">
             {ACTIONS_ENVELOPPES.map((a) => {
               const Icone = a.icone;
@@ -420,14 +450,16 @@ export function BarreHaute() {
                     role="menuitem"
                     tabIndex={actionOuvert ? 0 : -1}
                     onClick={() => setActionOuvert(false)}
-                    className="carte flex items-center gap-3 p-3 text-left transition-colors hover:bg-accent/40"
+                    className="carte flex items-start gap-3 p-3 text-left transition-colors hover:bg-accent/40"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <Icone className="h-5 w-5" aria-hidden />
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">{a.label}</span>
-                      <span className="block text-xs text-muted-foreground">{a.detail}</span>
+                      <span className="block text-sm font-semibold leading-snug">{a.label}</span>
+                      <span className="block whitespace-normal text-xs leading-snug text-muted-foreground">
+                        {a.detail}
+                      </span>
                     </span>
                   </Link>
                 </li>

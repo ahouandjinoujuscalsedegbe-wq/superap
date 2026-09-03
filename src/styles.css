@@ -1056,3 +1056,14 @@ textarea {
     animation: none !important;
   }
 }
+
+/* Masquer visuellement le titre/sous-titre repris dans la barre figée */
+.barre-haute-masque {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+
