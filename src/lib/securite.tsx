@@ -68,6 +68,14 @@ async function calculerEmpreinte(pin: string, sel: string): Promise<string> {
   return octetsEnHexa(digest);
 }
 
+import {
+  coffreOuvert,
+  estCoffreProtege,
+  ouvrirCoffreAvecPin,
+  protegerCoffreParPin,
+  retirerProtectionPin,
+} from "@/lib/coffre-local";
+
 type Contexte = {
   config: ConfigSecurite;
   /** true tant que la configuration locale n'a pas été lue. */
@@ -88,6 +96,10 @@ type Contexte = {
   activerBiometrie: () => Promise<boolean>;
   desactiverBiometrie: () => void;
   deverrouillerParBiometrie: () => Promise<boolean>;
+  /** Le coffre chiffré est scellé par le code PIN. */
+  coffreProtege: boolean;
+  protegerCoffre: (pin: string) => Promise<boolean>;
+  retirerProtectionCoffre: (pin: string) => Promise<boolean>;
 };
 
 const registre = globalThis as typeof globalThis & {
@@ -103,6 +115,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
   const [essais, setEssais] = useState(0);
   const [blocageJusqua, setBlocageJusqua] = useState(0);
   const [biometrieDisponible, setBiometrieDisponible] = useState(false);
+  const [coffreProtege, setCoffreProtege] = useState(false);
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Lecture de la configuration locale au démarrage.
@@ -121,6 +134,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
     } catch {
       /* stockage indisponible */
     }
+    setCoffreProtege(estCoffreProtege());
     setChargement(false);
   }, []);
 
@@ -215,6 +229,16 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       const empreinte = await calculerEmpreinte(pin, config.sel);
       const ok = empreinte === config.empreinte;
       if (ok) {
+        // Coffre scellé par le PIN : on le descelle, puis on recharge la page
+        // pour que les données, illisibles jusque-là, soient enfin lues.
+        if (estCoffreProtege()) {
+          const premierDeverrouillage = !coffreOuvert();
+          const ouvert = await ouvrirCoffreAvecPin(pin);
+          if (ouvert && premierDeverrouillage) {
+            window.location.reload();
+            return true;
+          }
+        }
         setEssais(0);
         setBlocageJusqua(0);
         setVerrouille(false);
@@ -248,6 +272,10 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       if (!config.sel || !config.empreinte) return false;
       const empreinteAncienne = await calculerEmpreinte(ancien, config.sel);
       if (empreinteAncienne !== config.empreinte) return false;
+      if (estCoffreProtege()) {
+        if (!(await ouvrirCoffreAvecPin(ancien))) return false;
+        await protegerCoffreParPin(nouveau);
+      }
       const sel = nouveauSel();
       const empreinte = await calculerEmpreinte(nouveau, sel);
       setConfig((c) => ({ ...c, sel, empreinte, longueur: nouveau.length }));
@@ -261,6 +289,11 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       if (!config.sel || !config.empreinte) return false;
       const empreinte = await calculerEmpreinte(pin, config.sel);
       if (empreinte !== config.empreinte) return false;
+      // La protection du coffre disparaît avec le PIN qui la déverrouille.
+      if (estCoffreProtege()) {
+        if (!(await retirerProtectionPin(pin))) return false;
+        setCoffreProtege(false);
+      }
       setConfig((c) => ({
         ...c,
         actif: false,
@@ -271,6 +304,34 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       }));
       setVerrouille(false);
       return true;
+    },
+    [config.sel, config.empreinte],
+  );
+
+  const protegerCoffre = useCallback(
+    async (pin: string) => {
+      if (!config.sel || !config.empreinte) return false;
+      const empreinte = await calculerEmpreinte(pin, config.sel);
+      if (empreinte !== config.empreinte) return false;
+      try {
+        await protegerCoffreParPin(pin);
+      } catch {
+        return false;
+      }
+      setCoffreProtege(true);
+      return true;
+    },
+    [config.sel, config.empreinte],
+  );
+
+  const retirerProtectionCoffre = useCallback(
+    async (pin: string) => {
+      if (!config.sel || !config.empreinte) return false;
+      const empreinte = await calculerEmpreinte(pin, config.sel);
+      if (empreinte !== config.empreinte) return false;
+      const ok = await retirerProtectionPin(pin);
+      if (ok) setCoffreProtege(false);
+      return ok;
     },
     [config.sel, config.empreinte],
   );
@@ -357,6 +418,9 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       changerPin,
       desactiverPin,
       verifierPin,
+      coffreProtege,
+      protegerCoffre,
+      retirerProtectionCoffre,
       verrouiller,
       definirDelai,
       activerBiometrie,
@@ -374,6 +438,9 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       changerPin,
       desactiverPin,
       verifierPin,
+      coffreProtege,
+      protegerCoffre,
+      retirerProtectionCoffre,
       verrouiller,
       definirDelai,
       activerBiometrie,

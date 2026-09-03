@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSuperApp } from "@/lib/store";
+import { syncInterdite, verifierIntegriteApp } from "@/lib/integrite-app";
 import {
   deposer,
   PHRASE_MIN,
@@ -23,7 +24,19 @@ export function SyncAuto() {
   const { etatComplet, remplacerEtat, chargement, stockageIllisible } = useSuperApp();
   const [reglages, setReglages] = useState<ReglagesAuto>(() => lireReglagesAuto());
   const derniereEmpreinte = useRef<string>("");
+  const [appareilFiable, setAppareilFiable] = useState(true);
   const occupe = useRef(false);
+
+  // Appareil falsifié, rooté ou émulé : aucune donnée ne quitte le téléphone.
+  useEffect(() => {
+    let vivant = true;
+    verifierIntegriteApp().then(() => {
+      if (vivant) setAppareilFiable(!syncInterdite());
+    });
+    return () => {
+      vivant = false;
+    };
+  }, []);
 
   // Recharge les réglages quand la page Synchronisation les modifie.
   useEffect(() => {
@@ -35,7 +48,7 @@ export function SyncAuto() {
   // Garde-fou vital : tant que le coffre chiffré n'est pas déchiffré (ou s'il
   // est illisible), l'état en mémoire n'est qu'un état d'usine. Le déposer
   // écraserait le foyer avec des enveloppes vides sur l'autre téléphone.
-  const pret = !chargement && !stockageIllisible;
+  const pret = !chargement && !stockageIllisible && appareilFiable;
 
   const actif =
     pret && reglages.actif && reglages.phrase.length >= PHRASE_MIN && reglages.appareil.length > 0;

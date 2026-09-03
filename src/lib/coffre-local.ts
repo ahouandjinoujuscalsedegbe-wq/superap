@@ -15,6 +15,8 @@
 
 const PREFIXE = "SAC1:";
 const CLE_SECRET_APPAREIL = "superapp:coffre:secret:v1";
+/** Secret d'appareil scellé par le code PIN (protection renforcée). */
+const CLE_SECRET_PROTEGE = "superapp:coffre:secret:protege:v1";
 const ITERATIONS = 150_000;
 
 const encodeur = new TextEncoder();
@@ -38,9 +40,113 @@ function depuisBase64(txt: string): Uint8Array {
 
 let secretMemo: string | null = null;
 
+/** Erreur levée tant que le coffre protégé par PIN n'a pas été ouvert. */
+export class CoffreVerrouille extends Error {
+  constructor() {
+    super("Coffre verrouillé : code PIN requis.");
+    this.name = "CoffreVerrouille";
+  }
+}
+
+/** Vrai lorsque le secret du coffre est scellé par le code PIN. */
+export function estCoffreProtege(): boolean {
+  try {
+    return Boolean(window.localStorage.getItem(CLE_SECRET_PROTEGE));
+  } catch {
+    return false;
+  }
+}
+
+/** Vrai lorsque le coffre protégé a déjà été ouvert dans cette session. */
+export function coffreOuvert(): boolean {
+  return !estCoffreProtege() || secretMemo !== null;
+}
+
+/** Clé AES dérivée du code PIN (sert uniquement à sceller le secret). */
+async function cleDepuisPin(pin: string, sel: Uint8Array): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey("raw", encodeur.encode(pin), "PBKDF2", false, [
+    "deriveKey",
+  ]);
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: sel as unknown as BufferSource,
+      iterations: ITERATIONS,
+      hash: "SHA-256",
+    },
+    base,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+/**
+ * Scelle le secret du coffre avec le code PIN : il disparaît du stockage en
+ * clair. Sans le PIN, même une copie complète du téléphone est illisible.
+ */
+export async function protegerCoffreParPin(pin: string): Promise<void> {
+  const secret = secretAppareil();
+  const sel = new Uint8Array(16);
+  const iv = new Uint8Array(12);
+  crypto.getRandomValues(sel);
+  crypto.getRandomValues(iv);
+  const cle = await cleDepuisPin(pin, sel);
+  const scelle = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv as unknown as BufferSource },
+    cle,
+    encodeur.encode(secret),
+  );
+  window.localStorage.setItem(
+    CLE_SECRET_PROTEGE,
+    JSON.stringify({ sel: versBase64(sel), iv: versBase64(iv), contenu: versBase64(scelle) }),
+  );
+  window.localStorage.removeItem(CLE_SECRET_APPAREIL);
+  secretMemo = secret;
+}
+
+/** Ouvre le coffre protégé avec le code PIN. */
+export async function ouvrirCoffreAvecPin(pin: string): Promise<boolean> {
+  let brut: string | null = null;
+  try {
+    brut = window.localStorage.getItem(CLE_SECRET_PROTEGE);
+  } catch {
+    return false;
+  }
+  if (!brut) return true;
+  try {
+    const { sel, iv, contenu } = JSON.parse(brut) as {
+      sel: string;
+      iv: string;
+      contenu: string;
+    };
+    const cle = await cleDepuisPin(pin, depuisBase64(sel));
+    const clair = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: depuisBase64(iv) as unknown as BufferSource },
+      cle,
+      depuisBase64(contenu) as unknown as BufferSource,
+    );
+    secretMemo = decodeur.decode(clair);
+    clePromesse = null;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Retire la protection par PIN (le secret redevient stocké tel quel). */
+export async function retirerProtectionPin(pin: string): Promise<boolean> {
+  if (!estCoffreProtege()) return true;
+  if (!(await ouvrirCoffreAvecPin(pin))) return false;
+  if (secretMemo) window.localStorage.setItem(CLE_SECRET_APPAREIL, secretMemo);
+  window.localStorage.removeItem(CLE_SECRET_PROTEGE);
+  return true;
+}
+
 /** Secret aléatoire propre à cette installation (créé une seule fois). */
 function secretAppareil(): string {
   if (secretMemo) return secretMemo;
+  if (estCoffreProtege()) throw new CoffreVerrouille();
   let secret = window.localStorage.getItem(CLE_SECRET_APPAREIL);
   if (!secret) {
     const alea = new Uint8Array(32);
@@ -57,7 +163,7 @@ function secretAppareil(): string {
 
 async function cleCoffre(): Promise<CryptoKey> {
   if (!clePromesse) {
-    clePromesse = (async () => {
+    const tentative = (async () => {
       const base = await crypto.subtle.importKey(
         "raw",
         encodeur.encode(secretAppareil()),
@@ -78,6 +184,12 @@ async function cleCoffre(): Promise<CryptoKey> {
         ["encrypt", "decrypt"],
       );
     })();
+    // Une clé refusée (coffre verrouillé) ne doit pas rester en mémoire :
+    // sinon toutes les lectures suivantes échoueraient même après le PIN.
+    tentative.catch(() => {
+      if (clePromesse === tentative) clePromesse = null;
+    });
+    clePromesse = tentative;
   }
   return clePromesse;
 }
