@@ -11,7 +11,7 @@ export type EntreeHistoriqueCompte = {
   /** Nom du compte concerné après l'action. */
   compte: string;
   /** Ancien nom en cas de renommage. */
-  ancienNom?: string;
+  ancienNom?: string | undefined;
   action: ActionCompte;
   /** Date ISO complète de l'action. */
   date: string;

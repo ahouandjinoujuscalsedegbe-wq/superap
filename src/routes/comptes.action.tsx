@@ -208,9 +208,7 @@ function ActionComptes() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-base font-semibold">Modifier le compte</h3>
-                <p className="text-xs text-muted-foreground">
-                  Renommez le compte « {enEdition} ».
-                </p>
+                <p className="text-xs text-muted-foreground">Renommez le compte « {enEdition} ».</p>
               </div>
               <button
                 type="button"
