@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
@@ -29,9 +29,7 @@ export const Route = createFileRoute("/enveloppes/details")({
 });
 
 function DetailsActuels() {
-  const { enveloppes, depensesParEnveloppe, budgets, transactions } = useSuperApp();
-  const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
-  const [enveloppeOuverte, setEnveloppeOuverte] = useState<string | null>(null);
+  const { enveloppes, depensesParEnveloppe } = useSuperApp();
 
   const groupes = useMemo(() => grouperParCategorie(enveloppes), [enveloppes]);
 
@@ -63,14 +61,13 @@ function DetailsActuels() {
                 (somme, sous) => somme + sous.enveloppes.length,
                 0,
               );
-              const estOuverte = categorieOuverte === groupe.categorie;
+              const nbSous = groupe.sousCategories.length;
 
               return (
                 <li key={groupe.categorie} className="rounded-xl border border-border/70">
-                  <button
-                    type="button"
-                    onClick={() => setCategorieOuverte(estOuverte ? null : groupe.categorie)}
-                    aria-expanded={estOuverte}
+                  <Link
+                    to="/enveloppes/categorie/$nom"
+                    params={{ nom: groupe.categorie }}
                     className="flex w-full items-center justify-between gap-3 rounded-xl bg-secondary/40 p-4 text-left transition-colors hover:bg-secondary"
                   >
                     <div className="min-w-0">
@@ -78,43 +75,12 @@ function DetailsActuels() {
                         {groupe.categorie === CATEGORIE_LIBRE ? "Sans catégorie" : groupe.categorie}
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        {nbEnveloppes} enveloppe{nbEnveloppes > 1 ? "s" : ""} ·{" "}
-                        {formatFCFA(totalRestant)} restants
+                        {nbSous} sous-catégorie{nbSous > 1 ? "s" : ""} · {nbEnveloppes} enveloppe
+                        {nbEnveloppes > 1 ? "s" : ""} · {formatFCFA(totalRestant)} restants
                       </span>
                     </div>
-                    <ChevronDown
-                      aria-hidden
-                      className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 ${
-                        estOuverte ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {estOuverte && (
-                    <div className="space-y-4 border-t border-border/70 p-4">
-                      {groupe.sousCategories.map((sous) => (
-                        <div key={sous.sousCategorie}>
-                          <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                            {sous.sousCategorie}
-                          </h3>
-                          <ul className="space-y-3">
-                            {sous.enveloppes.map((e) => (
-                              <li key={e.id} className="rounded-xl border border-border/70 p-4">
-                                <CarteEnveloppe
-                                  e={e}
-                                  estOuverte={enveloppeOuverte === e.id}
-                                  onToggle={() =>
-                                    setEnveloppeOuverte(enveloppeOuverte === e.id ? null : e.id)
-                                  }
-                                />
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    <ChevronRight aria-hidden className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  </Link>
                 </li>
               );
             })}
