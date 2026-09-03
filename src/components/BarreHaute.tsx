@@ -359,10 +359,11 @@ export function BarreHaute() {
         role="menu"
         aria-label="Menu principal"
         aria-hidden={!ouvert}
-        className={`fixed right-0 top-0 z-[70] flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+        className={`fixed right-0 top-0 z-[71] flex h-[100dvh] w-[17rem] max-w-[85vw] flex-col border-l border-border bg-card pt-[env(safe-area-inset-top)] shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >
+
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="font-semibold">Menu</span>
           <button
