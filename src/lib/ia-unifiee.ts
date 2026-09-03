@@ -84,7 +84,7 @@ export function construireEtatIA(donnees: DonneesUnifiees): EtatIA {
     objectifs: donnees.objectifs,
     solde: donnees.soldeDisponible,
     comptesExclus: donnees.comptesExclus,
-    maintenant: maintenant.toISOString(),
+    maintenant,
   });
   const donneesCoach: DonneesCoach = {
     transactions: donnees.transactions,
@@ -214,7 +214,7 @@ function fcfa(montant: number): string {
 export function resumeReseau(etat: EtatIA): string[] {
   const lignes: string[] = [etat.cerveau.resume];
   const alerte = etat.cerveau.constats.find((c) => c.gravite === "alerte");
-  if (alerte) lignes.push(`Point de vigilance : ${alerte.message}`);
+  if (alerte) lignes.push(`Point de vigilance : ${alerte.titre} — ${alerte.detail}`);
   const depassees = etat.suivi.filter((s) => s.ecart < 0).length;
   if (etat.suivi.length > 0) {
     lignes.push(
@@ -223,7 +223,9 @@ export function resumeReseau(etat: EtatIA): string[] {
         : `${depassees} enveloppe(s) dépassent le montant planifié ce mois-ci.`,
     );
   }
-  const enRetard = etat.objectifs.filter((o) => o.enRetard).length;
+  const enRetard = etat.objectifs.filter(
+    (o) => o.etat === "en_retard" || o.etat === "en_danger",
+  ).length;
   if (etat.objectifs.length > 0) {
     lignes.push(
       enRetard === 0
