@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, RotateCcw, TrendingDown, TrendingUp, Wand2 } from "lucide-react";
+import { Pencil, RotateCcw, Star, TrendingDown, TrendingUp, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
-import { ajusterAuRevenu, apprendreCorrections, proposerDotations } from "@/lib/budget-auto";
+import {
+  ajusterAuRevenu,
+  apprendreCorrections,
+  noterBudget,
+  proposerDotations,
+} from "@/lib/budget-auto";
 import { marquerBudgetModifie } from "@/lib/rappel-budget";
 
 /**
@@ -18,6 +23,11 @@ export function SectionBudgetAuto() {
   /** Montants retenus par l'utilisateur (chaîne brute par enveloppe). */
   const [retenus, setRetenus] = useState<Record<string, string>>({});
   const [ignorees, setIgnorees] = useState<Record<string, boolean>>({});
+  /** Réponse à « Voulez-vous modifier ce budget ? ». */
+  const [reponse, setReponse] = useState<"oui" | "non" | null>(null);
+  /** Action en attente de la notation obligatoire. */
+  const [notation, setNotation] = useState<"appliquer" | "modifier" | null>(null);
+  const [note, setNote] = useState<number | null>(null);
 
   const budget = useMemo(() => {
     const brut = proposerDotations(transactions, enveloppes);
@@ -84,6 +94,25 @@ export function SectionBudgetAuto() {
         ? `${modifiees} enveloppe(s) mise(s) à jour${corrections.length > 0 ? " — vos corrections sont mémorisées." : "."}`
         : "Vos dotations correspondent déjà aux montants retenus.",
     );
+  };
+
+  /** La notation est obligatoire avant d'appliquer ou de modifier le budget. */
+  const validerNote = () => {
+    if (note === null) return;
+    const action = notation;
+    noterBudget({
+      note,
+      totalPropose: budget.totalPropose,
+      modifie: action === "modifier",
+    });
+    setNotation(null);
+    setNote(null);
+    if (action === "modifier") {
+      setModeEdition(true);
+      toast.success("Note enregistrée : vous pouvez modifier le budget.");
+    } else if (action === "appliquer") {
+      appliquer();
+    }
   };
 
   if (budget.propositions.length === 0) return null;
