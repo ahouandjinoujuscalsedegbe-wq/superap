@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { formatFCFA } from "@/lib/format";
+import { BarreComparaison, phraseEcart } from "@/components/BarreComparaison";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
 import { AXES_SUIVI, comparerParAxe, type AxeSuivi } from "@/lib/suivi-planifie";
