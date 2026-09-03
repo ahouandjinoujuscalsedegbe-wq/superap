@@ -42,6 +42,8 @@ export function BouleAnalyse() {
   const [ouvert, setOuvert] = useState(false);
   const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
+  /** Note sur 5 donnée à chaque solution : obligatoire avant approbation ou rejet. */
+  const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
