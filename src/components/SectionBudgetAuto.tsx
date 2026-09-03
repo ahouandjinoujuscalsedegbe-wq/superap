@@ -263,6 +263,16 @@ export function SectionBudgetAuto() {
         })}
       </ul>
 
+      {periodeMois > 1 && (
+        <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
+          Sur {libellePeriode}, ce budget représente{" "}
+          <span className="font-semibold">{formatFCFA(totalRetenu * periodeMois)}</span> (
+          {formatFCFA(totalRetenu)} par mois).
+        </p>
+      )}
+
+
+
       {modeEdition && (
         <p className="text-xs text-muted-foreground">
           Total retenu : {formatFCFA(totalRetenu)} (proposé {formatFCFA(budget.totalPropose)},
