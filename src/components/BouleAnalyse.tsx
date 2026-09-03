@@ -36,7 +36,13 @@ const FACES = [
 
 export function BouleAnalyse() {
   const { alertes: toutesAlertes } = useCerveau();
+  const { enveloppes, transactions, depensesParEnveloppe, transfererEntreEnveloppes } =
+    useSuperApp();
   const [ouvert, setOuvert] = useState(false);
+  const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
+  const [montants, setMontants] = useState<Record<string, string>>({});
+  const [faits, setFaits] = useState<string[]>([]);
+  const [bilan, setBilan] = useState(() => bilanSecours());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [glisse, setGlisse] = useState(false);
   const refBoule = useRef<HTMLButtonElement | null>(null);
