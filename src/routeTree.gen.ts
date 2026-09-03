@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
 import { Route as AnalysesRouteImport } from './routes/analyses'
 import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
@@ -84,6 +85,11 @@ const AnalysesRoute = AnalysesRouteImport.update({
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BudgetRoute = BudgetRouteImport.update({
+  id: '/budget',
+  path: '/budget',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComptesRoute = ComptesRouteImport.update({
@@ -182,9 +188,9 @@ const SynchronisationRoute = SynchronisationRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const BudgetPlanRoute = BudgetPlanRouteImport.update({
-  id: '/budget/plan',
-  path: '/budget/plan',
-  getParentRoute: () => rootRouteImport,
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => BudgetRoute,
 } as any)
 const ComptesIndexRoute = ComptesIndexRouteImport.update({
   id: '/',
@@ -354,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
   '/assistant': typeof AssistantRoute
+  '/budget': typeof BudgetRouteWithChildren
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -412,6 +419,7 @@ export interface FileRoutesByTo {
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
   '/assistant': typeof AssistantRoute
+  '/budget': typeof BudgetRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
@@ -467,6 +475,7 @@ export interface FileRoutesById {
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
   '/assistant': typeof AssistantRoute
+  '/budget': typeof BudgetRouteWithChildren
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
@@ -527,6 +536,7 @@ export interface FileRouteTypes {
     | '/aide'
     | '/analyses'
     | '/assistant'
+    | '/budget'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -585,6 +595,7 @@ export interface FileRouteTypes {
     | '/aide'
     | '/analyses'
     | '/assistant'
+    | '/budget'
     | '/depense'
     | '/dettes'
     | '/journal'
@@ -639,6 +650,7 @@ export interface FileRouteTypes {
     | '/aide'
     | '/analyses'
     | '/assistant'
+    | '/budget'
     | '/comptes'
     | '/depense'
     | '/dettes'
@@ -698,6 +710,7 @@ export interface RootRouteChildren {
   AideRoute: typeof AideRoute
   AnalysesRoute: typeof AnalysesRoute
   AssistantRoute: typeof AssistantRoute
+  BudgetRoute: typeof BudgetRouteWithChildren
   ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
@@ -717,7 +730,6 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
-  BudgetPlanRoute: typeof BudgetPlanRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
 }
@@ -750,6 +762,13 @@ declare module '@tanstack/react-router' {
       path: '/assistant'
       fullPath: '/assistant'
       preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/budget': {
+      id: '/budget'
+      path: '/budget'
+      fullPath: '/budget'
+      preLoaderRoute: typeof BudgetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comptes': {
@@ -887,10 +906,10 @@ declare module '@tanstack/react-router' {
     }
     '/budget/plan': {
       id: '/budget/plan'
-      path: '/budget/plan'
+      path: '/plan'
       fullPath: '/budget/plan'
       preLoaderRoute: typeof BudgetPlanRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof BudgetRoute
     }
     '/comptes/': {
       id: '/comptes/'
@@ -1119,6 +1138,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface BudgetRouteChildren {
+  BudgetPlanRoute: typeof BudgetPlanRoute
+}
+
+const BudgetRouteChildren: BudgetRouteChildren = {
+  BudgetPlanRoute: BudgetPlanRoute,
+}
+
+const BudgetRouteWithChildren =
+  BudgetRoute._addFileChildren(BudgetRouteChildren)
+
 interface ComptesTransfertsRouteChildren {
   ComptesTransfertsNouveauRoute: typeof ComptesTransfertsNouveauRoute
   ComptesTransfertsIndexRoute: typeof ComptesTransfertsIndexRoute
@@ -1222,6 +1252,7 @@ const rootRouteChildren: RootRouteChildren = {
   AideRoute: AideRoute,
   AnalysesRoute: AnalysesRoute,
   AssistantRoute: AssistantRoute,
+  BudgetRoute: BudgetRouteWithChildren,
   ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
@@ -1241,7 +1272,6 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
-  BudgetPlanRoute: BudgetPlanRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
 }
