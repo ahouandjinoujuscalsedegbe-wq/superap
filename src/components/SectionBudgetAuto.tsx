@@ -197,17 +197,66 @@ export function SectionBudgetAuto() {
       )}
 
       <div className="flex flex-col gap-2">
-        {!modeEdition ? (
-          <button
-            type="button"
-            onClick={() => setModeEdition(true)}
-            className="min-h-11 w-full rounded-xl border border-primary bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-transform active:scale-[0.99]"
-          >
-            <span className="flex items-center justify-center gap-2">
-              <Pencil className="h-4 w-4" aria-hidden />
+        {reponse === null ? (
+          <div className="space-y-2">
+            <p className="flex items-center justify-center gap-2 text-sm font-semibold">
+              <Pencil className="h-4 w-4 text-primary" aria-hidden />
               Voulez-vous modifier ce budget ?
-            </span>
-          </button>
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setReponse("oui")}
+                className="min-h-11 flex-1 rounded-xl border border-primary bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-transform active:scale-[0.99]"
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setReponse("non")}
+                className="min-h-11 flex-1 rounded-xl border border-input px-4 py-2.5 text-sm font-semibold transition-transform active:scale-[0.99]"
+              >
+                Non
+              </button>
+            </div>
+          </div>
+        ) : reponse === "non" ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setReponse(null)}
+              className="min-h-11 rounded-xl bg-secondary px-3 text-sm font-medium text-secondary-foreground"
+            >
+              Revenir
+            </button>
+            <button
+              type="button"
+              onClick={() => setNotation("appliquer")}
+              className="min-h-11 flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
+            >
+              Appliquer ce budget
+            </button>
+          </div>
+        ) : !modeEdition ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setReponse(null)}
+              className="min-h-11 rounded-xl bg-secondary px-3 text-sm font-medium text-secondary-foreground"
+            >
+              Revenir
+            </button>
+            <button
+              type="button"
+              onClick={() => setNotation("modifier")}
+              className="min-h-11 flex-1 rounded-xl border border-primary bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-transform active:scale-[0.99]"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <Pencil className="h-4 w-4" aria-hidden />
+                Modifier
+              </span>
+            </button>
+          </div>
         ) : (
           <div className="flex gap-2">
             {modifieParUtilisateur && (
@@ -230,6 +279,62 @@ export function SectionBudgetAuto() {
           </div>
         )}
       </div>
+
+      {notation && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Notation du budget proposé"
+        >
+          <div className="carte w-full max-w-sm space-y-3 p-4">
+            <h3 className="text-sm font-semibold">Notez le budget proposé</h3>
+            <p className="text-xs text-muted-foreground">
+              Notation obligatoire : elle entraîne l'application à mieux proposer vos prochains
+              budgets. Total proposé : {formatFCFA(budget.totalPropose)}.
+            </p>
+            <div className="flex justify-between gap-2">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setNote(n)}
+                  aria-pressed={note === n}
+                  aria-label={`Note ${n} sur 5`}
+                  className={`flex min-h-11 flex-1 items-center justify-center gap-1 rounded-xl text-sm font-semibold ${
+                    note !== null && n <= note
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-input text-muted-foreground"
+                  }`}
+                >
+                  <Star className="h-4 w-4" aria-hidden />
+                  {n}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setNotation(null);
+                  setNote(null);
+                }}
+                className="min-h-11 flex-1 rounded-xl border border-input text-sm font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={note === null}
+                onClick={validerNote}
+                className="min-h-11 flex-1 rounded-xl bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
