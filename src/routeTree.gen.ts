@@ -33,6 +33,7 @@ import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
 import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
+import { Route as BudgetIndexRouteImport } from './routes/budget.index'
 import { Route as BudgetPlanRouteImport } from './routes/budget.plan'
 import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
@@ -186,6 +187,11 @@ const SynchronisationRoute = SynchronisationRouteImport.update({
   id: '/synchronisation',
   path: '/synchronisation',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BudgetIndexRoute = BudgetIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BudgetRoute,
 } as any)
 const BudgetPlanRoute = BudgetPlanRouteImport.update({
   id: '/plan',
@@ -403,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
   '/rapport/$mois': typeof RapportMoisRoute
+  '/budget/': typeof BudgetIndexRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -419,7 +426,6 @@ export interface FileRoutesByTo {
   '/aide': typeof AideRoute
   '/analyses': typeof AnalysesRoute
   '/assistant': typeof AssistantRoute
-  '/budget': typeof BudgetRouteWithChildren
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
@@ -458,6 +464,7 @@ export interface FileRoutesByTo {
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
   '/rapport/$mois': typeof RapportMoisRoute
+  '/budget': typeof BudgetIndexRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
   '/parametres': typeof ParametresIndexRoute
@@ -518,6 +525,7 @@ export interface FileRoutesById {
   '/parametres/profil': typeof ParametresProfilRoute
   '/parametres/securite': typeof ParametresSecuriteRoute
   '/rapport/$mois': typeof RapportMoisRoute
+  '/budget/': typeof BudgetIndexRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
   '/parametres/': typeof ParametresIndexRoute
@@ -579,6 +587,7 @@ export interface FileRouteTypes {
     | '/parametres/profil'
     | '/parametres/securite'
     | '/rapport/$mois'
+    | '/budget/'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -595,7 +604,6 @@ export interface FileRouteTypes {
     | '/aide'
     | '/analyses'
     | '/assistant'
-    | '/budget'
     | '/depense'
     | '/dettes'
     | '/journal'
@@ -634,6 +642,7 @@ export interface FileRouteTypes {
     | '/parametres/profil'
     | '/parametres/securite'
     | '/rapport/$mois'
+    | '/budget'
     | '/comptes'
     | '/enveloppes'
     | '/parametres'
@@ -693,6 +702,7 @@ export interface FileRouteTypes {
     | '/parametres/profil'
     | '/parametres/securite'
     | '/rapport/$mois'
+    | '/budget/'
     | '/comptes/'
     | '/enveloppes/'
     | '/parametres/'
@@ -903,6 +913,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/synchronisation'
       preLoaderRoute: typeof SynchronisationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/budget/': {
+      id: '/budget/'
+      path: '/'
+      fullPath: '/budget/'
+      preLoaderRoute: typeof BudgetIndexRouteImport
+      parentRoute: typeof BudgetRoute
     }
     '/budget/plan': {
       id: '/budget/plan'
@@ -1140,10 +1157,12 @@ declare module '@tanstack/react-router' {
 
 interface BudgetRouteChildren {
   BudgetPlanRoute: typeof BudgetPlanRoute
+  BudgetIndexRoute: typeof BudgetIndexRoute
 }
 
 const BudgetRouteChildren: BudgetRouteChildren = {
   BudgetPlanRoute: BudgetPlanRoute,
+  BudgetIndexRoute: BudgetIndexRoute,
 }
 
 const BudgetRouteWithChildren =
