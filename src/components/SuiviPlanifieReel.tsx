@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ChevronDown } from "lucide-react";
-import { formatFCFA } from "@/lib/format";
-import { BarreComparaison } from "@/components/BarreComparaison";
+import { CarteComparaison } from "@/components/BarreComparaison";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
 import { AXES_SUIVI, depensesDuMois, echeancesDuMois } from "@/lib/suivi-planifie";
@@ -42,27 +41,11 @@ export function SuiviPlanifieReel() {
 
   return (
     <div className="space-y-4">
-      <section className="carte space-y-4 p-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Mon mois — {moisLisible(moisActuel)}
-        </p>
-
-        <BarreComparaison prevu={totalPlanifie} depense={totalReel} />
-
-        <p
-          className={`rounded-xl p-3 text-sm font-semibold ${
-            ecart > 0
-              ? "bg-destructive/10 text-destructive"
-              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-          }`}
-        >
-          {ecart > 0
-            ? `Attention : tu as dépensé ${formatFCFA(ecart)} de plus que prévu.`
-            : ecart === 0
-              ? "Parfait : tu as dépensé exactement ce qui était prévu."
-              : `Bravo : il te reste encore ${formatFCFA(-ecart)} sur ce qui était prévu.`}
-        </p>
-      </section>
+      <CarteComparaison
+        titre={`Mon mois — ${moisLisible(moisActuel)}`}
+        prevu={totalPlanifie}
+        depense={totalReel}
+      />
 
       <div className="carte overflow-hidden">
         <button
