@@ -22,6 +22,7 @@ import {
   solutionsSecours,
 } from "@/lib/analyse-secours";
 import { EVENEMENT_OUVRIR_SECOURS, publierAlerteConseiller } from "@/lib/alertes-conseiller";
+import { occurrencesEntre } from "@/lib/planning";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
@@ -41,10 +42,10 @@ const FACES = [
 
 export function BouleAnalyse() {
   const { alertes: toutesAlertes } = useCerveau();
-  const { enveloppes, transactions, depensesParEnveloppe, transfererEntreEnveloppes } =
+  const { enveloppes, transactions, budgets, depensesParEnveloppe, transfererEntreEnveloppes } =
     useSuperApp();
   const [ouvert, setOuvert] = useState(false);
-  const [onglet, setOnglet] = useState<"constats" | "solutions">("constats");
+  const [onglet, setOnglet] = useState<"constats" | "solutions" | "planifie">("constats");
   const [montants, setMontants] = useState<Record<string, string>>({});
   /** Mémoire locale : les propositions déjà traitées n'y réapparaissent plus. */
   const [memoire, setMemoire] = useState(() => lireMemoireSecours());
@@ -71,6 +72,45 @@ export function BouleAnalyse() {
     propose: number;
   } | null>(null);
   const [noteTemp, setNoteTemp] = useState(0);
+
+  /**
+   * Dépenses planifiées des douze prochains mois, regroupées par mois :
+   * l'analyse reste ainsi cohérente avec le budget prévu.
+   */
+  const planifiees = useMemo(() => {
+    const debut = new Date().toISOString().slice(0, 10);
+    const fin = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    const parMois = new Map<
+      string,
+      { enveloppe: string; emoji: string; libelle: string; montant: number }[]
+    >();
+    for (const b of budgets) {
+      if (!b.actif) continue;
+      const env = enveloppes.find((e) => e.id === b.enveloppeId);
+      for (const date of occurrencesEntre(b, debut, fin)) {
+        const mois = date.slice(0, 7);
+        const liste = parMois.get(mois) ?? [];
+        liste.push({
+          enveloppe: env?.nom ?? "Sans enveloppe",
+          emoji: env?.emoji ?? "📌",
+          libelle: b.libelle,
+          montant: b.montant,
+        });
+        parMois.set(mois, liste);
+      }
+    }
+    return Array.from(parMois.entries())
+      .sort((a, z) => a[0].localeCompare(z[0]))
+      .map(([mois, lignes]) => ({
+        mois,
+        libelleMois: new Date(`${mois}-01T00:00:00`).toLocaleDateString("fr-FR", {
+          month: "long",
+          year: "numeric",
+        }),
+        total: lignes.reduce((s2, l) => s2 + l.montant, 0),
+        lignes,
+      }));
+  }, [budgets, enveloppes]);
 
   // Position mémorisée : la boule reste où l'utilisateur l'a posée, sur toutes les pages.
   useEffect(() => {
@@ -313,7 +353,7 @@ export function BouleAnalyse() {
           </div>
 
           <div className="flex gap-1 rounded-full bg-muted p-1 text-xs font-semibold">
-            {(["constats", "solutions"] as const).map((o) => (
+            {(["constats", "solutions", "planifie"] as const).map((o) => (
               <button
                 key={o}
                 type="button"
@@ -324,12 +364,48 @@ export function BouleAnalyse() {
               >
                 {o === "constats"
                   ? `Constats (${alertes.length})`
-                  : `Solutions (${solutions.length})`}
+                  : o === "solutions"
+                    ? `Solutions (${solutions.length})`
+                    : `Planifié (${planifiees.reduce((n, m) => n + m.lignes.length, 0)})`}
               </button>
             ))}
           </div>
 
-          {onglet === "constats" ? (
+          {onglet === "planifie" ? (
+            <div className="space-y-3">
+              {planifiees.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Aucune dépense planifiée pour les douze prochains mois.
+                </p>
+              )}
+              {planifiees.map((m) => (
+                <article key={m.mois} className="rounded-xl border border-border p-3">
+                  <h3 className="flex items-center justify-between gap-2 text-sm font-semibold capitalize">
+                    <span className="min-w-0 truncate">{m.libelleMois}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {formatFCFA(m.total)}
+                    </span>
+                  </h3>
+                  <ul className="mt-2 space-y-1">
+                    {m.lignes.map((l, i) => (
+                      <li
+                        key={`${m.mois}-${l.libelle}-${i}`}
+                        className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-2 py-1.5 text-xs"
+                      >
+                        <span className="min-w-0 truncate">
+                          <span aria-hidden>{l.emoji}</span> {l.libelle}
+                          <span className="block text-[11px] text-muted-foreground">
+                            {l.enveloppe}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-medium">{formatFCFA(l.montant)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          ) : onglet === "constats" ? (
             <ul className="space-y-1.5 text-sm">
               {alertes.length === 0 && (
                 <li className="text-xs text-muted-foreground">Aucun constat pour l'instant.</li>

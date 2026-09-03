@@ -11,6 +11,14 @@ import {
 } from "@/lib/budget-auto";
 import { marquerBudgetModifie } from "@/lib/rappel-budget";
 
+/** Périodes proposées avant tout calcul de budget. */
+const PERIODES_BUDGET = [
+  { mois: 1, label: "1 mois" },
+  { mois: 3, label: "3 mois (trimestre)" },
+  { mois: 6, label: "6 mois (semestre)" },
+  { mois: 12, label: "12 mois (année)" },
+] as const;
+
 /**
  * Budget auto-proposé : calcul local des dotations conseillées pour le mois
  * suivant. L'utilisateur peut corriger chaque montant avant d'appliquer, et
@@ -19,6 +27,8 @@ import { marquerBudgetModifie } from "@/lib/rappel-budget";
 export function SectionBudgetAuto() {
   const { transactions, enveloppes, modifierEnveloppe } = useSuperApp();
   const [ajuster, setAjuster] = useState(true);
+  /** Période choisie par l'utilisateur AVANT toute génération (en mois). */
+  const [periodeMois, setPeriodeMois] = useState<number | null>(null);
   const [modeEdition, setModeEdition] = useState(false);
   /** Montants retenus par l'utilisateur (chaîne brute par enveloppe). */
   const [retenus, setRetenus] = useState<Record<string, string>>({});
@@ -115,7 +125,37 @@ export function SectionBudgetAuto() {
     }
   };
 
+  if (periodeMois === null) {
+    return (
+      <section className="carte space-y-3 p-4">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          <Wand2 className="h-4 w-4 text-primary" aria-hidden />
+          Budget auto-proposé
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Choisissez d'abord la période sur laquelle vous voulez ce budget. La proposition sera
+          ensuite calculée sur votre téléphone.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {PERIODES_BUDGET.map((p) => (
+            <button
+              key={p.mois}
+              type="button"
+              onClick={() => setPeriodeMois(p.mois)}
+              className="rounded-xl border border-border bg-secondary/50 px-3 py-3 text-sm font-semibold"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (budget.propositions.length === 0) return null;
+
+  const libellePeriode =
+    PERIODES_BUDGET.find((p) => p.mois === periodeMois)?.label ?? `${periodeMois} mois`;
 
   return (
     <section className="carte space-y-3 p-4">
@@ -123,6 +163,18 @@ export function SectionBudgetAuto() {
         <Wand2 className="h-4 w-4 text-primary" aria-hidden />
         Budget auto-proposé
       </h2>
+      <div className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-xs">
+        <span>
+          Période choisie : <span className="font-semibold">{libellePeriode}</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setPeriodeMois(null)}
+          className="shrink-0 font-semibold text-primary"
+        >
+          Changer
+        </button>
+      </div>
       <p className="text-xs text-muted-foreground">
         Calculé sur votre téléphone à partir de vos six derniers mois : rythme récent, tendance et
         régularité de chaque enveloppe.
@@ -210,6 +262,14 @@ export function SectionBudgetAuto() {
           );
         })}
       </ul>
+
+      {periodeMois > 1 && (
+        <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
+          Sur {libellePeriode}, ce budget représente{" "}
+          <span className="font-semibold">{formatFCFA(totalRetenu * periodeMois)}</span> (
+          {formatFCFA(totalRetenu)} par mois).
+        </p>
+      )}
 
       {modeEdition && (
         <p className="text-xs text-muted-foreground">
