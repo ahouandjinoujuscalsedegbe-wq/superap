@@ -8,10 +8,9 @@ name: Compiler l'APK Android
 # S'ils sont absents, le workflow ne échoue plus : il compile un APK de test
 # (debug) pour que vous ayez quand même une application installable.
 #
-# Dépôt PRIVÉ : ajoutez aussi le secret SUPERAPP_UPDATE_TOKEN (jeton GitHub en
-# lecture seule, accès "Contents: Read-only" sur ce dépôt). Il est intégré à
-# l'application à la compilation pour que l'auto-updater lise les Releases.
-# Note : GitHub interdit les noms de secrets commençant par "GITHUB_".
+# Dépôt PRIVÉ : le jeton GitHub n'est PLUS intégré à l'application. Il est
+# enregistré côté serveur (secret SUPERAPP_UPDATE_TOKEN du projet Lovable) et
+# l'application interroge le relais /api/public/maj/version.
 "on":
   workflow_dispatch:
   push:
@@ -40,9 +39,42 @@ jobs:
       # 4. Construire la version web mobile (fichiers statiques)
       # Le jeton GitHub (lecture seule) est intégré à l'application pour que
       # l'auto-updater puisse lire les Releases même si le dépôt est privé.
+      # Empreinte du certificat de signature : intégrée à l'application pour
+      # qu'elle refuse de démarrer si elle a été recompilée par un tiers.
+      - name: Calculer l'empreinte de signature attendue
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
+            echo "::warning::Pas de clé de signature : contrôle d'authenticité désactivé."
+            echo "SIGNATURE_ATTENDUE=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > /tmp/signature.jks
+          EMPREINTE=$(keytool -list -v -keystore /tmp/signature.jks -storepass "$KEYSTORE_PASSWORD" \
+            -alias "$KEY_ALIAS" | grep -m1 "SHA256:" | awk '{print $2}' | tr -d ':' | tr 'A-Z' 'a-z')
+          if [ -z "$EMPREINTE" ]; then
+            echo "::error::Impossible de lire l'empreinte du certificat de signature."
+            exit 1
+          fi
+          echo "SIGNATURE_ATTENDUE=$EMPREINTE" >> "$GITHUB_ENV"
+          echo "Empreinte de signature attendue : $EMPREINTE"
+
+      - name: Refuser toute clé de signature versionnée
+        run: |
+          # La clé de signature ne doit jamais se trouver dans le dépôt :
+          # quiconque la possède peut publier une fausse mise à jour.
+          if git ls-files | grep -Ei '\.(jks|keystore|p12)$'; then
+            echo "::error::Une clé de signature est versionnée dans le dépôt. Supprimez-la et régénérez-la."
+            exit 1
+          fi
+          echo "Aucune clé de signature versionnée."
+
       - name: Construire l'application web mobile
         env:
-          VITE_UPDATE_TOKEN: ${{ secrets.SUPERAPP_UPDATE_TOKEN }}
+          VITE_SIGNATURE_ATTENDUE: ${{ env.SIGNATURE_ATTENDUE }}
         run: bunx vite build --config vite.mobile.config.ts
 
       # 5. Installer Java (nécessaire pour compiler Android)
@@ -172,6 +204,7 @@ jobs:
           DEST=android/app/src/main/java/com/superapp/budget
           mkdir -p "$DEST"
           cp native/android/SMSInboxReaderPlugin.java "$DEST/SMSInboxReaderPlugin.java"
+          cp native/android/IntegriteAppPlugin.java "$DEST/IntegriteAppPlugin.java"
 
           python3 <<'PY'
           from pathlib import Path
@@ -195,6 +228,7 @@ jobs:
                   "    @Override\n"
                   "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
                   "        registerPlugin(SMSInboxReaderPlugin.class);\n"
+                  "        registerPlugin(IntegriteAppPlugin.class);\n"
                   "        super.onCreate(savedInstanceState);\n"
                   "    }\n",
                   1,
@@ -206,6 +240,8 @@ jobs:
                       "    @Override\n"
                       "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
                       "        registerPlugin(SMSInboxReaderPlugin.class);\n"
+                      "        registerPlugin(IntegriteAppPlugin.class);\n"
+                  "        registerPlugin(IntegriteAppPlugin.class);\n"
                       "        super.onCreate(savedInstanceState);\n"
                       "    }\n}\n",
                       1,
