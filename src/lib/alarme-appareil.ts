@@ -159,6 +159,8 @@ export async function vibrerAlarme(urgent = false) {
 
 /** Notification système : l'alarme reste visible et sonore hors application. */
 export async function notifierAlarme(titre: string, texte: string, urgent = false) {
+  // Toute notification est aussi déposée dans la discussion du conseiller.
+  void publierAlerteConseiller({ titre, texte, urgent });
   if (!estNatif()) return;
   if (!(await demanderPermissionNotification())) return;
   try {
