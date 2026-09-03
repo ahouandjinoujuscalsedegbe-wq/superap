@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
+import { SuiviPlanifieReel } from "@/components/SuiviPlanifieReel";
 
 export const Route = createFileRoute("/budget/suivi")({
   head: () => ({
@@ -19,5 +20,14 @@ export const Route = createFileRoute("/budget/suivi")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => <FicheSuiviBudget />,
+  component: PageSuivBudget,
 });
+
+function PageSuivBudget() {
+  return (
+    <div className="space-y-6">
+      <SuiviPlanifieReel />
+      <FicheSuiviBudget />
+    </div>
+  );
+}
