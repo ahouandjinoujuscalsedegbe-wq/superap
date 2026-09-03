@@ -9,7 +9,6 @@ import {
   reporterAlarme,
   type Alarme,
 } from "@/lib/alarme";
-import { occurrencesEntre } from "@/lib/planning";
 
 /**
  * Surveille en continu les dépenses planifiées et les prévisions locales,
