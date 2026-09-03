@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
@@ -29,9 +29,7 @@ export const Route = createFileRoute("/enveloppes/details")({
 });
 
 function DetailsActuels() {
-  const { enveloppes, depensesParEnveloppe, budgets, transactions } = useSuperApp();
-  const [categorieOuverte, setCategorieOuverte] = useState<string | null>(null);
-  const [enveloppeOuverte, setEnveloppeOuverte] = useState<string | null>(null);
+  const { enveloppes, depensesParEnveloppe } = useSuperApp();
 
   const groupes = useMemo(() => grouperParCategorie(enveloppes), [enveloppes]);
 
@@ -85,7 +83,6 @@ function DetailsActuels() {
                   </Link>
                 </li>
               );
-
             })}
           </ul>
         )}
