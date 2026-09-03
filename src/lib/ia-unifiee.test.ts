@@ -24,9 +24,7 @@ function donnees(): DonneesUnifiees {
       transaction({ type: "revenu", montant: 200000, libelle: "Salaire", categorie: "Salaire" }),
       transaction({ montant: 30000 }),
     ],
-    enveloppes: [
-      { id: "e1", nom: "Nourriture", emoji: "🍚", plafond: 50000, dotation: 50000 },
-    ],
+    enveloppes: [{ id: "e1", nom: "Nourriture", emoji: "🍚", plafond: 50000, dotation: 50000 }],
     budgets: [],
     dettes: [
       {
