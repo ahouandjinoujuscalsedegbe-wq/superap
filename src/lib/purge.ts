@@ -68,7 +68,6 @@ export async function purgerToutStockage(
       }
       if (noms.length === 0) noms = BASES_CONNUES;
       for (const nom of noms) {
-        // eslint-disable-next-line no-await-in-loop
         const supprimee = await new Promise<boolean>((resoudre) => {
           try {
             const req = idb.deleteDatabase(nom);

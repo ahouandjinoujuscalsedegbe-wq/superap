@@ -174,7 +174,6 @@ function PageNotifications() {
     return () => {
       vivant = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Une alerte publiée pendant que la page est ouverte s'ajoute au fil.
