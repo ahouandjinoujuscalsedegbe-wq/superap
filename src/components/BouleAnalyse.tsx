@@ -349,40 +349,6 @@ export function BouleAnalyse() {
                     <span>{s.impact}</span>
                   </p>
 
-                  {/* Note obligatoire de 1 à 5 avant d'approuver ou de rejeter. */}
-                  <div
-                    role="group"
-                    aria-label={`Noter la solution pour ${s.plan.enveloppe.nom}`}
-                    className="mt-2 flex flex-wrap items-center gap-1 text-[11px]"
-                  >
-                    <span className="mr-1 font-medium">Votre note sur 5 :</span>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        aria-label={`${n} sur 5`}
-                        aria-pressed={(notes[s.id] ?? 0) >= n}
-                        onClick={() => {
-                          setNotes((x) => ({ ...x, [s.id]: n }));
-                          setBilan(bilanSecours(noterQualiteSolution(n)));
-                        }}
-                        className="rounded-full p-0.5 hover:bg-secondary"
-                      >
-                        <Star
-                          aria-hidden
-                          className={`h-4 w-4 ${
-                            (notes[s.id] ?? 0) >= n
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    ))}
-                    <span className="text-muted-foreground">
-                      {notes[s.id] ? `${notes[s.id]}/5` : "Notez avant d'appliquer ou d'ignorer."}
-                    </span>
-                  </div>
-
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
                     if (faits.includes(cle)) return null;
@@ -412,38 +378,36 @@ export function BouleAnalyse() {
                           />
                           <button
                             type="button"
-                            disabled={!notes[s.id]}
-                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              appliquer(
-                                s.id,
+                              ouvrirPopupNote({
+                                action: "appliquer",
+                                solutionId: s.id,
                                 cle,
-                                s.plan.enveloppe.id,
-                                s.plan.enveloppe.nom,
-                                d.enveloppe.id,
-                                d.enveloppe.nom,
-                                d.montantPropose,
-                              )
+                                cibleId: s.plan.enveloppe.id,
+                                cibleNom: s.plan.enveloppe.nom,
+                                donneurId: d.enveloppe.id,
+                                donneurNom: d.enveloppe.nom,
+                                propose: d.montantPropose,
+                              })
                             }
-                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground"
                           >
                             <ArrowRight aria-hidden className="h-3 w-3" />
                             Appliquer
                           </button>
                           <button
                             type="button"
-                            disabled={!notes[s.id]}
-                            title={!notes[s.id] ? "Donnez d'abord une note sur 5" : undefined}
                             onClick={() =>
-                              ignorer(
-                                s.id,
+                              ouvrirPopupNote({
+                                action: "ignorer",
+                                solutionId: s.id,
                                 cle,
-                                s.plan.enveloppe.nom,
-                                d.enveloppe.nom,
-                                d.montantPropose,
-                              )
+                                cibleNom: s.plan.enveloppe.nom,
+                                donneurNom: d.enveloppe.nom,
+                                propose: d.montantPropose,
+                              })
                             }
-                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground disabled:opacity-50"
+                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
                           >
                             Ignorer
                           </button>
