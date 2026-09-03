@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, MessageSquareText, Sparkles, Landmark, MessageCircle } from "lucide-react";
+import { Home, MessageSquareText, Sparkles, Target, MessageCircle } from "lucide-react";
 
 const RAYON_SAISIE = 26;
 const FACES_SAISIE = [
@@ -15,8 +15,8 @@ const ONGLETS = [
   { to: "/", label: "Accueil", icone: Home },
   { to: "/messages", label: "Messages", icone: MessageSquareText },
   { to: "/saisie", label: "Saisie intelligente", icone: Sparkles, milieu: true },
-  { to: "/comptes", label: "Comptes", icone: Landmark },
   { to: "/notifications", label: "Mon conseiller", icone: MessageCircle, tailleIcone: "h-6 w-6" },
+  { to: "/objectifs", label: "Objectifs d'épargne", icone: Target },
 ] as const;
 
 export function BottomNav() {
