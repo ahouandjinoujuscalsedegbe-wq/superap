@@ -17,7 +17,13 @@ import {
   FolderTree,
   RefreshCcw,
   LifeBuoy,
+  Layers,
+  Plus,
+  Pencil,
+  ListOrdered,
+  History,
 } from "lucide-react";
+
 import { useSuperApp } from "@/lib/store";
 
 import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
