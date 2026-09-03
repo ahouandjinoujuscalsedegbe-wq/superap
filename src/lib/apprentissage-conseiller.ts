@@ -193,8 +193,8 @@ export function lireCollaborationIa(): CollaborationIa {
   try {
     const memoire = lireMemoireOcr();
     const f = fiabiliteOcr(memoire);
-    ocr = Math.round((f.justesse ?? 0) * 100);
-    ticketsAppris = f.tickets ?? 0;
+    ocr = f.tauxSansCorrection;
+    ticketsAppris = f.lectures;
   } catch {
     /* module indisponible : la collaboration continue sans lui */
   }
