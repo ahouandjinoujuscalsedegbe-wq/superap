@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { formatFCFA } from "@/lib/format";
+import { BarreComparaison } from "@/components/BarreComparaison";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
 import { AXES_SUIVI, depensesDuMois, echeancesDuMois } from "@/lib/suivi-planifie";
