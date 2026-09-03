@@ -79,7 +79,7 @@ export function MenuPrincipal() {
       <Link
         to="/recherche"
         aria-label="Rechercher"
-        className="surface fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+3rem)] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
+        className="surface fixed right-14 top-[max(0.75rem,env(safe-area-inset-top))] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
       >
         <Search className="h-5 w-5" aria-hidden />
       </Link>
