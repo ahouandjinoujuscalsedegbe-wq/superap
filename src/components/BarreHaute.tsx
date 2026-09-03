@@ -158,6 +158,7 @@ export function BarreHaute() {
   // Fermer après une navigation.
   useEffect(() => {
     setOuvert(false);
+    setActionOuvert(false);
   }, [pathname]);
 
   /**
@@ -204,7 +205,10 @@ export function BarreHaute() {
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOuvert(false);
+      if (e.key === "Escape") {
+        setOuvert(false);
+        setActionOuvert(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
