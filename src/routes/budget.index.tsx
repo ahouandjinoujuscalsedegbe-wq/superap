@@ -3,6 +3,7 @@ import { CalendarRange, ListChecks, Sparkles } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
+import { TableauSuiviReel } from "@/components/TableauSuiviReel";
 
 export const Route = createFileRoute("/budget/")({
   head: () => ({
