@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeft,
   GraduationCap,
   MessageSquareText,
   RotateCcw,
   Trash2,
-  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -80,10 +80,11 @@ export function TableauApprentissageSms({ version = 0 }: { version?: number }) {
             <button
               type="button"
               onClick={() => setOuvert(false)}
-              aria-label="Fermer le tableau de bord"
-              className="rounded-full p-2"
+              aria-label="Retour"
+              className="flex items-center gap-1 rounded-full bg-muted px-3 py-2 text-xs font-semibold"
             >
-              <X className="h-5 w-5" aria-hidden />
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              Retour
             </button>
           </header>
 
