@@ -38,10 +38,7 @@ export function SyncAuto() {
   const pret = !chargement && !stockageIllisible;
 
   const actif =
-    pret &&
-    reglages.actif &&
-    reglages.phrase.length >= PHRASE_MIN &&
-    reglages.appareil.length > 0;
+    pret && reglages.actif && reglages.phrase.length >= PHRASE_MIN && reglages.appareil.length > 0;
 
   // L'état ne change d'identité qu'à chaque modification réelle : l'empreinte
   // n'est donc plus recalculée à chaque rendu (coûteux sur téléphone).

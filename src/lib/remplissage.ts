@@ -103,10 +103,7 @@ export function montantPeriodeSuivante(
   const saison = coefficientSaisonEnveloppe(enveloppe, transactions, finPeriode);
   const borner = (montant: number) =>
     Math.round(
-      Math.min(
-        reference * (1 + VARIATION_MAX),
-        Math.max(reference * (1 - VARIATION_MAX), montant),
-      ),
+      Math.min(reference * (1 + VARIATION_MAX), Math.max(reference * (1 - VARIATION_MAX), montant)),
     );
 
   if (!enveloppe.ajustementAuto) return saison === 1 ? Math.round(base) : borner(base * saison);

@@ -242,9 +242,24 @@ export function fusionnerEtat(
     assainirTransaction,
     b.transactions,
   );
-  const transferts = fusionner(local.transferts, distant.transferts, assainirTransfert, b.transferts);
-  const enveloppes = fusionner(local.enveloppes, distant.enveloppes, assainirEnveloppe, b.enveloppes);
-  const categories = fusionner(local.categories, distant.categories, assainirCategorie, b.categories);
+  const transferts = fusionner(
+    local.transferts,
+    distant.transferts,
+    assainirTransfert,
+    b.transferts,
+  );
+  const enveloppes = fusionner(
+    local.enveloppes,
+    distant.enveloppes,
+    assainirEnveloppe,
+    b.enveloppes,
+  );
+  const categories = fusionner(
+    local.categories,
+    distant.categories,
+    assainirCategorie,
+    b.categories,
+  );
   const budgets = fusionner(local.budgets, distant.budgets, assainirBudget, b.budgets);
   const dettes = fusionner(local.dettes, distant.dettes, assainirDette, b.dettes);
   const objectifs = fusionner(local.objectifs, distant.objectifs, assainirObjectif, b.objectifs);
