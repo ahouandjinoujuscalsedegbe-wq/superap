@@ -189,9 +189,9 @@ export function BouleAnalyse() {
       return;
     }
     transfererEntreEnveloppes(donneurId, cibleId, montant);
+    noterQualiteSolution(note);
     setBilan(
       bilanSecours(
-        noterQualiteSolution(note),
         enregistrerDecision({
           cible: cibleNom,
           donneur: donneurNom,
@@ -212,9 +212,9 @@ export function BouleAnalyse() {
     propose: number,
     note: number,
   ) => {
+    noterQualiteSolution(note);
     setBilan(
       bilanSecours(
-        noterQualiteSolution(note),
         enregistrerDecision({
           cible: cibleNom,
           donneur: donneurNom,
