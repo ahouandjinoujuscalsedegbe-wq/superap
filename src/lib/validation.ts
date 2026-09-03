@@ -264,6 +264,10 @@ export function assainirBudget(v: unknown): Budget | null {
   if (typeof v["ponctuel"] === "boolean") b.ponctuel = v["ponctuel"];
   const intervalle = Math.round(nombreSur(v["intervalle"], 1));
   if (intervalle >= 1 && intervalle <= 365) b.intervalle = intervalle;
+  const heure = texteSur(v["heure"], 5);
+  if (/^\d{2}:\d{2}$/.test(heure)) b.heure = heure;
+  const heureRappel = texteSur(v["heureRappel"], 5);
+  if (/^\d{2}:\d{2}$/.test(heureRappel)) b.heureRappel = heureRappel;
   return b;
 }
 
