@@ -72,21 +72,7 @@ function Accueil() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-center gap-3 pr-12">
-        <img
-          src={logoSuperApp}
-          alt="Logo SUPER APP"
-          width={48}
-          height={48}
-          className="h-12 w-12 rounded-2xl object-cover shadow-sm"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted-foreground">Bonjour 👋</p>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Bienvenue{nomUtilisateur ? ` ${nomUtilisateur}` : ""}
-          </h1>
-        </div>
-
+      <header className="flex items-center justify-end gap-3 pr-12">
         <Link
           to="/dettes"
           aria-label="Dettes & Créances"
