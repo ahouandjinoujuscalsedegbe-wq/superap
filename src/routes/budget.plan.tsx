@@ -197,7 +197,9 @@ function Budgetisation() {
       map.set(cle, g);
     }
     return Array.from(map.entries())
-      .sort((a, z) => (axe === "mois" ? a[0].localeCompare(z[0]) : a[1].nom.localeCompare(z[1].nom, "fr")))
+      .sort((a, z) =>
+        axe === "mois" ? a[0].localeCompare(z[0]) : a[1].nom.localeCompare(z[1].nom, "fr"),
+      )
       .map(([id, g]) => ({
         id,
         nom: g.nom,
@@ -214,7 +216,6 @@ function Budgetisation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [axe, budgets, enveloppes],
   );
-
 
   const totalPlanifie = budgets.reduce((s, b) => s + b.montant, 0);
   const enveloppeChoisie = enveloppes.find((e) => e.id === bEnveloppe);
@@ -420,100 +421,113 @@ function Budgetisation() {
                 {axe === bande.id && (
                   <div className="space-y-3 border-t border-border/70 p-3">
                     {groupes.map((g) => (
-
-              <div key={g.id} className="space-y-2">
-                <p className="flex items-center justify-between gap-2 text-sm font-semibold">
-                  <span className="truncate">{g.nom}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {g.liste.length} · {formatFCFA(g.total)}
-                  </span>
-                </p>
-                <ul className="space-y-2">
-                  {g.liste.map((b) => {
-                    const ouvert = ouverte === b.id;
-                    return (
-                      <li key={b.id} className="overflow-hidden rounded-xl border border-border/70">
-                        <button
-                          type="button"
-                          onClick={() => setOuverte(ouvert ? null : b.id)}
-                          aria-expanded={ouvert}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent/30"
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium">{b.libelle}</span>
-                            <span className="block text-xs text-muted-foreground">
-                              {b.debut && b.fin
-                                ? libellePlage({ debut: b.debut, fin: b.fin })
-                                : formatDateFr(b.prochaine)}
-                            </span>
+                      <div key={g.id} className="space-y-2">
+                        <p className="flex items-center justify-between gap-2 text-sm font-semibold">
+                          <span className="truncate">{g.nom}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {g.liste.length} · {formatFCFA(g.total)}
                           </span>
-                          <span className="flex shrink-0 items-center gap-2">
-                            <span className="text-sm font-semibold">{formatFCFA(b.montant)}</span>
-                            <ChevronDown
-                              aria-hidden
-                              className={`h-4 w-4 transition-transform ${ouvert ? "rotate-180" : ""}`}
-                            />
-                          </span>
-                        </button>
-
-                        {ouvert && (
-                          <div className="space-y-2 border-t border-border/70 bg-background/40 p-3 text-xs">
-                            <p>
-                              <span className="text-muted-foreground">Enveloppe : </span>
-                              {nomEnveloppe(b.enveloppeId)}
-                            </p>
-
-                            <p>
-                              <span className="text-muted-foreground">Périodicité : </span>
-                              {libelleRepetition(b)}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Compte débité : </span>
-                              {b.compte}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Prochaine échéance : </span>
-                              {formatDateFr(b.prochaine)}
-                            </p>
-                            <div className="flex gap-2 pt-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDemande({
-                                    type: "conversion-un",
-                                    id: b.id,
-                                    libelle: b.libelle,
-                                    montant: b.montant,
-                                  })
-                                }
-                                className="rounded-lg border border-input px-2.5 py-1 font-medium"
+                        </p>
+                        <ul className="space-y-2">
+                          {g.liste.map((b) => {
+                            const ouvert = ouverte === b.id;
+                            return (
+                              <li
+                                key={b.id}
+                                className="overflow-hidden rounded-xl border border-border/70"
                               >
-                                Convertir maintenant
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDemande({ type: "suppression", id: b.id, libelle: b.libelle })
-                                }
-                                className="rounded-lg border border-input px-2.5 py-1 font-medium text-destructive"
-                              >
-                                Supprimer
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setOuverte(ouvert ? null : b.id)}
+                                  aria-expanded={ouvert}
+                                  className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent/30"
+                                >
+                                  <span className="min-w-0">
+                                    <span className="block truncate text-sm font-medium">
+                                      {b.libelle}
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                      {b.debut && b.fin
+                                        ? libellePlage({ debut: b.debut, fin: b.fin })
+                                        : formatDateFr(b.prochaine)}
+                                    </span>
+                                  </span>
+                                  <span className="flex shrink-0 items-center gap-2">
+                                    <span className="text-sm font-semibold">
+                                      {formatFCFA(b.montant)}
+                                    </span>
+                                    <ChevronDown
+                                      aria-hidden
+                                      className={`h-4 w-4 transition-transform ${ouvert ? "rotate-180" : ""}`}
+                                    />
+                                  </span>
+                                </button>
+
+                                {ouvert && (
+                                  <div className="space-y-2 border-t border-border/70 bg-background/40 p-3 text-xs">
+                                    <p>
+                                      <span className="text-muted-foreground">Enveloppe : </span>
+                                      {nomEnveloppe(b.enveloppeId)}
+                                    </p>
+
+                                    <p>
+                                      <span className="text-muted-foreground">Périodicité : </span>
+                                      {libelleRepetition(b)}
+                                    </p>
+                                    <p>
+                                      <span className="text-muted-foreground">
+                                        Compte débité :{" "}
+                                      </span>
+                                      {b.compte}
+                                    </p>
+                                    <p>
+                                      <span className="text-muted-foreground">
+                                        Prochaine échéance :{" "}
+                                      </span>
+                                      {formatDateFr(b.prochaine)}
+                                    </p>
+                                    <div className="flex gap-2 pt-1">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemande({
+                                            type: "conversion-un",
+                                            id: b.id,
+                                            libelle: b.libelle,
+                                            montant: b.montant,
+                                          })
+                                        }
+                                        className="rounded-lg border border-input px-2.5 py-1 font-medium"
+                                      >
+                                        Convertir maintenant
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemande({
+                                            type: "suppression",
+                                            id: b.id,
+                                            libelle: b.libelle,
+                                          })
+                                        }
+                                        className="rounded-lg border border-input px-2.5 py-1 font-medium text-destructive"
+                                      >
+                                        Supprimer
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
             ))
           )}
-
         </div>
       </section>
 
