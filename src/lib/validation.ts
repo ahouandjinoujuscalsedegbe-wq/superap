@@ -235,7 +235,8 @@ export function assainirCategorie(v: unknown): CategorieEnveloppe | null {
   const sousCategories = Array.from(
     new Set(brut.map((s) => texteSur(s, 80)).filter((s) => s !== "")),
   ).slice(0, 200);
-  return { id: v["id"], nom, sousCategories };
+  const emoji = texteSur(v["emoji"], 8);
+  return emoji ? { id: v["id"], nom, sousCategories, emoji } : { id: v["id"], nom, sousCategories };
 }
 
 export function assainirBudget(v: unknown): Budget | null {

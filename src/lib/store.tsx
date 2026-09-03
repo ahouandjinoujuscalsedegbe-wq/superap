@@ -80,6 +80,8 @@ export type CategorieEnveloppe = {
   id: string;
   nom: string;
   sousCategories: string[];
+  /** Icône (emoji) choisie par l'utilisateur pour repérer la catégorie. */
+  emoji?: string;
 };
 
 export type Transaction = {
@@ -297,6 +299,8 @@ export type Etat = {
    * automatique ; sinon, les comptes listés ici priment sur l'alphabet.
    */
   ordreComptes: string[];
+  /** Icône (emoji) associée à chaque compte, pour un repérage visuel rapide. */
+  iconesComptes: Record<string, string>;
   transferts: Transfert[];
   /** Approvisionnements des enveloppes depuis les comptes. */
   remplissages: Remplissage[];
@@ -331,6 +335,18 @@ export function ordreEffectifComptes(comptes: string[], ordre: string[]): string
  * dépôt de synchronisation) à un état sain : tout élément invalide est écarté
  * plutôt que d'empoisonner les soldes.
  */
+/** Ne conserve que des paires « compte → emoji » exploitables. */
+function assainirIconesComptes(brut: unknown): Record<string, string> {
+  if (!brut || typeof brut !== "object") return {};
+  const sortie: Record<string, string> = {};
+  for (const [cle, valeur] of Object.entries(brut as Record<string, unknown>)) {
+    const nom = texteSur(cle, 60);
+    const emoji = texteSur(valeur, 8);
+    if (nom && emoji) sortie[nom] = emoji;
+  }
+  return sortie;
+}
+
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
   const comptes = assainirComptes(brut.comptes);
@@ -344,6 +360,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
       ? assainirComptes(brut.comptesExclus)
       : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
+    iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
     transferts: assainirListe(brut.transferts, assainirTransfert),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
@@ -366,6 +383,7 @@ const ETAT_INITIAL: Etat = {
   comptes: [...COMPTES],
   comptesExclus: [],
   ordreComptes: [],
+  iconesComptes: {},
   transferts: [],
   remplissages: [],
   budgets: [],
@@ -381,7 +399,8 @@ type Contexte = Etat & {
   sourcesRevenu: string[];
   ajouterTransaction: (t: Omit<Transaction, "id">) => void;
   supprimerTransaction: (id: string) => void;
-  ajouterCompte: (nom: string, dansDisponible?: boolean) => void;
+  ajouterCompte: (nom: string, dansDisponible?: boolean, emoji?: string) => void;
+  definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
   renommerCompte: (ancien: string, nouveau: string) => void;
@@ -407,7 +426,8 @@ type Contexte = Etat & {
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
   supprimerEnveloppe: (id: string) => void;
   deplacerEnveloppe: (id: string, sens: "haut" | "bas") => void;
-  ajouterCategorie: (nom: string) => void;
+  ajouterCategorie: (nom: string, emoji?: string) => void;
+  definirIconeCategorie: (id: string, emoji: string) => void;
   renommerCategorie: (id: string, nom: string) => void;
   supprimerCategorie: (id: string) => void;
   ajouterSousCategorie: (id: string, nom: string) => void;
@@ -709,15 +729,32 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, membres: assainirMembres(noms) }));
   }, []);
 
-  const ajouterCompte = useCallback((nom: string, dansDisponible = true) => {
+  const ajouterCompte = useCallback((nom: string, dansDisponible = true, emoji?: string) => {
     const propre = texteSur(nom, 60);
     if (!propre) return;
+    const icone = texteSur(emoji, 8);
     setEtat((e) => {
       if (e.comptes.includes(propre)) return e;
       const exclus = dansDisponible
         ? e.comptesExclus.filter((c) => c !== propre)
         : [...e.comptesExclus, propre];
-      return { ...e, comptes: [...e.comptes, propre], comptesExclus: exclus };
+      return {
+        ...e,
+        comptes: [...e.comptes, propre],
+        comptesExclus: exclus,
+        iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
+      };
+    });
+  }, []);
+
+  const definirIconeCompte = useCallback((nom: string, emoji: string) => {
+    const icone = texteSur(emoji, 8);
+    setEtat((e) => {
+      if (!e.comptes.includes(nom)) return e;
+      const icones = { ...e.iconesComptes };
+      if (icone) icones[nom] = icone;
+      else delete icones[nom];
+      return { ...e, iconesComptes: icones };
     });
   }, []);
 
@@ -737,6 +774,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ...e,
       comptes: e.comptes.map((c) => (c === ancien ? nouveau : c)),
       comptesExclus: e.comptesExclus.map((c) => (c === ancien ? nouveau : c)),
+      ordreComptes: e.ordreComptes.map((c) => (c === ancien ? nouveau : c)),
+      iconesComptes: Object.fromEntries(
+        Object.entries(e.iconesComptes).map(([c, i]) => [c === ancien ? nouveau : c, i]),
+      ),
       transactions: e.transactions.map((t) =>
         t.compte === ancien ? { ...t, compte: nouveau } : t,
       ),
@@ -768,6 +809,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         ...e,
         comptes: e.comptes.filter((c) => c !== nom),
         comptesExclus: e.comptesExclus.filter((c) => c !== nom),
+        iconesComptes: Object.fromEntries(
+          Object.entries(e.iconesComptes).filter(([c]) => c !== nom),
+        ),
       };
     });
   }, []);
@@ -894,15 +938,36 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const ajouterCategorie = useCallback((nom: string) => {
+  const ajouterCategorie = useCallback((nom: string, emoji?: string) => {
+    const icone = texteSur(emoji, 8);
     setEtat((e) =>
       e.categories.some((c) => c.nom === nom)
         ? e
         : {
             ...e,
-            categories: [...e.categories, { id: crypto.randomUUID(), nom, sousCategories: [] }],
+            categories: [
+              ...e.categories,
+              {
+                id: crypto.randomUUID(),
+                nom,
+                sousCategories: [],
+                ...(icone ? { emoji: icone } : {}),
+              },
+            ],
           },
     );
+  }, []);
+
+  const definirIconeCategorie = useCallback((id: string, emoji: string) => {
+    const icone = texteSur(emoji, 8);
+    setEtat((e) => ({
+      ...e,
+      categories: e.categories.map((c) => {
+        if (c.id !== id) return c;
+        const { emoji: _ancien, ...reste } = c;
+        return icone ? { ...reste, emoji: icone } : reste;
+      }),
+    }));
   }, []);
 
   const renommerCategorie = useCallback((id: string, nom: string) => {
@@ -1246,6 +1311,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransaction,
       supprimerTransaction,
       ajouterCompte,
+      definirIconeCompte,
       definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
@@ -1260,6 +1326,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerEnveloppe,
       deplacerEnveloppe,
       ajouterCategorie,
+      definirIconeCategorie,
       renommerCategorie,
       supprimerCategorie,
       ajouterSousCategorie,
@@ -1295,6 +1362,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterTransaction,
       supprimerTransaction,
       ajouterCompte,
+      definirIconeCompte,
       definirCompteDisponible,
       renommerCompte,
       supprimerCompte,
@@ -1309,6 +1377,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       supprimerEnveloppe,
       deplacerEnveloppe,
       ajouterCategorie,
+      definirIconeCategorie,
       renommerCategorie,
       supprimerCategorie,
       ajouterSousCategorie,
