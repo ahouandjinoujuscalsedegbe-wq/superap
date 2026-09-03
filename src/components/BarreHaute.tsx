@@ -132,13 +132,6 @@ const ACTIONS_COMPTES = [
     icone: Pencil,
   },
   {
-    cle: "comptes-disponible",
-    to: "/comptes/action",
-    label: "Comptes comptés dans le solde disponible",
-    detail: "Exclure l'épargne ou un compte réservé du solde disponible.",
-    icone: ShieldCheck,
-  },
-  {
     cle: "comptes-transferts",
     to: "/comptes/transferts",
     label: "Historique des transferts",
