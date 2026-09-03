@@ -11,6 +11,8 @@
  *   sonne même quand l'application n'est pas au premier plan.
  */
 
+import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
+
 type FenetreAudio = typeof globalThis & {
   AudioContext?: typeof AudioContext;
   webkitAudioContext?: typeof AudioContext;
@@ -198,7 +200,15 @@ export async function declencherAlarmeAppareil(options: {
 }) {
   if (options.son) void jouerSonAlarme(options.volume, options.urgent);
   if (options.vibration) void vibrerAlarme(options.urgent);
-  if (options.notification) void notifierAlarme(options.titre, options.texte, options.urgent);
+  if (options.notification) {
+    void notifierAlarme(options.titre, options.texte, options.urgent);
+  } else {
+    void publierAlerteConseiller({
+      titre: options.titre,
+      texte: options.texte,
+      urgent: options.urgent,
+    });
+  }
 }
 
 /**
