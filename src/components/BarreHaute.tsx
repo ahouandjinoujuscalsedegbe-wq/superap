@@ -537,7 +537,7 @@ export function BarreHaute() {
       <aside
         id="menu-actions-page"
         role="menu"
-        aria-label={pageComptes ? "Actions sur les comptes" : "Actions sur les enveloppes"}
+        aria-label={pageComptesAccueil ? "Actions sur les comptes" : "Actions sur les enveloppes"}
         aria-hidden={!actionOuvert}
         className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
