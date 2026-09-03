@@ -50,7 +50,9 @@ function assainir(brut: unknown): MemoireSecours {
           donneur: String(d.donneur ?? ""),
           propose: Number(d.propose) || 0,
           applique: Number(d.applique) || 0,
-          action: d.action === "applique" || d.action === "ajuste" ? d.action : "ignore",
+          action: (d.action === "applique" || d.action === "ajuste"
+            ? d.action
+            : "ignore") as DecisionSecours["action"],
         }))
         .slice(-MAX_DECISIONS)
     : [];
