@@ -10,14 +10,24 @@ import {
   proposerDotations,
 } from "@/lib/budget-auto";
 import { marquerBudgetModifie } from "@/lib/rappel-budget";
+import { jourLocalISO } from "@/lib/echeances-dues";
 
-/** Périodes proposées avant tout calcul de budget. */
-const PERIODES_BUDGET = [
-  { mois: 1, label: "1 mois" },
-  { mois: 3, label: "3 mois (trimestre)" },
-  { mois: 6, label: "6 mois (semestre)" },
-  { mois: 12, label: "12 mois (année)" },
-] as const;
+/** Durée d'une période en mois (approchée au dixième), pour les totaux. */
+function dureeEnMois(debut: string, fin: string): number {
+  const jours =
+    (new Date(`${fin}T12:00:00`).getTime() - new Date(`${debut}T12:00:00`).getTime()) / 86_400_000 +
+    1;
+  return Math.max(0.1, Math.round((jours / 30.44) * 10) / 10);
+}
+
+/** Date affichée en clair. */
+function enClair(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 /**
  * Budget auto-proposé : calcul local des dotations conseillées pour le mois
@@ -27,8 +37,16 @@ const PERIODES_BUDGET = [
 export function SectionBudgetAuto() {
   const { transactions, enveloppes, modifierEnveloppe } = useSuperApp();
   const [ajuster, setAjuster] = useState(true);
-  /** Période choisie par l'utilisateur AVANT toute génération (en mois). */
-  const [periodeMois, setPeriodeMois] = useState<number | null>(null);
+  /** Période d'application choisie AVANT toute génération du budget. */
+  const [periode, setPeriode] = useState<{ debut: string; fin: string } | null>(null);
+  const [saisieDebut, setSaisieDebut] = useState(() => jourLocalISO());
+  const [saisieFin, setSaisieFin] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    d.setDate(d.getDate() - 1);
+    return jourLocalISO(d);
+  });
+  const [erreurPeriode, setErreurPeriode] = useState<string | null>(null);
   const [modeEdition, setModeEdition] = useState(false);
   /** Montants retenus par l'utilisateur (chaîne brute par enveloppe). */
   const [retenus, setRetenus] = useState<Record<string, string>>({});
@@ -125,7 +143,20 @@ export function SectionBudgetAuto() {
     }
   };
 
-  if (periodeMois === null) {
+  if (periode === null) {
+    const valider = () => {
+      if (!saisieDebut || !saisieFin) {
+        setErreurPeriode("Indiquez la date de départ et la date de fin.");
+        return;
+      }
+      if (saisieFin < saisieDebut) {
+        setErreurPeriode("La date de fin doit venir après la date de départ.");
+        return;
+      }
+      setErreurPeriode(null);
+      setPeriode({ debut: saisieDebut, fin: saisieFin });
+    };
+
     return (
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
@@ -133,29 +164,44 @@ export function SectionBudgetAuto() {
           Budget auto-proposé
         </h2>
         <p className="text-xs text-muted-foreground">
-          Choisissez d'abord la période sur laquelle vous voulez ce budget. La proposition sera
-          ensuite calculée sur votre téléphone.
+          Choisissez d'abord la période d'application du budget : le calcul ne sera lancé
+          qu'ensuite, sur votre téléphone.
         </p>
-        <div className="grid grid-cols-2 gap-2">
-          {PERIODES_BUDGET.map((p) => (
-            <button
-              key={p.mois}
-              type="button"
-              onClick={() => setPeriodeMois(p.mois)}
-              className="rounded-xl border border-border bg-secondary/50 px-3 py-3 text-sm font-semibold"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
+        <label className="block text-xs font-medium">
+          Date de départ
+          <input
+            type="date"
+            value={saisieDebut}
+            onChange={(e) => setSaisieDebut(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-input bg-background/60 px-3 py-2 text-sm text-foreground"
+          />
+        </label>
+        <label className="block text-xs font-medium">
+          Date de fin
+          <input
+            type="date"
+            value={saisieFin}
+            min={saisieDebut}
+            onChange={(e) => setSaisieFin(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-input bg-background/60 px-3 py-2 text-sm text-foreground"
+          />
+        </label>
+        {erreurPeriode && <p className="text-xs text-destructive">{erreurPeriode}</p>}
+        <button
+          type="button"
+          onClick={valider}
+          className="w-full rounded-xl bg-primary px-3 py-3 text-sm font-semibold text-primary-foreground"
+        >
+          Générer le budget pour cette période
+        </button>
       </section>
     );
   }
 
   if (budget.propositions.length === 0) return null;
 
-  const libellePeriode =
-    PERIODES_BUDGET.find((p) => p.mois === periodeMois)?.label ?? `${periodeMois} mois`;
+  const periodeMois = dureeEnMois(periode.debut, periode.fin);
+  const libellePeriode = `du ${enClair(periode.debut)} au ${enClair(periode.fin)}`;
 
   return (
     <section className="carte space-y-3 p-4">
@@ -165,11 +211,11 @@ export function SectionBudgetAuto() {
       </h2>
       <div className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 px-3 py-2 text-xs">
         <span>
-          Période choisie : <span className="font-semibold">{libellePeriode}</span>
+          Budget appliqué <span className="font-semibold">{libellePeriode}</span>
         </span>
         <button
           type="button"
-          onClick={() => setPeriodeMois(null)}
+          onClick={() => setPeriode(null)}
           className="shrink-0 font-semibold text-primary"
         >
           Changer
@@ -263,9 +309,9 @@ export function SectionBudgetAuto() {
         })}
       </ul>
 
-      {periodeMois > 1 && (
+      {periodeMois !== 1 && (
         <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
-          Sur {libellePeriode}, ce budget représente{" "}
+          Sur la période {libellePeriode} ({periodeMois} mois), ce budget représente{" "}
           <span className="font-semibold">{formatFCFA(totalRetenu * periodeMois)}</span> (
           {formatFCFA(totalRetenu)} par mois).
         </p>
