@@ -476,7 +476,7 @@ export function BouleAnalyse() {
           }}
           aria-label={`Analyse intelligente et plan de secours : ${total} élément${total > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
-          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`boule-levite relative h-16 w-16 touch-none rounded-full ${nouveau ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
           <span
             className={`boule-halo-rose absolute -inset-2 rounded-full ${urgentes > 0 ? "boule-halo-alerte" : ""}`}
