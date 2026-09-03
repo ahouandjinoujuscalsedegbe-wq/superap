@@ -139,8 +139,9 @@ function ActionComptes() {
     }
     const disponibleChange = disponible === comptesExclus.includes(enEdition);
     if (disponibleChange) definirCompteDisponible(enEdition, disponible);
-    definirIconeCompte(valeur === enEdition ? enEdition : enEdition, emoji.trim());
-    if (valeur === enEdition && ajustement === 0 && !disponibleChange) {
+    const iconeChange = (iconesComptes[enEdition] ?? "") !== emoji.trim();
+    if (iconeChange) definirIconeCompte(enEdition, emoji.trim());
+    if (valeur === enEdition && ajustement === 0 && !disponibleChange && !iconeChange) {
       setErreur("Rien n'a changé : modifiez le nom, le solde ou le disponible, ou annulez.");
       return;
     }
