@@ -21,6 +21,14 @@ export const URL_MANIFESTE_DEFAUT =
 /** Dépôt GitHub qui héberge les Releases (propriétaire/nom). */
 export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superap";
 
+/**
+ * Relais officiel de mise à jour (serveur de l'application).
+ *
+ * Le jeton GitHub reste sur ce serveur : il n'est plus intégré à l'APK, donc
+ * personne ne peut l'extraire en décompilant l'application.
+ */
+export const RELAIS_MAJ = "https://project--b91e98b0-46c7-4862-bedb-54f46fe01199.lovable.app";
+
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
 
@@ -77,12 +85,13 @@ export function enregistrerUrlManifeste(url: string) {
  * Priorité : jeton saisi dans Paramètres, sinon jeton intégré à la compilation.
  */
 export function lireTokenGithub(): string {
+  // Aucun jeton n'est intégré à la compilation : seul un jeton saisi
+  // manuellement par l'utilisateur (dépannage) est pris en compte.
   if (typeof localStorage !== "undefined") {
     const local = localStorage.getItem(CLE_TOKEN);
     if (local?.trim()) return local.trim();
   }
-  const integre = import.meta.env["VITE_UPDATE_TOKEN"] as string | undefined;
-  return typeof integre === "string" ? integre.trim() : "";
+  return "";
 }
 
 export function enregistrerTokenGithub(token: string) {
@@ -339,6 +348,26 @@ async function telechargerNatif(
   }
 }
 
+/** Lecture JSON simple (navigateur) utilisée par le relais de mise à jour. */
+async function telechargerJson(
+  cible: string,
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
+  try {
+    const reponse = await fetch(cible, { cache: "no-store" });
+    if (!reponse.ok) {
+      return { etat: "erreur", message: `Le serveur a répondu ${reponse.status}.` };
+    }
+    return { etat: "ok", donnees: (await reponse.json()) as Partial<Manifeste> };
+  } catch {
+    return {
+      etat: "hors-ligne",
+      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion.",
+    };
+  }
+}
+
 /** Compare le manifeste téléchargé à la version installée. */
 function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification {
   if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
@@ -390,6 +419,18 @@ export async function verifierMiseAJour(
       message:
         "Aucune connexion Internet détectée. Connectez-vous puis réessayez : l'application continue de fonctionner hors ligne.",
     };
+  }
+
+  // Chemin normal : le relais du serveur renvoie le manifeste sans qu'aucun
+  // jeton ne soit présent dans l'application installée.
+  if (!lireTokenGithub()) {
+    const relais = `${RELAIS_MAJ}/api/public/maj/version?t=${Date.now()}`;
+    const resultat = estApplicationNative()
+      ? await telechargerNatif(relais)
+      : await telechargerJson(relais);
+    if (resultat.etat === "ok") return interpreterManifeste(resultat.donnees);
+    if (resultat.etat === "hors-ligne") return { etat: "hors-ligne", message: resultat.message };
+    // Sinon : on poursuit avec l'adresse publique enregistrée (dépannage).
   }
 
   // Dépôt privé : avec un jeton, on passe par l'API GitHub authentifiée
@@ -590,8 +631,12 @@ async function telechargerAPKNatif(
     // remplace par l'URL d'asset de l'API GitHub, authentifiée par le jeton.
     let cible = url;
     let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
-    if (lireTokenGithub() && url.includes("github.com")) {
-      const nomFichier = url.split("/").pop()?.split("?")[0] ?? "";
+    const nomApk = url.split("/").pop()?.split("?")[0] ?? "";
+    if (!lireTokenGithub() && nomApk.endsWith(".apk")) {
+      // Relais du serveur : il résout l'adresse de téléchargement signée.
+      cible = `${RELAIS_MAJ}/api/public/maj/apk?nom=${encodeURIComponent(nomApk)}`;
+    } else if (lireTokenGithub() && url.includes("github.com")) {
+      const nomFichier = nomApk;
       const trouve = nomFichier ? await trouverAsset(nomFichier) : null;
       if (!trouve?.asset) {
         cacheRelease = null;
