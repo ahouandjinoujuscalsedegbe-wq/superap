@@ -289,6 +289,43 @@ export function BouleAnalyse() {
                     <span>{s.impact}</span>
                   </p>
 
+                  {/* Note obligatoire de 1 à 5 avant d'approuver ou de rejeter. */}
+                  <div
+                    role="group"
+                    aria-label={`Noter la solution pour ${s.plan.enveloppe.nom}`}
+                    className="mt-2 flex flex-wrap items-center gap-1 text-[11px]"
+                  >
+                    <span className="mr-1 font-medium">Votre note sur 5 :</span>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        aria-label={`${n} sur 5`}
+                        aria-pressed={(notes[s.id] ?? 0) >= n}
+                        onClick={() => {
+                          setNotes((x) => ({ ...x, [s.id]: n }));
+                          setBilan(bilanSecours(noterQualiteSolution(n)));
+                        }}
+                        className="rounded-full p-0.5 hover:bg-secondary"
+                      >
+                        <Star
+                          aria-hidden
+                          className={`h-4 w-4 ${
+                            (notes[s.id] ?? 0) >= n
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-muted-foreground">
+                      {notes[s.id]
+                        ? `${notes[s.id]}/5`
+                        : "Notez avant d'appliquer ou d'ignorer."}
+                    </span>
+                  </div>
+
+
                   {s.donneurs.map((d) => {
                     const cle = `${s.id}-${d.enveloppe.id}`;
                     if (faits.includes(cle)) return null;
