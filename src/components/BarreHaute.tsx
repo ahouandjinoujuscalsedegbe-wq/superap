@@ -217,7 +217,7 @@ function titreDe(pathname: string): string {
 /** Renvoie le nom de la catégorie d'enveloppe lorsqu'on est sur une route /enveloppes/categorie/:nom. */
 function infosCategorie(pathname: string): { titre: string; sousTitre: string } | null {
   const match = pathname.match(/^\/enveloppes\/categorie\/(.+)$/);
-  if (!match) return null;
+  if (!match || !match[1]) return null;
   const nom = decodeURIComponent(match[1]);
   return {
     titre: nom === CATEGORIE_LIBRE ? "Sans catégorie" : nom,
