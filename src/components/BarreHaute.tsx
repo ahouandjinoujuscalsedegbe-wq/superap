@@ -15,6 +15,10 @@ import {
   Search,
   MessageSquareText,
 } from "lucide-react";
+import { useSuperApp } from "@/lib/store";
+
+import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
+const logoSuperApp = logoSuperAppAsset.url;
 
 const ENTREES = [
   { to: "/planning", label: "Planning 14 semaines", icone: CalendarRange },
@@ -181,23 +185,36 @@ export function BarreHaute() {
     <>
       <header className="fixed inset-x-0 top-0 z-[60] border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] shadow-sm backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-md items-center gap-2 px-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (accueil) return;
-              if (window.history.length > 1) router.history.back();
-              else router.navigate({ to: "/" });
-            }}
-            aria-label="Retour"
-            disabled={accueil}
-            className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95 disabled:opacity-30"
-          >
-            <ArrowLeft className="h-5 w-5" aria-hidden />
-          </button>
+          {accueil ? (
+            <img
+              src={logoSuperApp}
+              alt="Logo SUPER APP"
+              width={36}
+              height={36}
+              className="ml-1 h-9 w-9 shrink-0 rounded-xl object-cover shadow-sm"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) router.history.back();
+                else router.navigate({ to: "/" });
+              }}
+              aria-label="Retour"
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5" aria-hidden />
+            </button>
+          )}
 
-          <span className="min-w-0 flex-1 truncate text-base font-semibold text-foreground">
-            {titre}
-          </span>
+          <div className="min-w-0 flex-1">
+            {sousTitre && (
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">{sousTitre}</p>
+            )}
+            <p className="truncate text-base font-semibold leading-tight text-foreground">
+              {titre}
+            </p>
+          </div>
 
           {accueil && (
             <Link
