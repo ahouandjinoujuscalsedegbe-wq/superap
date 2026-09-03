@@ -95,12 +95,25 @@ export function FormulaireCompte({
       setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
       return;
     }
-    if (valeur === ancien && ajustement === 0) {
-      toast.success("Compte modifié.");
-      onAnnuler?.();
+    const disponibleActuel = !comptesExclus.includes(ancien);
+    const iconeActuelle = iconesComptes[ancien] ?? "";
+    if (
+      valeur === ancien &&
+      ajustement === 0 &&
+      disponible === disponibleActuel &&
+      emoji.trim() === iconeActuelle
+    ) {
+      setErreur("Rien n'a changé : modifiez le nom, le solde, le logo ou le disponible, ou annulez.");
       return;
     }
-    onDemande({ type: "renommage", ancien, nom: valeur, ajustement, emoji: emoji.trim() });
+    onDemande({
+      type: "renommage",
+      ancien,
+      nom: valeur,
+      ajustement,
+      disponible,
+      emoji: emoji.trim(),
+    });
   }
 
   return (
