@@ -6,7 +6,6 @@ import {
   X,
   Settings,
   HelpCircle,
-  HandCoins,
   Stethoscope,
   CalendarRange,
   ShieldCheck,
