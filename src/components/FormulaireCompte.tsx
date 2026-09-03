@@ -10,7 +10,14 @@ import { suggererIcone } from "@/lib/icone-auto";
 
 export type DemandeCompte =
   | { type: "creation"; nom: string; solde: number; disponible: boolean; emoji: string }
-  | { type: "renommage"; ancien: string; nom: string; ajustement: number; emoji: string };
+  | {
+      type: "renommage";
+      ancien: string;
+      nom: string;
+      ajustement: number;
+      disponible: boolean;
+      emoji: string;
+    };
 
 const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";

@@ -68,10 +68,9 @@ function ActionComptes() {
   function confirmer() {
     if (!demande) return;
     if (demande.type === "renommage") {
-      const disponibleChange =
-        !comptesExclus.includes(demande.ancien) !==
-        !comptesExclus.includes(demande.ancien); /* déjà appliqué via le formulaire */
-      void disponibleChange;
+      if (demande.disponible === comptesExclus.includes(demande.ancien)) {
+        definirCompteDisponible(demande.ancien, demande.disponible);
+      }
       if (demande.nom !== demande.ancien) {
         renommerCompte(demande.ancien, demande.nom);
       }
