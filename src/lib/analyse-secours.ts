@@ -254,7 +254,8 @@ export function solutionsSecours(
           montantPropose: Math.max(0, Math.round(d.montantPropose * confiance)),
         };
       })
-      .filter((d) => d.montantPropose > 0)
+      // Une piste déjà consultée et traitée disparaît : l'intelligence en cherche une autre.
+      .filter((d) => d.montantPropose > 0 && !memoire.traitees[`${plan.enveloppe.id}-${d.enveloppe.id}`])
       .sort((a, b) => {
         if (a.prioritaire !== b.prioritaire) return a.prioritaire ? 1 : -1;
         return b.confiance * b.montantPropose - a.confiance * a.montantPropose;
