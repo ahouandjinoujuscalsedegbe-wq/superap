@@ -167,27 +167,55 @@ function Budgetisation() {
   const nbDues = dues.reduce((s, d) => s + d.n, 0);
   const montantDu = dues.reduce((s, d) => s + d.n * d.b.montant, 0);
 
-  /** Dépenses planifiées et à venir, regroupées par enveloppe de prélèvement. */
-  const groupes = useMemo(() => {
-    const map = new Map<string, typeof budgets>();
+  function nomEnveloppe(id: string): string {
+    const env = enveloppes.find((e) => e.id === id);
+    return env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée";
+  }
+
+  const MOIS_FR = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
+
+  /** Regroupement des dépenses planifiées selon l'axe choisi. */
+  function grouper(axe: "mois" | "enveloppe" | "libelle") {
+    const map = new Map<string, { nom: string; liste: typeof budgets }>();
     for (const b of budgets) {
-      const cle = b.enveloppeId || "__sans";
-      const liste = map.get(cle) ?? [];
-      liste.push(b);
-      map.set(cle, liste);
+      let cle = "";
+      let nom = "";
+      if (axe === "enveloppe") {
+        cle = b.enveloppeId || "__sans";
+        nom = nomEnveloppe(b.enveloppeId);
+      } else if (axe === "libelle") {
+        cle = b.libelle.trim().toLowerCase() || "__sans";
+        nom = b.libelle.trim() || "Sans libellé";
+      } else {
+        const iso = b.debut ?? b.prochaine;
+        const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
+        cle = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        nom = MOIS_FR.format(d);
+      }
+      const g = map.get(cle) ?? { nom, liste: [] as typeof budgets };
+      g.liste.push(b);
+      map.set(cle, g);
     }
-    return Array.from(map.entries()).map(([id, liste]) => {
-      const env = enveloppes.find((e) => e.id === id);
-      return {
+    return Array.from(map.entries())
+      .sort((a, z) =>
+        axe === "mois" ? a[0].localeCompare(z[0]) : a[1].nom.localeCompare(z[1].nom, "fr"),
+      )
+      .map(([id, g]) => ({
         id,
-        nom: env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée",
-        liste: liste
+        nom: g.nom,
+        liste: g.liste
           .slice()
           .sort((a, z) => (a.debut ?? a.prochaine).localeCompare(z.debut ?? z.prochaine)),
-        total: liste.reduce((s, b) => s + b.montant, 0),
-      };
-    });
-  }, [budgets, enveloppes]);
+        total: g.liste.reduce((s, b) => s + b.montant, 0),
+      }));
+  }
+
+  const [axe, setAxe] = useState<"mois" | "enveloppe" | "libelle" | null>(null);
+  const groupes = useMemo(
+    () => (axe ? grouper(axe) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [axe, budgets, enveloppes],
+  );
 
   const totalPlanifie = budgets.reduce((s, b) => s + b.montant, 0);
   const enveloppeChoisie = enveloppes.find((e) => e.id === bEnveloppe);
@@ -353,97 +381,150 @@ function Budgetisation() {
         )}
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Dépenses planifiées à venir, par enveloppe</h3>
-          {groupes.length === 0 ? (
+          <h3 className="text-sm font-medium">Dépenses planifiées à venir</h3>
+          {budgets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Aucune dépense planifiée. Utilisez « Planifier une dépense ».
             </p>
           ) : (
-            groupes.map((g) => (
-              <div key={g.id} className="space-y-2">
-                <p className="flex items-center justify-between gap-2 text-sm font-semibold">
-                  <span className="truncate">{g.nom}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {g.liste.length} · {formatFCFA(g.total)}
+            (
+              [
+                { id: "mois", titre: "Mois par mois", desc: "Regroupées par mois d'échéance" },
+                {
+                  id: "enveloppe",
+                  titre: "Enveloppe par enveloppe",
+                  desc: "Regroupées par enveloppe de prélèvement",
+                },
+                {
+                  id: "libelle",
+                  titre: "Dépense par dépense",
+                  desc: "Regroupées par libellé de la dépense",
+                },
+              ] as const
+            ).map((bande) => (
+              <div key={bande.id} className="overflow-hidden rounded-xl border border-border/70">
+                <button
+                  type="button"
+                  onClick={() => setAxe(axe === bande.id ? null : bande.id)}
+                  aria-expanded={axe === bande.id}
+                  className="flex w-full items-center justify-between gap-2 bg-secondary/50 px-3 py-3 text-left transition-colors hover:bg-accent/30"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{bande.titre}</span>
+                    <span className="block text-xs text-muted-foreground">{bande.desc}</span>
                   </span>
-                </p>
-                <ul className="space-y-2">
-                  {g.liste.map((b) => {
-                    const ouvert = ouverte === b.id;
-                    return (
-                      <li key={b.id} className="overflow-hidden rounded-xl border border-border/70">
-                        <button
-                          type="button"
-                          onClick={() => setOuverte(ouvert ? null : b.id)}
-                          aria-expanded={ouvert}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent/30"
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium">{b.libelle}</span>
-                            <span className="block text-xs text-muted-foreground">
-                              {b.debut && b.fin
-                                ? libellePlage({ debut: b.debut, fin: b.fin })
-                                : formatDateFr(b.prochaine)}
-                            </span>
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${axe === bande.id ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {axe === bande.id && (
+                  <div className="space-y-3 border-t border-border/70 p-3">
+                    {groupes.map((g) => (
+                      <div key={g.id} className="space-y-2">
+                        <p className="flex items-center justify-between gap-2 text-sm font-semibold">
+                          <span className="truncate">{g.nom}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {g.liste.length} · {formatFCFA(g.total)}
                           </span>
-                          <span className="flex shrink-0 items-center gap-2">
-                            <span className="text-sm font-semibold">{formatFCFA(b.montant)}</span>
-                            <ChevronDown
-                              aria-hidden
-                              className={`h-4 w-4 transition-transform ${ouvert ? "rotate-180" : ""}`}
-                            />
-                          </span>
-                        </button>
+                        </p>
+                        <ul className="space-y-2">
+                          {g.liste.map((b) => {
+                            const ouvert = ouverte === b.id;
+                            return (
+                              <li
+                                key={b.id}
+                                className="overflow-hidden rounded-xl border border-border/70"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setOuverte(ouvert ? null : b.id)}
+                                  aria-expanded={ouvert}
+                                  className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent/30"
+                                >
+                                  <span className="min-w-0">
+                                    <span className="block truncate text-sm font-medium">
+                                      {b.libelle}
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                      {b.debut && b.fin
+                                        ? libellePlage({ debut: b.debut, fin: b.fin })
+                                        : formatDateFr(b.prochaine)}
+                                    </span>
+                                  </span>
+                                  <span className="flex shrink-0 items-center gap-2">
+                                    <span className="text-sm font-semibold">
+                                      {formatFCFA(b.montant)}
+                                    </span>
+                                    <ChevronDown
+                                      aria-hidden
+                                      className={`h-4 w-4 transition-transform ${ouvert ? "rotate-180" : ""}`}
+                                    />
+                                  </span>
+                                </button>
 
-                        {ouvert && (
-                          <div className="space-y-2 border-t border-border/70 bg-background/40 p-3 text-xs">
-                            <p>
-                              <span className="text-muted-foreground">Enveloppe : </span>
-                              {g.nom}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Périodicité : </span>
-                              {libelleRepetition(b)}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Compte débité : </span>
-                              {b.compte}
-                            </p>
-                            <p>
-                              <span className="text-muted-foreground">Prochaine échéance : </span>
-                              {formatDateFr(b.prochaine)}
-                            </p>
-                            <div className="flex gap-2 pt-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDemande({
-                                    type: "conversion-un",
-                                    id: b.id,
-                                    libelle: b.libelle,
-                                    montant: b.montant,
-                                  })
-                                }
-                                className="rounded-lg border border-input px-2.5 py-1 font-medium"
-                              >
-                                Convertir maintenant
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDemande({ type: "suppression", id: b.id, libelle: b.libelle })
-                                }
-                                className="rounded-lg border border-input px-2.5 py-1 font-medium text-destructive"
-                              >
-                                Supprimer
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                                {ouvert && (
+                                  <div className="space-y-2 border-t border-border/70 bg-background/40 p-3 text-xs">
+                                    <p>
+                                      <span className="text-muted-foreground">Enveloppe : </span>
+                                      {nomEnveloppe(b.enveloppeId)}
+                                    </p>
+
+                                    <p>
+                                      <span className="text-muted-foreground">Périodicité : </span>
+                                      {libelleRepetition(b)}
+                                    </p>
+                                    <p>
+                                      <span className="text-muted-foreground">
+                                        Compte débité :{" "}
+                                      </span>
+                                      {b.compte}
+                                    </p>
+                                    <p>
+                                      <span className="text-muted-foreground">
+                                        Prochaine échéance :{" "}
+                                      </span>
+                                      {formatDateFr(b.prochaine)}
+                                    </p>
+                                    <div className="flex gap-2 pt-1">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemande({
+                                            type: "conversion-un",
+                                            id: b.id,
+                                            libelle: b.libelle,
+                                            montant: b.montant,
+                                          })
+                                        }
+                                        className="rounded-lg border border-input px-2.5 py-1 font-medium"
+                                      >
+                                        Convertir maintenant
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemande({
+                                            type: "suppression",
+                                            id: b.id,
+                                            libelle: b.libelle,
+                                          })
+                                        }
+                                        className="rounded-lg border border-input px-2.5 py-1 font-medium text-destructive"
+                                      >
+                                        Supprimer
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
