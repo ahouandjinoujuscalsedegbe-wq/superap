@@ -214,7 +214,9 @@ export function BouleAnalyse() {
                   onglet === o ? "bg-card text-foreground shadow" : "text-muted-foreground"
                 }`}
               >
-                {o === "constats" ? `Constats (${alertes.length})` : `Solutions (${solutions.length})`}
+                {o === "constats"
+                  ? `Constats (${alertes.length})`
+                  : `Solutions (${solutions.length})`}
               </button>
             ))}
           </div>
@@ -313,12 +315,7 @@ export function BouleAnalyse() {
                           <button
                             type="button"
                             onClick={() =>
-                              ignorer(
-                                cle,
-                                s.plan.enveloppe.nom,
-                                d.enveloppe.nom,
-                                d.montantPropose,
-                              )
+                              ignorer(cle, s.plan.enveloppe.nom, d.enveloppe.nom, d.montantPropose)
                             }
                             className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
                           >
@@ -378,7 +375,7 @@ export function BouleAnalyse() {
             if (aGlisse.current) return;
             setOuvert((v) => !v);
           }}
-          aria-label={`Analyse intelligente : ${alertes.length} constat${alertes.length > 1 ? "s" : ""}`}
+          aria-label={`Analyse intelligente et plan de secours : ${total} élément${total > 1 ? "s" : ""}`}
           aria-expanded={ouvert}
           className={`boule-levite relative h-16 w-16 touch-none rounded-full ${urgentes > 0 ? "boule-clignote" : ""} ${glisse ? "cursor-grabbing" : "cursor-grab"}`}
         >
@@ -413,7 +410,7 @@ export function BouleAnalyse() {
                 : "bg-card text-foreground"
             }`}
           >
-            {alertes.length}
+            {total}
           </span>
         </button>
         <span className="boule-ombre-rose mt-1 h-2 w-10 rounded-[50%]" aria-hidden />

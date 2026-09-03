@@ -95,7 +95,11 @@ export function enregistrerDecision(d: Omit<DecisionSecours, "date">): MemoireSe
 /** Retour explicite de l'utilisateur : la solution lui a-t-elle servi ? */
 export function noterSolution(utile: boolean): MemoireSecours {
   const m = lireMemoireSecours();
-  const suite = { ...m, utiles: m.utiles + (utile ? 1 : 0), inutiles: m.inutiles + (utile ? 0 : 1) };
+  const suite = {
+    ...m,
+    utiles: m.utiles + (utile ? 1 : 0),
+    inutiles: m.inutiles + (utile ? 0 : 1),
+  };
   ecrire(suite);
   return suite;
 }
@@ -165,7 +169,11 @@ export function solutionsSecours(
 
     const couverture = donneurs.reduce((s, d) => s + d.montantPropose, 0);
     const gravite = Math.round(
-      Math.min(100, (plan.manque / Math.max(1, plan.manque + couverture)) * 60 + (plan.depassement > 0 ? 40 : 10)),
+      Math.min(
+        100,
+        (plan.manque / Math.max(1, plan.manque + couverture)) * 60 +
+          (plan.depassement > 0 ? 40 : 10),
+      ),
     );
     const part = Math.min(100, Math.round((couverture / Math.max(1, plan.manque)) * 100));
     const impact =
@@ -202,7 +210,10 @@ export function bilanSecours(memoire = lireMemoireSecours()): BilanSecours {
   const retours = memoire.utiles + memoire.inutiles;
   const maturite = Math.min(
     100,
-    Math.round(Math.min(60, d.length * 3) + Math.min(40, retours * 5) * (retours ? memoire.utiles / retours : 0)),
+    Math.round(
+      Math.min(60, d.length * 3) +
+        Math.min(40, retours * 5) * (retours ? memoire.utiles / retours : 0),
+    ),
   );
   return {
     propositions: d.length,
