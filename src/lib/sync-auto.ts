@@ -14,7 +14,7 @@
  * Aucune donnée n'est écrasée.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import { lireCoffre, publierCoffre } from "@/lib/coffre-sync.functions";
 import { chiffrer, dechiffrer, type EnveloppeChiffree } from "./sauvegarde";
 import { journaliser } from "./journal";
 import type { Etat } from "./store";
@@ -98,17 +98,14 @@ export async function calculerSalon(phrase: string): Promise<string> {
 export async function deposer(etat: Etat, r: ReglagesAuto): Promise<number> {
   const salon = await calculerSalon(r.phrase);
   const enveloppe = await chiffrer(etat, r.phrase);
-  const { data, error } = await supabase.rpc("sync_publier", {
-    p_salon: salon,
-    p_appareil: r.appareil,
-    p_contenu: JSON.stringify(enveloppe),
+  const { id } = await publierCoffre({
+    data: { salon, appareil: r.appareil, contenu: JSON.stringify(enveloppe) },
   });
-  if (error) throw new Error(error.message);
   // Ce qui vient d'être envoyé devient la référence commune aux deux
   // téléphones : c'est elle qui permettra de reconnaître, au retour, une
   // modification faite par l'autre appareil.
   ecrireBase(etat);
-  return Number(data ?? 0);
+  return id;
 }
 
 /* ------------------------------------------------------------------ */
@@ -324,13 +321,9 @@ export function fusionnerEtat(
 /** Récupère les dépôts de l'autre appareil et les fusionne dans l'état local. */
 export async function recevoir(local: Etat, r: ReglagesAuto): Promise<ResultatFusion> {
   const salon = await calculerSalon(r.phrase);
-  const { data, error } = await supabase.rpc("sync_lire", {
-    p_salon: salon,
-    p_appareil: r.appareil,
-    p_depuis: r.curseur,
+  const { lignes } = await lireCoffre({
+    data: { salon, appareil: r.appareil, depuis: r.curseur },
   });
-  if (error) throw new Error(error.message);
-  const lignes = (data ?? []) as { id: number; contenu: string }[];
   let etat = local;
   let ajoutes = 0;
   let curseur = r.curseur;
