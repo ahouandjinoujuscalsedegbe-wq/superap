@@ -56,7 +56,7 @@ export function ListePlansGroupes({ axe }: { axe: AxePlan }) {
     }
   >(null);
 
-  const infos = AXES_PLAN.find((a) => a.id === axe) ?? AXES_PLAN[0];
+  const infos = AXES_PLAN.find((a) => a.id === axe) ?? AXES_PLAN[0]!;
 
   function nomEnveloppe(id: string): string {
     const env = enveloppes.find((e) => e.id === id);
