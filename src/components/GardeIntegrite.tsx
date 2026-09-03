@@ -47,9 +47,9 @@ export function GardeIntegrite() {
 
   if (verdict.compromis && !avertissementVu) {
     return (
-      <div className="fixed inset-x-3 bottom-24 z-[150] rounded-2xl border border-warning/40 bg-card p-4 shadow-lg">
+      <div className="fixed inset-x-3 bottom-24 z-[150] rounded-2xl border border-primary/40 bg-card p-4 shadow-lg">
         <div className="flex gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Appareil non fiable</p>
             <p className="mt-1 text-xs text-muted-foreground">
