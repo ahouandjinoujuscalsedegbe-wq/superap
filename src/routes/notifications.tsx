@@ -45,6 +45,9 @@ import {
   type MessageCoach,
 } from "@/lib/coach";
 import { noterAvisConseiller } from "@/lib/apprentissage-conseiller";
+import { useIaUnifiee } from "@/lib/ia-unifiee";
+import { repondreGeneral, repondreParDefaut } from "@/lib/reponse-generale";
+import { noterAction, sujetDeQuestion } from "@/lib/memoire-utilisateur";
 import { EVENEMENT_ALERTE, ouvrirPlanSecours } from "@/lib/alertes-conseiller";
 
 export const Route = createFileRoute("/notifications")({
