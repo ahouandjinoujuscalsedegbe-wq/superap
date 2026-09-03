@@ -75,6 +75,7 @@ import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.t
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 import { Route as EnveloppesModifierIndexRouteImport } from './routes/enveloppes.modifier.index'
 import { Route as EnveloppesModifierIdRouteImport } from './routes/enveloppes.modifier.$id'
+import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 
 const IndexRoute = IndexRouteImport.update({
@@ -409,6 +410,11 @@ const EnveloppesModifierIdRoute = EnveloppesModifierIdRouteImport.update({
   path: '/modifier/$id',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
+  id: '/api/public/maj/apk',
+  path: '/api/public/maj/apk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMajVersionRoute = ApiPublicMajVersionRouteImport.update({
   id: '/api/public/maj/version',
   path: '/api/public/maj/version',
@@ -482,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRoutesByTo {
@@ -546,6 +553,7 @@ export interface FileRoutesByTo {
   '/budget/modifier': typeof BudgetModifierIndexRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRoutesById {
@@ -616,6 +624,7 @@ export interface FileRoutesById {
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRouteTypes {
@@ -687,6 +696,7 @@ export interface FileRouteTypes {
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/api/public/maj/apk'
     | '/api/public/maj/version'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/budget/modifier'
     | '/comptes/transferts'
     | '/enveloppes/modifier'
+    | '/api/public/maj/apk'
     | '/api/public/maj/version'
   id:
     | '__root__'
@@ -820,6 +831,7 @@ export interface FileRouteTypes {
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/api/public/maj/apk'
     | '/api/public/maj/version'
   fileRoutesById: FileRoutesById
 }
@@ -849,6 +861,7 @@ export interface RootRouteChildren {
   SynchronisationRoute: typeof SynchronisationRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
+  ApiPublicMajApkRoute: typeof ApiPublicMajApkRoute
   ApiPublicMajVersionRoute: typeof ApiPublicMajVersionRoute
 }
 
@@ -1316,6 +1329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierIdRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/api/public/maj/apk': {
+      id: '/api/public/maj/apk'
+      path: '/api/public/maj/apk'
+      fullPath: '/api/public/maj/apk'
+      preLoaderRoute: typeof ApiPublicMajApkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/maj/version': {
       id: '/api/public/maj/version'
       path: '/api/public/maj/version'
@@ -1481,6 +1501,7 @@ const rootRouteChildren: RootRouteChildren = {
   SynchronisationRoute: SynchronisationRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
+  ApiPublicMajApkRoute: ApiPublicMajApkRoute,
   ApiPublicMajVersionRoute: ApiPublicMajVersionRoute,
 }
 export const routeTree = rootRouteImport
