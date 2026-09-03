@@ -448,6 +448,81 @@ export function BouleAnalyse() {
         </section>
       )}
 
+      {/* Popup de notation obligatoire avant application ou rejet d'une solution. */}
+      {popupNote && (
+        <div
+          className="fixed inset-0 z-[68] flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPopupNote(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-note"
+            className="carte w-full max-w-sm space-y-4 p-4"
+          >
+            <h3 id="titre-note" className="text-sm font-semibold">
+              Noter la solution proposée
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Avant de{" "}
+              <strong className="text-foreground">
+                {popupNote.action === "appliquer" ? "appliquer" : "ignorer"}
+              </strong>{" "}
+              la proposition de secours, donnez une note de 1 à 5.
+            </p>
+
+            <div
+              role="group"
+              aria-label="Note sur 5"
+              className="flex items-center justify-center gap-1"
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} sur 5`}
+                  aria-pressed={noteTemp >= n}
+                  onClick={() => setNoteTemp(n)}
+                  className="rounded-full p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    aria-hidden
+                    className={`h-7 w-7 ${
+                      noteTemp >= n
+                        ? "fill-primary text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-xs font-medium text-muted-foreground">
+              {noteTemp > 0 ? `${noteTemp}/5` : "Touchez une étoile pour noter."}
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPopupNote(null)}
+                className="flex-1 rounded-full bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={noteTemp < 1 || noteTemp > 5}
+                onClick={confirmerNote}
+                className="flex-1 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sphère 3D rose, déplaçable à la main, en lévitation permanente. */}
       <div
         className="fixed z-[67] flex flex-col items-center"
