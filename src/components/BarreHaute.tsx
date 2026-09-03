@@ -139,7 +139,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/enveloppes/classer", "Classer les enveloppes"],
   ["/enveloppes/creer", "Créer une enveloppe"],
   ["/enveloppes/details", "Détails de l'enveloppe"],
-  ["/enveloppes/gerer", "Gérer les enveloppes"],
+  ["/enveloppes/gerer", "Modifier une enveloppe existante"],
   ["/enveloppes/modifier", "Modifier l'enveloppe"],
   ["/enveloppes/renouvellements", "Renouvellements"],
   ["/enveloppes/secours", "Enveloppe de secours"],
