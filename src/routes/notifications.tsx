@@ -7,6 +7,7 @@ import {
   CheckCheck,
   Copy,
   CornerUpLeft,
+  LifeBuoy,
   Mic,
   MoreVertical,
   Pin,
@@ -44,7 +45,7 @@ import {
   type MessageCoach,
 } from "@/lib/coach";
 import { noterAvisConseiller } from "@/lib/apprentissage-conseiller";
-import { EVENEMENT_ALERTE } from "@/lib/alertes-conseiller";
+import { EVENEMENT_ALERTE, ouvrirPlanSecours } from "@/lib/alertes-conseiller";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
@@ -555,6 +556,16 @@ function PageNotifications() {
                         </ul>
                       )}
                     </>
+                  )}
+                  {m.secours && duCoach && !m.supprime && (
+                    <button
+                      type="button"
+                      onClick={() => ouvrirPlanSecours()}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[0.7rem] font-semibold text-primary-foreground"
+                    >
+                      <LifeBuoy className="h-3.5 w-3.5" aria-hidden />
+                      Voir la solution : analyse &amp; plan de secours
+                    </button>
                   )}
                   <div className="mt-1 flex items-center justify-end gap-1 text-[0.62rem] text-muted-foreground">
                     {m.avis === "utile" && (

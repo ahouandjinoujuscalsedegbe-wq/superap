@@ -69,7 +69,7 @@ export async function publierAlerteConseiller(alerte: AlerteConseiller): Promise
       texte: `${alerte.urgent ? "🚨" : "🔔"} ${alerte.titre}\n${alerte.texte}`,
       ...(alerte.details && alerte.details.length > 0 ? { details: alerte.details } : {}),
       categorie: "bilan",
-      ...(alerte.secours ?? concerneSecours(alerte.titre, alerte.texte) ? { secours: true } : {}),
+      ...((alerte.secours ?? concerneSecours(alerte.titre, alerte.texte)) ? { secours: true } : {}),
       date: new Date().toISOString(),
       lu: false,
     };
