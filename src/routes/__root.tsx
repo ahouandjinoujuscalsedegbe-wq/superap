@@ -18,6 +18,7 @@ import { RemplissageAuto } from "@/components/RemplissageAuto";
 import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
 import { SmsAuto } from "@/components/SmsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
+import { RappelFinBudget } from "@/components/RappelFinBudget";
 import { BottomNav } from "../components/BottomNav";
 import { BarreHaute } from "../components/BarreHaute";
 import { ClavierInterne } from "../components/ClavierInterne";
@@ -200,6 +201,7 @@ function RootComponent() {
           <AlertesVersConseiller />
           <VeilleConseiller />
           <RappelBudgetMensuel />
+          <RappelFinBudget />
           <BouleAnalyse />
         </SuperAppProvider>
       </SecuriteProvider>

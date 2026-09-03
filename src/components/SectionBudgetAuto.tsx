@@ -9,7 +9,11 @@ import {
   noterBudget,
   proposerDotations,
 } from "@/lib/budget-auto";
-import { marquerBudgetModifie } from "@/lib/rappel-budget";
+import {
+  enregistrerPeriodeBudget,
+  marquerBudgetModifie,
+  marquerBudgetRenouvele,
+} from "@/lib/rappel-budget";
 import { jourLocalISO } from "@/lib/echeances-dues";
 
 /** Durée d'une période en mois (approchée au dixième), pour les totaux. */
@@ -116,6 +120,9 @@ export function SectionBudgetAuto() {
 
     // Le budget du mois est validé par l'utilisateur : les rappels s'arrêtent.
     marquerBudgetModifie();
+    // La période d'application est mémorisée : l'alarme préviendra avant son terme.
+    marquerBudgetRenouvele();
+    if (periode) enregistrerPeriodeBudget(periode.debut, periode.fin);
 
     toast.success(
       modifiees > 0
