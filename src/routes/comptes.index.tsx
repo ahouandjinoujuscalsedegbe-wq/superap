@@ -63,49 +63,8 @@ function ComptesAccueil() {
   const actifs = lignes.filter((l) => !comptesExclus.includes(l.compte));
   const passifs = lignes.filter((l) => comptesExclus.includes(l.compte));
 
-  const bande = (l: (typeof lignes)[number]) => {
-    const exclu = comptesExclus.includes(l.compte);
-    return (
-      <li key={l.compte}>
-        <Link
-          to="/comptes/$compte"
-          params={{ compte: l.compte }}
-          className="flex items-center gap-3 rounded-xl border border-border/70 bg-secondary/40 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl">
-            {iconesComptes[l.compte] ?? suggererIcone(l.compte, "compte")}
-          </span>
-
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-1.5">
-              <span className="truncate text-sm font-semibold">{l.compte}</span>
-              {exclu && (
-                <span
-                  className="inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
-                  title="Exclu du solde disponible"
-                >
-                  <ShieldOff className="h-3 w-3" aria-hidden /> Hors disponible
-                </span>
-              )}
-            </span>
-            <span
-              className={`mt-0.5 block text-base font-bold leading-tight ${
-                l.solde < 0 ? "text-destructive" : "text-foreground"
-              }`}
-            >
-              {formatFCFA(l.solde)}
-            </span>
-            <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">
-              + {formatFCFA(l.entrees)} · − {formatFCFA(l.sorties)} · {l.nb} op
-              {l.nb > 1 ? "s" : ""}
-            </span>
-          </span>
-
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-        </Link>
-      </li>
-    );
-  };
+  const totalActifs = actifs.reduce((s, l) => s + l.solde, 0);
+  const totalPassifs = passifs.reduce((s, l) => s + l.solde, 0);
 
   return (
     <div className="page-anim space-y-4">
