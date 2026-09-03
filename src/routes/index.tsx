@@ -5,8 +5,8 @@ import {
   ArrowUpRight,
   FileText,
   HandCoins,
+  Landmark,
   Layers,
-  Target,
   Wallet,
 } from "lucide-react";
 import { resteDu, useSuperApp } from "@/lib/store";
@@ -76,14 +76,6 @@ function Accueil() {
           <span className="truncate">Dettes & Créances</span>
         </Link>
       </header>
-
-      <Link
-        to="/objectifs"
-        aria-label="Objectifs"
-        className="surface fixed right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+6rem)] z-[55] rounded-full border border-border p-2 text-foreground shadow-sm transition-transform duration-200 active:scale-95"
-      >
-        <Target className="h-5 w-5" aria-hidden />
-      </Link>
 
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">
@@ -197,6 +189,15 @@ function Accueil() {
             <FileText className="relative z-10 h-5 w-5" aria-hidden />
             <span className="relative z-10 font-semibold">Rapport mensuel</span>
             <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
+          </Link>
+          <Link
+            to="/comptes"
+            className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+          >
+            <span className="bouton-3d-brillance" aria-hidden />
+            <Landmark className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Les comptes</span>
+            <span className="relative z-10 text-xs opacity-85">Soldes, transferts, historique</span>
           </Link>
         </div>
       </section>
