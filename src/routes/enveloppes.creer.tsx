@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useSuperApp, type Periode } from "@/lib/store";
+import { enregistrerActionEnveloppe } from "@/lib/historique-enveloppes";
 import { apprendreIcone, apprendreDepuisEnveloppes, suggererIcone } from "@/lib/icone-auto";
 import { ChoixIcone } from "@/components/ChoixIcone";
 import { formatFCFA, grouperMontant } from "@/lib/format";
@@ -41,6 +42,7 @@ function CreerEnveloppePage() {
     categories: listeCategories,
     comptes,
     soldesParCompte,
+    nomUtilisateur,
   } = useSuperApp();
   const navigate = useNavigate();
 
@@ -59,6 +61,16 @@ function CreerEnveloppePage() {
   const [pourcentageRevenu, setPourcentageRevenu] = useState("");
   const [ajustementAuto, setAjustementAuto] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
+  type ChampsErreur = {
+    nom?: string;
+    dotation?: string;
+    plafond?: string;
+    categorie?: string;
+    sousCategorie?: string;
+    compte?: string;
+    part?: string;
+  };
+  const [erreurs, setErreurs] = useState<ChampsErreur>({});
 
   const [confirmation, setConfirmation] = useState<{
     nom: string;
@@ -202,63 +214,45 @@ function CreerEnveloppePage() {
   function valider(ev: React.FormEvent) {
     ev.preventDefault();
     const valeur = Number(plafond);
-    if (!nom.trim()) {
-      setErreur("Donnez un nom à l'enveloppe.");
-      return;
-    }
-    if (!Number.isFinite(valeur) || valeur < 0) {
-      setErreur("Plafond invalide.");
-      return;
-    }
     const somme = Number(dotation);
-    if (!Number.isFinite(somme) || somme <= 0) {
-      setErreur("Indiquez la somme attribuée à cette enveloppe (montant placé dedans).");
-      return;
-    }
-    if (somme < valeur) {
-      setErreur(
-        "Le plafond ne peut pas dépasser la somme attribuée : le plafond est le montant de dépenses à ne pas dépasser.",
-      );
-      return;
-    }
-    if (!categorie.trim()) {
-      setErreur(
-        "La catégorie est obligatoire : choisissez-en une dans la liste avant de créer l'enveloppe.",
-      );
-      return;
-    }
-    if (!categorieChoisie) {
-      setErreur(
-        `La catégorie « ${categorie.trim()} » n'existe pas. Créez-la depuis « Gérer les catégories et sous-catégories ».`,
-      );
-      return;
-    }
-    if (sousCategories.length > 0 && !sousCategorie.trim()) {
-      setErreur(
-        "Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.",
-      );
-      return;
-    }
-    if (!compteSource.trim()) {
-      setErreur("Choisissez le compte qui alimente cette enveloppe : son contenu y est réservé.");
-      return;
-    }
     const part = Number(pourcentageRevenu);
-    if (modeRemplissage === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100)) {
-      setErreur(
-        "Indiquez le pourcentage de chaque revenu à verser dans cette enveloppe (1 à 100).",
-      );
-      return;
-    }
-    if ((soldesParCompte[compteSource.trim()] ?? 0) < somme) {
-      setErreur(
-        `Le compte « ${compteSource.trim()} » ne contient que ${formatFCFA(
-          soldesParCompte[compteSource.trim()] ?? 0,
-        )} : impossible d'y réserver ${formatFCFA(somme)}.`,
-      );
-      return;
-    }
-    // Le renouvellement a lieu le 1er de chaque mois : aucune date à saisir.
+    const compte = compteSource.trim();
+    const prochaines: ChampsErreur = {};
+
+    if (!nom.trim()) prochaines.nom = "Donnez un nom à l'enveloppe.";
+    else if (nom.trim().length > 40) prochaines.nom = "Nom trop long : 40 caractères maximum.";
+
+    if (!Number.isFinite(somme) || somme <= 0)
+      prochaines.dotation = "Indiquez la somme réellement placée dans cette enveloppe (FCFA).";
+    else if (compte && (soldesParCompte[compte] ?? 0) < somme)
+      prochaines.dotation = `Le compte « ${compte} » ne contient que ${formatFCFA(
+        soldesParCompte[compte] ?? 0,
+      )} : impossible d'y réserver ${formatFCFA(somme)}.`;
+
+    if (!Number.isFinite(valeur) || valeur < 0)
+      prochaines.plafond = "Plafond invalide : indiquez un montant en FCFA.";
+    else if (Number.isFinite(somme) && somme > 0 && valeur > somme)
+      prochaines.plafond =
+        "Le plafond ne peut pas dépasser la somme attribuée : c'est le montant de dépenses à ne pas dépasser.";
+
+    if (!categorie.trim())
+      prochaines.categorie = "La catégorie est obligatoire : choisissez-en une dans la liste.";
+    else if (!categorieChoisie)
+      prochaines.categorie = `La catégorie « ${categorie.trim()} » n'existe pas. Créez-la depuis « Gérer les catégories et sous-catégories ».`;
+
+    if (sousCategories.length > 0 && !sousCategorie.trim())
+      prochaines.sousCategorie =
+        "Cette catégorie possède des sous-catégories : choisissez-en une avant de créer l'enveloppe.";
+
+    if (!compte)
+      prochaines.compte =
+        "Choisissez le compte qui alimente cette enveloppe : son contenu y est réservé.";
+
+    if (modeRemplissage === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100))
+      prochaines.part = "Indiquez le pourcentage de chaque revenu à verser (1 à 100).";
+
+    setErreurs(prochaines);
+    if (Object.keys(prochaines).length > 0) return;
 
     setConfirmation({
       nom: nom.trim(),
@@ -267,7 +261,7 @@ function CreerEnveloppePage() {
       dotation: somme,
       categorie: categorie.trim(),
       sousCategorie: sousCategorie.trim(),
-      compteSource: compteSource.trim(),
+      compteSource: compte,
       periodeRenouvellement,
       dateRenouvellement: "",
       modeRemplissage,
@@ -290,9 +284,21 @@ function CreerEnveloppePage() {
     }
     // L'IA locale retient l'association nom → icône pour s'améliorer.
     apprendreIcone(confirmation.nom, confirmation.emoji);
+    enregistrerActionEnveloppe({
+      enveloppe: confirmation.nom,
+      action: "creation",
+      auteur: nomUtilisateur?.trim() || "Utilisateur",
+      details: `${formatFCFA(confirmation.dotation)} placés · plafond ${formatFCFA(
+        confirmation.plafond,
+      )} · ${confirmation.categorie}${
+        confirmation.sousCategorie ? ` › ${confirmation.sousCategorie}` : ""
+      } · compte ${confirmation.compteSource}`,
+    });
     setConfirmation(null);
-    toast.success("Enveloppe ajoutée.");
-    void navigate({ to: "/enveloppes/action" });
+    toast.success(`Enveloppe « ${confirmation.nom} » créée.`, {
+      description: "Retour à la liste des enveloppes.",
+    });
+    void navigate({ to: "/enveloppes/details" });
   }
 
   return (
@@ -336,6 +342,11 @@ function CreerEnveloppePage() {
               placeholder="Santé"
               className={champ}
             />
+            {erreurs.nom && (
+              <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                {erreurs.nom}
+              </p>
+            )}
           </div>
           <ChoixIcone
             nom={nom}
@@ -362,9 +373,15 @@ function CreerEnveloppePage() {
             className={champ}
             aria-label="Somme attribuée en FCFA"
           />
-          <p className="text-xs text-muted-foreground">
-            Montant réellement disponible dans l'enveloppe (FCFA).
-          </p>
+          {erreurs.dotation ? (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {erreurs.dotation}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Montant réellement disponible dans l'enveloppe (FCFA).
+            </p>
+          )}
         </section>
 
         <section className="carte space-y-3 p-4">
@@ -380,10 +397,16 @@ function CreerEnveloppePage() {
             className={champ}
             aria-label="Plafond en FCFA"
           />
-          <p className="text-xs text-muted-foreground">
-            Au-delà du plafond, vous entrez en réserve. Il doit rester inférieur ou égal à la somme
-            attribuée.
-          </p>
+          {erreurs.plafond ? (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {erreurs.plafond}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Au-delà du plafond, vous entrez en réserve. Il doit rester inférieur ou égal à la
+              somme attribuée.
+            </p>
+          )}
         </section>
 
         <section className="carte space-y-3 p-4">
@@ -406,6 +429,12 @@ function CreerEnveloppePage() {
             ))}
           </select>
 
+          {erreurs.categorie && (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {erreurs.categorie}
+            </p>
+          )}
+
           <label htmlFor="e-sous-categorie" className="text-xs text-muted-foreground">
             Sous-catégorie{sousCategories.length > 0 ? " (obligatoire)" : ""}
           </label>
@@ -425,9 +454,15 @@ function CreerEnveloppePage() {
               </option>
             ))}
           </select>
-          <p className="text-xs text-muted-foreground">
-            Exemple : Transport › Carburant, Factures › Facture SONEB.
-          </p>
+          {erreurs.sousCategorie ? (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {erreurs.sousCategorie}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Exemple : Transport › Carburant, Factures › Facture SONEB.
+            </p>
+          )}
         </section>
 
         <section className="carte space-y-3 p-4">
@@ -449,6 +484,11 @@ function CreerEnveloppePage() {
               </option>
             ))}
           </select>
+          {erreurs.compte && (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {erreurs.compte}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground">
             Le contenu de l'enveloppe reste dans ce compte : il y est seulement réservé. Seules les
             dépenses faites depuis l'enveloppe diminuent le compte.
@@ -494,9 +534,15 @@ function CreerEnveloppePage() {
                 placeholder="10"
                 className={champ}
               />
-              <p className="text-xs text-muted-foreground">
-                À chaque revenu encaissé sur ce compte, cette part est versée automatiquement.
-              </p>
+              {erreurs.part ? (
+                <p role="alert" className="text-xs font-medium text-destructive">
+                  {erreurs.part}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  À chaque revenu encaissé sur ce compte, cette part est versée automatiquement.
+                </p>
+              )}
             </>
           ) : (
             <label className="flex items-center justify-between gap-3 text-xs font-medium">
@@ -548,6 +594,15 @@ function CreerEnveloppePage() {
                 { label: "Catégorie", apres: confirmation.categorie || "Sans catégorie" },
                 { label: "Sous-catégorie", apres: confirmation.sousCategorie || "Général" },
                 { label: "Compte source", apres: confirmation.compteSource },
+                {
+                  label: "Ajustement automatique",
+                  apres:
+                    confirmation.modeRemplissage === "pourcentage"
+                      ? "Selon les revenus"
+                      : confirmation.ajustementAuto
+                        ? "Activé"
+                        : "Désactivé",
+                },
                 {
                   label: "Renouvellement",
                   apres:

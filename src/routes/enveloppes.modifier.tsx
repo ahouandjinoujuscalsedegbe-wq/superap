@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
@@ -6,6 +6,7 @@ import { useSuperApp, type Periode } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { BoutonRetour } from "@/components/BoutonRetour";
 import { Confirmation } from "@/components/Confirmation";
+import { enregistrerActionEnveloppe } from "@/lib/historique-enveloppes";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { DicteeChamp } from "@/components/DicteeChamp";
 import { analyserEnveloppeDictee } from "@/lib/dictee-champs";
@@ -58,12 +59,14 @@ type Demande =
   | null;
 
 function ModifierEnveloppe() {
+  const navigate = useNavigate();
   const {
     enveloppes,
     categories: listeCategories,
     depensesParEnveloppe,
     modifierEnveloppe,
     supprimerEnveloppe,
+    nomUtilisateur,
     comptes,
   } = useSuperApp();
 
@@ -85,6 +88,16 @@ function ModifierEnveloppe() {
 
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  type ChampsErreur = {
+    nom?: string;
+    plafond?: string;
+    dotation?: string;
+    categorie?: string;
+    sousCategorie?: string;
+    compte?: string;
+    montant?: string;
+  };
+  const [erreurs, setErreurs] = useState<ChampsErreur>({});
   const [detail, setDetail] = useState<string | null>(null);
   const [operations, setOperations] = useState<string | null>(null);
 
@@ -116,59 +129,45 @@ function ModifierEnveloppe() {
 
   function demanderModification(id: string) {
     const valeur = Number(ePlafond);
-    if (!eNom.trim()) {
-      setErreur("Le nom de l'enveloppe ne peut pas être vide.");
-      return;
-    }
-    if (!Number.isFinite(valeur) || valeur < 0) {
-      setErreur("Le plafond saisi est invalide : indiquez un montant en FCFA.");
-      return;
-    }
     const somme = Number(eDotation);
-    if (!Number.isFinite(somme) || somme <= 0) {
-      setErreur("La somme attribuée est invalide : indiquez le montant placé dans l'enveloppe.");
-      return;
-    }
-    if (somme < valeur) {
-      setErreur(
-        "Le plafond ne peut pas dépasser la somme attribuée à l'enveloppe : le plafond est le montant de dépenses à ne pas dépasser.",
-      );
-      return;
-    }
-    if (!eCategorie.trim()) {
-      setErreur("La catégorie est obligatoire : choisissez-en une dans la liste déroulante.");
-      return;
-    }
-    if (!categorieChoisie) {
-      setErreur(
-        `La catégorie « ${eCategorie.trim()} » n'existe pas. Choisissez une catégorie de la liste ou créez-la depuis « Gérer les catégories et sous-catégories ».`,
-      );
-      return;
-    }
-    if (sousCategories.length > 0 && !eSousCategorie.trim()) {
-      setErreur("Cette catégorie possède des sous-catégories : choisissez-en une.");
-      return;
-    }
-    if (eSousCategorie.trim() && !sousCategories.includes(eSousCategorie.trim())) {
-      setErreur(
-        `La sous-catégorie « ${eSousCategorie.trim()} » n'existe pas dans la catégorie « ${eCategorie.trim()} ». Reprenez votre choix.`,
-      );
-      return;
-    }
-    if (!eCompte.trim()) {
-      setErreur("Choisissez le compte qui alimente cette enveloppe.");
-      return;
-    }
     const part = Number(ePart);
-    if (eMode === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100)) {
-      setErreur("Indiquez la part de chaque revenu à verser (1 à 100 %).");
-      return;
-    }
     const parPeriode = Number(eMontantPeriode);
-    if (eMode === "fixe" && (!Number.isFinite(parPeriode) || parPeriode <= 0)) {
-      setErreur("Indiquez le montant versé à chaque période.");
-      return;
-    }
+    const prochaines: ChampsErreur = {};
+
+    if (!eNom.trim()) prochaines.nom = "Le nom de l'enveloppe ne peut pas être vide.";
+    else if (eNom.trim().length > 40) prochaines.nom = "Nom trop long : 40 caractères maximum.";
+
+    if (!Number.isFinite(valeur) || valeur < 0)
+      prochaines.plafond = "Le plafond saisi est invalide : indiquez un montant en FCFA.";
+
+    if (!Number.isFinite(somme) || somme <= 0)
+      prochaines.dotation =
+        "La somme attribuée est invalide : indiquez le montant placé dans l'enveloppe.";
+    else if (Number.isFinite(valeur) && valeur >= 0 && somme < valeur)
+      prochaines.dotation =
+        "La somme attribuée doit rester supérieure ou égale au plafond de dépenses.";
+
+    if (!eCategorie.trim())
+      prochaines.categorie =
+        "La catégorie est obligatoire : choisissez-en une dans la liste déroulante.";
+    else if (!categorieChoisie)
+      prochaines.categorie = `La catégorie « ${eCategorie.trim()} » n'existe pas. Créez-la depuis « Gérer les catégories et sous-catégories ».`;
+
+    if (sousCategories.length > 0 && !eSousCategorie.trim())
+      prochaines.sousCategorie = "Cette catégorie possède des sous-catégories : choisissez-en une.";
+    else if (eSousCategorie.trim() && !sousCategories.includes(eSousCategorie.trim()))
+      prochaines.sousCategorie = `La sous-catégorie « ${eSousCategorie.trim()} » n'existe pas dans cette catégorie.`;
+
+    if (!eCompte.trim()) prochaines.compte = "Choisissez le compte qui alimente cette enveloppe.";
+
+    if (eMode === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100))
+      prochaines.montant = "Indiquez la part de chaque revenu à verser (1 à 100 %).";
+    if (eMode === "fixe" && (!Number.isFinite(parPeriode) || parPeriode <= 0))
+      prochaines.montant = "Indiquez le montant versé à chaque période.";
+
+    setErreurs(prochaines);
+    if (Object.keys(prochaines).length > 0) return;
+
     setDemande({
       type: "modification",
       id,
@@ -212,12 +211,46 @@ function ModifierEnveloppe() {
         montantPeriode: demande.montantPeriode,
         ajustementAuto: demande.ajustementAuto,
       });
+      const avant = enveloppes.find((x) => x.id === demande.id);
+      const renomme = Boolean(avant && avant.nom !== demande.nom);
+      enregistrerActionEnveloppe({
+        enveloppe: demande.nom,
+        ancienNom: renomme ? avant?.nom : undefined,
+        action: renomme ? "renommage" : "modification",
+        auteur: nomUtilisateur?.trim() || "Utilisateur",
+        details: [
+          renomme ? `nom : « ${avant?.nom} » → « ${demande.nom} »` : null,
+          `plafond ${formatFCFA(demande.plafond)}`,
+          `somme ${formatFCFA(demande.dotation)}`,
+          `${demande.categorie}${demande.sousCategorie ? ` › ${demande.sousCategorie}` : ""}`,
+          `compte ${demande.compteSource}`,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      });
       setEdition(null);
-      toast.success("Enveloppe modifiée.");
+      setErreurs({});
+      toast.success(`Enveloppe « ${demande.nom} » enregistrée.`, {
+        description: "Retour à la liste des enveloppes.",
+      });
+      setDemande(null);
+      void navigate({ to: "/enveloppes/details" });
+      return;
     } else {
       supprimerEnveloppe(demande.id);
       if (edition === demande.id) setEdition(null);
-      toast.success("Enveloppe supprimée.");
+      enregistrerActionEnveloppe({
+        enveloppe: demande.nom,
+        action: "suppression",
+        auteur: nomUtilisateur?.trim() || "Utilisateur",
+        details: "Enveloppe retirée du budget.",
+      });
+      toast.success(`Enveloppe « ${demande.nom} » supprimée.`, {
+        description: "Retour à la liste des enveloppes.",
+      });
+      setDemande(null);
+      void navigate({ to: "/enveloppes/details" });
+      return;
     }
     setDemande(null);
   }
@@ -398,6 +431,11 @@ function ModifierEnveloppe() {
                     onChange={(ev) => setENom(ev.target.value)}
                     className={champ}
                   />
+                  {erreurs.nom && (
+                    <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                      {erreurs.nom}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -412,6 +450,11 @@ function ModifierEnveloppe() {
                   onChange={(ev) => setEPlafond(ev.target.value.replace(/[^\d]/g, ""))}
                   className={champ}
                 />
+                {erreurs.plafond && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                    {erreurs.plafond}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -425,6 +468,11 @@ function ModifierEnveloppe() {
                   onChange={(ev) => setEDotation(ev.target.value.replace(/[^\d]/g, ""))}
                   className={champ}
                 />
+                {erreurs.dotation && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                    {erreurs.dotation}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-muted-foreground">
                   Cette somme diminue à chaque dépense. Au-delà du plafond, vous puisez dans la
                   réserve.
@@ -458,6 +506,11 @@ function ModifierEnveloppe() {
                     </option>
                   ))}
                 </select>
+                {erreurs.categorie && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                    {erreurs.categorie}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -489,6 +542,11 @@ function ModifierEnveloppe() {
                     </option>
                   ))}
                 </select>
+                {erreurs.sousCategorie && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                    {erreurs.sousCategorie}
+                  </p>
+                )}
               </div>
               <div className="space-y-2 rounded-xl border border-input p-3">
                 <p className="text-sm font-medium">Renouvellement automatique</p>
@@ -509,6 +567,11 @@ function ModifierEnveloppe() {
                     </option>
                   ))}
                 </select>
+                {erreurs.compte && (
+                  <p role="alert" className="text-xs font-medium text-destructive">
+                    {erreurs.compte}
+                  </p>
+                )}
 
                 <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs text-primary">
                   Renouvellement automatique le 1er de chaque mois, pour toutes les enveloppes : il
@@ -567,6 +630,11 @@ function ModifierEnveloppe() {
                     </label>
                   </>
                 )}
+                {erreurs.montant && (
+                  <p role="alert" className="text-xs font-medium text-destructive">
+                    {erreurs.montant}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -613,7 +681,10 @@ function ModifierEnveloppe() {
           const avant = enveloppes.find((x) => x.id === demande.id);
           if (demande.type === "suppression") {
             return [
+              { label: "Logo", apres: avant?.emoji ?? "💡" },
               { label: "Enveloppe", apres: demande.nom },
+              { label: "Somme attribuée", apres: formatFCFA(avant?.dotation ?? 0) },
+              { label: "Compte source", apres: avant?.compteSource || "—" },
               { label: "Plafond", apres: formatFCFA(avant?.plafond ?? 0) },
               { label: "Catégorie", apres: avant?.categorie || "Sans catégorie" },
               { label: "Sous-catégorie", apres: avant?.sousCategorie || "Général" },
@@ -641,6 +712,18 @@ function ModifierEnveloppe() {
               label: "Sous-catégorie",
               avant: avant?.sousCategorie || "Général",
               apres: demande.sousCategorie || "Général",
+            },
+            {
+              label: "Compte source",
+              avant: avant?.compteSource || "—",
+              apres: demande.compteSource,
+            },
+            {
+              label: "Renouvellement",
+              apres:
+                demande.modeRemplissage === "pourcentage"
+                  ? `${demande.pourcentageRevenu}% de chaque revenu`
+                  : `${formatFCFA(demande.montantPeriode)} le 1er de chaque mois`,
             },
           ];
         })()}
