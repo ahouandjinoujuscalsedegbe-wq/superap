@@ -6,6 +6,12 @@
 
 import type { Budget } from "@/lib/store";
 
+/** Jour local au format YYYY-MM-DD (jamais décalé par le fuseau UTC). */
+export function jourLocalISO(d: Date = new Date()): string {
+  const x = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
+  return x.toISOString().slice(0, 10);
+}
+
 export type EcheanceDue = {
   budget: Budget;
   /** Date/heure prévue de la dépense. */

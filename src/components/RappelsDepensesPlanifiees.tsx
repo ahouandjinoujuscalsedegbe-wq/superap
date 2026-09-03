@@ -1,23 +1,33 @@
 import { useCallback, useEffect } from "react";
 import { useSuperApp } from "@/lib/store";
-import { declencherAlarmeAppareil } from "@/lib/alarme-appareil";
+import {
+  declencherAlarmeAppareil,
+  demanderPermissionNotification,
+  idRappel,
+  programmerNotificationsPlanifiees,
+} from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {
   echeancesDues,
+  jourLocalISO,
   marquerRappelSonne,
   momentRappel,
   rappelNonSonne,
 } from "@/lib/echeances-dues";
+import { occurrencesEntre } from "@/lib/planning";
 import { formatFCFA } from "@/lib/format";
 
 /**
- * Surveille les dépenses planifiées : dès que l'heure de rappel est atteinte,
- * une alarme sonne et « Mon conseiller » prévient l'utilisateur.
- * Aucune dépense n'est enregistrée automatiquement : l'utilisateur confirme
- * lui-même dans la page « Dépenses à confirmer ».
+ * Surveille les dépenses planifiées :
+ * - programme de vraies notifications système à l'heure de rappel choisie,
+ *   pour que le téléphone prévienne même application fermée ;
+ * - quand l'application est ouverte, déclenche l'alarme et prévient
+ *   « Mon conseiller ».
+ * Aucune dépense n'est enregistrée sans confirmation de l'utilisateur.
+ * Toutes les heures sont calculées dans le fuseau horaire local du téléphone.
  */
 export function RappelsDepensesPlanifiees() {
-  const { budgets } = useSuperApp();
+  const { budgets, enveloppes } = useSuperApp();
 
   const verifier = useCallback(() => {
     const maintenant = new Date();
@@ -52,6 +62,33 @@ export function RappelsDepensesPlanifiees() {
       document.removeEventListener("visibilitychange", auRetour);
     };
   }, [verifier]);
+
+  // Notifications système programmées à l'avance : le téléphone sonne à
+  // l'heure de rappel de chaque dépense, même application fermée.
+  useEffect(() => {
+    void demanderPermissionNotification();
+
+    const debut = jourLocalISO();
+    const fin = jourLocalISO(new Date(Date.now() + 120 * 86_400_000));
+
+    const rappels: { id: number; titre: string; texte: string; quand: Date }[] = [];
+    for (const b of budgets) {
+      const env = enveloppes.find((e) => e.id === b.enveloppeId);
+      for (const date of occurrencesEntre(b, debut, fin)) {
+        // Heure locale : « YYYY-MM-DDTHH:MM:00 » est interprété dans le
+        // fuseau du téléphone, comme l'heure saisie par l'utilisateur.
+        const quand = new Date(`${date}T${b.heureRappel ?? "07:30"}:00`);
+        if (Number.isNaN(quand.getTime())) continue;
+        rappels.push({
+          id: idRappel(`${b.id}-${date}`),
+          titre: `${env ? `${env.emoji} ` : "📌 "}${b.libelle}`,
+          texte: `${formatFCFA(b.montant)} prévu le ${date}${b.heure ? ` à ${b.heure}` : ""}. À confirmer dans l'application.`,
+          quand,
+        });
+      }
+    }
+    void programmerNotificationsPlanifiees(rappels);
+  }, [budgets, enveloppes]);
 
   return null;
 }

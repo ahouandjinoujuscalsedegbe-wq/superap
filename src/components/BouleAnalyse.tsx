@@ -23,6 +23,7 @@ import {
 } from "@/lib/analyse-secours";
 import { EVENEMENT_OUVRIR_SECOURS, publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import { occurrencesEntre } from "@/lib/planning";
+import { jourLocalISO } from "@/lib/echeances-dues";
 
 /**
  * Boule flottante d'« Analyse intelligente », disponible sur toutes les pages :
@@ -78,8 +79,8 @@ export function BouleAnalyse() {
    * l'analyse reste ainsi cohérente avec le budget prévu.
    */
   const planifiees = useMemo(() => {
-    const debut = new Date().toISOString().slice(0, 10);
-    const fin = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10);
+    const debut = jourLocalISO();
+    const fin = jourLocalISO(new Date(Date.now() + 365 * 86_400_000));
     const parMois = new Map<
       string,
       { enveloppe: string; emoji: string; libelle: string; montant: number }[]
