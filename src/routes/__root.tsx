@@ -31,6 +31,7 @@ import { SyncAuto } from "../components/SyncAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
+import { AlertesVersConseiller } from "@/components/AlertesVersConseiller";
 import { BouleAnalyse } from "@/components/BouleAnalyse";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 
@@ -194,6 +195,7 @@ function RootComponent() {
           <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
+            <AlertesVersConseiller />
           <RappelBudgetMensuel />
           <BouleAnalyse />
         </SuperAppProvider>
