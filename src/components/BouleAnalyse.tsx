@@ -204,24 +204,160 @@ export function BouleAnalyse() {
             </button>
           </div>
 
-          <ul className="space-y-1.5 text-sm">
-            {alertes.map((a) => (
-              <li key={a.id} className="rounded-lg bg-muted/50 px-3 py-2">
-                <span
-                  className={
-                    a.niveau === "alerte"
-                      ? "font-semibold text-destructive"
-                      : a.niveau === "attention"
-                        ? "font-semibold text-warning"
-                        : "font-semibold"
-                  }
-                >
-                  {a.titre}
-                </span>
-                <span className="block text-xs text-muted-foreground">{a.texte}</span>
-              </li>
+          <div className="flex gap-1 rounded-full bg-muted p-1 text-xs font-semibold">
+            {(["constats", "solutions"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOnglet(o)}
+                className={`flex-1 rounded-full px-3 py-1.5 transition-colors ${
+                  onglet === o ? "bg-card text-foreground shadow" : "text-muted-foreground"
+                }`}
+              >
+                {o === "constats" ? `Constats (${alertes.length})` : `Solutions (${solutions.length})`}
+              </button>
             ))}
-          </ul>
+          </div>
+
+          {onglet === "constats" ? (
+            <ul className="space-y-1.5 text-sm">
+              {alertes.length === 0 && (
+                <li className="text-xs text-muted-foreground">Aucun constat pour l'instant.</li>
+              )}
+              {alertes.map((a) => (
+                <li key={a.id} className="rounded-lg bg-muted/50 px-3 py-2">
+                  <span
+                    className={
+                      a.niveau === "alerte"
+                        ? "font-semibold text-destructive"
+                        : a.niveau === "attention"
+                          ? "font-semibold text-warning"
+                          : "font-semibold"
+                    }
+                  >
+                    {a.titre}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">{a.texte}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="space-y-3">
+              {solutions.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Aucune enveloppe en détresse : rien à secourir aujourd'hui.
+                </p>
+              )}
+              {solutions.map((s) => (
+                <article key={s.id} className="rounded-xl border border-border p-3">
+                  <h3 className="flex items-center justify-between gap-2 text-sm font-semibold">
+                    <span className="min-w-0 truncate">
+                      <span aria-hidden>{s.plan.enveloppe.emoji}</span> {s.plan.enveloppe.nom}
+                    </span>
+                    <span className="shrink-0 text-xs text-destructive">
+                      manque {formatFCFA(s.plan.manque)}
+                    </span>
+                  </h3>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {s.plan.explication}
+                  </p>
+                  <p className="mt-1 flex items-start gap-1.5 rounded-lg bg-primary/5 p-2 text-[11px] leading-relaxed">
+                    <LifeBuoy aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                    <span>{s.impact}</span>
+                  </p>
+
+                  {s.donneurs.map((d) => {
+                    const cle = `${s.id}-${d.enveloppe.id}`;
+                    if (faits.includes(cle)) return null;
+                    return (
+                      <div key={cle} className="mt-2 rounded-lg bg-muted/50 p-2">
+                        <div className="flex items-center justify-between gap-2 text-xs font-medium">
+                          <span className="min-w-0 truncate">
+                            <span aria-hidden>{d.enveloppe.emoji}</span> {d.enveloppe.nom}
+                          </span>
+                          <span className="shrink-0 text-muted-foreground">
+                            confiance {Math.round(d.confiance * 100)}%
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{d.raison}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            inputMode="numeric"
+                            aria-label={`Montant à transférer depuis ${d.enveloppe.nom}`}
+                            value={montants[cle] ?? grouperMontant(d.montantPropose)}
+                            onChange={(e) =>
+                              setMontants((m) => ({
+                                ...m,
+                                [cle]: grouperMontant(deGrouperMontant(e.target.value)),
+                              }))
+                            }
+                            className="w-28 rounded-lg border border-border bg-card px-2 py-1 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              appliquer(
+                                cle,
+                                s.plan.enveloppe.id,
+                                s.plan.enveloppe.nom,
+                                d.enveloppe.id,
+                                d.enveloppe.nom,
+                                d.montantPropose,
+                              )
+                            }
+                            className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground"
+                          >
+                            <ArrowRight aria-hidden className="h-3 w-3" />
+                            Appliquer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              ignorer(
+                                cle,
+                                s.plan.enveloppe.nom,
+                                d.enveloppe.nom,
+                                d.montantPropose,
+                              )
+                            }
+                            className="rounded-full px-2 py-1 text-[11px] text-muted-foreground"
+                          >
+                            Ignorer
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span>Cette solution vous a-t-elle aidé ?</span>
+                    <button
+                      type="button"
+                      aria-label="Solution utile"
+                      onClick={() => {
+                        setBilan(bilanSecours(noterSolution(true)));
+                        toast.success("Merci, l'intelligence en tient compte.");
+                      }}
+                      className="rounded-full p-1 hover:bg-secondary"
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Solution inutile"
+                      onClick={() => {
+                        setBilan(bilanSecours(noterSolution(false)));
+                        toast("Compris, ces propositions seront revues.");
+                      }}
+                      className="rounded-full p-1 hover:bg-secondary"
+                    >
+                      <ThumbsDown className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
