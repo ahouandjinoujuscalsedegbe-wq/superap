@@ -81,22 +81,33 @@ function depensesEntre(
  *
  * Base : le montant précisé par l'utilisateur. Si l'ajustement automatique est
  * actif, ce montant glisse vers la dépense moyenne réellement constatée sur les
- * périodes précédentes, sans jamais s'en écarter de plus de 30 % d'un coup.
+ * périodes précédentes, sans jamais s'écarter de plus de 30 % **du dernier
+ * montant réellement versé** : mois après mois, la dotation rejoint donc
+ * l'habitude réelle du foyer au lieu de rester bloquée autour du tout premier
+ * montant saisi.
  */
 export function montantPeriodeSuivante(
   enveloppe: Enveloppe,
   transactions: Transaction[],
   finPeriode: string,
+  dernierVerse?: number,
 ): number {
   const base = enveloppe.montantPeriode ?? enveloppe.dotation ?? enveloppe.plafond;
   if (!(base > 0)) return 0;
+  // Point de départ de la variation : le dernier versement réel s'il existe.
+  const reference = dernierVerse && dernierVerse > 0 ? dernierVerse : base;
 
   /* Ajustement de saison : les périodes d'activité (rentrée, fêtes, pluies)
      reçoivent plus, les mois calmes moins. Coefficient appris sur l'historique
      des années précédentes, 1 quand il n'y en a pas encore. */
   const saison = coefficientSaisonEnveloppe(enveloppe, transactions, finPeriode);
   const borner = (montant: number) =>
-    Math.round(Math.min(base * (1 + VARIATION_MAX), Math.max(base * (1 - VARIATION_MAX), montant)));
+    Math.round(
+      Math.min(
+        reference * (1 + VARIATION_MAX),
+        Math.max(reference * (1 - VARIATION_MAX), montant),
+      ),
+    );
 
   if (!enveloppe.ajustementAuto) return saison === 1 ? Math.round(base) : borner(base * saison);
 
@@ -149,6 +160,7 @@ export function remplissagesDus(
   enveloppes: Enveloppe[],
   transactions: Transaction[],
   maintenant = new Date(),
+  remplissages: { enveloppeId: string; montant: number; date: string }[] = [],
 ): RemplissageDu[] {
   const aujourdHui = maintenant.toISOString().slice(0, 10);
   const dus: RemplissageDu[] = [];
@@ -156,6 +168,17 @@ export function remplissagesDus(
   for (const e of enveloppes) {
     if (!e.compteSource) continue;
     if ((e.modeRemplissage ?? "fixe") !== "fixe") continue;
+
+    // Dernier montant réellement versé dans cette enveloppe : c'est autour de
+    // lui que la variation maximale est calculée.
+    let dernierVerse = 0;
+    let derniereDate = "";
+    for (const r of remplissages) {
+      if (r.enveloppeId === e.id && r.date >= derniereDate) {
+        derniereDate = r.date;
+        dernierVerse = r.montant;
+      }
+    }
 
     // Départ : le 1er du mois en cours, ou le 1er du mois suivant le dernier
     // remplissage déjà appliqué.
@@ -165,8 +188,12 @@ export function remplissagesDus(
 
     let tours = 0;
     while (date <= aujourdHui && tours < RATTRAPAGE_MAX) {
-      const montant = montantPeriodeSuivante(e, transactions, date);
-      if (montant > 0) dus.push({ enveloppe: e, compte: e.compteSource, montant, date });
+      const montant = montantPeriodeSuivante(e, transactions, date, dernierVerse);
+      if (montant > 0) {
+        dus.push({ enveloppe: e, compte: e.compteSource, montant, date });
+        // Rattrapage de plusieurs mois : chaque tour part du montant précédent.
+        dernierVerse = montant;
+      }
       date = premierDuMoisSuivant(date);
       tours += 1;
     }
