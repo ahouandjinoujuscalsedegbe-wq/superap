@@ -111,9 +111,60 @@ export function BouleAnalyse() {
     [toutesAlertes],
   );
 
-  if (alertes.length === 0) return null;
+  const solutions = useMemo(
+    () => solutionsSecours(enveloppes, depensesParEnveloppe, transactions),
+    [enveloppes, depensesParEnveloppe, transactions],
+  );
 
-  const urgentes = alertes.filter((a) => a.niveau === "alerte").length;
+  if (alertes.length === 0 && solutions.length === 0) return null;
+
+  const urgentes = alertes.filter((a) => a.niveau === "alerte").length + solutions.length;
+  const total = alertes.length + solutions.length;
+
+  const appliquer = (
+    cle: string,
+    cibleId: string,
+    cibleNom: string,
+    donneurId: string,
+    donneurNom: string,
+    propose: number,
+  ) => {
+    const saisi = montants[cle];
+    const montant = saisi ? Number(deGrouperMontant(saisi)) : propose;
+    if (!montant || montant <= 0) {
+      toast.error("Montant invalide");
+      return;
+    }
+    transfererEntreEnveloppes(donneurId, cibleId, montant);
+    setBilan(
+      bilanSecours(
+        enregistrerDecision({
+          cible: cibleNom,
+          donneur: donneurNom,
+          propose,
+          applique: montant,
+          action: montant === propose ? "applique" : "ajuste",
+        }),
+      ),
+    );
+    setFaits((l) => [...l, cle]);
+    toast.success(`${formatFCFA(montant)} transférés vers ${cibleNom}`);
+  };
+
+  const ignorer = (cle: string, cibleNom: string, donneurNom: string, propose: number) => {
+    setBilan(
+      bilanSecours(
+        enregistrerDecision({
+          cible: cibleNom,
+          donneur: donneurNom,
+          propose,
+          applique: 0,
+          action: "ignore",
+        }),
+      ),
+    );
+    setFaits((l) => [...l, cle]);
+  };
 
   return (
     <>
