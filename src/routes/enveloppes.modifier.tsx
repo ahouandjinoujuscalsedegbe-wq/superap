@@ -158,8 +158,7 @@ function ModifierEnveloppe() {
     else if (eSousCategorie.trim() && !sousCategories.includes(eSousCategorie.trim()))
       prochaines.sousCategorie = `La sous-catégorie « ${eSousCategorie.trim()} » n'existe pas dans cette catégorie.`;
 
-    if (!eCompte.trim())
-      prochaines.compte = "Choisissez le compte qui alimente cette enveloppe.";
+    if (!eCompte.trim()) prochaines.compte = "Choisissez le compte qui alimente cette enveloppe.";
 
     if (eMode === "pourcentage" && (!Number.isFinite(part) || part <= 0 || part > 100))
       prochaines.montant = "Indiquez la part de chaque revenu à verser (1 à 100 %).";

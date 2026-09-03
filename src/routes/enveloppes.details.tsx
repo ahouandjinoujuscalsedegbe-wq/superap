@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, History } from "lucide-react";
 import { useSuperApp, PERIODES, type Periode, type Enveloppe } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
 import { grouperParCategorie, CATEGORIE_LIBRE } from "@/lib/categories";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
+import { lireHistoriqueEnveloppes, libelleActionEnveloppe } from "@/lib/historique-enveloppes";
 
 const libellePeriode = (p: Periode) => PERIODES.find((x) => x.id === p)?.label ?? p;
 
@@ -32,6 +33,8 @@ function DetailsActuels() {
   const { enveloppes, depensesParEnveloppe } = useSuperApp();
 
   const groupes = useMemo(() => grouperParCategorie(enveloppes), [enveloppes]);
+  const journal = useMemo(() => lireHistoriqueEnveloppes().slice(0, 30), [enveloppes]);
+  const [journalOuvert, setJournalOuvert] = useState(false);
 
   return (
     <div className="space-y-5">
@@ -86,6 +89,52 @@ function DetailsActuels() {
             })}
           </ul>
         )}
+      </section>
+
+      <section className="carte p-4">
+        <button
+          type="button"
+          onClick={() => setJournalOuvert((v) => !v)}
+          aria-expanded={journalOuvert}
+          className="flex w-full items-center justify-between gap-3 text-left"
+        >
+          <span className="flex items-center gap-2 text-base font-semibold">
+            <History className="h-4 w-4" aria-hidden /> Historique des enveloppes
+          </span>
+          {journalOuvert ? (
+            <ChevronDown aria-hidden className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <ChevronRight aria-hidden className="h-5 w-5 text-muted-foreground" />
+          )}
+        </button>
+        {journalOuvert &&
+          (journal.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Aucune action enregistrée pour le moment.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {journal.map((entree) => (
+                <li
+                  key={entree.id}
+                  className="rounded-xl border border-border/70 bg-secondary/40 p-3"
+                >
+                  <p className="text-sm font-medium">
+                    {libelleActionEnveloppe(entree.action)} · {entree.enveloppe}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateFr(entree.date.slice(0, 10))} ·{" "}
+                    {new Date(entree.date).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    · {entree.auteur}
+                  </p>
+                  <p className="mt-1 text-xs break-words">{entree.details}</p>
+                </li>
+              ))}
+            </ul>
+          ))}
       </section>
     </div>
   );
