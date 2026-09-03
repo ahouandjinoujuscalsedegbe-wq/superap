@@ -127,10 +127,7 @@ function Accueil() {
           <ul className="space-y-1.5 text-sm">
             {echeancesProches.map((b) => (
               <li key={b.id} className="flex justify-between gap-2">
-                <Link
-                  to="/budget"
-                  className="truncate underline-offset-2 hover:underline"
-                >
+                <Link to="/budget" className="truncate underline-offset-2 hover:underline">
                   {b.libelle} · {formatDateFr(b.prochaine)}
                 </Link>
                 <span className="shrink-0 font-semibold">{formatFCFA(b.montant)}</span>
