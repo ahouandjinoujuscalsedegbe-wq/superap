@@ -62,7 +62,22 @@ function assainir(brut: unknown): MemoireSecours {
     decisions,
     utiles: Number(o.utiles) || 0,
     inutiles: Number(o.inutiles) || 0,
+    notes: Array.isArray(o.notes)
+      ? o.notes
+          .map((n) => Math.max(1, Math.min(5, Math.round(Number(n)) || 0)))
+          .filter((n) => n >= 1)
+          .slice(-MAX_DECISIONS)
+      : [],
   };
+}
+
+/** Note de 1 à 5 donnée par l'utilisateur avant d'approuver ou de rejeter une solution. */
+export function noterQualiteSolution(note: number): MemoireSecours {
+  const m = lireMemoireSecours();
+  const valeur = Math.max(1, Math.min(5, Math.round(note)));
+  const suite: MemoireSecours = { ...m, notes: [...m.notes, valeur].slice(-MAX_DECISIONS) };
+  ecrire(suite);
+  return suite;
 }
 
 export function lireMemoireSecours(): MemoireSecours {
