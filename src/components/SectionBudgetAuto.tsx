@@ -39,7 +39,7 @@ function enClair(iso: string): string {
  * le moteur retient ses corrections pour affiner ses prochains conseils.
  */
 export function SectionBudgetAuto() {
-  const { transactions, enveloppes, modifierEnveloppe } = useSuperApp();
+  const { transactions, enveloppes, budgets, modifierEnveloppe } = useSuperApp();
   const [ajuster, setAjuster] = useState(true);
   /** Période d'application choisie AVANT toute génération du budget. */
   const [periode, setPeriode] = useState<{ debut: string; fin: string } | null>(null);
@@ -61,10 +61,29 @@ export function SectionBudgetAuto() {
   const [notation, setNotation] = useState<"appliquer" | "modifier" | null>(null);
   const [note, setNote] = useState<number | null>(null);
 
+  /** Enveloppes portant une dépense planifiée par l'utilisateur : intouchables. */
+  const protegees = useMemo(
+    () => new Set(budgets.filter((b) => b.actif).map((b) => b.enveloppeId)),
+    [budgets],
+  );
+
   const budget = useMemo(() => {
     const brut = proposerDotations(transactions, enveloppes);
-    return ajuster ? ajusterAuRevenu(brut) : brut;
-  }, [transactions, enveloppes, ajuster]);
+    const complet = ajuster ? ajusterAuRevenu(brut) : brut;
+    // Les dépenses planifiées par l'utilisateur ne sont jamais retouchées.
+    const propositions = complet.propositions.filter((p) => !protegees.has(p.enveloppeId));
+    return {
+      ...complet,
+      propositions,
+      totalPropose: propositions.reduce((s, p) => s + p.proposee, 0),
+    };
+  }, [transactions, enveloppes, ajuster, protegees]);
+
+  /** Enveloppes écartées de la proposition car elles sont planifiées. */
+  const enveloppesProtegees = useMemo(
+    () => enveloppes.filter((e) => protegees.has(e.id)),
+    [enveloppes, protegees],
+  );
 
   // Chaque nouvelle proposition réinitialise les champs modifiables.
   useEffect(() => {
@@ -100,7 +119,7 @@ export function SectionBudgetAuto() {
     const corrections: { enveloppeId: string; proposee: number; retenue: number }[] = [];
 
     for (const p of budget.propositions) {
-      if (ignorees[p.enveloppeId]) continue;
+      if (ignorees[p.enveloppeId] || protegees.has(p.enveloppeId)) continue;
       const env = enveloppes.find((e) => e.id === p.enveloppeId);
       const montant = valeurRetenue(p.enveloppeId, p.proposee);
       if (!env || montant <= 0) continue;
@@ -315,6 +334,16 @@ export function SectionBudgetAuto() {
           );
         })}
       </ul>
+
+      {enveloppesProtegees.length > 0 && (
+        <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+          Vos dépenses planifiées ne sont pas touchées :{" "}
+          <span className="font-semibold text-foreground">
+            {enveloppesProtegees.map((e) => e.nom).join(", ")}
+          </span>{" "}
+          gardent exactement le budget que vous avez fixé.
+        </p>
+      )}
 
       {periodeMois !== 1 && (
         <p className="rounded-xl bg-secondary/60 px-3 py-2 text-xs">
