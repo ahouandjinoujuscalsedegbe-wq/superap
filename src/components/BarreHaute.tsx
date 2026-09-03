@@ -44,12 +44,6 @@ const ENTREES = [
 /** Options de la section « Action » de la page Enveloppes, ouvertes depuis la barre figée. */
 const ACTIONS_ENVELOPPES = [
   {
-    to: "/enveloppes/details",
-    label: "Toutes les enveloppes et leur état",
-    detail: "Voir le détail de chaque enveloppe et son solde restant.",
-    icone: Layers,
-  },
-  {
     to: "/enveloppes/creer",
     label: "Créer une enveloppe",
     detail: "Ajouter une nouvelle enveloppe au budget.",
@@ -57,7 +51,7 @@ const ACTIONS_ENVELOPPES = [
   },
   {
     to: "/enveloppes/gerer",
-    label: "Gérer les enveloppes",
+    label: "Modifier une enveloppe existante",
     detail: "Modifier ou supprimer une enveloppe existante.",
     icone: Pencil,
   },
@@ -78,18 +72,6 @@ const ACTIONS_ENVELOPPES = [
     label: "Détail des renouvellements",
     detail: "Période, montant débité, compte source et part de revenu.",
     icone: RefreshCcw,
-  },
-  {
-    to: "/enveloppes/budgetisation",
-    label: "Budget : plan, suivi et proposition",
-    detail: "Dépenses planifiées, comparaison au réel, budget auto.",
-    icone: Scale,
-  },
-  {
-    to: "/enveloppes/budget-mensuel",
-    label: "Budget mensuel",
-    detail: "Le budget retenu pour le mois en cours.",
-    icone: CalendarRange,
   },
   {
     to: "/enveloppes/chronologie",
