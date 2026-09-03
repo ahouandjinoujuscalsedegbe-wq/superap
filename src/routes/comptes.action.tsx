@@ -1,43 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { PencilLine, Plus, Trash2, X } from "lucide-react";
+import { PencilLine, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
-import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
+import { formatFCFA } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
-import { DicteeChamp } from "@/components/DicteeChamp";
-import { analyserCompteDicte } from "@/lib/dictee-champs";
-import { ChoixIcone } from "@/components/ChoixIcone";
+import { FormulaireCompte, type DemandeCompte } from "@/components/FormulaireCompte";
 import { suggererIcone } from "@/lib/icone-auto";
 
-type Demande =
-  | { type: "creation"; nom: string; solde: number; disponible: boolean; emoji: string }
-  | { type: "renommage"; ancien: string; nom: string; ajustement: number }
-  | { type: "suppression"; nom: string }
-  | null;
+type Demande = DemandeCompte | { type: "suppression"; nom: string };
 
 export const Route = createFileRoute("/comptes/action")({
   head: () => ({
     meta: [
-      { title: "Action — Ajouter et modifier vos comptes" },
+      { title: "Renommer ou supprimer un compte — SUPER APP" },
       {
         name: "description",
         content:
-          "Créez un nouveau compte, renommez ou supprimez un compte existant du foyer, avec confirmation avant chaque opération.",
+          "Renommez un compte existant, ajustez son solde ou retirez-le du foyer, avec confirmation avant chaque opération.",
       },
-      { property: "og:title", content: "Action sur les comptes — SUPER APP" },
+      { property: "og:title", content: "Comptes existants — SUPER APP" },
       {
         property: "og:description",
-        content: "Création, renommage et suppression de comptes en francs CFA.",
+        content: "Modification et suppression de comptes existants en francs CFA.",
       },
     ],
   }),
   component: ActionComptes,
 });
-
-const champ =
-  "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
 
 function ActionComptes() {
   const {
@@ -49,109 +40,14 @@ function ActionComptes() {
     transactions,
     transferts,
     soldesParCompte,
-    ajouterCompte,
     ajouterTransaction,
     renommerCompte,
     supprimerCompte,
   } = useSuperApp();
 
-  const [modal, setModal] = useState<"creer" | "modifier" | null>(null);
-  const [nom, setNom] = useState("");
-  const [solde, setSolde] = useState("");
-  const [disponible, setDisponible] = useState(true);
-  const [emoji, setEmoji] = useState("👛");
-  const [emojiManuel, setEmojiManuel] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
-  const [demande, setDemande] = useState<Demande>(null);
+  const [demande, setDemande] = useState<Demande | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
-
-  function ouvrirCreation() {
-    setNom("");
-    setSolde("");
-    setDisponible(true);
-    setEmoji("👛");
-    setEmojiManuel(false);
-    setEnEdition(null);
-    setModal("creer");
-  }
-
-  function ouvrirModification(compte: string) {
-    setEnEdition(compte);
-    setNom(compte);
-    setSolde(String(soldesParCompte[compte] ?? 0));
-    setDisponible(!comptesExclus.includes(compte));
-    setEmoji(iconesComptes[compte] ?? suggererIcone(compte, "compte"));
-    setEmojiManuel(true);
-    setModal("modifier");
-  }
-
-  function fermer() {
-    setModal(null);
-    setEnEdition(null);
-  }
-
-  function auTexteDicte(texte: string) {
-    const lu = analyserCompteDicte(texte);
-    if (!lu.nom && lu.soldeInitial === null) {
-      setErreur("Phrase non comprise. Dites par exemple : « compte mobile money avec 25000 ».");
-      return;
-    }
-    if (lu.nom) setNom(lu.nom.slice(0, 30));
-    if (lu.soldeInitial !== null) setSolde(String(lu.soldeInitial));
-    toast.success("Dictée prise en compte. Vérifiez avant de valider.");
-  }
-
-  function soumettre(ev: React.FormEvent) {
-    ev.preventDefault();
-    const valeur = nom.trim();
-    if (!valeur) {
-      setErreur("Donnez un nom au compte avant de valider.");
-      return;
-    }
-    if (valeur.length > 30) {
-      setErreur("Nom trop long : 30 caractères maximum.");
-      return;
-    }
-    const soldeSaisi = solde.trim() === "" ? 0 : Number(solde.replace(/[^\d-]/g, ""));
-    if (!Number.isFinite(soldeSaisi) || soldeSaisi < 0) {
-      setErreur("Le solde doit être un nombre positif en francs CFA.");
-      return;
-    }
-    if (modal === "creer") {
-      if (comptes.includes(valeur)) {
-        setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
-        return;
-      }
-      setDemande({
-        type: "creation",
-        nom: valeur,
-        solde: soldeSaisi,
-        disponible,
-        emoji: emoji.trim() || suggererIcone(valeur, "compte"),
-      });
-      return;
-    }
-    if (!enEdition) return;
-    const ajustement = soldeSaisi - (soldesParCompte[enEdition] ?? 0);
-    if (valeur !== enEdition && comptes.includes(valeur)) {
-      setErreur(`Le compte « ${valeur} » existe déjà. Choisissez un autre nom.`);
-      return;
-    }
-    const disponibleChange = disponible === comptesExclus.includes(enEdition);
-    if (disponibleChange) definirCompteDisponible(enEdition, disponible);
-    const iconeChange = (iconesComptes[enEdition] ?? "") !== emoji.trim();
-    if (iconeChange) definirIconeCompte(enEdition, emoji.trim());
-    if (valeur === enEdition && ajustement === 0 && !disponibleChange && !iconeChange) {
-      setErreur("Rien n'a changé : modifiez le nom, le solde ou le disponible, ou annulez.");
-      return;
-    }
-    if (valeur === enEdition && ajustement === 0) {
-      toast.success("Compte modifié.");
-      fermer();
-      return;
-    }
-    setDemande({ type: "renommage", ancien: enEdition, nom: valeur, ajustement });
-  }
 
   function retirer(compte: string) {
     if (transactions.some((t) => t.compte === compte)) {
@@ -171,24 +67,14 @@ function ActionComptes() {
 
   function confirmer() {
     if (!demande) return;
-    if (demande.type === "creation") {
-      ajouterCompte(demande.nom, demande.disponible, demande.emoji);
-      if (demande.solde > 0) {
-        ajouterTransaction({
-          type: "revenu",
-          montant: demande.solde,
-          libelle: "SOLDE INITIAL",
-          categorie: "Autre",
-          compte: demande.nom,
-          date: new Date().toISOString().slice(0, 10),
-        });
+    if (demande.type === "renommage") {
+      if (demande.disponible === comptesExclus.includes(demande.ancien)) {
+        definirCompteDisponible(demande.ancien, demande.disponible);
       }
-      toast.success(`Compte « ${demande.nom} » ajouté.`);
-    } else if (demande.type === "renommage") {
       if (demande.nom !== demande.ancien) {
         renommerCompte(demande.ancien, demande.nom);
-        definirIconeCompte(demande.nom, emoji.trim());
       }
+      definirIconeCompte(demande.nom, demande.emoji);
       if (demande.ajustement !== 0) {
         ajouterTransaction({
           type: demande.ajustement > 0 ? "revenu" : "depense",
@@ -200,54 +86,18 @@ function ActionComptes() {
         });
       }
       toast.success("Compte modifié.");
-    } else {
+    } else if (demande.type === "suppression") {
       supprimerCompte(demande.nom);
       toast.success("Compte supprimé.");
     }
     setDemande(null);
-    fermer();
+    setEnEdition(null);
   }
 
   const danger = demande?.type === "suppression";
-  const titre =
-    demande?.type === "creation"
-      ? "Confirmer la création"
-      : demande?.type === "renommage"
-        ? "Confirmer la modification"
-        : "Supprimer ce compte ?";
-  const message =
-    demande?.type === "creation"
-      ? "Vérifiez le nom du nouveau compte avant de valider."
-      : demande?.type === "renommage"
-        ? "Vérifiez le nouveau nom du compte avant de valider."
-        : demande?.type === "suppression"
-          ? `Le compte « ${demande.nom} » sera définitivement supprimé. Cette action est irréversible.`
-          : "";
 
   return (
     <div className="page-anim space-y-5">
-      <section className="carte space-y-4 p-4">
-        <h2 className="text-lg font-semibold">Action</h2>
-
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={ouvrirCreation}
-            className="carte flex w-full items-center gap-3 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-accent/40 active:scale-[0.99]"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Plus aria-hidden className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="font-semibold">Créer un nouveau compte</p>
-              <p className="text-sm text-muted-foreground">
-                Banque, mobile money, espèces, tontine…
-              </p>
-            </div>
-          </button>
-        </div>
-      </section>
-
       <section className="carte space-y-3 p-4">
         <div>
           <h2 className="text-lg font-semibold">Comptes existants</h2>
@@ -282,7 +132,7 @@ function ActionComptes() {
                   <span className="flex shrink-0 gap-2">
                     <button
                       type="button"
-                      onClick={() => ouvrirModification(c)}
+                      onClick={() => setEnEdition(c)}
                       aria-label={`Modifier ${c}`}
                       className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/40"
                     >
@@ -304,13 +154,13 @@ function ActionComptes() {
         )}
       </section>
 
-      {modal !== null && (
+      {enEdition !== null && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={modal === "creer" ? "Créer un nouveau compte" : "Modifier le compte"}
+          aria-label="Modifier le compte"
           className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
-          onClick={fermer}
+          onClick={() => setEnEdition(null)}
         >
           <div
             className="carte popup-anim w-full max-w-md space-y-4 p-5"
@@ -318,18 +168,14 @@ function ActionComptes() {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="text-base font-semibold">
-                  {modal === "creer" ? "Nouveau compte" : "Modifier le compte"}
-                </h3>
+                <h3 className="text-base font-semibold">Modifier le compte</h3>
                 <p className="text-xs text-muted-foreground">
-                  {modal === "creer"
-                    ? "Créez un compte du foyer."
-                    : `Renommez le compte « ${enEdition} ».`}
+                  Renommez le compte « {enEdition} ».
                 </p>
               </div>
               <button
                 type="button"
-                onClick={fermer}
+                onClick={() => setEnEdition(null)}
                 aria-label="Fermer"
                 className="rounded-full p-1.5 transition-colors hover:bg-secondary"
               >
@@ -337,96 +183,12 @@ function ActionComptes() {
               </button>
             </div>
 
-            <DicteeChamp
-              titre="Dicter le compte"
-              exemple="compte mobile money avec un solde initial de 25000 francs"
-              onTexte={auTexteDicte}
+            <FormulaireCompte
+              key={enEdition}
+              compte={enEdition}
+              onDemande={setDemande}
+              onAnnuler={() => setEnEdition(null)}
             />
-
-            <form onSubmit={soumettre} className="space-y-3">
-              <div>
-                <label htmlFor="c-nom" className="text-sm font-medium">
-                  Nom du compte
-                </label>
-                <input
-                  id="c-nom"
-                  autoFocus
-                  value={nom}
-                  onChange={(ev) => {
-                    const valeur = ev.target.value;
-                    setNom(valeur);
-                    if (!emojiManuel) setEmoji(suggererIcone(valeur, "compte"));
-                  }}
-                  placeholder="Tontine du quartier"
-                  className={champ}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">30 caractères maximum.</p>
-              </div>
-
-              <ChoixIcone
-                nom={nom}
-                domaine="compte"
-                valeur={emoji}
-                titre="Logo du compte proposé"
-                onChoisir={(e) => {
-                  setEmojiManuel(true);
-                  setEmoji(e);
-                }}
-              />
-
-              <div>
-                <label htmlFor="c-solde" className="text-sm font-medium">
-                  {modal === "creer" ? "Solde initial (FCFA)" : "Solde actuel (FCFA)"}
-                </label>
-                <input
-                  id="c-solde"
-                  inputMode="numeric"
-                  value={grouperMontant(solde)}
-                  onChange={(ev) => setSolde(deGrouperMontant(ev.target.value))}
-                  placeholder="0"
-                  className={champ}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {modal === "creer"
-                    ? "Laissez 0 si le compte est vide."
-                    : "Une correction crée une opération d'ajustement."}
-                </p>
-              </div>
-
-              <label className="flex items-start gap-3 rounded-xl border border-input bg-background/60 p-3">
-                <input
-                  type="checkbox"
-                  checked={disponible}
-                  onChange={(ev) => setDisponible(ev.target.checked)}
-                  className="mt-0.5 h-4 w-4"
-                />
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">
-                    Compter ce compte dans le solde disponible
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    Décochez pour une épargne, une caisse ou un compte diamant : son solde et les
-                    enveloppes alimentées par ce compte resteront hors du solde disponible.
-                  </span>
-                </span>
-              </label>
-
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
-                >
-                  {modal === "creer" ? "Ajouter" : "Enregistrer"}
-                </button>
-                <button
-                  type="button"
-                  onClick={fermer}
-                  className="flex-1 rounded-xl border border-input py-3 font-medium transition-colors hover:bg-accent/40"
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
@@ -439,38 +201,30 @@ function ActionComptes() {
 
       <Confirmation
         ouvert={demande !== null}
-        titre={titre}
-        message={message}
+        titre={danger ? "Supprimer ce compte ?" : "Confirmer la modification"}
+        message={
+          danger
+            ? `Le compte « ${demande?.type === "suppression" ? demande.nom : ""} » sera définitivement supprimé. Cette action est irréversible.`
+            : "Vérifiez le nouveau nom du compte avant de valider."
+        }
         details={
-          demande?.type === "creation"
+          demande?.type === "renommage"
             ? [
-                { label: "Logo", apres: demande.emoji },
-                { label: "Nom", apres: demande.nom },
-                { label: "Solde initial", apres: formatFCFA(demande.solde) },
+                { label: "Nom", avant: demande.ancien, apres: demande.nom },
                 {
-                  label: "Solde disponible",
-                  apres: demande.disponible ? "Compté" : "Exclu",
+                  label: "Solde",
+                  avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
+                  apres: formatFCFA((soldesParCompte[demande.ancien] ?? 0) + demande.ajustement),
                 },
               ]
-            : demande?.type === "renommage"
+            : demande?.type === "suppression"
               ? [
-                  { label: "Nom", avant: demande.ancien, apres: demande.nom },
-                  {
-                    label: "Solde",
-                    avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
-                    apres: formatFCFA((soldesParCompte[demande.ancien] ?? 0) + demande.ajustement),
-                  },
+                  { label: "Compte", apres: demande.nom },
+                  { label: "Solde", apres: formatFCFA(soldesParCompte[demande.nom] ?? 0) },
                 ]
-              : demande?.type === "suppression"
-                ? [
-                    { label: "Compte", apres: demande.nom },
-                    { label: "Solde", apres: formatFCFA(soldesParCompte[demande.nom] ?? 0) },
-                  ]
-                : []
+              : []
         }
-        confirmerLabel={
-          danger ? "Supprimer" : demande?.type === "creation" ? "Créer" : "Enregistrer"
-        }
+        confirmerLabel={danger ? "Supprimer" : "Enregistrer"}
         danger={danger}
         onConfirmer={confirmer}
         onAnnuler={() => setDemande(null)}

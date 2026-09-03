@@ -35,6 +35,7 @@ import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as ComptesIndexRouteImport } from './routes/comptes.index'
 import { Route as ComptesCompteRouteImport } from './routes/comptes.$compte'
 import { Route as ComptesActionRouteImport } from './routes/comptes.action'
+import { Route as ComptesCreerRouteImport } from './routes/comptes.creer'
 import { Route as ComptesTransfertsRouteImport } from './routes/comptes.transferts'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
@@ -191,6 +192,11 @@ const ComptesCompteRoute = ComptesCompteRouteImport.update({
 const ComptesActionRoute = ComptesActionRouteImport.update({
   id: '/action',
   path: '/action',
+  getParentRoute: () => ComptesRoute,
+} as any)
+const ComptesCreerRoute = ComptesCreerRouteImport.update({
+  id: '/creer',
+  path: '/creer',
   getParentRoute: () => ComptesRoute,
 } as any)
 const ComptesTransfertsRoute = ComptesTransfertsRouteImport.update({
@@ -357,6 +363,7 @@ export interface FileRoutesByFullPath {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
+  '/comptes/creer': typeof ComptesCreerRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByTo {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
+  '/comptes/creer': typeof ComptesCreerRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/budgetisation': typeof EnveloppesBudgetisationRoute
@@ -464,6 +472,7 @@ export interface FileRoutesById {
   '/synchronisation': typeof SynchronisationRoute
   '/comptes/$compte': typeof ComptesCompteRoute
   '/comptes/action': typeof ComptesActionRoute
+  '/comptes/creer': typeof ComptesCreerRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
@@ -521,6 +530,7 @@ export interface FileRouteTypes {
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
+    | '/comptes/creer'
     | '/comptes/transferts'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
@@ -573,6 +583,7 @@ export interface FileRouteTypes {
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
+    | '/comptes/creer'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
     | '/enveloppes/budgetisation'
@@ -627,6 +638,7 @@ export interface FileRouteTypes {
     | '/synchronisation'
     | '/comptes/$compte'
     | '/comptes/action'
+    | '/comptes/creer'
     | '/comptes/transferts'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
@@ -869,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComptesActionRouteImport
       parentRoute: typeof ComptesRoute
     }
+    '/comptes/creer': {
+      id: '/comptes/creer'
+      path: '/creer'
+      fullPath: '/comptes/creer'
+      preLoaderRoute: typeof ComptesCreerRouteImport
+      parentRoute: typeof ComptesRoute
+    }
     '/comptes/transferts': {
       id: '/comptes/transferts'
       path: '/transferts'
@@ -1077,6 +1096,7 @@ const ComptesTransfertsRouteWithChildren =
 interface ComptesRouteChildren {
   ComptesCompteRoute: typeof ComptesCompteRoute
   ComptesActionRoute: typeof ComptesActionRoute
+  ComptesCreerRoute: typeof ComptesCreerRoute
   ComptesTransfertsRoute: typeof ComptesTransfertsRouteWithChildren
   ComptesIndexRoute: typeof ComptesIndexRoute
   ComptesCategorieNomRoute: typeof ComptesCategorieNomRoute
@@ -1085,6 +1105,7 @@ interface ComptesRouteChildren {
 const ComptesRouteChildren: ComptesRouteChildren = {
   ComptesCompteRoute: ComptesCompteRoute,
   ComptesActionRoute: ComptesActionRoute,
+  ComptesCreerRoute: ComptesCreerRoute,
   ComptesTransfertsRoute: ComptesTransfertsRouteWithChildren,
   ComptesIndexRoute: ComptesIndexRoute,
   ComptesCategorieNomRoute: ComptesCategorieNomRoute,

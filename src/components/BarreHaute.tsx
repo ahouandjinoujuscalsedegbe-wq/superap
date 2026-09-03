@@ -119,7 +119,7 @@ const ACTIONS_COMPTES = [
   },
   {
     cle: "comptes-creer",
-    to: "/comptes/action",
+    to: "/comptes/creer",
     label: "Créer un compte",
     detail: "Ajouter un compte avec son solde de départ.",
     icone: Plus,
@@ -154,7 +154,8 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/saisie", "Saisie intelligente"],
   ["/comptes/transferts/nouveau", "Nouveau transfert"],
   ["/comptes/transferts", "Transferts"],
-  ["/comptes/action", "Action sur le compte"],
+  ["/comptes/creer", "Créer un compte"],
+  ["/comptes/action", "Comptes existants"],
   ["/comptes", "Comptes"],
   ["/enveloppes/budgetisation", "Budgétisation"],
   ["/enveloppes/budget-mensuel", "Budget mensuel"],
