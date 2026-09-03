@@ -197,6 +197,7 @@ function RootComponent() {
           <AlerteStockage />
           <AlarmeIntelligente />
           <AlertesVersConseiller />
+          <VeilleConseiller />
           <RappelBudgetMensuel />
           <BouleAnalyse />
         </SuperAppProvider>
