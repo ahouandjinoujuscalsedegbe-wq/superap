@@ -261,3 +261,52 @@ export function idRappel(cle: string): number {
   for (let i = 0; i < cle.length; i += 1) h = (h * 31 + cle.charCodeAt(i)) | 0;
   return ID_PLANIFIE_MIN + (Math.abs(h) % 99_999_999);
 }
+
+/** Plage d'identifiants réservée aux rappels du conseiller. */
+export const ID_CONSEILLER_MIN = 1_600_000_000;
+export const ID_CONSEILLER_MAX = 1_699_999_999;
+
+/** Identifiant stable dans la plage du conseiller. */
+export function idConseiller(cle: string): number {
+  let h = 0;
+  for (let i = 0; i < cle.length; i += 1) h = (h * 31 + cle.charCodeAt(i)) | 0;
+  return ID_CONSEILLER_MIN + (Math.abs(h) % 99_999_999);
+}
+
+/**
+ * Programme les rappels du conseiller (point du jour, suivi des objectifs) :
+ * le téléphone affiche le message même si l'application est fermée.
+ * N'affecte pas les rappels de dépenses planifiées, qui ont leur propre plage.
+ */
+export async function programmerRappelsConseiller(
+  rappels: { id: number; titre: string; texte: string; quand: Date }[],
+) {
+  if (!estNatif()) return;
+  if (!(await demanderPermissionNotification())) return;
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const enAttente = await LocalNotifications.getPending();
+    const aAnnuler = enAttente.notifications.filter(
+      (n) => n.id >= ID_CONSEILLER_MIN && n.id <= ID_CONSEILLER_MAX,
+    );
+    if (aAnnuler.length > 0) {
+      await LocalNotifications.cancel({ notifications: aAnnuler.map((n) => ({ id: n.id })) });
+    }
+
+    const futurs = rappels.filter((r) => r.quand.getTime() > Date.now());
+    if (futurs.length === 0) return;
+
+    await LocalNotifications.schedule({
+      notifications: futurs.slice(0, 20).map((r) => ({
+        id: r.id,
+        title: r.titre,
+        body: r.texte,
+        smallIcon: "ic_stat_icon_config_sample",
+        autoCancel: true,
+        schedule: { at: r.quand, allowWhileIdle: true },
+      })),
+    });
+  } catch {
+    /* notifications indisponibles */
+  }
+}

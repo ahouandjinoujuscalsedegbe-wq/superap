@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useSuperApp } from "@/lib/store";
 import { useCerveau } from "@/lib/cerveau/hook";
 import { lireReglagesAlarme } from "@/lib/alarme";
-import { declencherAlarmeAppareil } from "@/lib/alarme-appareil";
+import {
+  declencherAlarmeAppareil,
+  idConseiller,
+  notifierAlarme,
+  programmerRappelsConseiller,
+} from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {
   construireVeille,
@@ -78,9 +83,27 @@ export function VeilleConseiller() {
         memoire,
       );
       ecrireMemoireVeille(suivante);
+
+      // Rappels programmés : même application fermée, le téléphone affiche
+      // le point du conseiller chaque matin pendant une semaine.
+      const matin = new Date();
+      matin.setHours(8, 0, 0, 0);
+      const rappels = Array.from({ length: 7 }, (_, i) => {
+        const quand = new Date(matin.getTime() + (i + 1) * 86_400_000);
+        return {
+          id: idConseiller(`point-${quand.toISOString().slice(0, 10)}`),
+          titre: "Mon conseiller · point du jour",
+          texte: "Ouvrez la discussion : j'ai analysé vos opérations et j'ai des conseils.",
+          quand,
+        };
+      });
+      void programmerRappelsConseiller(rappels);
+
       if (publications.length === 0) return;
 
       const reglages = lireReglagesAlarme();
+      // Aucune attente : chaque publication part immédiatement en message ET
+      // en notification du téléphone, visible même application fermée.
       for (const p of publications) {
         await publierAlerteConseiller({
           titre: p.titre,
@@ -88,6 +111,7 @@ export function VeilleConseiller() {
           ...(p.details.length > 0 ? { details: p.details } : {}),
           urgent: p.niveau === "alarme",
         });
+        void notifierAlarme(p.titre, p.texte, p.niveau === "alarme");
       }
 
       // Le plus grave décide de la sonnerie : une seule alarme par passage.
@@ -100,7 +124,7 @@ export function VeilleConseiller() {
           urgent: grave.niveau === "alarme",
           son: reglages.son && grave.niveau === "alarme",
           vibration: reglages.vibration,
-          notification: reglages.notification,
+          notification: false,
           titre: grave.titre,
           texte: grave.texte,
         });
@@ -113,12 +137,18 @@ export function VeilleConseiller() {
   }, [cerveau.faits, cerveau.constats, transactions, objectifs]);
 
   useEffect(() => {
-    // Léger décalage : on laisse l'écran s'afficher avant d'analyser.
-    const depart = window.setTimeout(() => void surveiller(), 6000);
-    const intervalle = window.setInterval(() => void surveiller(), 15 * 60_000);
+    // Réaction immédiate : dès qu'une donnée bouge, le conseiller analyse et
+    // prévient sans attendre. Le court délai évite seulement les rafales.
+    const depart = window.setTimeout(() => void surveiller(), 300);
+    const intervalle = window.setInterval(() => void surveiller(), 60_000);
+    const auRetour = () => {
+      if (document.visibilityState === "visible") void surveiller();
+    };
+    document.addEventListener("visibilitychange", auRetour);
     return () => {
       window.clearTimeout(depart);
       window.clearInterval(intervalle);
+      document.removeEventListener("visibilitychange", auRetour);
     };
   }, [surveiller]);
 
