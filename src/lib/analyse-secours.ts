@@ -215,6 +215,9 @@ export type BilanSecours = {
   inutiles: number;
   /** Maturité de l'intelligence 0–100. */
   maturite: number;
+  /** Note moyenne sur 5 donnée aux solutions (0 si aucune note). */
+  noteMoyenne: number;
+  notes: number;
 };
 
 export function bilanSecours(memoire = lireMemoireSecours()): BilanSecours {
