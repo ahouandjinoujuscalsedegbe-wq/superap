@@ -250,13 +250,18 @@ export function BarreHaute() {
   });
 
   const accueil = pathname === "/";
-  const pageEnveloppes = pathname === "/enveloppes" || pathname.startsWith("/enveloppes/");
+  const pageEnveloppesAccueil =
+    pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
+  const pageEnveloppesCategorie = !!infosCategorie(pathname);
   const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
-  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppes ? ACTIONS_ENVELOPPES : null;
+  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppesAccueil ? ACTIONS_ENVELOPPES : null;
+  const categorieInfos = !accueil ? infosCategorie(pathname) : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
-    : entete.titre || titreDe(pathname);
-  const sousTitre = accueil ? "Bonjour 👋" : entete.sousTitre;
+    : categorieInfos?.titre || entete.titre || titreDe(pathname);
+  const sousTitre = accueil
+    ? "Bonjour 👋"
+    : categorieInfos?.sousTitre || entete.sousTitre;
 
   // Fermer après une navigation.
   useEffect(() => {
