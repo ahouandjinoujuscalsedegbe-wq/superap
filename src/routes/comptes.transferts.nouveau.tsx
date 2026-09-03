@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
-import { BoutonRetour } from "@/components/BoutonRetour";
 import { ErreurPopup } from "@/components/ErreurPopup";
 
 export const Route = createFileRoute("/comptes/transferts/nouveau")({
@@ -97,8 +96,6 @@ function NouveauTransfert() {
 
   return (
     <div className="page-anim space-y-5">
-      <BoutonRetour to="/comptes/transferts" label="Retour aux transferts" />
-
       <section className="carte space-y-4 p-5">
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">

@@ -22,6 +22,8 @@ import {
   Pencil,
   ListOrdered,
   History,
+  Landmark,
+  ArrowLeftRight,
 } from "lucide-react";
 
 import { useSuperApp } from "@/lib/store";
@@ -105,6 +107,51 @@ const ACTIONS_ENVELOPPES = [
   },
 ] as const;
 
+/** Options de la section « Action » de la page Comptes, ouvertes depuis la barre figée. */
+const ACTIONS_COMPTES = [
+  {
+    cle: "comptes-details",
+    to: "/comptes",
+    label: "Tous les comptes et leurs soldes",
+    detail: "Solde, entrées, sorties et nombre d'opérations par compte.",
+    icone: Landmark,
+  },
+  {
+    cle: "comptes-creer",
+    to: "/comptes/action",
+    label: "Créer un compte",
+    detail: "Ajouter un compte avec son solde de départ.",
+    icone: Plus,
+  },
+  {
+    cle: "comptes-modifier",
+    to: "/comptes/action",
+    label: "Renommer ou supprimer un compte",
+    detail: "Corriger un nom, ajuster un solde ou retirer un compte.",
+    icone: Pencil,
+  },
+  {
+    cle: "comptes-disponible",
+    to: "/comptes/action",
+    label: "Comptes comptés dans le solde disponible",
+    detail: "Exclure l'épargne ou un compte réservé du solde disponible.",
+    icone: ShieldCheck,
+  },
+  {
+    cle: "comptes-transferts",
+    to: "/comptes/transferts",
+    label: "Historique des transferts",
+    detail: "Tous les mouvements d'un compte vers un autre.",
+    icone: ArrowLeftRight,
+  },
+  {
+    cle: "comptes-transfert-nouveau",
+    to: "/comptes/transferts/nouveau",
+    label: "Nouveau transfert entre comptes",
+    detail: "Déplacer de l'argent d'un compte vers un autre.",
+    icone: ArrowLeftRight,
+  },
+] as const;
 
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
@@ -188,6 +235,8 @@ export function BarreHaute() {
 
   const accueil = pathname === "/";
   const pageEnveloppes = pathname === "/enveloppes" || pathname.startsWith("/enveloppes/");
+  const pageComptes = pathname === "/comptes" || pathname.startsWith("/comptes/");
+  const actions = pageComptes ? ACTIONS_COMPTES : pageEnveloppes ? ACTIONS_ENVELOPPES : null;
   const titre = accueil
     ? `Bienvenue${nomUtilisateur ? ` ${nomUtilisateur}` : ""}`
     : entete.titre || titreDe(pathname);
@@ -253,7 +302,12 @@ export function BarreHaute() {
         })
       : null;
     if (cible) {
-      observateur?.observe(cible, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+      observateur?.observe(cible, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
     }
     return () => {
       cancelAnimationFrame(brut);
@@ -262,8 +316,6 @@ export function BarreHaute() {
       masques.clear();
     };
   }, [pathname, accueil]);
-
-
 
   // Échap ferme le panneau ; le défilement de fond est bloqué quand il est ouvert.
   useEffect(() => {
@@ -295,7 +347,6 @@ export function BarreHaute() {
       document.body.style.overflow = precedent;
     };
   }, [actionOuvert]);
-
 
   return (
     <>
@@ -349,7 +400,7 @@ export function BarreHaute() {
             </Link>
           )}
 
-          {pageEnveloppes ? (
+          {actions ? (
             <button
               ref={actionBtnRef}
               type="button"
@@ -357,7 +408,7 @@ export function BarreHaute() {
               aria-label={actionOuvert ? "Fermer les actions" : "Ouvrir les actions"}
               aria-haspopup="menu"
               aria-expanded={actionOuvert}
-              aria-controls="menu-actions-enveloppes"
+              aria-controls="menu-actions-page"
               className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform duration-200 active:scale-95"
             >
               Action
@@ -400,7 +451,6 @@ export function BarreHaute() {
           ouvert ? "translate-x-0" : "translate-x-full"
         }`}
       >
-
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="font-semibold">Menu</span>
           <button
@@ -455,15 +505,14 @@ export function BarreHaute() {
       />
 
       <aside
-        id="menu-actions-enveloppes"
+        id="menu-actions-page"
         role="menu"
-        aria-label="Actions sur les enveloppes"
+        aria-label={pageComptes ? "Actions sur les comptes" : "Actions sur les enveloppes"}
         aria-hidden={!actionOuvert}
         className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
         }`}
       >
-
         <div className="flex items-center justify-between px-1 pb-2">
           <span className="font-semibold">Action</span>
           <button
@@ -478,10 +527,10 @@ export function BarreHaute() {
 
         <nav>
           <ul className="space-y-2">
-            {ACTIONS_ENVELOPPES.map((a) => {
+            {(actions ?? []).map((a) => {
               const Icone = a.icone;
               return (
-                <li key={a.to}>
+                <li key={"cle" in a ? a.cle : a.to}>
                   <Link
                     to={a.to}
                     role="menuitem"
