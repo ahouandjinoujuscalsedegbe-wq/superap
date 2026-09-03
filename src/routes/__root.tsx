@@ -19,7 +19,7 @@ import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto"
 import { SmsAuto } from "@/components/SmsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
 import { BottomNav } from "../components/BottomNav";
-import { MenuPrincipal } from "../components/MenuPrincipal";
+import { BarreHaute } from "../components/BarreHaute";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
 import { installerCaptureGlobale } from "@/lib/journal";
@@ -175,7 +175,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SecuriteProvider>
         <SuperAppProvider>
-          <main className="app-page-shell safe-area-top mx-auto min-h-screen w-full max-w-md px-3 sm:px-4">
+          <main className="app-page-shell mx-auto min-h-screen w-full max-w-md px-3 pt-[calc(3.5rem+env(safe-area-inset-top))] sm:px-4">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <div key={pathname}>
               <Outlet />
@@ -186,7 +186,7 @@ function RootComponent() {
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
           <SmsAuto />
-          <MenuPrincipal />
+          <BarreHaute />
           {!pleinEcran && <BottomNav />}
           <ClavierInterne />
           <MajusculesPartout />
