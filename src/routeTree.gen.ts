@@ -75,6 +75,7 @@ import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.t
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 import { Route as EnveloppesModifierIndexRouteImport } from './routes/enveloppes.modifier.index'
 import { Route as EnveloppesModifierIdRouteImport } from './routes/enveloppes.modifier.$id'
+import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -408,6 +409,11 @@ const EnveloppesModifierIdRoute = EnveloppesModifierIdRouteImport.update({
   path: '/modifier/$id',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ApiPublicMajVersionRoute = ApiPublicMajVersionRouteImport.update({
+  id: '/api/public/maj/version',
+  path: '/api/public/maj/version',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -476,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -539,6 +546,7 @@ export interface FileRoutesByTo {
   '/budget/modifier': typeof BudgetModifierIndexRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -608,6 +616,7 @@ export interface FileRoutesById {
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/api/public/maj/version': typeof ApiPublicMajVersionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -678,6 +687,7 @@ export interface FileRouteTypes {
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/api/public/maj/version'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -741,6 +751,7 @@ export interface FileRouteTypes {
     | '/budget/modifier'
     | '/comptes/transferts'
     | '/enveloppes/modifier'
+    | '/api/public/maj/version'
   id:
     | '__root__'
     | '/'
@@ -809,6 +820,7 @@ export interface FileRouteTypes {
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/api/public/maj/version'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -837,6 +849,7 @@ export interface RootRouteChildren {
   SynchronisationRoute: typeof SynchronisationRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
+  ApiPublicMajVersionRoute: typeof ApiPublicMajVersionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1303,6 +1316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnveloppesModifierIdRouteImport
       parentRoute: typeof EnveloppesRoute
     }
+    '/api/public/maj/version': {
+      id: '/api/public/maj/version'
+      path: '/api/public/maj/version'
+      fullPath: '/api/public/maj/version'
+      preLoaderRoute: typeof ApiPublicMajVersionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1461,6 +1481,7 @@ const rootRouteChildren: RootRouteChildren = {
   SynchronisationRoute: SynchronisationRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
+  ApiPublicMajVersionRoute: ApiPublicMajVersionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
