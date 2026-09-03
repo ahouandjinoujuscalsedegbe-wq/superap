@@ -10,9 +10,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const salonSchema = z
-  .string()
-  .regex(/^[0-9a-f]{64}$/, "salon invalide");
+const salonSchema = z.string().regex(/^[0-9a-f]{64}$/, "salon invalide");
 const appareilSchema = z.string().min(1).max(60);
 
 const publierSchema = z.object({
