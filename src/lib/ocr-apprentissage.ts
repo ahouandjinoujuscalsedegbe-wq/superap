@@ -15,6 +15,7 @@ import {
   type OperationExtraite,
 } from "@/lib/extraction";
 import { contexteBenin } from "@/lib/tickets-benin";
+import { noterAction } from "@/lib/memoire-utilisateur";
 
 const CLE = "superapp:ocr:apprentissage:v1";
 
@@ -296,6 +297,7 @@ export function apprendreTicket(entree: ValidationTicket, memoire = lireMemoireO
   const { texte, propose, valide } = entree;
   const cle = cleTicket(valide.libelle) || cleTicket(propose.libelle);
   if (!cle) return memoire;
+  noterAction("correction-ticket", cle, valide.montant);
 
   const montantCorrige = Math.abs(valide.montant - propose.montant) > 1;
   const libelleCorrige = cleTicket(valide.libelle) !== cleTicket(propose.libelle);
