@@ -167,27 +167,54 @@ function Budgetisation() {
   const nbDues = dues.reduce((s, d) => s + d.n, 0);
   const montantDu = dues.reduce((s, d) => s + d.n * d.b.montant, 0);
 
-  /** Dépenses planifiées et à venir, regroupées par enveloppe de prélèvement. */
-  const groupes = useMemo(() => {
-    const map = new Map<string, typeof budgets>();
+  function nomEnveloppe(id: string): string {
+    const env = enveloppes.find((e) => e.id === id);
+    return env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée";
+  }
+
+  const MOIS_FR = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
+
+  /** Regroupement des dépenses planifiées selon l'axe choisi. */
+  function grouper(axe: "mois" | "enveloppe" | "libelle") {
+    const map = new Map<string, { nom: string; liste: typeof budgets }>();
     for (const b of budgets) {
-      const cle = b.enveloppeId || "__sans";
-      const liste = map.get(cle) ?? [];
-      liste.push(b);
-      map.set(cle, liste);
+      let cle = "";
+      let nom = "";
+      if (axe === "enveloppe") {
+        cle = b.enveloppeId || "__sans";
+        nom = nomEnveloppe(b.enveloppeId);
+      } else if (axe === "libelle") {
+        cle = b.libelle.trim().toLowerCase() || "__sans";
+        nom = b.libelle.trim() || "Sans libellé";
+      } else {
+        const iso = b.debut ?? b.prochaine;
+        const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso);
+        cle = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        nom = MOIS_FR.format(d);
+      }
+      const g = map.get(cle) ?? { nom, liste: [] as typeof budgets };
+      g.liste.push(b);
+      map.set(cle, g);
     }
-    return Array.from(map.entries()).map(([id, liste]) => {
-      const env = enveloppes.find((e) => e.id === id);
-      return {
+    return Array.from(map.entries())
+      .sort((a, z) => (axe === "mois" ? a[0].localeCompare(z[0]) : a[1].nom.localeCompare(z[1].nom, "fr")))
+      .map(([id, g]) => ({
         id,
-        nom: env ? `${env.emoji} ${env.nom}` : "Enveloppe supprimée",
-        liste: liste
+        nom: g.nom,
+        liste: g.liste
           .slice()
           .sort((a, z) => (a.debut ?? a.prochaine).localeCompare(z.debut ?? z.prochaine)),
-        total: liste.reduce((s, b) => s + b.montant, 0),
-      };
-    });
-  }, [budgets, enveloppes]);
+        total: g.liste.reduce((s, b) => s + b.montant, 0),
+      }));
+  }
+
+  const [axe, setAxe] = useState<"mois" | "enveloppe" | "libelle" | null>(null);
+  const groupes = useMemo(
+    () => (axe ? grouper(axe) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [axe, budgets, enveloppes],
+  );
+
 
   const totalPlanifie = budgets.reduce((s, b) => s + b.montant, 0);
   const enveloppeChoisie = enveloppes.find((e) => e.id === bEnveloppe);
