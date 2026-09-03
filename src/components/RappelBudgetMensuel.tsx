@@ -6,6 +6,7 @@ import { useSuperApp } from "@/lib/store";
 import { ajusterAuRevenu, proposerDotations } from "@/lib/budget-auto";
 import { lireReglagesAlarme } from "@/lib/alarme";
 import { jouerSonAlarme, notifierAlarme, vibrerAlarme } from "@/lib/alarme-appareil";
+import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {
   DUREE_SONNERIE_MS,
   lireEtatRappel,
@@ -93,12 +94,17 @@ export function RappelBudgetMensuel() {
     if (!reglages.active) return;
 
     setSonne(true);
+    const titreRappel = "Budget du mois à vérifier";
+    const texteRappel =
+      "Vos enveloppes viennent d'être renouvelées. Modifiez votre budget, sinon la proposition automatique sera retenue.";
     if (reglages.notification) {
       void notifierAlarme(
         "Budget du mois à vérifier",
         "Vos enveloppes viennent d'être renouvelées. Modifiez votre budget, sinon la proposition automatique sera retenue.",
         true,
       );
+    } else {
+      void publierAlerteConseiller({ titre: titreRappel, texte: texteRappel, urgent: true });
     }
     const bip = () => {
       if (reglages.son) void jouerSonAlarme(reglages.volume, true);
