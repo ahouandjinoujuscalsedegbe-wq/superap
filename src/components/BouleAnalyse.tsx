@@ -46,6 +46,8 @@ export function BouleAnalyse() {
   const [notes, setNotes] = useState<Record<string, number>>({});
   const [faits, setFaits] = useState<string[]>([]);
   const [bilan, setBilan] = useState(() => bilanSecours());
+  /** Signature du contenu déjà consulté : sert à ne clignoter que sur du nouveau. */
+  const [vu, setVu] = useState("");
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [glisse, setGlisse] = useState(false);
   const refBoule = useRef<HTMLButtonElement | null>(null);
