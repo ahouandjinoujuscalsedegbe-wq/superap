@@ -460,8 +460,9 @@ function Budgetisation() {
                           <div className="space-y-2 border-t border-border/70 bg-background/40 p-3 text-xs">
                             <p>
                               <span className="text-muted-foreground">Enveloppe : </span>
-                              {g.nom}
+                              {nomEnveloppe(b.enveloppeId)}
                             </p>
+
                             <p>
                               <span className="text-muted-foreground">Périodicité : </span>
                               {libelleRepetition(b)}
