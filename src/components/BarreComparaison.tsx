@@ -26,8 +26,7 @@ const CONFIG_STATUT: Record<
     fond: "bg-budget-bonne",
     bordure: "border-budget-bonne/50",
     ombre: "0 10px 25px -8px color-mix(in oklab, var(--budget-bonne) 25%, transparent)",
-    message: (prevu, depense) =>
-      `Génial ! Il te reste ${formatFCFA(prevu - depense)} à dépenser.`,
+    message: (prevu, depense) => `Génial ! Il te reste ${formatFCFA(prevu - depense)} à dépenser.`,
   },
   presque: {
     badge: "Presque",
@@ -35,8 +34,7 @@ const CONFIG_STATUT: Record<
     fond: "bg-budget-alerte",
     bordure: "border-budget-alerte/50",
     ombre: "0 10px 25px -8px color-mix(in oklab, var(--budget-alerte) 25%, transparent)",
-    message: (prevu, depense) =>
-      `Fais attention ! Il ne reste que ${formatFCFA(prevu - depense)}.`,
+    message: (prevu, depense) => `Fais attention ! Il ne reste que ${formatFCFA(prevu - depense)}.`,
   },
   oups: {
     badge: "Oups",
@@ -44,8 +42,7 @@ const CONFIG_STATUT: Record<
     fond: "bg-budget-depassement",
     bordure: "border-budget-depassement/50",
     ombre: "0 10px 25px -8px color-mix(in oklab, var(--budget-depassement) 25%, transparent)",
-    message: (prevu, depense) =>
-      `Attention ! Tu as dépassé de ${formatFCFA(depense - prevu)}.`,
+    message: (prevu, depense) => `Attention ! Tu as dépassé de ${formatFCFA(depense - prevu)}.`,
   },
   parfait: {
     badge: "Parfait",
