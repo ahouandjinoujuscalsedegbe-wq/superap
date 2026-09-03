@@ -7,7 +7,6 @@ import {
   FileText,
   HandCoins,
   Layers,
-  MessageSquare,
   Target,
   Wallet,
 } from "lucide-react";
