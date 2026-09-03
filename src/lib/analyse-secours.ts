@@ -201,7 +201,40 @@ export type SolutionSecours = {
   gravite: number;
   /** Ce que l'utilisateur gagne concrètement s'il applique la solution. */
   impact: string;
+  /** true quand toutes les pistes de transfert ont déjà été traitées ou sont épuisées. */
+  sansTransfert: boolean;
+  /** Conseils concrets, toujours renseignés même sans transfert possible. */
+  conseils: string[];
 };
+
+/** Conseils de repli : l'intelligence propose toujours quelque chose. */
+function conseilsRepli(plan: PlanSecours, couverture: number): string[] {
+  const restant = Math.max(0, Math.round(plan.manque - couverture));
+  const nom = plan.enveloppe.nom;
+  const liste: string[] = [];
+  if (plan.conseil) liste.push(plan.conseil);
+  if (restant > 0) {
+    liste.push(
+      `Suspendez toute nouvelle dépense sur ${nom} jusqu'au prochain renouvellement : il manque encore ${fcfaCourt(restant)}.`,
+    );
+    liste.push(
+      `Reportez ${fcfaCourt(restant)} de dépenses non vitales de ${nom} sur le mois suivant, ou étalez-les en deux fois.`,
+    );
+    liste.push(
+      `Augmentez la dotation de ${nom} dans « Proposition auto » du budget : le dépassement se répète sinon chaque mois.`,
+    );
+    liste.push(
+      `Si une rentrée est prévue, affectez-en ${fcfaCourt(restant)} en priorité à ${nom} dès sa réception.`,
+    );
+  } else {
+    liste.push(`Les transferts proposés suffisent : appliquez-les puis surveillez ${nom}.`);
+  }
+  return liste;
+}
+
+function fcfaCourt(v: number): string {
+  return `${Math.round(v).toLocaleString("fr-FR")} FCFA`;
+}
 
 /** Solutions issues de la fusion analyse + secours, de la plus urgente à la moins urgente. */
 export function solutionsSecours(
