@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Wallet, Sparkles, Landmark, MessageCircle } from "lucide-react";
+import { Home, MessageSquareText, Sparkles, Landmark, MessageCircle } from "lucide-react";
 
 const RAYON_SAISIE = 26;
 const FACES_SAISIE = [
@@ -13,7 +13,7 @@ const FACES_SAISIE = [
 
 const ONGLETS = [
   { to: "/", label: "Accueil", icone: Home },
-  { to: "/enveloppes", label: "Enveloppes", icone: Wallet },
+  { to: "/messages", label: "Messages", icone: MessageSquareText },
   { to: "/saisie", label: "Saisie intelligente", icone: Sparkles, milieu: true },
   { to: "/comptes", label: "Comptes", icone: Landmark },
   { to: "/notifications", label: "Mon conseiller", icone: MessageCircle, tailleIcone: "h-6 w-6" },
