@@ -51,7 +51,7 @@ const ACTIONS_ENVELOPPES = [
     icone: Plus,
   },
   {
-    to: "/enveloppes/gerer",
+    to: "/enveloppes/modifier",
     label: "Modifier une enveloppe existante",
     detail: "Modifier ou supprimer une enveloppe existante.",
     icone: Pencil,
@@ -139,8 +139,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/enveloppes/classer", "Classer les enveloppes"],
   ["/enveloppes/creer", "Créer une enveloppe"],
   ["/enveloppes/details", "Détails de l'enveloppe"],
-  ["/enveloppes/gerer", "Modifier une enveloppe existante"],
-  ["/enveloppes/modifier", "Modifier l'enveloppe"],
+  ["/enveloppes/modifier", "Modifier une enveloppe existante"],
   ["/enveloppes/renouvellements", "Renouvellements"],
   ["/enveloppes/secours", "Enveloppe de secours"],
   ["/enveloppes/action", "Action sur l'enveloppe"],
