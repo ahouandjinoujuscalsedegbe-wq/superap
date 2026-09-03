@@ -422,10 +422,11 @@ export function BarreHaute() {
         role="menu"
         aria-label="Actions sur les enveloppes"
         aria-hidden={!actionOuvert}
-        className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[70] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+        className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
           actionOuvert ? "visible translate-y-0" : "invisible -translate-y-full"
         }`}
       >
+
         <div className="flex items-center justify-between px-1 pb-2">
           <span className="font-semibold">Action</span>
           <button
