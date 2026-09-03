@@ -380,13 +380,47 @@ function Budgetisation() {
         )}
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Dépenses planifiées à venir, par enveloppe</h3>
-          {groupes.length === 0 ? (
+          <h3 className="text-sm font-medium">Dépenses planifiées à venir</h3>
+          {budgets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Aucune dépense planifiée. Utilisez « Planifier une dépense ».
             </p>
           ) : (
-            groupes.map((g) => (
+            (
+              [
+                { id: "mois", titre: "Mois par mois", desc: "Regroupées par mois d'échéance" },
+                {
+                  id: "enveloppe",
+                  titre: "Enveloppe par enveloppe",
+                  desc: "Regroupées par enveloppe de prélèvement",
+                },
+                {
+                  id: "libelle",
+                  titre: "Dépense par dépense",
+                  desc: "Regroupées par libellé de la dépense",
+                },
+              ] as const
+            ).map((bande) => (
+              <div key={bande.id} className="overflow-hidden rounded-xl border border-border/70">
+                <button
+                  type="button"
+                  onClick={() => setAxe(axe === bande.id ? null : bande.id)}
+                  aria-expanded={axe === bande.id}
+                  className="flex w-full items-center justify-between gap-2 bg-secondary/50 px-3 py-3 text-left transition-colors hover:bg-accent/30"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{bande.titre}</span>
+                    <span className="block text-xs text-muted-foreground">{bande.desc}</span>
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className={`h-4 w-4 shrink-0 transition-transform ${axe === bande.id ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {axe === bande.id && (
+                  <div className="space-y-3 border-t border-border/70 p-3">
+                    {groupes.map((g) => (
+
               <div key={g.id} className="space-y-2">
                 <p className="flex items-center justify-between gap-2 text-sm font-semibold">
                   <span className="truncate">{g.nom}</span>
