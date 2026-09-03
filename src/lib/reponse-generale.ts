@@ -38,7 +38,7 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
   {
     id: "apprentissage",
     motif:
-      /apprentissage|apprends|tu apprends|intelligence|ia\b|memoire|habitude|tu me connais|fiabilite/,
+      /apprentissage|appris|apprends|tu apprends|intelligence|ia\b|memoire|habitude|tu me connais|fiabilite/,
   },
   { id: "comptes", motif: /\bcompte|solde|banque|momo|moov|wave|especes|caisse|disponible/ },
   { id: "dettes", motif: /dette|creance|je dois|on me doit|rembours|prete|emprunt/ },
