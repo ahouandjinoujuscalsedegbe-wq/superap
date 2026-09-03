@@ -30,4 +30,4 @@ function PageSuivBudget() {
       <FicheSuiviBudget />
     </div>
   );
-});
+}

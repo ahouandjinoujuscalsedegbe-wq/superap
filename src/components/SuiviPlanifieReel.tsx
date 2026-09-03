@@ -77,9 +77,7 @@ export function SuiviPlanifieReel() {
         </div>
         <div>
           <p className="text-[11px] uppercase text-muted-foreground">Écart</p>
-          <p
-            className={`text-sm font-bold ${ecart > 0 ? "text-destructive" : "text-emerald-600"}`}
-          >
+          <p className={`text-sm font-bold ${ecart > 0 ? "text-destructive" : "text-emerald-600"}`}>
             {ecart > 0 ? "+" : ""}
             {formatFCFA(ecart)}
           </p>
@@ -168,7 +166,10 @@ export function SuiviPlanifieReel() {
             {planifiees.map((l, i) => {
               const env = enveloppes.find((e) => e.id === l.budget.enveloppeId);
               return (
-                <li key={`${l.budget.id}-${l.date}-${i}`} className="carte flex items-center gap-3 p-3">
+                <li
+                  key={`${l.budget.id}-${l.date}-${i}`}
+                  className="carte flex items-center gap-3 p-3"
+                >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{l.budget.libelle}</p>
                     <p className="text-xs text-muted-foreground">
