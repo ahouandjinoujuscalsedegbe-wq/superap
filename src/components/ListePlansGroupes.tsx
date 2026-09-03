@@ -49,11 +49,13 @@ export function ListePlansGroupes({ axe }: { axe: AxePlan }) {
   const { budgets, enveloppes, convertirBudget, supprimerBudget } = useSuperApp();
   const [ouverte, setOuverte] = useState<string | null>(null);
   const [demande, setDemande] = useState<
-    null | { type: "conversion"; id: string; libelle: string; montant: number } | {
-      type: "suppression";
-      id: string;
-      libelle: string;
-    }
+    | null
+    | { type: "conversion"; id: string; libelle: string; montant: number }
+    | {
+        type: "suppression";
+        id: string;
+        libelle: string;
+      }
   >(null);
 
   const infos = AXES_PLAN.find((a) => a.id === axe) ?? AXES_PLAN[0]!;
