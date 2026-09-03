@@ -224,6 +224,15 @@ export function BarreHaute() {
     };
   }, [ouvert]);
 
+  useEffect(() => {
+    if (!actionOuvert) return;
+    const precedent = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = precedent;
+    };
+  }, [actionOuvert]);
+
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-[60] border-b border-border bg-card/95 pt-[env(safe-area-inset-top)] shadow-sm backdrop-blur">
@@ -276,21 +285,35 @@ export function BarreHaute() {
             </Link>
           )}
 
-          <button
-            type="button"
-            onClick={() => setOuvert((v) => !v)}
-            aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
-            aria-haspopup="menu"
-            aria-expanded={ouvert}
-            aria-controls="menu-principal"
-            className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
-          >
-            {ouvert ? (
-              <X className="h-5 w-5" aria-hidden />
-            ) : (
-              <MoreVertical className="h-5 w-5" aria-hidden />
-            )}
-          </button>
+          {pageEnveloppes ? (
+            <button
+              type="button"
+              onClick={() => setActionOuvert((v) => !v)}
+              aria-label={actionOuvert ? "Fermer les actions" : "Ouvrir les actions"}
+              aria-haspopup="menu"
+              aria-expanded={actionOuvert}
+              aria-controls="menu-actions-enveloppes"
+              className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform duration-200 active:scale-95"
+            >
+              Action
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setOuvert((v) => !v)}
+              aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-haspopup="menu"
+              aria-expanded={ouvert}
+              aria-controls="menu-principal"
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              {ouvert ? (
+                <X className="h-5 w-5" aria-hidden />
+              ) : (
+                <MoreVertical className="h-5 w-5" aria-hidden />
+              )}
+            </button>
+          )}
         </div>
       </header>
 
