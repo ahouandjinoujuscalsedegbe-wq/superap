@@ -62,6 +62,11 @@ export function BouleAnalyse() {
     } catch {
       /* position par défaut */
     }
+    try {
+      setVu(localStorage.getItem("boule-analyse-vu") ?? "");
+    } catch {
+      /* rien vu */
+    }
   }, []);
 
   const debutGlisse = useCallback((e: PointerEventReact<HTMLButtonElement>) => {
