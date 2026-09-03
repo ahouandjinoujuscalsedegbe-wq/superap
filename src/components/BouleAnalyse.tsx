@@ -55,19 +55,16 @@ export function BouleAnalyse() {
    * Popup de notation obligatoire avant qu'une action (appliquer/ignorer)
    * ne soit réellement prise en compte.
    */
-  const [popupNote, setPopupNote] = useState<
-    | {
-        action: "appliquer" | "ignorer";
-        solutionId: string;
-        cle: string;
-        cibleId?: string;
-        cibleNom: string;
-        donneurId?: string;
-        donneurNom: string;
-        propose: number;
-      }
-    | null
-  >(null);
+  const [popupNote, setPopupNote] = useState<{
+    action: "appliquer" | "ignorer";
+    solutionId: string;
+    cle: string;
+    cibleId?: string;
+    cibleNom: string;
+    donneurId?: string;
+    donneurNom: string;
+    propose: number;
+  } | null>(null);
   const [noteTemp, setNoteTemp] = useState(0);
 
   // Position mémorisée : la boule reste où l'utilisateur l'a posée, sur toutes les pages.
@@ -490,9 +487,7 @@ export function BouleAnalyse() {
                   <Star
                     aria-hidden
                     className={`h-7 w-7 ${
-                      noteTemp >= n
-                        ? "fill-primary text-primary"
-                        : "text-muted-foreground"
+                      noteTemp >= n ? "fill-primary text-primary" : "text-muted-foreground"
                     }`}
                   />
                 </button>
