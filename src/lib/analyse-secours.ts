@@ -34,9 +34,17 @@ export type MemoireSecours = {
   inutiles: number;
   /** Notes de 1 à 5 données aux solutions avant approbation ou rejet. */
   notes: number[];
+  /** Propositions déjà consultées et traitées : clé « cibleId-donneurId » → date. */
+  traitees: Record<string, string>;
 };
 
-export const MEMOIRE_VIDE: MemoireSecours = { decisions: [], utiles: 0, inutiles: 0, notes: [] };
+export const MEMOIRE_VIDE: MemoireSecours = {
+  decisions: [],
+  utiles: 0,
+  inutiles: 0,
+  notes: [],
+  traitees: {},
+};
 
 const MAX_DECISIONS = 200;
 
