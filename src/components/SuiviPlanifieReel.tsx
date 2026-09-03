@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { formatFCFA } from "@/lib/format";
+import { BarreComparaison } from "@/components/BarreComparaison";
 import { useSuperApp } from "@/lib/store";
 import { decalerMois } from "@/lib/budget-mensuel";
 import { AXES_SUIVI, depensesDuMois, echeancesDuMois } from "@/lib/suivi-planifie";
@@ -41,29 +42,26 @@ export function SuiviPlanifieReel() {
 
   return (
     <div className="space-y-4">
-      <section className="carte space-y-3 p-4">
+      <section className="carte space-y-4 p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Tableau de bord — {moisLisible(moisActuel)}
+          Mon mois — {moisLisible(moisActuel)}
         </p>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p className="text-[11px] uppercase text-muted-foreground">Planifié</p>
-            <p className="text-sm font-bold">{formatFCFA(totalPlanifie)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase text-muted-foreground">Réel saisi</p>
-            <p className="text-sm font-bold">{formatFCFA(totalReel)}</p>
-          </div>
-          <div>
-            <p className="text-[11px] uppercase text-muted-foreground">Écart</p>
-            <p
-              className={`text-sm font-bold ${ecart > 0 ? "text-destructive" : "text-emerald-600"}`}
-            >
-              {ecart > 0 ? "+" : ""}
-              {formatFCFA(ecart)}
-            </p>
-          </div>
-        </div>
+
+        <BarreComparaison prevu={totalPlanifie} depense={totalReel} />
+
+        <p
+          className={`rounded-xl p-3 text-sm font-semibold ${
+            ecart > 0
+              ? "bg-destructive/10 text-destructive"
+              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          }`}
+        >
+          {ecart > 0
+            ? `Attention : tu as dépensé ${formatFCFA(ecart)} de plus que prévu.`
+            : ecart === 0
+              ? "Parfait : tu as dépensé exactement ce qui était prévu."
+              : `Bravo : il te reste encore ${formatFCFA(-ecart)} sur ce qui était prévu.`}
+        </p>
       </section>
 
       <div className="carte overflow-hidden">
@@ -74,7 +72,7 @@ export function SuiviPlanifieReel() {
         >
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-primary">
-              Voir la comparaison détaillée
+              Voir le détail, ligne par ligne
             </p>
             <p className="text-xs text-muted-foreground">{moisLisible(mois)}</p>
           </div>
