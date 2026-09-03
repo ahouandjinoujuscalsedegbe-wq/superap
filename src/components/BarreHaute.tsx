@@ -142,6 +142,10 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/budget/plan-par/libelle", "Dépense par dépense"],
   ["/budget/plan", "Plan des dépenses"],
 
+  ["/budget/suivi-par/enveloppe", "Enveloppe par enveloppe"],
+  ["/budget/suivi-par/libelle", "Dépense par dépense"],
+  ["/budget/suivi-par/sous-categorie", "Sous-catégorie par sous-catégorie"],
+  ["/budget/suivi-par/categorie", "Catégorie par catégorie"],
   ["/budget/suivi", "Suivi du mois"],
   ["/budget/auto", "Proposition auto"],
   ["/budget", "Budgétisation"],
