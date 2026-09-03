@@ -138,6 +138,7 @@ function texteDe(n: Element | null | undefined): string {
  */
 export function BarreHaute() {
   const [ouvert, setOuvert] = useState(false);
+  const [actionOuvert, setActionOuvert] = useState(false);
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const panneau = useRef<HTMLElement>(null);
