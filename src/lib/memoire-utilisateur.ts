@@ -2,7 +2,7 @@
  * Mémoire des habitudes de l'utilisateur, partagée par toutes les
  * intelligences locales de l'application.
  *
- * Chaque intelligence (conseiller, budget automatique, lecture des SMS,
+ * Chaque intelligence (conseiller, budget automatique,
  * lecture des tickets, saisie intelligente…) écrit ici ce qu'elle observe et
  * lit ici ce que les autres ont déjà appris. Résultat : elles progressent
  * ensemble au lieu d'apprendre chacune dans son coin.
@@ -27,7 +27,6 @@ export type TypeAction =
   | "conseil-utile"
   | "conseil-inutile"
   | "ecran"
-  | "correction-sms"
   | "correction-ticket";
 
 export type ActionMemorisee = {

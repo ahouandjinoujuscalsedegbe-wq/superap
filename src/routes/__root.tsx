@@ -16,7 +16,6 @@ import { SuperAppProvider } from "@/lib/store";
 import { RappelsDepensesPlanifiees } from "@/components/RappelsDepensesPlanifiees";
 import { RemplissageAuto } from "@/components/RemplissageAuto";
 import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
-import { SmsAuto } from "@/components/SmsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
 import { RappelFinBudget } from "@/components/RappelFinBudget";
 import { BottomNav } from "../components/BottomNav";
@@ -189,7 +188,6 @@ function RootComponent() {
           <MemoireHabitudes />
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
-          <SmsAuto />
           <BarreHaute />
           {!pleinEcran && <BottomNav />}
           <ClavierInterne />

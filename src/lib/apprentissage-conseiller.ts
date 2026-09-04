@@ -4,13 +4,12 @@
  * Le conseiller observe l'effet de ses propres messages (lus, jugés utiles ou
  * inutiles), en tire des poids par thème, ajuste sa cadence et son insistance,
  * puis se met en réseau avec les autres intelligences locales de
- * l'application (lecture des tickets, lecture des SMS, budget automatique)
+ * l'application (lecture des tickets, budget automatique)
  * pour parler de ce qui compte vraiment. Tout est calculé et stocké sur
  * l'appareil : aucune donnée ne sort.
  */
 
 import { fiabiliteOcr, lireMemoireOcr } from "@/lib/ocr-apprentissage";
-import { statsSms, tauxJustesse, tauxReconnaissance } from "@/lib/sms-transactions";
 import { chargerPreferencesBudget } from "@/lib/budget-auto";
 
 const CLE_PROFIL = "super-app:apprentissage-conseiller";
@@ -173,9 +172,6 @@ export type CollaborationIa = {
   /** Justesse de la lecture des tickets, en pourcentage (0 si inconnue). */
   ocr: number;
   ticketsAppris: number;
-  /** Reconnaissance et justesse de la lecture des SMS, en pourcentage. */
-  smsReconnaissance: number;
-  smsJustesse: number;
   /** Nombre d'enveloppes dont le budget automatique a appris vos corrections. */
   budgetCorrige: number;
   /** Maturité globale du réseau d'intelligences, en pourcentage. */
@@ -186,8 +182,6 @@ export type CollaborationIa = {
 export function lireCollaborationIa(): CollaborationIa {
   let ocr = 0;
   let ticketsAppris = 0;
-  let smsReconnaissance = 0;
-  let smsJustesse = 0;
   let budgetCorrige = 0;
   try {
     const memoire = lireMemoireOcr();
@@ -198,21 +192,14 @@ export function lireCollaborationIa(): CollaborationIa {
     /* module indisponible : la collaboration continue sans lui */
   }
   try {
-    const s = statsSms();
-    smsReconnaissance = Math.round(tauxReconnaissance(s) * 100);
-    smsJustesse = Math.round(tauxJustesse(s) * 100);
-  } catch {
-    /* idem */
-  }
-  try {
     budgetCorrige = Object.keys(chargerPreferencesBudget()).length;
   } catch {
     /* idem */
   }
-  const mesures = [ocr, smsJustesse, smsReconnaissance].filter((v) => v > 0);
+  const mesures = [ocr].filter((v) => v > 0);
   const maturite =
     mesures.length > 0 ? Math.round(mesures.reduce((s, v) => s + v, 0) / mesures.length) : 0;
-  return { ocr, ticketsAppris, smsReconnaissance, smsJustesse, budgetCorrige, maturite };
+  return { ocr, ticketsAppris, budgetCorrige, maturite };
 }
 
 export type BilanCollaboration = {
@@ -240,9 +227,6 @@ export function bilanCollaboration(
     collab.ocr > 0
       ? `Lecture des tickets : ${collab.ocr} % de justesse sur ${collab.ticketsAppris} ticket(s) appris.`
       : "Lecture des tickets : pas encore d'apprentissage.",
-    collab.smsReconnaissance > 0
-      ? `Lecture des SMS : ${collab.smsReconnaissance} % reconnus, ${collab.smsJustesse} % justes.`
-      : "Lecture des SMS : pas encore de message analysé.",
     collab.budgetCorrige > 0
       ? `Budget automatique : ${collab.budgetCorrige} enveloppe(s) ajustée(s) d'après vos corrections.`
       : "Budget automatique : aucune correction mémorisée pour l'instant.",
@@ -250,8 +234,6 @@ export function bilanCollaboration(
   ];
   const conseils: string[] = [];
   if (collab.ocr > 0 && collab.ocr < 80) conseils.push("corrigez un ticket mal lu");
-  if (collab.smsJustesse > 0 && collab.smsJustesse < 85)
-    conseils.push("confirmez un message de transaction");
   if (collab.budgetCorrige === 0) conseils.push("ajustez une proposition de budget");
   const texte =
     `Je progresse avec les autres intelligences de l'application : maturité commune ${collab.maturite} %.` +

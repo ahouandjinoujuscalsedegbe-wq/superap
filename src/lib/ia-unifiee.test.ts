@@ -47,8 +47,6 @@ function donnees(): DonneesUnifiees {
     collaboration: {
       ocr: 80,
       ticketsAppris: 2,
-      smsReconnaissance: 70,
-      smsJustesse: 90,
       budgetCorrige: 1,
       maturite: 60,
     },

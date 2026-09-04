@@ -3,7 +3,7 @@
  *
  * Le conseiller ne se limite plus au budget et aux enveloppes : il interroge
  * le réseau unifié des intelligences (cerveau, coach, analyste, suivi
- * planifié, objectifs, lecture des SMS et des tickets, mémoire des habitudes)
+ * planifié, objectifs, lecture des tickets, mémoire des habitudes)
  * pour répondre à beaucoup plus de questions, toujours hors ligne.
  */
 import { resteDu } from "./store";
@@ -65,7 +65,7 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
     case "capacites":
       return {
         reponse:
-          "Je réunis toutes les intelligences de l'application : chiffres du mois, comptes, enveloppes, dettes, objectifs, dépenses planifiées, prévisions, lecture des SMS et des tickets, et vos habitudes.",
+          "Je réunis toutes les intelligences de l'application : chiffres du mois, comptes, enveloppes, dettes, objectifs, dépenses planifiées, prévisions, lecture des tickets, et vos habitudes.",
         details: [
           "Exemples : « quel est le solde de mes comptes ? », « combien je dois ? », « où en sont mes objectifs ? »",
           "« est-ce que je respecte mon budget planifié ? », « quelles alertes aujourd'hui ? »",
