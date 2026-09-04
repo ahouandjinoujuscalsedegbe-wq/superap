@@ -3,7 +3,7 @@
  *
  * L'application contient plusieurs intelligences spécialisées : le cerveau
  * (faits et règles), le coach (bilans et conseils), l'analyste (prévisions),
- * le budget automatique, la lecture des SMS, la lecture des tickets, la saisie
+ * le budget automatique, la lecture des tickets, la saisie
  * intelligente, le suivi planifié/réel, les objectifs. Chacune savait faire
  * une chose. Ce module les met en réseau : il rassemble en un seul état
  * partagé ce que chacune sait, y ajoute la mémoire des habitudes de
@@ -60,7 +60,7 @@ export type EtatIA = {
   suivi: ComparaisonEnveloppe[];
   /** Suivi des objectifs d'épargne. */
   objectifs: SuiviObjectif[];
-  /** Ce que les autres intelligences ont appris (SMS, tickets, budget). */
+  /** Ce que les autres intelligences ont appris (tickets, budget). */
   collaboration: CollaborationIa;
   /** Habitudes mémorisées de l'utilisateur. */
   habitudes: Habitudes;
@@ -239,7 +239,6 @@ export function etatApprentissage(etat: EtatIA): string[] {
   return [
     `Maturité du réseau : ${etat.maturite} %.`,
     `Lecture des tickets : ${c.ocr} % de justesse sur ${c.ticketsAppris} commerçant(s) appris.`,
-    `Lecture des SMS : ${c.smsReconnaissance} % de messages reconnus, ${c.smsJustesse} % justes.`,
     `Budget automatique : ${c.budgetCorrige} enveloppe(s) ajustées d'après vos corrections.`,
     ...phrasesHabitudes(etat.habitudes),
   ];

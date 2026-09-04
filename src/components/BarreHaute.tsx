@@ -175,7 +175,6 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/analyses", "Analyses et conseils"],
   ["/assistant", "Mon conseiller"],
   ["/notifications", "Mon conseiller"],
-  ["/messages", "Messages de transaction"],
   ["/rapport", "Rapport mensuel"],
   ["/recherche", "Rechercher"],
   ["/outils", "Outils"],
