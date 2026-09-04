@@ -198,56 +198,43 @@ jobs:
           print("AndroidManifest.xml configuré pour l'auto-update.")
           PY
 
-      # 7c. Brancher le lecteur natif de SMS (enregistrement automatique)
-      - name: Installer le lecteur de SMS natif
+      # 7c. Brancher le contrôle natif d'intégrité
+      - name: Installer le plugin d'intégrité natif
         run: |
           DEST=android/app/src/main/java/com/superapp/budget
           mkdir -p "$DEST"
-          cp native/android/SMSInboxReaderPlugin.java "$DEST/SMSInboxReaderPlugin.java"
           cp native/android/IntegriteAppPlugin.java "$DEST/IntegriteAppPlugin.java"
 
           python3 <<'PY'
           from pathlib import Path
 
-          manifest = Path("android/app/src/main/AndroidManifest.xml")
-          contenu = manifest.read_text(encoding="utf-8")
-          for perm in [
-              '<uses-permission android:name="android.permission.READ_SMS" />',
-              '<uses-permission android:name="android.permission.RECEIVE_SMS" />',
-          ]:
-              if perm not in contenu:
-                  contenu = contenu.replace("<application", perm + "\n\n    <application", 1)
-          manifest.write_text(contenu, encoding="utf-8")
-
           activite = Path("android/app/src/main/java/com/superapp/budget/MainActivity.java")
           code = activite.read_text(encoding="utf-8")
-          if "SMSInboxReaderPlugin" not in code:
-              code = code.replace(
-                  "public class MainActivity extends BridgeActivity {",
-                  "public class MainActivity extends BridgeActivity {\n"
-                  "    @Override\n"
-                  "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
-                  "        registerPlugin(SMSInboxReaderPlugin.class);\n"
-                  "        registerPlugin(IntegriteAppPlugin.class);\n"
-                  "        super.onCreate(savedInstanceState);\n"
-                  "    }\n",
-                  1,
-              )
+          if "IntegriteAppPlugin" not in code:
               if code.rstrip().endswith("BridgeActivity {}"):
                   code = code.replace(
                       "public class MainActivity extends BridgeActivity {}",
                       "public class MainActivity extends BridgeActivity {\n"
                       "    @Override\n"
                       "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
-                      "        registerPlugin(SMSInboxReaderPlugin.class);\n"
                       "        registerPlugin(IntegriteAppPlugin.class);\n"
-                  "        registerPlugin(IntegriteAppPlugin.class);\n"
                       "        super.onCreate(savedInstanceState);\n"
                       "    }\n}\n",
                       1,
                   )
+              else:
+                  code = code.replace(
+                      "public class MainActivity extends BridgeActivity {",
+                      "public class MainActivity extends BridgeActivity {\n"
+                      "    @Override\n"
+                      "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
+                      "        registerPlugin(IntegriteAppPlugin.class);\n"
+                      "        super.onCreate(savedInstanceState);\n"
+                      "    }\n",
+                      1,
+                  )
               activite.write_text(code, encoding="utf-8")
-          print("Lecteur SMS natif installé et enregistré.")
+          print("Plugin d'intégrité natif installé et enregistré.")
           PY
 
       # 8. Reprendre le numéro de version depuis src/lib/version.ts
