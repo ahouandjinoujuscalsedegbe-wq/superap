@@ -31,8 +31,10 @@ async function assetsRelease(jeton: string): Promise<Asset[] | null> {
   const liste = await fetch(`${base}?per_page=15`, { headers: h });
   if (!liste.ok) return null;
   const releases = (await liste.json()) as Array<{ draft?: boolean; assets?: Asset[] }>;
-  return releases.find((r) => !r.draft && r.assets?.some((a) => a.name === "version.json"))
-    ?.assets ?? null;
+  return (
+    releases.find((r) => !r.draft && r.assets?.some((a) => a.name === "version.json"))?.assets ??
+    null
+  );
 }
 
 export const Route = createFileRoute("/api/public/maj/apk")({

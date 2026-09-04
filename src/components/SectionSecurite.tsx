@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Fingerprint, KeyRound, Lock, ShieldCheck } from "lucide-react";
+import { Fingerprint, KeyRound, Lock, ShieldCheck, Vault } from "lucide-react";
 import { DELAIS, useSecurite } from "@/lib/securite";
 import { PavePin } from "./PavePin";
 import { Confirmation } from "./Confirmation";
 import { ErreurPopup } from "./ErreurPopup";
 
-type Processus = "creer" | "changer" | "desactiver" | null;
+type Processus = "creer" | "changer" | "desactiver" | "coffre" | "decoffre" | null;
 
 /** Section Paramètres : verrouillage par code PIN et biométrie (100 % local). */
 export function SectionSecurite() {
@@ -19,6 +19,9 @@ export function SectionSecurite() {
     definirDelai,
     activerBiometrie,
     desactiverBiometrie,
+    coffreProtege,
+    protegerCoffre,
+    retirerProtectionCoffre,
   } = useSecurite();
 
   const [processus, setProcessus] = useState<Processus>(null);
@@ -53,7 +56,11 @@ export function SectionSecurite() {
       ? "Créer un code de verrouillage"
       : processus === "changer"
         ? "Changer le code de verrouillage"
-        : "Désactiver le verrouillage";
+        : processus === "coffre"
+          ? "Sceller le coffre avec le code"
+          : processus === "decoffre"
+            ? "Retirer le scellé du coffre"
+            : "Désactiver le verrouillage";
 
   const valider = async () => {
     if (processus === "creer") {
@@ -63,6 +70,20 @@ export function SectionSecurite() {
       if (!ok) {
         setDemandeConfirmation(false);
         setErreur("L'ancien code est incorrect. Reprenez votre action.");
+        return;
+      }
+    } else if (processus === "coffre") {
+      const ok = await protegerCoffre(ancien);
+      if (!ok) {
+        setDemandeConfirmation(false);
+        setErreur("Le code saisi est incorrect. Reprenez votre action.");
+        return;
+      }
+    } else if (processus === "decoffre") {
+      const ok = await retirerProtectionCoffre(ancien);
+      if (!ok) {
+        setDemandeConfirmation(false);
+        setErreur("Le code saisi est incorrect. Reprenez votre action.");
         return;
       }
     } else if (processus === "desactiver") {
@@ -87,7 +108,17 @@ export function SectionSecurite() {
               apres: `Nouveau code · ${code.length} chiffres`,
             },
           ]
-        : [{ label: "Verrouillage", avant: "Activé", apres: "Désactivé" }];
+        : processus === "coffre"
+          ? [{ label: "Coffre chiffré", avant: "Ouvrable sans code", apres: "Scellé par le code" }]
+          : processus === "decoffre"
+            ? [
+                {
+                  label: "Coffre chiffré",
+                  avant: "Scellé par le code",
+                  apres: "Ouvrable sans code",
+                },
+              ]
+            : [{ label: "Verrouillage", avant: "Activé", apres: "Désactivé" }];
 
   return (
     <section className="carte space-y-3 p-4">
@@ -151,6 +182,25 @@ export function SectionSecurite() {
               </span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => ouvrir(coffreProtege ? "decoffre" : "coffre")}
+            className="flex w-full items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold"
+          >
+            <span className="flex items-center gap-2">
+              <Vault className="h-4 w-4 text-primary" aria-hidden />
+              Sceller mes données par le code
+            </span>
+            <span className={coffreProtege ? "text-primary" : "text-muted-foreground"}>
+              {coffreProtege ? "Activé" : "Désactivé"}
+            </span>
+          </button>
+          <p className="text-xs text-muted-foreground">
+            Quand le coffre est scellé, la clé de déchiffrement n'est plus enregistrée en clair sur
+            le téléphone : même une copie complète de l'appareil reste illisible sans votre code.
+            Attention : si vous oubliez le code, vos données seront définitivement perdues.
+          </p>
 
           <button
             type="button"
@@ -221,12 +271,19 @@ export function SectionSecurite() {
               </div>
             )}
 
-            {((processus === "changer" && etape === 0) || processus === "desactiver") && (
+            {((processus === "changer" && etape === 0) ||
+              processus === "desactiver" ||
+              processus === "coffre" ||
+              processus === "decoffre") && (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   {processus === "changer"
                     ? "Saisissez votre code actuel."
-                    : "Saisissez votre code pour confirmer la désactivation."}
+                    : processus === "coffre"
+                      ? "Saisissez votre code : il servira désormais à ouvrir vos données chiffrées."
+                      : processus === "decoffre"
+                        ? "Saisissez votre code pour retirer le scellé du coffre."
+                        : "Saisissez votre code pour confirmer la désactivation."}
                 </p>
                 <PavePin
                   longueur={config.longueur}
@@ -290,9 +347,13 @@ export function SectionSecurite() {
         ouvert={demandeConfirmation}
         titre={titreProcessus}
         message={
-          processus === "desactiver"
-            ? "L'application ne sera plus protégée par un code à l'ouverture. Confirmez-vous ?"
-            : "Confirmez-vous l'enregistrement de ce code de verrouillage ?"
+          processus === "coffre"
+            ? "Vos données ne pourront plus être ouvertes sans ce code. En cas d'oubli, elles seront définitivement perdues. Confirmez-vous ?"
+            : processus === "decoffre"
+              ? "La clé de déchiffrement redeviendra enregistrée sur le téléphone. Confirmez-vous ?"
+              : processus === "desactiver"
+                ? "L'application ne sera plus protégée par un code à l'ouverture. Confirmez-vous ?"
+                : "Confirmez-vous l'enregistrement de ce code de verrouillage ?"
         }
         details={details}
         danger={processus === "desactiver"}
