@@ -179,13 +179,13 @@ function Accueil() {
             <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
           </Link>
           <Link
-            to="/comptes"
+            to="/dettes"
             className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <Landmark className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Les comptes</span>
-            <span className="relative z-10 text-xs opacity-85">Soldes, transferts, historique</span>
+            <HandCoins className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Dettes & Créances</span>
+            <span className="relative z-10 text-xs opacity-85">À rembourser ou à encaisser</span>
           </Link>
         </div>
       </section>
