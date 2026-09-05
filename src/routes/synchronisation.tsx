@@ -14,7 +14,6 @@ import {
   Smartphone,
   Trash2,
 } from "lucide-react";
-import { SectionSyncAuto } from "@/components/SectionSyncAuto";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp } from "@/lib/store";
@@ -470,7 +469,6 @@ function PageSynchronisation() {
         </p>
       </header>
 
-      <SectionSyncAuto />
 
       {rappel.enAttente || rappel.alerteSilence ? (
         <p
