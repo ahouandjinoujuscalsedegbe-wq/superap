@@ -11,13 +11,7 @@ const MAX_ENTREES = 200;
 export type NiveauJournal = "info" | "avertissement" | "erreur";
 
 export type SourceJournal =
-  | "ocr"
-  | "dictee"
-  | "pretraitement"
-  | "saisie"
-  | "stockage"
-  | "sms"
-  | "application";
+  "ocr" | "dictee" | "pretraitement" | "saisie" | "stockage" | "sms" | "application";
 
 export type EntreeJournal = {
   id: string;
