@@ -194,8 +194,8 @@ function Accueil() {
           className="bouton-3d-centre absolute left-1/2 top-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
           aria-label="Simulation"
         >
-          <Calculator className="h-5 w-5" aria-hidden />
-          <span className="text-[10px] font-semibold leading-none">Simulation</span>
+          <Calculator className="h-6 w-6" aria-hidden />
+          <span className="text-xs font-semibold leading-none">Simulation</span>
         </Link>
       </section>
 

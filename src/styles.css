@@ -1055,8 +1055,8 @@ textarea {
 
 /* Bouton Simulation ovale placé au centre des 4 boutons de navigation. */
 @utility bouton-3d-centre {
-  width: 4.5rem;
-  height: 2.6rem;
+  width: 5.25rem;
+  height: 3rem;
   border-radius: 9999px;
   background-image: linear-gradient(160deg, #ffb6d9 0%, #f06292 55%, #b83d6b 100%);
   color: #fff;
