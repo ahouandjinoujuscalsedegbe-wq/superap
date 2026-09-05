@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Confirmation } from "@/components/Confirmation";
+import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
