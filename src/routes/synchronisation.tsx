@@ -469,7 +469,6 @@ function PageSynchronisation() {
         </p>
       </header>
 
-
       {rappel.enAttente || rappel.alerteSilence ? (
         <p
           className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-sm ${

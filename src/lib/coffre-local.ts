@@ -289,7 +289,6 @@ export async function dechiffrerLocal(valeur: string): Promise<string | null> {
   }
 }
 
-
 /**
  * Résultat détaillé d'une lecture.
  * - `vide`      : aucune donnée enregistrée (première utilisation).
