@@ -171,14 +171,6 @@ jobs:
           if "android.speech.RecognitionService" not in contenu:
               contenu = contenu.replace("<application", requetes + "\n    <application", 1)
 
-          if "requestLegacyExternalStorage" not in contenu:
-              contenu = re.sub(
-                  r'<application\b([^>]*)>',
-                  lambda m: f'<application{m.group(1)} android:requestLegacyExternalStorage="true">',
-                  contenu,
-                  count=1,
-              )
-
           if "androidx.core.content.FileProvider" not in contenu:
               provider = '''
               <provider
