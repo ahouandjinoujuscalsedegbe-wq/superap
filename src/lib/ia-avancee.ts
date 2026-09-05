@@ -27,7 +27,8 @@ function mediane(valeurs: number[]): number {
   if (valeurs.length === 0) return 0;
   const tri = [...valeurs].sort((a, b) => a - b);
   const milieu = Math.floor(tri.length / 2);
-  return tri.length % 2 === 0 ? (tri[milieu - 1] + tri[milieu]) / 2 : tri[milieu];
+  if (tri.length % 2 === 0) return ((tri[milieu - 1] ?? 0) + (tri[milieu] ?? 0)) / 2;
+  return tri[milieu] ?? 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,12 +60,13 @@ export function rythmesDepenses(transactions: Transaction[], minimum = 3): Rythm
     .filter((g) => g.montants.length >= minimum)
     .map((g) => {
       const moyen = Math.round(g.montants.reduce((s, m) => s + m, 0) / g.montants.length);
+      const nomJour: string = JOURS[g.jour] ?? "jour";
       return {
         libelle: g.libelle,
-        jour: JOURS[g.jour],
+        jour: nomJour,
         occurrences: g.montants.length,
         montantMoyen: moyen,
-        phrase: `Presque chaque ${JOURS[g.jour]}, vous dépensez environ ${moyen} F pour « ${g.libelle} ».`,
+        phrase: `Presque chaque ${nomJour}, vous dépensez environ ${moyen} F pour « ${g.libelle} ».`,
       };
     })
     .sort((a, b) => b.occurrences - a.occurrences)
@@ -216,7 +218,8 @@ export function suggererEnveloppe(
   }
   if (total === 0) return null;
 
-  const [meilleur] = [...scores.entries()].sort((a, b) => b[1] - a[1]);
+  const meilleur = [...scores.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (!meilleur) return null;
   const confiance = Math.round((meilleur[1] / total) * 100);
   if (confiance < 50) return null;
   return {
