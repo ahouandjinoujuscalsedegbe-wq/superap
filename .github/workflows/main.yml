@@ -141,16 +141,14 @@ jobs:
           EOF
 
           python3 <<'PY'
-          import re
           from pathlib import Path
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
           contenu = manifest.read_text(encoding="utf-8")
 
           permissions = [
+              # Installation de la mise à jour APK téléchargée par l'auto-updater.
               '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />',
-              '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
-              '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28" />',
               # Micro : dictée, discussion vocale avec le conseiller.
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
               '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
@@ -171,14 +169,6 @@ jobs:
           '''
           if "android.speech.RecognitionService" not in contenu:
               contenu = contenu.replace("<application", requetes + "\n    <application", 1)
-
-          if "requestLegacyExternalStorage" not in contenu:
-              contenu = re.sub(
-                  r'<application\b([^>]*)>',
-                  lambda m: f'<application{m.group(1)} android:requestLegacyExternalStorage="true">',
-                  contenu,
-                  count=1,
-              )
 
           if "androidx.core.content.FileProvider" not in contenu:
               provider = '''
