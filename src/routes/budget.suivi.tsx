@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarRange } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
 import { SuiviPlanifieReel } from "@/components/SuiviPlanifieReel";
+
 
 export const Route = createFileRoute("/budget/suivi")({
   head: () => ({
@@ -29,20 +29,7 @@ function PageSuivBudget() {
     <div className="space-y-6">
       <SuiviPlanifieReel />
       <FicheSuiviBudget />
-      {/* Le suivi mois par mois n'était atteignable que par les Prévisions :
-          il est désormais accessible depuis la page Suivi du budget. */}
-      <Link
-        to="/suivi"
-        className="flex min-h-12 items-center gap-3 rounded-2xl border border-border bg-card p-4 text-sm font-medium"
-      >
-        <CalendarRange className="size-5 text-primary" aria-hidden="true" />
-        <span>
-          Suivi mois par mois
-          <span className="block text-xs font-normal text-muted-foreground">
-            Réel comparé à la prévision, sur plusieurs mois
-          </span>
-        </span>
-      </Link>
+
     </div>
   );
 }
