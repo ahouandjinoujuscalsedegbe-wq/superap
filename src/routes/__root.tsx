@@ -206,6 +206,8 @@ function RootComponent() {
           <RappelFinBudget />
           <BouleAnalyse />
           <GardeIntegrite />
+          <ConfigurationSauvegarde />
+          <SauvegardeEmailAuto />
         </SuperAppProvider>
       </SecuriteProvider>
     </QueryClientProvider>
