@@ -14,7 +14,6 @@ import {
   Smartphone,
   Trash2,
 } from "lucide-react";
-import { SectionSyncAuto } from "@/components/SectionSyncAuto";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp } from "@/lib/store";
@@ -469,8 +468,6 @@ function PageSynchronisation() {
           L'autre appareil colle le colis, vérifie l'empreinte et fusionne sans doublon.
         </p>
       </header>
-
-      <SectionSyncAuto />
 
       {rappel.enAttente || rappel.alerteSilence ? (
         <p

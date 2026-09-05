@@ -27,7 +27,6 @@ import { installerCaptureGlobale } from "@/lib/journal";
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
-import { SyncAuto } from "../components/SyncAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
@@ -195,7 +194,6 @@ function RootComponent() {
           <Toaster position="top-center" richColors />
           <EcranVerrou />
           <MiseAJourAuto />
-          <SyncAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
           <AlertesVersConseiller />

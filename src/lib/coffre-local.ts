@@ -14,6 +14,8 @@
  */
 
 const PREFIXE = "SAC1:";
+/** Format triple couche (chiffré trois fois de suite). */
+const PREFIXE_TRIPLE = "SAC3:";
 const CLE_SECRET_APPAREIL = "superapp:coffre:secret:v1";
 /** Secret d'appareil scellé par le code PIN (protection renforcée). */
 const CLE_SECRET_PROTEGE = "superapp:coffre:secret:protege:v1";
@@ -22,7 +24,7 @@ const ITERATIONS = 150_000;
 const encodeur = new TextEncoder();
 const decodeur = new TextDecoder();
 
-let clePromesse: Promise<CryptoKey> | null = null;
+let clePromesse: Promise<{ c1: CryptoKey; c2: CryptoKey; c3: CryptoKey }> | null = null;
 
 function versBase64(buf: ArrayBuffer | Uint8Array): string {
   const octets = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
@@ -161,28 +163,49 @@ function secretAppareil(): string {
   return secret;
 }
 
-async function cleCoffre(): Promise<CryptoKey> {
+/** Dérive une clé du secret d'appareil, avec un sel et un algorithme donnés. */
+async function deriver(
+  sel: string,
+  algo: "AES-GCM" | "AES-CBC",
+  iterations: number,
+): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey(
+    "raw",
+    encodeur.encode(secretAppareil()),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: encodeur.encode(sel) as unknown as BufferSource,
+      iterations,
+      hash: "SHA-256",
+    },
+    base,
+    { name: algo, length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+type Cles = { c1: CryptoKey; c2: CryptoKey; c3: CryptoKey };
+
+/**
+ * Trois clés indépendantes : le contenu est chiffré trois fois de suite
+ * (AES-GCM, puis AES-CBC, puis de nouveau AES-GCM avec une autre clé).
+ * Casser une couche ne donne que du binaire à nouveau chiffré.
+ */
+async function cleCoffre(): Promise<Cles> {
   if (!clePromesse) {
-    const tentative = (async () => {
-      const base = await crypto.subtle.importKey(
-        "raw",
-        encodeur.encode(secretAppareil()),
-        "PBKDF2",
-        false,
-        ["deriveKey"],
-      );
-      return crypto.subtle.deriveKey(
-        {
-          name: "PBKDF2",
-          salt: encodeur.encode("superapp-coffre-local-v1") as unknown as BufferSource,
-          iterations: ITERATIONS,
-          hash: "SHA-256",
-        },
-        base,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt", "decrypt"],
-      );
+    const tentative = (async (): Promise<Cles> => {
+      const [c1, c2, c3] = await Promise.all([
+        deriver("superapp-coffre-local-v1", "AES-GCM", ITERATIONS),
+        deriver("superapp-coffre-couche2-v3", "AES-CBC", ITERATIONS),
+        deriver("superapp-coffre-couche3-v3", "AES-GCM", ITERATIONS),
+      ]);
+      return { c1, c2, c3 };
     })();
     // Une clé refusée (coffre verrouillé) ne doit pas rester en mémoire :
     // sinon toutes les lectures suivantes échoueraient même après le PIN.
@@ -195,32 +218,69 @@ async function cleCoffre(): Promise<CryptoKey> {
 }
 
 export function estChiffre(valeur: string): boolean {
-  return valeur.startsWith(PREFIXE);
+  return valeur.startsWith(PREFIXE) || valeur.startsWith(PREFIXE_TRIPLE);
 }
 
-/** Chiffre un texte pour le stockage local. */
-export async function chiffrerLocal(texte: string): Promise<string> {
-  const cle = await cleCoffre();
-  const iv = new Uint8Array(12);
+function aleaIv(taille: number): Uint8Array {
+  const iv = new Uint8Array(taille);
   crypto.getRandomValues(iv);
-  const scelle = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: iv as unknown as BufferSource },
-    cle,
+  return iv;
+}
+
+/** Chiffre un texte pour le stockage local (triple couche). */
+export async function chiffrerLocal(texte: string): Promise<string> {
+  const { c1, c2, c3 } = await cleCoffre();
+  const iv1 = aleaIv(12);
+  const iv2 = aleaIv(16);
+  const iv3 = aleaIv(12);
+  const couche1 = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv1 as unknown as BufferSource },
+    c1,
     encodeur.encode(texte),
   );
-  return `${PREFIXE}${versBase64(iv)}:${versBase64(scelle)}`;
+  const couche2 = await crypto.subtle.encrypt(
+    { name: "AES-CBC", iv: iv2 as unknown as BufferSource },
+    c2,
+    couche1,
+  );
+  const couche3 = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv3 as unknown as BufferSource },
+    c3,
+    couche2,
+  );
+  return `${PREFIXE_TRIPLE}${versBase64(iv1)}:${versBase64(iv2)}:${versBase64(iv3)}:${versBase64(couche3)}`;
 }
 
-/** Déchiffre un texte lu depuis le stockage local. */
+/** Déchiffre un texte lu depuis le stockage local (triple ou ancienne couche). */
 export async function dechiffrerLocal(valeur: string): Promise<string | null> {
   if (!estChiffre(valeur)) return valeur; // ancienne donnée en clair : migrée à la prochaine écriture
-  const morceaux = valeur.slice(PREFIXE.length).split(":");
-  if (morceaux.length !== 2) return null;
   try {
-    const cle = await cleCoffre();
+    const { c1, c2, c3 } = await cleCoffre();
+    if (valeur.startsWith(PREFIXE_TRIPLE)) {
+      const m = valeur.slice(PREFIXE_TRIPLE.length).split(":");
+      if (m.length !== 4) return null;
+      const couche2 = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: depuisBase64(m[2]!) as unknown as BufferSource },
+        c3,
+        depuisBase64(m[3]!) as unknown as BufferSource,
+      );
+      const couche1 = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv: depuisBase64(m[1]!) as unknown as BufferSource },
+        c2,
+        couche2,
+      );
+      const clair = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: depuisBase64(m[0]!) as unknown as BufferSource },
+        c1,
+        couche1,
+      );
+      return decodeur.decode(clair);
+    }
+    const morceaux = valeur.slice(PREFIXE.length).split(":");
+    if (morceaux.length !== 2) return null;
     const clair = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: depuisBase64(morceaux[0]!) as unknown as BufferSource },
-      cle,
+      c1,
       depuisBase64(morceaux[1]!) as unknown as BufferSource,
     );
     return decodeur.decode(clair);
