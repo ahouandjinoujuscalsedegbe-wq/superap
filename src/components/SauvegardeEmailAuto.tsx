@@ -44,11 +44,12 @@ export function SauvegardeEmailAuto() {
       });
       if (resultat.envoye) {
         ecrireFile(null);
+        const { dernierEchec: _echec, ...reste } = reglages;
+        void _echec;
         ecrireReglagesMail({
-          ...reglages,
+          ...reste,
           dernierEnvoi: new Date().toISOString(),
           derniereEmpreinte: colis.empreinte,
-          ...(reglages.dernierEchec ? { dernierEchec: undefined } : {}),
         });
       } else {
         ecrireReglagesMail({ ...reglages, dernierEchec: new Date().toISOString() });
