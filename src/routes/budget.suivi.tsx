@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FicheSuiviBudget } from "@/components/FicheSuiviBudget";
 import { SuiviPlanifieReel } from "@/components/SuiviPlanifieReel";
 
-
 export const Route = createFileRoute("/budget/suivi")({
   head: () => ({
     meta: [
@@ -29,7 +28,6 @@ function PageSuivBudget() {
     <div className="space-y-6">
       <SuiviPlanifieReel />
       <FicheSuiviBudget />
-
     </div>
   );
 }
