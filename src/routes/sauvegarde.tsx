@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Confirmation } from "@/components/Confirmation";
+import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
@@ -269,6 +270,10 @@ function PageSauvegarde() {
           <Download className="h-4 w-4" aria-hidden /> Télécharger la sauvegarde chiffrée
         </button>
       </section>
+
+      <ChangerPhraseRecuperation />
+
+
 
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">
