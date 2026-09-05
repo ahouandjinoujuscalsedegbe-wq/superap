@@ -1055,8 +1055,8 @@ textarea {
 
 /* Bouton Simulation ovale placé au centre des 4 boutons de navigation. */
 @utility bouton-3d-centre {
-  width: 4.25rem;
-  height: 2.5rem;
+  width: 4.5rem;
+  height: 2.6rem;
   border-radius: 9999px;
   background-image: linear-gradient(160deg, #ffb6d9 0%, #f06292 55%, #b83d6b 100%);
   color: #fff;
@@ -1064,14 +1064,7 @@ textarea {
     inset 0 2px 4px rgba(255, 255, 255, 0.6),
     inset 0 -3px 6px rgba(110, 20, 55, 0.45),
     0 6px 14px -4px rgba(240, 98, 146, 0.9);
-  animation: bouton-3d-levite 3.6s ease-in-out infinite;
   transition: transform 0.15s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bouton-3d-centre {
-    animation: none !important;
-  }
 }
 
 /* ===== Clignotement d'alerte de la boule flottante ===== */
