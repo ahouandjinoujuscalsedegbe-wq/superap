@@ -11,8 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AideRouteImport } from './routes/aide'
-import { Route as AnalysesRouteImport } from './routes/analyses'
-import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as ComptesRouteImport } from './routes/comptes'
 import { Route as DepenseRouteImport } from './routes/depense'
@@ -21,16 +19,12 @@ import { Route as EnveloppesRouteImport } from './routes/enveloppes'
 import { Route as JournalRouteImport } from './routes/journal'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ObjectifsRouteImport } from './routes/objectifs'
-import { Route as OutilsRouteImport } from './routes/outils'
 import { Route as ParametresRouteImport } from './routes/parametres'
-import { Route as PlanningRouteImport } from './routes/planning'
-import { Route as PrevisionsRouteImport } from './routes/previsions'
 import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as RevenuRouteImport } from './routes/revenu'
 import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
 import { Route as SimulationRouteImport } from './routes/simulation'
-import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
 import { Route as BudgetIndexRouteImport } from './routes/budget.index'
 import { Route as BudgetAutoRouteImport } from './routes/budget.auto'
@@ -53,7 +47,6 @@ import { Route as EnveloppesChronologieRouteImport } from './routes/enveloppes.c
 import { Route as EnveloppesClasserRouteImport } from './routes/enveloppes.classer'
 import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
-import { Route as EnveloppesGererRouteImport } from './routes/enveloppes.gerer'
 import { Route as EnveloppesRenouvellementsRouteImport } from './routes/enveloppes.renouvellements'
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
@@ -86,16 +79,6 @@ const IndexRoute = IndexRouteImport.update({
 const AideRoute = AideRouteImport.update({
   id: '/aide',
   path: '/aide',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalysesRoute = AnalysesRouteImport.update({
-  id: '/analyses',
-  path: '/analyses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistantRoute = AssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BudgetRoute = BudgetRouteImport.update({
@@ -138,24 +121,9 @@ const ObjectifsRoute = ObjectifsRouteImport.update({
   path: '/objectifs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OutilsRoute = OutilsRouteImport.update({
-  id: '/outils',
-  path: '/outils',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ParametresRoute = ParametresRouteImport.update({
   id: '/parametres',
   path: '/parametres',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanningRoute = PlanningRouteImport.update({
-  id: '/planning',
-  path: '/planning',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrevisionsRoute = PrevisionsRouteImport.update({
-  id: '/previsions',
-  path: '/previsions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RechercheRoute = RechercheRouteImport.update({
@@ -181,11 +149,6 @@ const SauvegardeRoute = SauvegardeRouteImport.update({
 const SimulationRoute = SimulationRouteImport.update({
   id: '/simulation',
   path: '/simulation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SuiviRoute = SuiviRouteImport.update({
-  id: '/suivi',
-  path: '/suivi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SynchronisationRoute = SynchronisationRouteImport.update({
@@ -296,11 +259,6 @@ const EnveloppesCreerRoute = EnveloppesCreerRouteImport.update({
 const EnveloppesDetailsRoute = EnveloppesDetailsRouteImport.update({
   id: '/details',
   path: '/details',
-  getParentRoute: () => EnveloppesRoute,
-} as any)
-const EnveloppesGererRoute = EnveloppesGererRouteImport.update({
-  id: '/gerer',
-  path: '/gerer',
   getParentRoute: () => EnveloppesRoute,
 } as any)
 const EnveloppesRenouvellementsRoute =
@@ -424,8 +382,6 @@ const ApiPublicMajVersionRoute = ApiPublicMajVersionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
-  '/analyses': typeof AnalysesRoute
-  '/assistant': typeof AssistantRoute
   '/budget': typeof BudgetRouteWithChildren
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
@@ -434,16 +390,12 @@ export interface FileRoutesByFullPath {
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
-  '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
-  '/planning': typeof PlanningRoute
-  '/previsions': typeof PrevisionsRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
-  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
@@ -463,7 +415,6 @@ export interface FileRoutesByFullPath {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
-  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
@@ -494,22 +445,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
-  '/analyses': typeof AnalysesRoute
-  '/assistant': typeof AssistantRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
-  '/outils': typeof OutilsRoute
-  '/planning': typeof PlanningRoute
-  '/previsions': typeof PrevisionsRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
-  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
@@ -528,7 +473,6 @@ export interface FileRoutesByTo {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
-  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
@@ -560,8 +504,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
-  '/analyses': typeof AnalysesRoute
-  '/assistant': typeof AssistantRoute
   '/budget': typeof BudgetRouteWithChildren
   '/comptes': typeof ComptesRouteWithChildren
   '/depense': typeof DepenseRoute
@@ -570,16 +512,12 @@ export interface FileRoutesById {
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
   '/objectifs': typeof ObjectifsRoute
-  '/outils': typeof OutilsRoute
   '/parametres': typeof ParametresRouteWithChildren
-  '/planning': typeof PlanningRoute
-  '/previsions': typeof PrevisionsRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
-  '/suivi': typeof SuiviRoute
   '/synchronisation': typeof SynchronisationRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
@@ -599,7 +537,6 @@ export interface FileRoutesById {
   '/enveloppes/classer': typeof EnveloppesClasserRoute
   '/enveloppes/creer': typeof EnveloppesCreerRoute
   '/enveloppes/details': typeof EnveloppesDetailsRoute
-  '/enveloppes/gerer': typeof EnveloppesGererRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
@@ -632,8 +569,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/aide'
-    | '/analyses'
-    | '/assistant'
     | '/budget'
     | '/comptes'
     | '/depense'
@@ -642,16 +577,12 @@ export interface FileRouteTypes {
     | '/journal'
     | '/notifications'
     | '/objectifs'
-    | '/outils'
     | '/parametres'
-    | '/planning'
-    | '/previsions'
     | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
     | '/simulation'
-    | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
     | '/budget/bilan'
@@ -671,7 +602,6 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
-    | '/enveloppes/gerer'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
     | '/parametres/alarmes'
@@ -702,22 +632,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aide'
-    | '/analyses'
-    | '/assistant'
     | '/depense'
     | '/dettes'
     | '/journal'
     | '/notifications'
     | '/objectifs'
-    | '/outils'
-    | '/planning'
-    | '/previsions'
     | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
     | '/simulation'
-    | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
     | '/budget/bilan'
@@ -736,7 +660,6 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
-    | '/enveloppes/gerer'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
     | '/parametres/alarmes'
@@ -767,8 +690,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/aide'
-    | '/analyses'
-    | '/assistant'
     | '/budget'
     | '/comptes'
     | '/depense'
@@ -777,16 +698,12 @@ export interface FileRouteTypes {
     | '/journal'
     | '/notifications'
     | '/objectifs'
-    | '/outils'
     | '/parametres'
-    | '/planning'
-    | '/previsions'
     | '/recherche'
     | '/revenu'
     | '/saisie'
     | '/sauvegarde'
     | '/simulation'
-    | '/suivi'
     | '/synchronisation'
     | '/budget/auto'
     | '/budget/bilan'
@@ -806,7 +723,6 @@ export interface FileRouteTypes {
     | '/enveloppes/classer'
     | '/enveloppes/creer'
     | '/enveloppes/details'
-    | '/enveloppes/gerer'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
     | '/parametres/alarmes'
@@ -838,8 +754,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AideRoute: typeof AideRoute
-  AnalysesRoute: typeof AnalysesRoute
-  AssistantRoute: typeof AssistantRoute
   BudgetRoute: typeof BudgetRouteWithChildren
   ComptesRoute: typeof ComptesRouteWithChildren
   DepenseRoute: typeof DepenseRoute
@@ -848,16 +762,12 @@ export interface RootRouteChildren {
   JournalRoute: typeof JournalRoute
   NotificationsRoute: typeof NotificationsRoute
   ObjectifsRoute: typeof ObjectifsRoute
-  OutilsRoute: typeof OutilsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
-  PlanningRoute: typeof PlanningRoute
-  PrevisionsRoute: typeof PrevisionsRoute
   RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
   SaisieRoute: typeof SaisieRoute
   SauvegardeRoute: typeof SauvegardeRoute
   SimulationRoute: typeof SimulationRoute
-  SuiviRoute: typeof SuiviRoute
   SynchronisationRoute: typeof SynchronisationRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
@@ -879,20 +789,6 @@ declare module '@tanstack/react-router' {
       path: '/aide'
       fullPath: '/aide'
       preLoaderRoute: typeof AideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analyses': {
-      id: '/analyses'
-      path: '/analyses'
-      fullPath: '/analyses'
-      preLoaderRoute: typeof AnalysesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistant': {
-      id: '/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/budget': {
@@ -951,32 +847,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObjectifsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/outils': {
-      id: '/outils'
-      path: '/outils'
-      fullPath: '/outils'
-      preLoaderRoute: typeof OutilsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/parametres': {
       id: '/parametres'
       path: '/parametres'
       fullPath: '/parametres'
       preLoaderRoute: typeof ParametresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/planning': {
-      id: '/planning'
-      path: '/planning'
-      fullPath: '/planning'
-      preLoaderRoute: typeof PlanningRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/previsions': {
-      id: '/previsions'
-      path: '/previsions'
-      fullPath: '/previsions'
-      preLoaderRoute: typeof PrevisionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recherche': {
@@ -1012,13 +887,6 @@ declare module '@tanstack/react-router' {
       path: '/simulation'
       fullPath: '/simulation'
       preLoaderRoute: typeof SimulationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/suivi': {
-      id: '/suivi'
-      path: '/suivi'
-      fullPath: '/suivi'
-      preLoaderRoute: typeof SuiviRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/synchronisation': {
@@ -1173,13 +1041,6 @@ declare module '@tanstack/react-router' {
       path: '/details'
       fullPath: '/enveloppes/details'
       preLoaderRoute: typeof EnveloppesDetailsRouteImport
-      parentRoute: typeof EnveloppesRoute
-    }
-    '/enveloppes/gerer': {
-      id: '/enveloppes/gerer'
-      path: '/gerer'
-      fullPath: '/enveloppes/gerer'
-      preLoaderRoute: typeof EnveloppesGererRouteImport
       parentRoute: typeof EnveloppesRoute
     }
     '/enveloppes/renouvellements': {
@@ -1421,7 +1282,6 @@ interface EnveloppesRouteChildren {
   EnveloppesClasserRoute: typeof EnveloppesClasserRoute
   EnveloppesCreerRoute: typeof EnveloppesCreerRoute
   EnveloppesDetailsRoute: typeof EnveloppesDetailsRoute
-  EnveloppesGererRoute: typeof EnveloppesGererRoute
   EnveloppesRenouvellementsRoute: typeof EnveloppesRenouvellementsRoute
   EnveloppesSecoursRoute: typeof EnveloppesSecoursRoute
   EnveloppesIndexRoute: typeof EnveloppesIndexRoute
@@ -1438,7 +1298,6 @@ const EnveloppesRouteChildren: EnveloppesRouteChildren = {
   EnveloppesClasserRoute: EnveloppesClasserRoute,
   EnveloppesCreerRoute: EnveloppesCreerRoute,
   EnveloppesDetailsRoute: EnveloppesDetailsRoute,
-  EnveloppesGererRoute: EnveloppesGererRoute,
   EnveloppesRenouvellementsRoute: EnveloppesRenouvellementsRoute,
   EnveloppesSecoursRoute: EnveloppesSecoursRoute,
   EnveloppesIndexRoute: EnveloppesIndexRoute,
@@ -1478,8 +1337,6 @@ const ParametresRouteWithChildren = ParametresRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AideRoute: AideRoute,
-  AnalysesRoute: AnalysesRoute,
-  AssistantRoute: AssistantRoute,
   BudgetRoute: BudgetRouteWithChildren,
   ComptesRoute: ComptesRouteWithChildren,
   DepenseRoute: DepenseRoute,
@@ -1488,16 +1345,12 @@ const rootRouteChildren: RootRouteChildren = {
   JournalRoute: JournalRoute,
   NotificationsRoute: NotificationsRoute,
   ObjectifsRoute: ObjectifsRoute,
-  OutilsRoute: OutilsRoute,
   ParametresRoute: ParametresRouteWithChildren,
-  PlanningRoute: PlanningRoute,
-  PrevisionsRoute: PrevisionsRoute,
   RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
   SaisieRoute: SaisieRoute,
   SauvegardeRoute: SauvegardeRoute,
   SimulationRoute: SimulationRoute,
-  SuiviRoute: SuiviRoute,
   SynchronisationRoute: SynchronisationRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
