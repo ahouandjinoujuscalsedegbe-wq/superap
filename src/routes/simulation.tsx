@@ -1,6 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Calculator } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { simulerAchat } from "@/lib/simulation";
