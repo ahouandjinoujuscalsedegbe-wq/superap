@@ -38,16 +38,16 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$MDP" -keypass "$MDP" \
             -dname "CN=SUPER APP, OU=Personnel, O=SUPER APP, L=Porto-Novo, C=BJ"
-          
+
           # Vérification immédiate
           echo "Vérification de la clé générée..."
           keytool -list -keystore cle-signature.jks -storepass "$MDP" -alias superapp
-          
+
           # Encodage Base64 (sans retour à la ligne) pour faciliter le copier-coller
           base64 -w0 cle-signature.jks > cle-signature.base64.txt
           OCTETS=$(wc -c < cle-signature.jks)
           EMPREINTE=$(sha256sum cle-signature.jks | cut -d' ' -f1)
-          
+
           echo "Génération du fichier d'instructions..."
           cat > INSTRUCTIONS.txt <<EOF
           CONFIGURATION DES SECRETS GITHUB POUR LA SIGNATURE ANDROID
@@ -66,7 +66,7 @@ jobs:
 
           CONSEIL : Téléchargez l'artefact 'cle-signature' de ce workflow et conservez le fichier 'cle-signature.jks' en lieu sûr (Cloud, clé USB). Si vous perdez cette clé, vous ne pourrez plus mettre à jour votre application sur le Play Store ou chez vos utilisateurs.
           EOF
-          
+
           echo "Clé créée et vérifiée avec succès."
           echo "Taille : $OCTETS octets"
           echo "Empreinte SHA-256 : $EMPREINTE"

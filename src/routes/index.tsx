@@ -67,13 +67,6 @@ function Accueil() {
   return (
     <div className="space-y-5">
       <section className="carte relative p-5">
-        <Link
-          to="/simulation"
-          className="bouton-3d bouton-3d-analyse absolute top-3 right-3 flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-center text-xs font-semibold active:scale-[0.97]"
-        >
-          <Calculator className="h-5 w-5" aria-hidden />
-          <span>Simulation</span>
-        </Link>
         <p className="text-sm text-muted-foreground">
           {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
         </p>
@@ -136,66 +129,74 @@ function Accueil() {
       )}
 
       <section className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-3">
-          <Link
-            to="/revenu"
-            className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <ArrowUpRight className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Ajouter un revenu</span>
-            <span className="relative z-10 text-xs opacity-85">Salaire, activité, aide…</span>
-          </Link>
-          <Link
-            to="/budget"
-            className="bouton-3d bouton-3d-budget relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <Wallet className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Budgétisation</span>
-            <span className="relative z-10 text-xs opacity-85">Planifier vos enveloppes</span>
-          </Link>
-          <Link
-            to="/enveloppes/details"
-            className="bouton-3d bouton-3d-enveloppes relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <Layers className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Les enveloppes</span>
-            <span className="relative z-10 text-xs opacity-85">
-              Tout gérer : état, budget, actions
-            </span>
-          </Link>
-        </div>
-        <div className="flex flex-col gap-3">
-          <Link
-            to="/depense"
-            className="bouton-3d bouton-3d-depense relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Ajouter une dépense</span>
-            <span className="relative z-10 text-xs opacity-85">En 2 secondes</span>
-          </Link>
-          <Link
-            to="/rapport"
-            className="bouton-3d bouton-3d-rapport relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <FileText className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Rapport mensuel</span>
-            <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
-          </Link>
-          <Link
-            to="/comptes"
-            className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
-          >
-            <span className="bouton-3d-brillance" aria-hidden />
-            <Landmark className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Les comptes</span>
-            <span className="relative z-10 text-xs opacity-85">Soldes, transferts, historique</span>
-          </Link>
-        </div>
+        <Link
+          to="/revenu"
+          className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <ArrowUpRight className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Ajouter un revenu</span>
+          <span className="relative z-10 text-xs opacity-85">Salaire, activité, aide…</span>
+        </Link>
+        <Link
+          to="/depense"
+          className="bouton-3d bouton-3d-depense relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Ajouter une dépense</span>
+          <span className="relative z-10 text-xs opacity-85">En 2 secondes</span>
+        </Link>
+      </section>
+
+      <section className="relative grid grid-cols-2 gap-3">
+        <Link
+          to="/budget"
+          className="bouton-3d bouton-3d-budget relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <Wallet className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Budgétisation</span>
+          <span className="relative z-10 text-xs opacity-85">Planifier vos enveloppes</span>
+        </Link>
+        <Link
+          to="/rapport"
+          className="bouton-3d bouton-3d-rapport relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <FileText className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Rapport mensuel</span>
+          <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
+        </Link>
+        <Link
+          to="/comptes"
+          className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <Landmark className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Les comptes</span>
+          <span className="relative z-10 text-xs opacity-85">Soldes, transferts, historique</span>
+        </Link>
+        <Link
+          to="/enveloppes/details"
+          className="bouton-3d bouton-3d-enveloppes relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+        >
+          <span className="bouton-3d-brillance" aria-hidden />
+          <Layers className="relative z-10 h-5 w-5" aria-hidden />
+          <span className="relative z-10 font-semibold">Les enveloppes</span>
+          <span className="relative z-10 text-xs opacity-85">
+            Tout gérer : état, budget, actions
+          </span>
+        </Link>
+
+        <Link
+          to="/simulation"
+          className="bouton-3d-centre absolute left-1/2 top-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
+          aria-label="Simulation"
+        >
+          <Calculator className="h-5 w-5" aria-hidden />
+          <span className="text-[10px] font-semibold leading-none">Simulation</span>
+        </Link>
       </section>
 
       <section className="carte p-4">

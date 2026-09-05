@@ -186,7 +186,7 @@ function RootComponent() {
 
           <RappelsDepensesPlanifiees />
           <MemoireHabitudes />
-          
+
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
           <BarreHaute />
