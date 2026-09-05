@@ -1045,6 +1045,14 @@ textarea {
     0 10px 18px -8px rgba(23, 179, 163, 0.85);
 }
 
+@utility bouton-3d-analyse {
+  background-image: linear-gradient(160deg, #ffb6d9 0%, #f06292 55%, #b83d6b 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -5px 10px rgba(110, 20, 55, 0.45),
+    0 10px 18px -8px rgba(240, 98, 146, 0.85);
+}
+
 /* ===== Clignotement d'alerte de la boule flottante ===== */
 @keyframes boule-clignotement {
   0%,
