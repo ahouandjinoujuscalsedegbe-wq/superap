@@ -66,8 +66,14 @@ function Accueil() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-center justify-end gap-3 pr-12">
-        {/* Les détails rapides peuvent être ajoutés ici si besoin. */}
+      <header className="flex items-start justify-end gap-3 pr-12">
+        <Link
+          to="/simulation"
+          className="bouton-3d bouton-3d-analyse flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-center text-xs font-semibold active:scale-[0.97]"
+        >
+          <Calculator className="h-5 w-5" aria-hidden />
+          <span>Simulation</span>
+        </Link>
       </header>
 
       <section className="carte p-5">
