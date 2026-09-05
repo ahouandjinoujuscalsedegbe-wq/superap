@@ -172,6 +172,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/planning", "Planning 14 semaines"],
   ["/previsions", "Prévisions mois par mois"],
   ["/suivi", "Suivi réel / prévu"],
+  ["/simulation", "Simulation"],
   ["/analyses", "Analyses et conseils"],
   ["/assistant", "Mon conseiller"],
   ["/notifications", "Mon conseiller"],
