@@ -214,6 +214,7 @@ export function analyserMessage(
   if (expediteurReconnu(message.expediteur)) confiance = Math.min(1, confiance + 0.1);
   if (frais > 0) confiance = Math.min(1, confiance + 0.03);
 
+  const reference = extraireReference(texte);
   return {
     cle: cleMessage(message),
     messageId: message.id,
@@ -224,7 +225,7 @@ export function analyserMessage(
     frais,
     libelle: extraireCorrespondant(texte, message.expediteur),
     date: new Date(message.recuLe || Date.now()).toISOString(),
-    ...(extraireReference(texte) ? { reference: extraireReference(texte) } : {}),
+    ...(reference ? { reference } : {}),
     confiance: Number(confiance.toFixed(2)),
   };
 }
