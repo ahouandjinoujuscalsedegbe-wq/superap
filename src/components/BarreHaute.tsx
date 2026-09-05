@@ -18,7 +18,6 @@ import {
   ListOrdered,
   History,
   ArrowLeftRight,
-  MessageSquareText,
 } from "lucide-react";
 
 import { useSuperApp } from "@/lib/store";
@@ -28,11 +27,6 @@ import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
 const logoSuperApp = logoSuperAppAsset.url;
 
 const ENTREES = [
-  {
-    to: "/messages",
-    label: "Messages de transaction",
-    icone: MessageSquareText,
-  },
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
   { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },

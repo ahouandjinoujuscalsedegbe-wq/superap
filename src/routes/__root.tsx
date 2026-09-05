@@ -34,7 +34,7 @@ import { AlertesVersConseiller } from "@/components/AlertesVersConseiller";
 import { VeilleConseiller } from "@/components/VeilleConseiller";
 import { BouleAnalyse } from "@/components/BouleAnalyse";
 import { MemoireHabitudes } from "@/components/MemoireHabitudes";
-import { SmsAuto } from "@/components/SmsAuto";
+
 import { GardeIntegrite } from "@/components/GardeIntegrite";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 
@@ -186,7 +186,7 @@ function RootComponent() {
 
           <RappelsDepensesPlanifiees />
           <MemoireHabitudes />
-          <SmsAuto />
+          
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
           <BarreHaute />
