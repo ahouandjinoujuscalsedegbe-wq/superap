@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   FileText,
   HandCoins,
-  Landmark,
   Layers,
   Wallet,
 } from "lucide-react";
@@ -66,17 +65,6 @@ function Accueil() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-center justify-end gap-3 pr-12">
-        <Link
-          to="/dettes"
-          aria-label="Dettes & Créances"
-          className="flex max-w-[10rem] items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
-        >
-          <HandCoins className="h-5 w-5 shrink-0" aria-hidden />
-          <span className="truncate">Dettes & Créances</span>
-        </Link>
-      </header>
-
       <section className="carte p-5">
         <p className="text-sm text-muted-foreground">
           {chargement ? "Ouverture du coffre chiffré…" : "Solde disponible"}
@@ -191,13 +179,13 @@ function Accueil() {
             <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
           </Link>
           <Link
-            to="/comptes"
+            to="/dettes"
             className="bouton-3d bouton-3d-mois relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
           >
             <span className="bouton-3d-brillance" aria-hidden />
-            <Landmark className="relative z-10 h-5 w-5" aria-hidden />
-            <span className="relative z-10 font-semibold">Les comptes</span>
-            <span className="relative z-10 text-xs opacity-85">Soldes, transferts, historique</span>
+            <HandCoins className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Dettes & Créances</span>
+            <span className="relative z-10 text-xs opacity-85">À rembourser ou à encaisser</span>
           </Link>
         </div>
       </section>
