@@ -153,6 +153,8 @@ jobs:
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
               '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
               '<uses-feature android:name="android.hardware.microphone" android:required="false" />',
+              # Lecture (seule) des SMS de transaction Mobile Money et bancaires.
+              '<uses-permission android:name="android.permission.READ_SMS" />',
           ]
           for perm in permissions:
               if perm not in contenu:
@@ -194,6 +196,7 @@ jobs:
           DEST=android/app/src/main/java/com/superapp/budget
           mkdir -p "$DEST"
           cp native/android/IntegriteAppPlugin.java "$DEST/IntegriteAppPlugin.java"
+          cp native/android/SMSInboxReaderPlugin.java "$DEST/SMSInboxReaderPlugin.java"
 
           python3 <<'PY'
           from pathlib import Path
@@ -208,6 +211,7 @@ jobs:
                       "    @Override\n"
                       "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
                       "        registerPlugin(IntegriteAppPlugin.class);\n"
+                      "        registerPlugin(SMSInboxReaderPlugin.class);\n"
                       "        super.onCreate(savedInstanceState);\n"
                       "    }\n}\n",
                       1,
@@ -219,6 +223,7 @@ jobs:
                       "    @Override\n"
                       "    public void onCreate(android.os.Bundle savedInstanceState) {\n"
                       "        registerPlugin(IntegriteAppPlugin.class);\n"
+                      "        registerPlugin(SMSInboxReaderPlugin.class);\n"
                       "        super.onCreate(savedInstanceState);\n"
                       "    }\n",
                       1,
