@@ -8,6 +8,7 @@ import { dotationDe, etatEnveloppe } from "@/lib/enveloppe-etat";
 import { libelleMois } from "@/lib/rapport-mensuel";
 import { calculerAlarmes, lireReglagesAlarme, type Alarme } from "@/lib/alarme";
 import { conseiller } from "@/lib/conseil";
+import { CarteIaApprentissage } from "@/components/CarteIaApprentissage";
 
 export const Route = createFileRoute("/budget/bilan")({
   head: () => ({
@@ -127,6 +128,8 @@ function BilanDuMois() {
         <h1 className="text-2xl font-bold tracking-tight">Bilan du mois</h1>
         <p className="text-sm text-muted-foreground capitalize">{libelleMois(mois)}</p>
       </header>
+
+      <CarteIaApprentissage />
 
       <div className="flex flex-wrap gap-2">
         {choixMois.map((m) => (

@@ -2,11 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Brain, CalendarClock, Sparkles } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import {
-  operationsInhabituelles,
-  resumeHebdomadaire,
-  rythmesDepenses,
-} from "@/lib/ia-avancee";
+import { operationsInhabituelles, resumeHebdomadaire, rythmesDepenses } from "@/lib/ia-avancee";
 
 /**
  * Ce que l'application a appris de vos habitudes : rythmes repérés,

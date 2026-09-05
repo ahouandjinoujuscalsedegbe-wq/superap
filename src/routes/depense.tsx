@@ -6,6 +6,7 @@ import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
+import { suggererEnveloppe } from "@/lib/ia-avancee";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
@@ -84,6 +85,14 @@ function AjouterDepense() {
     () => operationsFrequentes(transactions, { type: "depense", maximum: 4 }),
     [transactions],
   );
+
+  // Suggestion d'enveloppe apprise des saisies passées.
+  const suggestion = useMemo(() => {
+    const s = suggererEnveloppe(libelle, transactions);
+    if (!s || s.enveloppe === enveloppe) return null;
+    const env = enveloppes.find((e) => e.id === s.enveloppe);
+    return env ? { ...s, nom: env.nom, emoji: env.emoji } : null;
+  }, [libelle, transactions, enveloppe, enveloppes]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
 
@@ -186,6 +195,23 @@ function AjouterDepense() {
 
         <section className="carte space-y-3 p-4">
           <p className="text-sm font-medium">Enveloppe</p>
+
+          {suggestion && (
+            <button
+              type="button"
+              onClick={() => setEnveloppe(suggestion.enveloppe)}
+              className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
+            >
+              <span aria-hidden className="text-base">
+                {suggestion.emoji}
+              </span>
+              <span className="min-w-0 flex-1">
+                Suggestion : « {suggestion.nom} » ({suggestion.confiance} %)
+                <span className="block text-muted-foreground">{suggestion.raison}</span>
+              </span>
+              <span className="shrink-0 font-semibold text-primary">Utiliser</span>
+            </button>
+          )}
 
           <button
             type="button"

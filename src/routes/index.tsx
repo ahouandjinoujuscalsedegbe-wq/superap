@@ -4,6 +4,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   FileText,
+  Calculator,
   Landmark,
   Layers,
   Wallet,
@@ -181,6 +182,15 @@ function Accueil() {
             <FileText className="relative z-10 h-5 w-5" aria-hidden />
             <span className="relative z-10 font-semibold">Rapport mensuel</span>
             <span className="relative z-10 text-xs opacity-85">Bilan du mois terminé</span>
+          </Link>
+          <Link
+            to="/simulation"
+            className="bouton-3d bouton-3d-analyse relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+          >
+            <span className="bouton-3d-brillance" aria-hidden />
+            <Calculator className="relative z-10 h-5 w-5" aria-hidden />
+            <span className="relative z-10 font-semibold">Simulation</span>
+            <span className="relative z-10 text-xs opacity-85">Si je dépense…</span>
           </Link>
           <Link
             to="/comptes"

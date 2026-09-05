@@ -146,11 +146,7 @@ export function previsionFinDeMois(args: {
 }): PrevisionEnveloppe[] {
   const maintenant = args.maintenant ?? new Date();
   const jourActuel = maintenant.getDate();
-  const joursMois = new Date(
-    maintenant.getFullYear(),
-    maintenant.getMonth() + 1,
-    0,
-  ).getDate();
+  const joursMois = new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 0).getDate();
 
   return args.enveloppes
     .map((e) => {
@@ -159,8 +155,7 @@ export function previsionFinDeMois(args: {
       const parJour = depense / Math.max(1, jourActuel);
       const projete = Math.round(parJour * joursMois);
       const depassement = Math.max(0, projete - dotation);
-      const jourEpuisement =
-        parJour > 0 && dotation > 0 ? Math.ceil(dotation / parJour) : null;
+      const jourEpuisement = parJour > 0 && dotation > 0 ? Math.ceil(dotation / parJour) : null;
       const niveau: PrevisionEnveloppe["niveau"] =
         depassement > 0 ? "depassement" : projete > dotation * 0.9 ? "juste" : "ok";
       const phrase =
@@ -202,7 +197,9 @@ export function suggererEnveloppe(
   libelle: string,
   transactions: Transaction[],
 ): SuggestionEnveloppe | null {
-  const mots = normaliser(libelle).split(" ").filter((m) => m.length >= 3);
+  const mots = normaliser(libelle)
+    .split(" ")
+    .filter((m) => m.length >= 3);
   if (mots.length === 0) return null;
 
   const scores = new Map<string, number>();

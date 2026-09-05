@@ -133,10 +133,14 @@ function PageSimulation() {
           <p className="text-xs text-foreground/80">{impact.message}</p>
           <ul className="space-y-1 text-xs text-foreground/80">
             <li>Solde juste après : {formatFCFA(impact.soldeApres)}</li>
-            <li>Ce que vous pouvez mettre de côté chaque mois : {formatFCFA(impact.capaciteMensuelle)}</li>
+            <li>
+              Ce que vous pouvez mettre de côté chaque mois : {formatFCFA(impact.capaciteMensuelle)}
+            </li>
             <li>
               Temps pour reconstituer :{" "}
-              {impact.moisPourReconstituer ? `${impact.moisPourReconstituer} mois` : "non estimable"}
+              {impact.moisPourReconstituer
+                ? `${impact.moisPourReconstituer} mois`
+                : "non estimable"}
             </li>
           </ul>
         </section>
