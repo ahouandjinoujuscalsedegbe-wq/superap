@@ -4,7 +4,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   FileText,
-  HandCoins,
   Landmark,
   Layers,
   Wallet,
@@ -67,14 +66,7 @@ function Accueil() {
   return (
     <div className="space-y-5">
       <header className="flex items-center justify-end gap-3 pr-12">
-        <Link
-          to="/dettes"
-          aria-label="Dettes & Créances"
-          className="flex max-w-[10rem] items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm transition-transform hover:bg-accent/60 active:scale-95"
-        >
-          <HandCoins className="h-5 w-5 shrink-0" aria-hidden />
-          <span className="truncate">Dettes & Créances</span>
-        </Link>
+        {/* Les détails rapides peuvent être ajoutés ici si besoin. */}
       </header>
 
       <section className="carte p-5">
