@@ -4,6 +4,7 @@ import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { equivalentMensuel } from "@/lib/periodes";
 import { TableauSuiviReel } from "@/components/TableauSuiviReel";
+import { PrevisionEnveloppes } from "@/components/PrevisionEnveloppes";
 
 export const Route = createFileRoute("/budget/")({
   head: () => ({
@@ -69,6 +70,8 @@ function BudgetAccueil() {
       </section>
 
       <TableauSuiviReel />
+
+      <PrevisionEnveloppes />
 
       <nav className="space-y-2">
         {ENTREES.map((e) => (
