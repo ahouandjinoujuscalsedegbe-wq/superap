@@ -270,6 +270,10 @@ function PageSauvegarde() {
         </button>
       </section>
 
+      <ChangerPhraseRecuperation />
+
+
+
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">
           <FileText className="h-4 w-4 text-primary" aria-hidden /> Export lisible
