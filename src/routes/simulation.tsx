@@ -71,15 +71,6 @@ function PageSimulation() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-2">
-        <Link to="/" className="rounded-full p-2 active:scale-95" aria-label="Retour à l'accueil">
-          <ArrowLeft className="h-5 w-5" aria-hidden />
-        </Link>
-        <h1 className="flex items-center gap-2 text-lg font-semibold">
-          <Calculator className="h-5 w-5 text-primary" aria-hidden /> Si je dépense…
-        </h1>
-      </header>
-
       <section className="carte space-y-3 p-4">
         <label className="block text-sm font-medium" htmlFor="montant-simulation">
           Montant de la dépense envisagée
