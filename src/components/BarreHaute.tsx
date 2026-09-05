@@ -23,8 +23,7 @@ import {
 import { useSuperApp } from "@/lib/store";
 import { CATEGORIE_LIBRE } from "@/lib/categories";
 
-import logoSuperAppAsset from "@/assets/logo-super-app.png.asset.json";
-const logoSuperApp = logoSuperAppAsset.url;
+import logoSuperApp from "@/assets/logo-super-app.png";
 
 const ENTREES = [
   { to: "/parametres", label: "Paramètres", icone: Settings },
