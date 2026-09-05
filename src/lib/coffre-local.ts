@@ -14,6 +14,8 @@
  */
 
 const PREFIXE = "SAC1:";
+/** Format triple couche (chiffré trois fois de suite). */
+const PREFIXE_TRIPLE = "SAC3:";
 const CLE_SECRET_APPAREIL = "superapp:coffre:secret:v1";
 /** Secret d'appareil scellé par le code PIN (protection renforcée). */
 const CLE_SECRET_PROTEGE = "superapp:coffre:secret:protege:v1";
@@ -22,7 +24,7 @@ const ITERATIONS = 150_000;
 const encodeur = new TextEncoder();
 const decodeur = new TextDecoder();
 
-let clePromesse: Promise<CryptoKey> | null = null;
+let clePromesse: Promise<{ c1: CryptoKey; c2: CryptoKey; c3: CryptoKey }> | null = null;
 
 function versBase64(buf: ArrayBuffer | Uint8Array): string {
   const octets = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
