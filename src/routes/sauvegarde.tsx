@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
+import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
