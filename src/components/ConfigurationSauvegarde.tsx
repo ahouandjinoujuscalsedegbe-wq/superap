@@ -124,6 +124,17 @@ export function ConfigurationSauvegarde() {
           <button
             type="button"
             onClick={() => {
+              ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: true });
+              setVisible(false);
+              window.location.assign("/sauvegarde#recuperation");
+            }}
+            className="w-full rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary"
+          >
+            J'ai changé de téléphone — récupérer mes données
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: false });
               setVisible(false);
             }}

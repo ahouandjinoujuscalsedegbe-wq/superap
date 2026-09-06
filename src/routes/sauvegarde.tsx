@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
+import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
@@ -270,6 +271,8 @@ function PageSauvegarde() {
           <Download className="h-4 w-4" aria-hidden /> Télécharger la sauvegarde chiffrée
         </button>
       </section>
+
+      <RecuperationNouveauTelephone />
 
       <ChangerPhraseRecuperation />
 
