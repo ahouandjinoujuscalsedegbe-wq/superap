@@ -271,6 +271,8 @@ function PageSauvegarde() {
         </button>
       </section>
 
+      <RecuperationNouveauTelephone />
+
       <ChangerPhraseRecuperation />
 
 
