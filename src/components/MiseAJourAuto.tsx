@@ -71,8 +71,9 @@ export function DialogueMiseAJour({
         )}
 
         <p className="text-xs text-muted-foreground">
-          L'installation se fait par-dessus l'application actuelle : toutes vos enveloppes,
-          opérations et sauvegardes locales sont conservées.
+          Le téléchargement s'ouvre dans votre navigateur. Ouvrez ensuite le fichier téléchargé pour
+          installer la nouvelle version par-dessus l'actuelle : toutes vos enveloppes, opérations et
+          sauvegardes locales sont conservées.
         </p>
 
         {etape && (
@@ -103,7 +104,7 @@ export function DialogueMiseAJour({
             type="button"
             disabled={enCours}
             onClick={async () => {
-              setEtape({ etape: "telechargement", message: "Téléchargement en cours..." });
+              setEtape({ etape: "telechargement", message: "Ouverture du téléchargement..." });
               const resultat = await installerMiseAJour(manifeste.url, setEtape, {
                 ...(manifeste.sha256 ? { sha256: manifeste.sha256 } : {}),
                 ...(typeof manifeste.taille === "number" ? { taille: manifeste.taille } : {}),
@@ -115,7 +116,7 @@ export function DialogueMiseAJour({
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-70"
           >
             <Download aria-hidden className="h-4 w-4" />
-            {enCours ? "Patientez..." : "Mettre à jour maintenant"}
+            {enCours ? "Patientez..." : "Télécharger la mise à jour"}
           </button>
         </div>
       </div>

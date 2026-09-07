@@ -118,7 +118,8 @@ let cacheRelease: { assets: AssetRelease[]; expire: number } | null = null;
 /** Durée de validité du cache de Release. */
 const CACHE_RELEASE_MS = 60 * 1000;
 
-type ReponseGithub = { etat: "ok"; donnees: unknown } | { etat: "http"; code: number } | { etat: "reseau" };
+type ReponseGithub =
+  { etat: "ok"; donnees: unknown } | { etat: "http"; code: number } | { etat: "reseau" };
 
 /** Lecture d'un JSON de l'API GitHub, en natif (Capacitor) ou via fetch. */
 async function lireJsonGithub(url: string): Promise<ReponseGithub> {
@@ -174,8 +175,13 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
     return { etat: "http", code: reponseLatest.code };
   }
 
-  const latest = reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
-  if (latest && Array.isArray(latest.assets) && latest.assets.some((a) => a.name === "version.json")) {
+  const latest =
+    reponseLatest.etat === "ok" ? (reponseLatest.donnees as { assets?: AssetRelease[] }) : null;
+  if (
+    latest &&
+    Array.isArray(latest.assets) &&
+    latest.assets.some((a) => a.name === "version.json")
+  ) {
     cacheRelease = { assets: latest.assets, expire: Date.now() + CACHE_RELEASE_MS };
     return { etat: "ok", assets: latest.assets };
   }
@@ -205,7 +211,9 @@ async function lireDerniereRelease(): Promise<ResultatRelease> {
 }
 
 /** Trouve un fichier (asset) de la dernière Release par son nom. */
-async function trouverAsset(nom: string): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
+async function trouverAsset(
+  nom: string,
+): Promise<{ asset: AssetRelease | null; echec: ResultatRelease | null }> {
   const release = await lireDerniereRelease();
   if (release.etat !== "ok") return { asset: null, echec: release };
   return { asset: release.assets.find((a) => a.name === nom) ?? null, echec: null };
@@ -218,7 +226,9 @@ async function trouverAsset(nom: string): Promise<{ asset: AssetRelease | null; 
  */
 async function telechargerAssetJson(
   assetUrl: string,
-): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
   const entetes = entetesGithub("application/octet-stream");
   try {
     if (estApplicationNative()) {
@@ -250,7 +260,8 @@ async function telechargerAssetJson(
   } catch {
     return {
       etat: "hors-ligne",
-      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message:
+        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -308,7 +319,9 @@ export function estApplicationNative(): boolean {
 /** Téléchargement par le réseau natif Android (aucune restriction CORS). */
 async function telechargerNatif(
   cible: string,
-): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
   try {
     const { CapacitorHttp } = await import("@capacitor/core");
     const reponse = await CapacitorHttp.get({
@@ -329,7 +342,8 @@ async function telechargerNatif(
   } catch {
     return {
       etat: "hors-ligne",
-      message: "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
+      message:
+        "Impossible de joindre le serveur de mise à jour. Vérifiez votre connexion Internet.",
     };
   }
 }
@@ -337,7 +351,9 @@ async function telechargerNatif(
 /** Lecture JSON simple (navigateur) utilisée par le relais de mise à jour. */
 async function telechargerJson(
   cible: string,
-): Promise<{ etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }> {
+): Promise<
+  { etat: "ok"; donnees: Partial<Manifeste> } | { etat: "erreur" | "hors-ligne"; message: string }
+> {
   try {
     const reponse = await fetch(cible, { cache: "no-store" });
     if (!reponse.ok) {
@@ -380,12 +396,15 @@ function interpreterManifeste(donnees: Partial<Manifeste>): ResultatVerification
  * Télécharge le manifeste et le compare à la version installée.
  * Ne lève jamais d'exception : toutes les issues sont décrites dans le résultat.
  */
-export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Promise<ResultatVerification> {
+export async function verifierMiseAJour(
+  urlManifeste = lireUrlManifeste(),
+): Promise<ResultatVerification> {
   const adresse = urlManifeste.trim();
   if (!adresse) {
     return {
       etat: "erreur",
-      message: "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
+      message:
+        "Aucune adresse de mise à jour enregistrée. Collez l'adresse du fichier version.json ci-dessous.",
     };
   }
   if (!estAdresseValide(adresse)) {
@@ -406,7 +425,9 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
   // jeton ne soit présent dans l'application installée.
   if (!lireTokenGithub()) {
     const relais = `${RELAIS_MAJ}/api/public/maj/version?t=${Date.now()}`;
-    const resultat = estApplicationNative() ? await telechargerNatif(relais) : await telechargerJson(relais);
+    const resultat = estApplicationNative()
+      ? await telechargerNatif(relais)
+      : await telechargerJson(relais);
     if (resultat.etat === "ok") return interpreterManifeste(resultat.donnees);
     if (resultat.etat === "hors-ligne") return { etat: "hors-ligne", message: resultat.message };
     // Sinon : on poursuit avec l'adresse publique enregistrée (dépannage).
@@ -421,7 +442,8 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
       if (echec?.etat === "reseau") {
         return {
           etat: "hors-ligne",
-          message: "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
+          message:
+            "Impossible de joindre GitHub. Vérifiez votre connexion Internet puis réessayez.",
         };
       }
       if (echec?.etat === "http" && (echec.code === 401 || echec.code === 403)) {
@@ -476,7 +498,8 @@ export async function verifierMiseAJour(urlManifeste = lireUrlManifeste()): Prom
     if (!donnees || typeof donnees.version !== "string" || typeof donnees.url !== "string") {
       return {
         etat: "erreur",
-        message: "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
+        message:
+          "Le fichier version.json est incomplet : il faut au minimum « version » et « url ».",
       };
     }
     memoriserVerification();
@@ -519,7 +542,9 @@ function bufferVersBase64(buffer: ArrayBuffer): string {
 
 /** Nettoie une chaîne base64 (préfixe « data: », espaces, retours à la ligne). */
 function nettoyerBase64(valeur: string): string {
-  const sansPrefixe = valeur.includes("base64,") ? valeur.slice(valeur.indexOf("base64,") + 7) : valeur;
+  const sansPrefixe = valeur.includes("base64,")
+    ? valeur.slice(valeur.indexOf("base64,") + 7)
+    : valeur;
   return sansPrefixe.replace(/\s/g, "");
 }
 
@@ -587,184 +612,24 @@ async function verifierIntegrite(
 }
 
 /**
- * Télécharge l'APK avec le réseau natif Android et retourne son contenu en
- * base64 (format attendu par le système de fichiers Capacitor).
+ * Ouvre la page de téléchargement officielle de la nouvelle version.
  *
- * Important : avec `responseType: "arraybuffer"`, le pont natif renvoie déjà
- * une chaîne base64. La reconvertir comme un tableau d'octets produisait un
- * fichier corrompu, d'où le message « problème lors de l'analyse du package ».
- */
-async function telechargerAPKNatif(
-  url: string,
-  surEtape?: (etape: EtapeInstallation) => void,
-  integrite?: Integrite,
-): Promise<{ ok: true; base64: string } | { ok: false; message: string }> {
-  try {
-    surEtape?.({ etape: "telechargement", message: "Téléchargement de la nouvelle version..." });
-
-    // Dépôt privé : l'URL publique de téléchargement répond 404. On la
-    // remplace par l'URL d'asset de l'API GitHub, authentifiée par le jeton.
-    let cible = url;
-    let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
-    const nomApk = url.split("/").pop()?.split("?")[0] ?? "";
-    if (!lireTokenGithub() && nomApk.endsWith(".apk")) {
-      // Relais du serveur : il résout l'adresse de téléchargement signée.
-      cible = `${RELAIS_MAJ}/api/public/maj/apk?nom=${encodeURIComponent(nomApk)}`;
-    } else if (lireTokenGithub() && url.includes("github.com")) {
-      const nomFichier = nomApk;
-      const trouve = nomFichier ? await trouverAsset(nomFichier) : null;
-      if (!trouve?.asset) {
-        cacheRelease = null;
-        return {
-          ok: false,
-          message: `Le fichier ${nomFichier || "APK"} est introuvable dans la dernière version publiée sur GitHub.`,
-        };
-      }
-      cible = trouve.asset.url;
-      entetes = entetesGithub("application/octet-stream");
-    }
-
-    const { CapacitorHttp } = await import("@capacitor/core");
-    const reponse = await CapacitorHttp.get({
-      url: cible,
-      headers: entetes,
-      responseType: "blob",
-      readTimeout: 180000,
-      connectTimeout: 30000,
-    });
-    if (reponse.status < 200 || reponse.status >= 300) {
-      return {
-        ok: false,
-        message: `Le serveur a répondu ${reponse.status} lors du téléchargement de l'APK.`,
-      };
-    }
-
-    const brut = reponse.data as unknown;
-    let base64: string;
-    if (typeof brut === "string") {
-      base64 = nettoyerBase64(brut);
-    } else if (brut instanceof ArrayBuffer) {
-      base64 = bufferVersBase64(brut);
-    } else if (ArrayBuffer.isView(brut)) {
-      const vue = brut as ArrayBufferView;
-      base64 = bufferVersBase64(vue.buffer.slice(vue.byteOffset, vue.byteOffset + vue.byteLength) as ArrayBuffer);
-    } else {
-      return {
-        ok: false,
-        message: "Réponse inattendue du serveur : le fichier n'a pas pu être lu.",
-      };
-    }
-
-    if (tailleBase64(base64) < 100_000) {
-      return {
-        ok: false,
-        message:
-          "Le fichier téléchargé est trop petit pour être une application. Vérifiez que l'adresse pointe bien vers l'APK de la nouvelle version.",
-      };
-    }
-    if (!estArchiveApk(base64)) {
-      return {
-        ok: false,
-        message:
-          "Le fichier téléchargé n'est pas une application Android valide (page web ou lien invalide). Vérifiez l'adresse indiquée dans version.json.",
-      };
-    }
-
-    // Contrôle d'intégrité annoncé par version.json (taille + SHA-256) :
-    // un fichier tronqué ou altéré est refusé avant toute installation.
-    const controle = await verifierIntegrite(base64, integrite);
-    if (!controle.ok) return controle;
-
-    return { ok: true, base64 };
-  } catch {
-    return {
-      ok: false,
-      message: "Impossible de télécharger la mise à jour. Vérifiez votre connexion Internet.",
-    };
-  }
-}
-
-/**
- * Écrit l'APK dans le cache de l'application puis l'ouvre avec l'installateur
- * Android natif. L'utilisateur n'a plus qu'à confirmer l'installation.
- */
-async function installerAPKDepuisCache(
-  base64: string,
-  surEtape?: (etape: EtapeInstallation) => void,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  try {
-    surEtape?.({ etape: "enregistrement", message: "Préparation du fichier d'installation..." });
-    const [{ Filesystem, Directory }, { FileOpener }] = await Promise.all([
-      import("@capacitor/filesystem"),
-      import("@capacitor-community/file-opener"),
-    ]);
-
-    const nomFichier = `super-app-${Date.now()}.apk`;
-
-    // Un ancien fichier partiellement écrit provoquerait la même erreur
-    // d'analyse : on repart toujours d'un nom neuf et d'une écriture complète.
-    await Filesystem.writeFile({
-      path: nomFichier,
-      data: base64,
-      directory: Directory.Cache,
-      recursive: true,
-    });
-
-    const info = await Filesystem.stat({ path: nomFichier, directory: Directory.Cache });
-    if (!info.size || info.size < 100_000) {
-      return {
-        ok: false,
-        message: "L'enregistrement du fichier d'installation est incomplet. Réessayez la mise à jour.",
-      };
-    }
-
-    const uri = await Filesystem.getUri({
-      path: nomFichier,
-      directory: Directory.Cache,
-    });
-
-    surEtape?.({
-      etape: "installation",
-      message: "Lancement de l'installateur Android. Confirmez l'installation.",
-    });
-
-    await FileOpener.open({
-      filePath: uri.uri,
-      contentType: "application/vnd.android.package-archive",
-    });
-
-    return { ok: true };
-  } catch (erreur) {
-    const message = erreur instanceof Error ? erreur.message : String(erreur);
-    return {
-      ok: false,
-      message: `Impossible de lancer l'installateur : ${message}. Autorisez l'installation depuis cette application dans les paramètres Android si demandé.`,
-    };
-  }
-}
-
-/**
- * Lance la mise à jour en un clic dans l'application Android :
- * téléchargement de l'APK, enregistrement local, ouverture de l'installateur.
- * Sur navigateur, on retombe sur l'ouverture d'un nouvel onglet.
+ * L'application ne télécharge ni n'installe plus elle-même le fichier
+ * d'installation : Google Play Protect bloque les applications capables
+ * d'installer d'autres applications. La mise à jour se fait donc par le
+ * navigateur du téléphone, comme pour la première installation.
  */
 export async function installerMiseAJour(
   url: string,
   surEtape?: (etape: EtapeInstallation) => void,
-  integrite?: Integrite,
+  _integrite?: Integrite,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (!estApplicationNative()) {
-    lancerTelechargement(url);
-    return { ok: true };
-  }
-
-  const telechargement = await telechargerAPKNatif(url, surEtape, integrite);
-  if (!telechargement.ok) return telechargement;
-
-  const installation = await installerAPKDepuisCache(telechargement.base64, surEtape);
-  if (!installation.ok) return installation;
-
-  surEtape?.({ etape: "termine", message: "Installateur Android lancé." });
+  lancerTelechargement(url);
+  surEtape?.({
+    etape: "termine",
+    message:
+      "Téléchargement ouvert dans le navigateur. Ouvrez le fichier téléchargé pour installer la nouvelle version.",
+  });
   return { ok: true };
 }
 
