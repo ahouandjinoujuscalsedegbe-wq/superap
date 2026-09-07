@@ -19,9 +19,14 @@ function afficherPanneDemarrage(message: string) {
     </div>`;
 }
 
-void import("./mobile-app").catch((erreur: unknown) => {
-  const message = erreur instanceof Error ? `${erreur.message}\n${erreur.stack ?? ""}` : String(erreur ?? "Erreur inconnue");
-  const racine = document.getElementById("root");
-  if (racine) racine.setAttribute("data-erreur-demarrage", message);
-  afficherPanneDemarrage(message);
-});
+void import("./mobile-app")
+  .then(({ demarrerApplicationMobile }) => demarrerApplicationMobile())
+  .catch((erreur: unknown) => {
+    const message =
+      erreur instanceof Error
+        ? `${erreur.message}\n${erreur.stack ?? ""}`
+        : String(erreur ?? "Erreur inconnue");
+    const racine = document.getElementById("root");
+    if (racine) racine.setAttribute("data-erreur-demarrage", message);
+    afficherPanneDemarrage(message);
+  });

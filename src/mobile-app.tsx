@@ -42,12 +42,14 @@ class FiletSecurite extends Component<{ children: ReactNode }, { panne: string |
   }
 }
 
-if (!racine) throw new Error("Zone d'affichage absente.");
+export function demarrerApplicationMobile() {
+  if (!racine) throw new Error("Zone d'affichage absente.");
 
-const router = getRouter(createMemoryHistory({ initialEntries: ["/"] }));
-createRoot(racine).render(
-  <FiletSecurite>
-    <RouterProvider router={router} />
-  </FiletSecurite>,
-);
-window.setTimeout(masquerSplash, 400);
+  const router = getRouter(createMemoryHistory({ initialEntries: ["/"] }));
+  createRoot(racine).render(
+    <FiletSecurite>
+      <RouterProvider router={router} />
+    </FiletSecurite>,
+  );
+  window.setTimeout(masquerSplash, 400);
+}
