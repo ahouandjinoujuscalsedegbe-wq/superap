@@ -6,6 +6,7 @@ import {
   FileText,
   History,
   Lock,
+  Mail,
   RotateCcw,
   ShieldCheck,
   Trash2,
@@ -14,6 +15,7 @@ import {
 import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
+import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
@@ -29,6 +31,12 @@ import {
   viderPoints,
   type SauvegardeAuto,
 } from "@/lib/sauvegarde";
+import {
+  ecrireReglagesMail,
+  lireFile,
+  lireReglagesMail,
+  type ReglagesMail,
+} from "@/lib/sauvegarde-email";
 
 export const Route = createFileRoute("/sauvegarde")({
   head: () => ({
