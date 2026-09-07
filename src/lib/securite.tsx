@@ -130,6 +130,8 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
   const [biometrieDisponible, setBiometrieDisponible] = useState(false);
   const [coffreProtege, setCoffreProtege] = useState(false);
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Compteur d'échecs consécutifs, hors rendu pour rester exact entre deux saisies.
+  const essaisRef = useRef(0);
 
   // Lecture de la configuration locale au démarrage.
   useEffect(() => {
