@@ -9,6 +9,11 @@ import {
   preparerColis,
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
+import {
+  confierColisArrierePlan,
+  oublierColisArrierePlan,
+  preparerArrierePlan,
+} from "@/lib/sauvegarde-arriere-plan";
 
 /** Délai avant chiffrement d'une saisie (évite un colis à chaque frappe). */
 const DELAI_CHIFFREMENT = 4_000;
@@ -44,6 +49,7 @@ export function SauvegardeEmailAuto() {
       });
       if (resultat.envoye) {
         ecrireFile(null);
+        await oublierColisArrierePlan();
         const { dernierEchec: _echec, ...reste } = reglages;
         void _echec;
         ecrireReglagesMail({
@@ -93,6 +99,14 @@ export function SauvegardeEmailAuto() {
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
         ecrireFile(colis);
+        // Copie confiée au relais système : l'envoi se poursuit même une fois
+        // l'application fermée.
+        await confierColisArrierePlan({
+          email: actuel.email,
+          appareil: actuel.appareil,
+          colis: colis.contenu,
+          creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
+        });
         await envoyer();
       })();
     }, DELAI_CHIFFREMENT);
@@ -102,7 +116,15 @@ export function SauvegardeEmailAuto() {
   // 2. Reprise automatique : retour du réseau, retour dans l'application,
   //    et nouvelle tentative régulière tant qu'un colis attend.
   useEffect(() => {
+    void preparerArrierePlan();
     const reprendre = () => void envoyer();
+    const depuisRelais = (e: MessageEvent) => {
+      if ((e.data as { type?: string } | null)?.type === "sauvegarde-envoyee") {
+        ecrireFile(null);
+        ecrireReglagesMail({ ...lireReglagesMail(), dernierEnvoi: new Date().toISOString() });
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", depuisRelais);
     window.addEventListener("online", reprendre);
     const auRetour = () => {
       if (document.visibilityState === "visible") reprendre();
@@ -111,6 +133,7 @@ export function SauvegardeEmailAuto() {
     const minuterie = window.setInterval(reprendre, DELAI_REESSAI);
     reprendre();
     return () => {
+      navigator.serviceWorker?.removeEventListener("message", depuisRelais);
       window.removeEventListener("online", reprendre);
       document.removeEventListener("visibilitychange", auRetour);
       window.clearInterval(minuterie);
