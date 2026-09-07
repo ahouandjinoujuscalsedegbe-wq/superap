@@ -511,6 +511,8 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
   };
 }
 
+import { camouflageEnCours } from "./securite-avancee";
+
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
 // rechargement à chaud, le provider et une route peuvent momentanément recevoir
@@ -532,6 +534,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let annule = false;
+    // Mode camouflage : session fictive, aucune lecture ni écriture réelle.
+    if (camouflageEnCours()) {
+      setEtat(ETAT_INITIAL);
+      setChargement(false);
+      return;
+    }
     void (async () => {
       const lecture = await lireSecuriseDetail(CLE);
       if (annule) return;

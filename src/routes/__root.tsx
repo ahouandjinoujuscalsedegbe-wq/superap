@@ -26,6 +26,9 @@ import { installerCaptureGlobale } from "@/lib/journal";
 
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
+import { ProtectionsEcran } from "../components/ProtectionsEcran";
+import { GardeCoffreSensible } from "../components/GardeCoffreSensible";
+import { GardeActionSensible } from "../components/GardeActionSensible";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
 import { AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
@@ -197,6 +200,9 @@ function RootComponent() {
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
+          <ProtectionsEcran />
+          <GardeCoffreSensible />
+          <GardeActionSensible />
           <MiseAJourAuto />
           <AlerteStockage />
           <AlarmeIntelligente />
