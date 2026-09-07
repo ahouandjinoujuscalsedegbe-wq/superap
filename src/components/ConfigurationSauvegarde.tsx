@@ -12,7 +12,7 @@ import {
  * sauvegardes chiffrées et la phrase de récupération qui permettra de les
  * rouvrir sur un autre téléphone.
  */
-export function ConfigurationSauvegarde() {
+export function ConfigurationSauvegarde({ forceOpen }: { forceOpen?: boolean }) {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [appareil, setAppareil] = useState("MON TÉLÉPHONE");
@@ -22,8 +22,10 @@ export function ConfigurationSauvegarde() {
 
   useEffect(() => {
     const r = lireReglagesMail();
-    if (!r.configure) setVisible(true);
-  }, []);
+    setEmail(r.email || "");
+    setAppareil(r.appareil || "MON TÉLÉPHONE");
+    if (!r.configure || forceOpen) setVisible(true);
+  }, [forceOpen]);
 
   if (!visible) return null;
 
