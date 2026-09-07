@@ -138,7 +138,7 @@ export function ConfigurationSauvegarde({
             type="button"
             onClick={() => {
               ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: true });
-              setVisible(false);
+              fermer();
               window.location.assign("/sauvegarde#recuperation");
             }}
             className="w-full rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary"
@@ -149,7 +149,7 @@ export function ConfigurationSauvegarde({
             type="button"
             onClick={() => {
               ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: false });
-              setVisible(false);
+              fermer();
             }}
             className="w-full rounded-xl border border-input px-4 py-2.5 text-sm font-semibold"
           >
