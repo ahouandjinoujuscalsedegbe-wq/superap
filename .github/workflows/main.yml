@@ -127,28 +127,26 @@ jobs:
           done
           echo "Écran de démarrage appliqué."
 
-      # 7b. Configurer les permissions Android pour l'installateur d'APK
-      - name: Configurer les permissions de mise à jour
+      # 7b. Configurer les permissions Android (micro uniquement)
+      # IMPORTANT : aucune permission d'installation d'applications
+      # (REQUEST_INSTALL_PACKAGES) n'est demandée. Google Play Protect bloque
+      # les applications capables d'en installer d'autres.
+      - name: Configurer les permissions
         run: |
-          mkdir -p android/app/src/main/res/xml
-          cat > android/app/src/main/res/xml/file_paths.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <paths xmlns:android="http://schemas.android.com/apk/res/android">
-              <cache-path name="cache" path="." />
-              <files-path name="files" path="." />
-              <external-path name="external" path="." />
-          </paths>
-          EOF
-
           python3 <<'PY'
           from pathlib import Path
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
           contenu = manifest.read_text(encoding="utf-8")
 
-          permissions = [
-              # Installation de la mise à jour APK téléchargée par l'auto-updater.
+          # Nettoyage des anciennes installations : la permission d'installation
+          # d'APK et le fournisseur de fichiers associé sont retirés.
+          contenu = contenu.replace(
               '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />',
+              "",
+          )
+
+          permissions = [
               # Micro : dictée, discussion vocale avec le conseiller.
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
               '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
@@ -160,32 +158,18 @@ jobs:
 
           # Autorise l'application à voir les services de reconnaissance vocale
           # installés (obligatoire depuis Android 11 / package visibility).
-          requetes = '''
+          requetes = """
               <queries>
                   <intent>
                       <action android:name="android.speech.RecognitionService" />
                   </intent>
               </queries>
-          '''
+          """
           if "android.speech.RecognitionService" not in contenu:
               contenu = contenu.replace("<application", requetes + "\n    <application", 1)
 
-          if "androidx.core.content.FileProvider" not in contenu:
-              provider = '''
-              <provider
-                  android:name="androidx.core.content.FileProvider"
-                  android:authorities="${applicationId}.fileprovider"
-                  android:exported="false"
-                  android:grantUriPermissions="true">
-                  <meta-data
-                      android:name="android.support.FILE_PROVIDER_PATHS"
-                      android:resource="@xml/file_paths" />
-              </provider>
-          '''
-              contenu = contenu.replace("</application>", provider + "\n        </application>", 1)
-
           manifest.write_text(contenu, encoding="utf-8")
-          print("AndroidManifest.xml configuré pour l'auto-update.")
+          print("AndroidManifest.xml configuré (sans permission d'installation).")
           PY
 
       # 7c. Brancher le contrôle natif d'intégrité

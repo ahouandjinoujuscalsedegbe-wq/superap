@@ -14,9 +14,9 @@ const config: CapacitorConfig = {
     // Android 15 impose l'affichage bord à bord. Capacitor rétablit ici les
     // marges système afin qu'aucun contrôle ne passe sous les barres du téléphone.
     adjustMarginsForEdgeToEdge: "auto",
-    // Permet de brancher le téléphone en USB et d'inspecter l'application
-    // depuis chrome://inspect si un problème persiste.
-    webContentsDebuggingEnabled: true,
+    // Désactivé : une WebView inspectable en production est signalée comme
+    // risque par Google Play Protect.
+    webContentsDebuggingEnabled: false,
   },
   plugins: {
     // Écran de démarrage aux couleurs du logo (rose clair).
