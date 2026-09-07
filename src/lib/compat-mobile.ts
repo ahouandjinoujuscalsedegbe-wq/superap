@@ -1,69 +1,60 @@
 /**
- * Compatibilité WebView Android.
- *
- * Certaines API modernes (crypto.randomUUID, structuredClone, Array.at…)
- * n'existent pas dans les WebView Android un peu anciennes. Sans ces
- * remplacements, la première fonction qui les utilise lève une exception et
- * l'application reste figée sur un écran blanc.
- *
- * Ce fichier doit être importé AVANT tout autre module de l'application.
+ * Compatibilité WebView Android (Polyfills & Correctifs).
+ * 
+ * Ce fichier est conçu pour fonctionner même sur des moteurs JS anciens 
+ * (Chrome 60+) et doit être exécuté AVANT tout autre import ESM.
  */
 
-type Global = typeof globalThis & {
-  crypto?: Crypto & { randomUUID?: () => string };
-  structuredClone?: <T>(v: T) => T;
-};
-
-const g = globalThis as Global;
-
-function uuidDeSecours(): string {
-  const alea = () => Math.floor(Math.random() * 16).toString(16);
-  let sortie = "";
-  for (let i = 0; i < 36; i++) {
-    if (i === 8 || i === 13 || i === 18 || i === 23) sortie += "-";
-    else if (i === 14) sortie += "4";
-    else if (i === 19) sortie += ((Math.floor(Math.random() * 4) + 8) & 0xf).toString(16);
-    else sortie += alea();
-  }
-  return sortie;
+// 1. Polyfill globalThis (Chrome < 71)
+if (typeof globalThis === "undefined") {
+  (function () {
+    if (typeof self !== "undefined") {
+      (self as any).globalThis = self;
+    } else if (typeof window !== "undefined") {
+      (window as any).globalThis = window;
+    }
+  })();
 }
 
+const g = globalThis as any;
+
+/**
+ * Installation des API manquantes.
+ * N'utilise AUCUNE syntaxe moderne (pas de ?., ??, ou let/const si on veut être parano, 
+ * mais ES6 est supporté par Chrome 60+).
+ */
 export function installerCompatibiliteMobile() {
-  // crypto / crypto.randomUUID
+  // crypto.randomUUID (Chrome < 92)
   if (!g.crypto) {
-    (g as { crypto?: unknown }).crypto = {} as Crypto;
+    g.crypto = {};
   }
-  if (typeof g.crypto?.randomUUID !== "function") {
-    try {
-      (g.crypto as { randomUUID?: () => string }).randomUUID = uuidDeSecours;
-    } catch {
-      /* objet crypto en lecture seule : on ignore */
-    }
+  if (typeof g.crypto.randomUUID !== "function") {
+    g.crypto.randomUUID = function () {
+      var alea = function () { return Math.floor(Math.random() * 16).toString(16); };
+      var sortie = "";
+      for (var i = 0; i < 36; i++) {
+        if (i === 8 || i === 13 || i === 18 || i === 23) sortie += "-";
+        else if (i === 14) sortie += "4";
+        else if (i === 19) sortie += ((Math.floor(Math.random() * 4) + 8) & 0xf).toString(16);
+        else sortie += alea();
+      }
+      return sortie;
+    };
   }
 
-  // structuredClone
+  // structuredClone (Chrome < 98)
   if (typeof g.structuredClone !== "function") {
-    g.structuredClone = (<T>(v: T): T =>
-      JSON.parse(JSON.stringify(v)) as T) as Global["structuredClone"];
+    g.structuredClone = function (v: any) {
+      return JSON.parse(JSON.stringify(v));
+    };
   }
 
-  // Array.prototype.at / String.prototype.at
+  // Array.prototype.at (Chrome < 92)
   if (typeof Array.prototype.at !== "function") {
     Object.defineProperty(Array.prototype, "at", {
       value: function (n: number) {
-        const i = Math.trunc(n) || 0;
-        const idx = i < 0 ? this.length + i : i;
-        return idx < 0 || idx >= this.length ? undefined : this[idx];
-      },
-      writable: true,
-      configurable: true,
-    });
-  }
-  if (typeof String.prototype.at !== "function") {
-    Object.defineProperty(String.prototype, "at", {
-      value: function (n: number) {
-        const i = Math.trunc(n) || 0;
-        const idx = i < 0 ? this.length + i : i;
+        var i = Math.trunc(n) || 0;
+        var idx = i < 0 ? this.length + i : i;
         return idx < 0 || idx >= this.length ? undefined : this[idx];
       },
       writable: true,
@@ -71,7 +62,20 @@ export function installerCompatibiliteMobile() {
     });
   }
 
-  // String.prototype.replaceAll
+  // String.prototype.at (Chrome < 92)
+  if (typeof String.prototype.at !== "function") {
+    Object.defineProperty(String.prototype, "at", {
+      value: function (n: number) {
+        var i = Math.trunc(n) || 0;
+        var idx = i < 0 ? this.length + i : i;
+        return idx < 0 || idx >= this.length ? undefined : this[idx];
+      },
+      writable: true,
+      configurable: true,
+    });
+  }
+
+  // String.prototype.replaceAll (Chrome < 85)
   if (typeof String.prototype.replaceAll !== "function") {
     Object.defineProperty(String.prototype, "replaceAll", {
       value: function (recherche: string | RegExp, remplacement: string) {
@@ -83,15 +87,60 @@ export function installerCompatibiliteMobile() {
     });
   }
 
-  // Object.hasOwn
-  if (typeof (Object as { hasOwn?: unknown }).hasOwn !== "function") {
-    (Object as { hasOwn?: (o: object, k: PropertyKey) => boolean }).hasOwn = (o, k) =>
-      Object.prototype.hasOwnProperty.call(o, k);
+  // Object.hasOwn (Chrome < 93)
+  if (typeof Object.hasOwn !== "function") {
+    Object.hasOwn = function (o: object, k: PropertyKey) {
+      return Object.prototype.hasOwnProperty.call(o, k);
+    };
   }
 
-  // requestIdleCallback
-  const w = g as unknown as Record<string, unknown>;
-  if (typeof w["requestIdleCallback"] !== "function") {
-    w["requestIdleCallback"] = (cb: () => void) => setTimeout(cb, 1);
+  // Object.fromEntries (Chrome < 73)
+  if (typeof Object.fromEntries !== "function") {
+    Object.fromEntries = function (entries: any) {
+      var obj = {} as any;
+      for (var i = 0; i < entries.length; i++) {
+        var pair = entries[i];
+        obj[pair[0]] = pair[1];
+      }
+      return obj;
+    };
+  }
+
+  // Array.prototype.flat (Chrome < 69)
+  if (typeof Array.prototype.flat !== "function") {
+    Object.defineProperty(Array.prototype, "flat", {
+      value: function (depth: number) {
+        var d = depth || 1;
+        return this.reduce(function (acc: any, val: any) {
+          return acc.concat(Array.isArray(val) && d > 1 ? val.flat(d - 1) : val);
+        }, []);
+      },
+      writable: true,
+      configurable: true,
+    });
+  }
+
+  // Promise.allSettled (Chrome < 76)
+  if (typeof Promise.allSettled !== "function") {
+    Promise.allSettled = function (promises: any[]) {
+      return Promise.all(
+        promises.map(function (p) {
+          return Promise.resolve(p).then(
+            function (value) { return { status: "fulfilled", value: value }; },
+            function (reason) { return { status: "rejected", reason: reason }; }
+          );
+        })
+      );
+    };
+  }
+
+  // requestIdleCallback (Chrome < 47, mais parfois absent/bogué)
+  if (typeof g.requestIdleCallback !== "function") {
+    g.requestIdleCallback = function (cb: any) {
+      return setTimeout(cb, 1);
+    };
   }
 }
+
+// Auto-exécution immédiate lors du chargement du module
+installerCompatibiliteMobile();
