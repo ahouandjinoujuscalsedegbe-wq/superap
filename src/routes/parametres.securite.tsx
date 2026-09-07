@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SectionSecurite } from "@/components/SectionSecurite";
+import { SectionSecuriteAvancee } from "@/components/SectionSecuriteAvancee";
 
 export const Route = createFileRoute("/parametres/securite")({
   head: () => ({
@@ -25,6 +26,7 @@ function PageSecurite() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight">Sécurité et verrouillage</h1>
       <SectionSecurite />
+      <SectionSecuriteAvancee />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Build;
+import android.view.WindowManager;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -75,5 +76,24 @@ public class IntegriteAppPlugin extends Plugin {
             r.put("installateur", "");
         }
         call.resolve(r);
+    }
+
+    /**
+     * Bloque (ou débloque) les captures d'écran et l'aperçu de l'application
+     * dans la liste des applications récentes.
+     */
+    @PluginMethod
+    public void bloquerCaptures(PluginCall call) {
+        final boolean actif = call.getBoolean("actif", Boolean.TRUE);
+        getActivity().runOnUiThread(() -> {
+            if (actif) {
+                getActivity().getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                    WindowManager.LayoutParams.FLAG_SECURE);
+            } else {
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            }
+        });
+        call.resolve();
     }
 }

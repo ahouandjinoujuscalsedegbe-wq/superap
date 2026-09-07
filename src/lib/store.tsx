@@ -12,6 +12,7 @@ import {
 import { avancerDate } from "./periodes";
 import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
+import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
 import {
   assainirBudget,
@@ -532,6 +533,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let annule = false;
+    // Mode camouflage : session fictive, aucune lecture ni écriture réelle.
+    if (camouflageEnCours()) {
+      setEtat(ETAT_INITIAL);
+      setChargement(false);
+      return;
+    }
     void (async () => {
       const lecture = await lireSecuriseDetail(CLE);
       if (annule) return;
@@ -584,7 +591,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Chiffrement AES-GCM avant toute écriture sur le téléphone.
-    if (pret.current && !illisible) void ecrireSecurise(CLE, JSON.stringify(etat));
+    // En mode camouflage, rien n'est jamais écrit : les vraies données restent intactes.
+    if (pret.current && !illisible && !camouflageEnCours())
+      void ecrireSecurise(CLE, JSON.stringify(etat));
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 
