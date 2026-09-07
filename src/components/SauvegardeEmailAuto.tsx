@@ -116,7 +116,15 @@ export function SauvegardeEmailAuto() {
   // 2. Reprise automatique : retour du réseau, retour dans l'application,
   //    et nouvelle tentative régulière tant qu'un colis attend.
   useEffect(() => {
+    void preparerArrierePlan();
     const reprendre = () => void envoyer();
+    const depuisRelais = (e: MessageEvent) => {
+      if ((e.data as { type?: string } | null)?.type === "sauvegarde-envoyee") {
+        ecrireFile(null);
+        ecrireReglagesMail({ ...lireReglagesMail(), dernierEnvoi: new Date().toISOString() });
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", depuisRelais);
     window.addEventListener("online", reprendre);
     const auRetour = () => {
       if (document.visibilityState === "visible") reprendre();
