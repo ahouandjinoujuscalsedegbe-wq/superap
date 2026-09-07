@@ -200,8 +200,7 @@ export function SectionSecuriteAvancee() {
           Deuxième coffre
         </p>
         <p className="text-xs text-muted-foreground">
-          Objectifs, dettes, sauvegarde et journal réclament une phrase distincte du code
-          quotidien.
+          Objectifs, dettes, sauvegarde et journal réclament une phrase distincte du code quotidien.
         </p>
         <input
           type="password"

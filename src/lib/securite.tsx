@@ -299,7 +299,6 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
     [config.empreinte, config.sel, blocageJusqua, marquerActivite],
   );
 
-
   const definirPin = useCallback(async (pin: string) => {
     const sel = nouveauSel();
     const empreinte = await calculerEmpreinte(pin, sel);
