@@ -1111,3 +1111,99 @@ textarea {
   margin: 0;
   padding: 0;
 }
+
+/*
+ * Compatibilité WebView Android ancienne.
+ *
+ * Les couleurs « oklch » ne sont comprises qu'à partir de Chrome/WebView 111.
+ * Sur un téléphone plus ancien, toutes les couleurs deviennent invalides et
+ * l'écran devient noir ou illisible. On fournit ici la même palette en
+ * notation classique, utilisée uniquement lorsque « oklch » n'existe pas.
+ */
+@supports not (color: oklch(0.5 0.1 350)) {
+  :root {
+    --background: #fdf2f6;
+    --foreground: #3b1d29;
+    --card: #ffffff;
+    --card-foreground: #3b1d29;
+    --popover: #ffffff;
+    --popover-foreground: #3b1d29;
+    --primary: #d9639a;
+    --primary-foreground: #fffafc;
+    --secondary: #f9e3ec;
+    --secondary-foreground: #8c3560;
+    --muted: #f7e8ef;
+    --muted-foreground: #8a6b78;
+    --accent: #f4d5e3;
+    --accent-foreground: #7c2b53;
+    --destructive: #dc4444;
+    --destructive-foreground: #fffafa;
+    --success: #2f9e6e;
+    --success-foreground: #f7fffb;
+    --border: #eccfdc;
+    --input: #eccfdc;
+    --ring: #d9639a;
+    --chart-1: #d9639a;
+    --chart-2: #2f9e6e;
+    --chart-3: #e0a63c;
+    --chart-4: #7f6bd6;
+    --chart-5: #dd5a45;
+    --sidebar: #fef7fa;
+    --sidebar-foreground: #3b1d29;
+    --sidebar-primary: #d9639a;
+    --sidebar-primary-foreground: #fffafc;
+    --sidebar-accent: #f9e3ec;
+    --sidebar-accent-foreground: #7c2b53;
+    --sidebar-border: #eccfdc;
+    --sidebar-ring: #d9639a;
+    --budget-bonne: #2f9e6e;
+    --budget-bonne-foreground: #f7fffb;
+    --budget-alerte: #e0a63c;
+    --budget-alerte-foreground: #4a3512;
+    --budget-depassement: #dc4444;
+    --budget-depassement-foreground: #fffafa;
+  }
+
+  .dark {
+    --background: #241820;
+    --foreground: #f7ecf1;
+    --card: #33232c;
+    --card-foreground: #f7ecf1;
+    --popover: #33232c;
+    --popover-foreground: #f7ecf1;
+    --primary: #e888b2;
+    --primary-foreground: #2b1a22;
+    --secondary: #43303a;
+    --secondary-foreground: #f4e2ea;
+    --muted: #43303a;
+    --muted-foreground: #c3a9b6;
+    --accent: #4e3743;
+    --accent-foreground: #f4e2ea;
+    --destructive: #ef6b6b;
+    --destructive-foreground: #2a1414;
+    --success: #4cc493;
+    --success-foreground: #10251c;
+    --border: rgba(255, 255, 255, 0.12);
+    --input: rgba(255, 255, 255, 0.15);
+    --ring: #e888b2;
+    --sidebar: #2c1f27;
+    --sidebar-foreground: #f7ecf1;
+    --sidebar-primary: #e888b2;
+    --sidebar-primary-foreground: #2b1a22;
+    --sidebar-accent: #43303a;
+    --sidebar-accent-foreground: #f4e2ea;
+    --sidebar-border: rgba(255, 255, 255, 0.12);
+    --sidebar-ring: #e888b2;
+    --budget-bonne: #4cc493;
+    --budget-bonne-foreground: #10251c;
+    --budget-alerte: #ecc05a;
+    --budget-alerte-foreground: #2d2210;
+    --budget-depassement: #ef6b6b;
+    --budget-depassement-foreground: #2a1414;
+  }
+
+  /* « color-mix » manque aussi sur ces versions : surfaces opaques de repli. */
+  .surface {
+    background-color: var(--card);
+  }
+}
