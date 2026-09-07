@@ -49,6 +49,7 @@ export function SauvegardeEmailAuto() {
       });
       if (resultat.envoye) {
         ecrireFile(null);
+        await oublierColisArrierePlan();
         const { dernierEchec: _echec, ...reste } = reglages;
         void _echec;
         ecrireReglagesMail({
