@@ -36,8 +36,6 @@ jobs:
         run: bun install --frozen-lockfile || bun install
 
       # 4. Construire la version web mobile (fichiers statiques)
-      # Le jeton GitHub (lecture seule) est intégré à l'application pour que
-      # l'auto-updater puisse lire les Releases même si le dépôt est privé.
       # Empreinte du certificat de signature : intégrée à l'application pour
       # qu'elle refuse de démarrer si elle a été recompilée par un tiers.
       - name: Calculer l'empreinte de signature attendue
@@ -74,6 +72,22 @@ jobs:
         env:
           VITE_SIGNATURE_ATTENDUE: ${{ env.SIGNATURE_ATTENDUE }}
         run: bunx vite build --config vite.mobile.config.ts
+
+      - name: Vérifier le démarrage embarqué
+        run: |
+          test -s dist-mobile/index.html
+          grep -q 'id="root"' dist-mobile/index.html
+          grep -q 'assets/mobile-' dist-mobile/index.html
+          if grep -R -E 'AsyncLocalStorage is not a constructor|new [A-Za-z0-9_$]+\.AsyncLocalStorage' dist-mobile/assets/*.js; then
+            echo "::error::Le paquet mobile contient encore le code serveur qui provoque l'écran blanc."
+            exit 1
+          fi
+          TAILLE_JS=$(find dist-mobile/assets -name '*.js' -printf '%s\n' | awk '{total += $1} END {print total + 0}')
+          if [ "$TAILLE_JS" -lt 500000 ]; then
+            echo "::error::Le code de l'application mobile est incomplet ($TAILLE_JS octets)."
+            exit 1
+          fi
+          echo "Paquet mobile complet : $TAILLE_JS octets de JavaScript."
 
       # 5. Installer Java (nécessaire pour compiler Android)
       - name: Installer Java 21
