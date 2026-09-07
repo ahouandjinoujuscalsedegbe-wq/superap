@@ -173,7 +173,15 @@ function Section({ titre, children }: { titre: string; children: React.ReactNode
   );
 }
 
-function Carte({ icone: Icon, titre, texte }: { icone: typeof Wallet; titre: string; texte: string }) {
+function Carte({
+  icone: Icon,
+  titre,
+  texte,
+}: {
+  icone: typeof Wallet;
+  titre: string;
+  texte: string;
+}) {
   return (
     <div className="carte flex gap-3 p-4">
       <div className="shrink-0 rounded-xl bg-primary/10 p-2 text-primary">
@@ -200,10 +208,9 @@ function Aide() {
       <section className="carte space-y-3 p-4">
         <h2 className="text-lg font-semibold tracking-tight">Bienvenue dans SUPER APP</h2>
         <p className="text-sm text-muted-foreground">
-          SUPER APP est votre compagnon de gestion budgétaire familiale. Elle vous aide à
-          connaître l'état de votre argent, à planifier vos dépenses et à atteindre vos objectifs
-          sans stress. Tout reste sur votre téléphone : vos données ne sont ni vendues, ni
-          envoyées en ligne.
+          SUPER APP est votre compagnon de gestion budgétaire familiale. Elle vous aide à connaître
+          l'état de votre argent, à planifier vos dépenses et à atteindre vos objectifs sans stress.
+          Tout reste sur votre téléphone : vos données ne sont ni vendues, ni envoyées en ligne.
         </p>
         <p className="text-sm text-muted-foreground">
           Cette page répond aux questions essentielles : comment l'utiliser, pourquoi elle est
@@ -238,17 +245,17 @@ function Aide() {
             recevez des réponses personnalisées basées sur vos propres données.
           </li>
           <li>
-            <strong>Simulez avant d'acheter</strong> : utilisez le bouton « Simulation » pour
-            voir l'impact d'une grosse dépense avant de vous engager.
+            <strong>Simulez avant d'acheter</strong> : utilisez le bouton « Simulation » pour voir
+            l'impact d'une grosse dépense avant de vous engager.
           </li>
         </ol>
       </Section>
 
       <Section titre="Pourquoi cette application est-elle importante ?">
         <p className="text-sm text-muted-foreground">
-          Gérer l'argent du foyer peut devenir compliqué quand plusieurs comptes, plusieurs
-          dépenses et plusieurs objectifs se mélangent. SUPER APP centralise tout en un seul endroit
-          et vous donne une vision claire.
+          Gérer l'argent du foyer peut devenir compliqué quand plusieurs comptes, plusieurs dépenses
+          et plusieurs objectifs se mélangent. SUPER APP centralise tout en un seul endroit et vous
+          donne une vision claire.
         </p>
         <p className="text-sm text-muted-foreground">
           Elle vous aide à éviter les fins de mois difficiles, à anticiper les grosses dépenses et à
@@ -268,8 +275,8 @@ function Aide() {
           <div className="carte p-4">
             <h3 className="font-semibold">Les objectifs ont besoin de discipline</h3>
             <p className="text-sm text-muted-foreground">
-              Les prélèvements automatiques vers vos objectifs d'épargne vous aident à avancer
-              sans y penser.
+              Les prélèvements automatiques vers vos objectifs d'épargne vous aident à avancer sans
+              y penser.
             </p>
           </div>
           <div className="carte p-4">
@@ -282,8 +289,8 @@ function Aide() {
           <div className="carte p-4">
             <h3 className="font-semibold">La confidentialité est essentielle</h3>
             <p className="text-sm text-muted-foreground">
-              Vos données financières sont trop sensibles pour être stockées n'importe où. Ici, elles
-              restent chez vous.
+              Vos données financières sont trop sensibles pour être stockées n'importe où. Ici,
+              elles restent chez vous.
             </p>
           </div>
         </div>
@@ -322,9 +329,9 @@ function Aide() {
       <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Confiance et tranquillité d'esprit</h2>
         <p className="text-sm text-muted-foreground">
-          SUPER APP est conçue pour être simple, sûre et utile au quotidien. Vous gardez le
-          contrôle total de vos données. L'application ne prend aucune décision à votre place : elle
-          vous propose, vous choisissez.
+          SUPER APP est conçue pour être simple, sûre et utile au quotidien. Vous gardez le contrôle
+          total de vos données. L'application ne prend aucune décision à votre place : elle vous
+          propose, vous choisissez.
         </p>
         <p className="text-sm text-muted-foreground">
           Si vous êtes perdu, commencez par ajouter un compte, une enveloppe et une dépense. En

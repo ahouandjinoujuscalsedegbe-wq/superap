@@ -79,7 +79,9 @@ function PageSauvegarde() {
   );
   const [attente, setAttente] = useState<ActionEnAttente | null>(null);
   const [reglagesMail, setReglagesMail] = useState<ReglagesMail>(() =>
-    typeof window === "undefined" ? { email: "", appareil: "", configure: false, actif: false } : lireReglagesMail(),
+    typeof window === "undefined"
+      ? { email: "", appareil: "", configure: false, actif: false }
+      : lireReglagesMail(),
   );
   const [colisEnAttente, setColisEnAttente] = useState(() =>
     typeof window === "undefined" ? null : lireFile(),
@@ -95,7 +97,11 @@ function PageSauvegarde() {
     const suivant = { ...lireReglagesMail(), actif: !reglagesMail.actif };
     ecrireReglagesMail(suivant);
     rafraichirEtatMail();
-    setInfo(suivant.actif ? "Sauvegarde e-mail automatique activée." : "Sauvegarde e-mail automatique désactivée.");
+    setInfo(
+      suivant.actif
+        ? "Sauvegarde e-mail automatique activée."
+        : "Sauvegarde e-mail automatique désactivée.",
+    );
   };
 
   const resume = useMemo(
@@ -391,8 +397,6 @@ function PageSauvegarde() {
       <RecuperationNouveauTelephone />
 
       <ChangerPhraseRecuperation />
-
-
 
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">

@@ -28,13 +28,42 @@ class FiletSecurite extends Component<{ children: ReactNode }, { panne: string |
   override render() {
     if (this.state.panne === null) return this.props.children;
     return (
-      <div style={{ padding: 20, fontFamily: "system-ui, sans-serif", color: "#3b1d29", background: "#fdf2f6", minHeight: "100vh" }}>
+      <div
+        style={{
+          padding: 20,
+          fontFamily: "system-ui, sans-serif",
+          color: "#3b1d29",
+          background: "#fdf2f6",
+          minHeight: "100vh",
+        }}
+      >
         <h1 style={{ fontSize: 18, margin: "0 0 8px" }}>Un problème a interrompu l'affichage</h1>
         <p style={{ fontSize: 13, margin: "0 0 12px" }}>Détail technique :</p>
-        <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 12, background: "#f6e6ec", padding: 10, borderRadius: 8 }}>
+        <pre
+          style={{
+            whiteSpace: "pre-wrap",
+            overflowWrap: "anywhere",
+            fontSize: 12,
+            background: "#f6e6ec",
+            padding: 10,
+            borderRadius: 8,
+          }}
+        >
           {this.state.panne}
         </pre>
-        <button type="button" onClick={() => location.reload()} style={{ marginTop: 14, padding: "10px 16px", border: 0, borderRadius: 8, background: "#c2557a", color: "#fff", fontSize: 14 }}>
+        <button
+          type="button"
+          onClick={() => location.reload()}
+          style={{
+            marginTop: 14,
+            padding: "10px 16px",
+            border: 0,
+            borderRadius: 8,
+            background: "#c2557a",
+            color: "#fff",
+            fontSize: 14,
+          }}
+        >
           Redémarrer
         </button>
       </div>
