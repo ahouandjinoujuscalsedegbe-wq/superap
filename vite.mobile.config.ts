@@ -29,6 +29,14 @@ export default defineConfig({
   // Indique au composant racine de ne pas recréer <html>/<body> : dans la
   // WebView, React est monté dans le <div id="root"> de index.html.
   define: { "import.meta.env.VITE_COQUE_MOBILE": "true" },
+  // TanStack Start contient un accès serveur à node:async_hooks. Vite le
+  // remplace sinon par un objet vide dans la WebView, puis le paquet plante
+  // avant le premier rendu avec « AsyncLocalStorage is not a constructor ».
+  resolve: {
+    alias: {
+      "node:async_hooks": resolve(process.cwd(), "src/lib/async-hooks-mobile.ts"),
+    },
+  },
   plugins: [tsconfigPaths(), tailwindcss(), react(), renommerEnIndex()],
   build: {
     // Cible volontairement large : les WebView Android livrées sur des

@@ -122,16 +122,20 @@ export function installerCompatibiliteMobile() {
 
   // Promise.allSettled (Chrome < 76)
   if (typeof Promise.allSettled !== "function") {
-    Promise.allSettled = function (promises: any[]) {
+    Promise.allSettled = function <T>(promises: Iterable<T | PromiseLike<T>>) {
       return Promise.all(
-        promises.map(function (p) {
+        Array.from(promises).map(function (p): Promise<PromiseSettledResult<Awaited<T>>> {
           return Promise.resolve(p).then(
-            function (value) { return { status: "fulfilled", value: value }; },
-            function (reason) { return { status: "rejected", reason: reason }; }
+            function (value): PromiseFulfilledResult<Awaited<T>> {
+              return { status: "fulfilled", value: value as Awaited<T> };
+            },
+            function (reason): PromiseRejectedResult {
+              return { status: "rejected", reason: reason };
+            },
           );
-        })
+        }),
       );
-    };
+    } as PromiseConstructor["allSettled"];
   }
 
   // requestIdleCallback (Chrome < 47, mais parfois absent/bogué)
