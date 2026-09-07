@@ -52,6 +52,14 @@ const CLE_OPTIONS = "superapp:securite:avancee:v1";
 const CLE_JOURNAL = "superapp:securite:journal:v1";
 const CLE_DERNIER_PIN_JOUR = "superapp:securite:pin-jour";
 const CLE_CAMOUFLAGE = "superapp:securite:camouflage";
+/** Session fictive permanente installée après un effacement de sécurité. */
+const CLE_FICTIF_PERMANENT = "superapp:securite:fictif";
+/** Réglages et code d'accès conservés lors d'un effacement de sécurité. */
+const CLES_CONSERVEES = [
+  "superapp:securite:v1",
+  CLE_OPTIONS,
+  CLE_FICTIF_PERMANENT,
+];
 
 const abonnes = new Set<(o: OptionsSecurite) => void>();
 
@@ -152,6 +160,7 @@ export function marquerPinDuJour(): void {
 
 export function camouflageEnCours(): boolean {
   try {
+    if (window.localStorage.getItem(CLE_FICTIF_PERMANENT) === "1") return true;
     return window.sessionStorage.getItem(CLE_CAMOUFLAGE) === "1";
   } catch {
     return false;
@@ -220,16 +229,25 @@ export function retirerCodeCamouflage(): void {
 /* Effacement de sécurité                                              */
 /* ------------------------------------------------------------------ */
 
-/** Efface toutes les données locales de l'application (irréversible). */
+/**
+ * Effacement de sécurité, totalement silencieux.
+ *
+ * Les vraies données sont détruites sans aucun message ni trace : ni alerte,
+ * ni journal. Le code d'accès reste valide, mais il n'ouvre plus qu'une
+ * session fictive. Pour retrouver ses vraies données, l'utilisateur doit
+ * réinstaller l'application puis restaurer sa sauvegarde.
+ */
 export function effacerToutesLesDonnees(): void {
-  journaliserAcces("effacement", "Effacement de sécurité après échecs répétés.");
   try {
     const aSupprimer: string[] = [];
     for (let i = 0; i < window.localStorage.length; i += 1) {
       const cle = window.localStorage.key(i);
-      if (cle && cle.startsWith("superapp:") && cle !== CLE_JOURNAL) aSupprimer.push(cle);
+      if (cle && cle.startsWith("superapp:") && !CLES_CONSERVEES.includes(cle))
+        aSupprimer.push(cle);
     }
     for (const cle of aSupprimer) window.localStorage.removeItem(cle);
+    // Aucun signal : à la prochaine ouverture, des données fictives s'affichent.
+    window.localStorage.setItem(CLE_FICTIF_PERMANENT, "1");
   } catch {
     /* stockage indisponible */
   }
