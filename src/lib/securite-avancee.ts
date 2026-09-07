@@ -55,11 +55,7 @@ const CLE_CAMOUFLAGE = "superapp:securite:camouflage";
 /** Session fictive permanente installée après un effacement de sécurité. */
 const CLE_FICTIF_PERMANENT = "superapp:securite:fictif";
 /** Réglages et code d'accès conservés lors d'un effacement de sécurité. */
-const CLES_CONSERVEES = [
-  "superapp:securite:v1",
-  CLE_OPTIONS,
-  CLE_FICTIF_PERMANENT,
-];
+const CLES_CONSERVEES = ["superapp:securite:v1", CLE_OPTIONS, CLE_FICTIF_PERMANENT];
 
 const abonnes = new Set<(o: OptionsSecurite) => void>();
 
