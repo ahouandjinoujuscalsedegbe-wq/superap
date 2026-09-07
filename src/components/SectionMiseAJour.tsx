@@ -70,7 +70,6 @@ export function SectionMiseAJour() {
         le fichier téléchargé pour installer la nouvelle version. Vos données restent intactes.
       </p>
 
-
       <button
         type="button"
         onClick={verifier}

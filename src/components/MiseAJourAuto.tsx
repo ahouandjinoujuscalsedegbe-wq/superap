@@ -71,9 +71,9 @@ export function DialogueMiseAJour({
         )}
 
         <p className="text-xs text-muted-foreground">
-          Le téléchargement s'ouvre dans votre navigateur. Ouvrez ensuite le fichier téléchargé
-          pour installer la nouvelle version par-dessus l'actuelle : toutes vos enveloppes,
-          opérations et sauvegardes locales sont conservées.
+          Le téléchargement s'ouvre dans votre navigateur. Ouvrez ensuite le fichier téléchargé pour
+          installer la nouvelle version par-dessus l'actuelle : toutes vos enveloppes, opérations et
+          sauvegardes locales sont conservées.
         </p>
 
         {etape && (
