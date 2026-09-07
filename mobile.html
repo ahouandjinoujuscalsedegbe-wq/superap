@@ -20,6 +20,36 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      /* Ce filet démarre avant les modules : même une erreur d'import affiche
+         un diagnostic au lieu de laisser une page blanche silencieuse. */
+      (function () {
+        var erreur = "";
+        function texte(value) {
+          if (value && value.message) return String(value.message);
+          return String(value || "");
+        }
+        window.addEventListener("error", function (event) {
+          erreur = texte(event.error || event.message);
+        });
+        window.addEventListener("unhandledrejection", function (event) {
+          erreur = texte(event.reason);
+        });
+        window.setTimeout(function () {
+          var racine = document.getElementById("root");
+          if (!racine || racine.childElementCount > 0) return;
+          racine.innerHTML =
+            '<div style="box-sizing:border-box;min-height:100vh;padding:24px;background:#fdf2f6;color:#3b1d29;font-family:system-ui,sans-serif">' +
+            '<h1 style="font-size:19px;margin:0 0 10px">L’application n’a pas pu démarrer</h1>' +
+            '<p style="font-size:14px;margin:0 0 12px">Redémarrez l’application. Si le problème persiste, installez la dernière version.</p>' +
+            '<pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f6e6ec;padding:10px;border-radius:8px">' +
+            (erreur || "Le module principal ne s’est pas chargé.").replace(/[<>&]/g, function (c) {
+              return { "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c];
+            }) +
+            '</pre><button type="button" onclick="location.reload()" style="margin-top:14px;padding:10px 16px;border:0;border-radius:8px;background:#c2557a;color:#fff;font-size:14px">Redémarrer</button></div>';
+        }, 8000);
+      })();
+    </script>
     <script type="module" src="/src/main-mobile.tsx"></script>
   </body>
 </html>
