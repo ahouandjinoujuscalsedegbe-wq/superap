@@ -330,7 +330,13 @@ function PageSauvegarde() {
         </div>
       </section>
 
-      <ConfigurationSauvegarde forceOpen={reconfigurer} />
+      <ConfigurationSauvegarde
+        forceOpen={reconfigurer}
+        onFermer={() => {
+          setReconfigurer(false);
+          rafraichirEtatMail();
+        }}
+      />
 
       <section className="carte p-4">
         <h2 className="font-semibold">Contenu à sauvegarder</h2>
