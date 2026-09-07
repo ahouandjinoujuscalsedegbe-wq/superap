@@ -269,27 +269,28 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
             return true;
           }
         }
+        essaisRef.current = 0;
         setEssais(0);
         setBlocageJusqua(0);
         setVerrouille(false);
         marquerActivite();
       } else {
         journaliserAcces("echec", "Code incorrect.");
-        setEssais((n) => {
-          const suivant = n + 1;
-          const seuil = lireOptions().effacementApresEchecs;
-          if (seuil > 0 && suivant >= seuil) {
-            effacerToutesLesDonnees();
-            window.location.reload();
-            return suivant;
-          }
-          // Délai exponentiel : 30 s, 1 min, 2 min, 4 min… par série de 5 échecs.
-          if (suivant % 5 === 0) {
-            const paliers = Math.ceil(suivant / 5);
-            setBlocageJusqua(Date.now() + 30_000 * 2 ** (paliers - 1));
-          }
-          return suivant;
-        });
+        const suivant = essaisRef.current + 1;
+        essaisRef.current = suivant;
+        setEssais(suivant);
+        const seuil = lireOptions().effacementApresEchecs;
+        if (seuil > 0 && suivant >= seuil) {
+          // Effacement de sécurité : les données locales deviennent inutilisables.
+          effacerToutesLesDonnees();
+          window.location.reload();
+          return false;
+        }
+        // Délai exponentiel : 30 s, 1 min, 2 min, 4 min… par série de 5 échecs.
+        if (suivant % 5 === 0) {
+          const paliers = Math.ceil(suivant / 5);
+          setBlocageJusqua(Date.now() + 30_000 * 2 ** (paliers - 1));
+        }
       }
       return ok;
     },
