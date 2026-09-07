@@ -12,6 +12,7 @@ import {
 import { avancerDate } from "./periodes";
 import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
+import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
 import {
   assainirBudget,
@@ -511,8 +512,6 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
   };
 }
 
-import { camouflageEnCours } from "./securite-avancee";
-
 const CLE = "superapp:etat:v1";
 // Les composants de routes sont chargés en modules séparés. Pendant un
 // rechargement à chaud, le provider et une route peuvent momentanément recevoir
@@ -592,7 +591,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Chiffrement AES-GCM avant toute écriture sur le téléphone.
-    if (pret.current && !illisible) void ecrireSecurise(CLE, JSON.stringify(etat));
+    // En mode camouflage, rien n'est jamais écrit : les vraies données restent intactes.
+    if (pret.current && !illisible && !camouflageEnCours())
+      void ecrireSecurise(CLE, JSON.stringify(etat));
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 
