@@ -13,6 +13,9 @@
  * secret réellement inviolable, il faut le verrouillage par code PIN.
  */
 
+import { cleAesDepuisSecret, type AlgoDerivation } from "./derivation";
+import { lireOptions } from "./securite-avancee";
+
 const PREFIXE = "SAC1:";
 /** Format triple couche (chiffré trois fois de suite). */
 const PREFIXE_TRIPLE = "SAC3:";
@@ -64,8 +67,17 @@ export function coffreOuvert(): boolean {
   return !estCoffreProtege() || secretMemo !== null;
 }
 
-/** Clé AES dérivée du code PIN (sert uniquement à sceller le secret). */
-async function cleDepuisPin(pin: string, sel: Uint8Array): Promise<CryptoKey> {
+/**
+ * Clé AES dérivée du code PIN (sert uniquement à sceller le secret).
+ * L'algorithme est mémorisé dans le scellé : Argon2id lorsque la dérivation
+ * forte est activée, PBKDF2-SHA256 sinon.
+ */
+async function cleDepuisPin(
+  pin: string,
+  sel: Uint8Array,
+  algo: AlgoDerivation = "pbkdf2",
+): Promise<CryptoKey> {
+  if (algo === "argon2id") return cleAesDepuisSecret(pin, sel, "argon2id");
   const base = await crypto.subtle.importKey("raw", encodeur.encode(pin), "PBKDF2", false, [
     "deriveKey",
   ]);
@@ -93,7 +105,8 @@ export async function protegerCoffreParPin(pin: string): Promise<void> {
   const iv = new Uint8Array(12);
   crypto.getRandomValues(sel);
   crypto.getRandomValues(iv);
-  const cle = await cleDepuisPin(pin, sel);
+  const algo: AlgoDerivation = lireOptions().derivationForte ? "argon2id" : "pbkdf2";
+  const cle = await cleDepuisPin(pin, sel, algo);
   const scelle = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv as unknown as BufferSource },
     cle,
@@ -101,7 +114,12 @@ export async function protegerCoffreParPin(pin: string): Promise<void> {
   );
   window.localStorage.setItem(
     CLE_SECRET_PROTEGE,
-    JSON.stringify({ sel: versBase64(sel), iv: versBase64(iv), contenu: versBase64(scelle) }),
+    JSON.stringify({
+      sel: versBase64(sel),
+      iv: versBase64(iv),
+      contenu: versBase64(scelle),
+      algo,
+    }),
   );
   window.localStorage.removeItem(CLE_SECRET_APPAREIL);
   secretMemo = secret;
@@ -117,12 +135,18 @@ export async function ouvrirCoffreAvecPin(pin: string): Promise<boolean> {
   }
   if (!brut) return true;
   try {
-    const { sel, iv, contenu } = JSON.parse(brut) as {
+    const { sel, iv, contenu, algo } = JSON.parse(brut) as {
       sel: string;
       iv: string;
       contenu: string;
+      algo?: string;
     };
-    const cle = await cleDepuisPin(pin, depuisBase64(sel));
+    const cle = await cleDepuisPin(
+      pin,
+      depuisBase64(sel),
+      algo === "argon2id" ? "argon2id" : "pbkdf2",
+    );
+
     const clair = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: depuisBase64(iv) as unknown as BufferSource },
       cle,

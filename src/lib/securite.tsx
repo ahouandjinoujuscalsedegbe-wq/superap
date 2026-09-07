@@ -31,6 +31,8 @@ export type ConfigSecurite = {
 export const DELAIS: { valeur: number; label: string }[] = [
   { valeur: 0, label: "Immédiatement" },
   { valeur: 1, label: "Après 1 minute" },
+  { valeur: 2, label: "Après 2 minutes" },
+  { valeur: 3, label: "Après 3 minutes" },
   { valeur: 5, label: "Après 5 minutes" },
   { valeur: 15, label: "Après 15 minutes" },
   { valeur: 60, label: "Après 1 heure" },
@@ -69,6 +71,15 @@ async function calculerEmpreinte(pin: string, sel: string): Promise<string> {
 }
 
 import {
+  activerCamouflage,
+  effacerToutesLesDonnees,
+  estCodeCamouflage,
+  journaliserAcces,
+  lireOptions,
+  marquerPinDuJour,
+  pinDejaSaisiAujourdHui,
+} from "@/lib/securite-avancee";
+import {
   coffreOuvert,
   estCoffreProtege,
   ouvrirCoffreAvecPin,
@@ -82,6 +93,8 @@ type Contexte = {
   chargement: boolean;
   /** L'écran de verrouillage doit être affiché. */
   verrouille: boolean;
+  /** Le code est obligatoire mais n'a pas encore été créé. */
+  doitCreerPin: boolean;
   /** Nombre d'essais infructueux consécutifs. */
   essais: number;
   /** Horodatage (ms) jusqu'auquel la saisie est bloquée après trop d'essais. */
@@ -175,8 +188,14 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const verrouiller = useCallback(() => {
+    journaliserAcces("verrouillage", "Application verrouillée.");
     setVerrouille(true);
     setEssais(0);
+  }, []);
+
+  // Journal d'accès : trace de chaque ouverture de l'application.
+  useEffect(() => {
+    journaliserAcces("ouverture", "Application ouverte.");
   }, []);
 
   // Verrouillage automatique après inactivité et au retour en arrière-plan.
@@ -226,9 +245,20 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
     async (pin: string) => {
       if (!config.empreinte || !config.sel) return false;
       if (Date.now() < blocageJusqua) return false;
+
+      // Code de camouflage : ouverture d'une session à données fictives.
+      if (await estCodeCamouflage(pin)) {
+        activerCamouflage();
+        journaliserAcces("camouflage", "Ouverture en mode camouflage.");
+        window.location.reload();
+        return true;
+      }
+
       const empreinte = await calculerEmpreinte(pin, config.sel);
       const ok = empreinte === config.empreinte;
       if (ok) {
+        marquerPinDuJour();
+        journaliserAcces("deverrouillage", "Déverrouillage par code.");
         // Coffre scellé par le PIN : on le descelle, puis on recharge la page
         // pour que les données, illisibles jusque-là, soient enfin lues.
         if (estCoffreProtege()) {
@@ -244,9 +274,20 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
         setVerrouille(false);
         marquerActivite();
       } else {
+        journaliserAcces("echec", "Code incorrect.");
         setEssais((n) => {
           const suivant = n + 1;
-          if (suivant % 5 === 0) setBlocageJusqua(Date.now() + 30_000 * Math.ceil(suivant / 5));
+          const seuil = lireOptions().effacementApresEchecs;
+          if (seuil > 0 && suivant >= seuil) {
+            effacerToutesLesDonnees();
+            window.location.reload();
+            return suivant;
+          }
+          // Délai exponentiel : 30 s, 1 min, 2 min, 4 min… par série de 5 échecs.
+          if (suivant % 5 === 0) {
+            const paliers = Math.ceil(suivant / 5);
+            setBlocageJusqua(Date.now() + 30_000 * 2 ** (paliers - 1));
+          }
           return suivant;
         });
       }
@@ -254,6 +295,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
     },
     [config.empreinte, config.sel, blocageJusqua, marquerActivite],
   );
+
 
   const definirPin = useCallback(async (pin: string) => {
     const sel = nouveauSel();
@@ -383,6 +425,10 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
     if (!config.biometrie || !config.identifiantBiometrie || !navigator.credentials?.get) {
       return false;
     }
+    // Biométrie + code combinés : le code reste exigé une fois par jour.
+    if (lireOptions().pinPremierDuJour && !pinDejaSaisiAujourdHui()) return false;
+    // Coffre scellé : seul le code peut le desceller.
+    if (estCoffreProtege() && !coffreOuvert()) return false;
     try {
       const challenge = new Uint8Array(32);
       crypto.getRandomValues(challenge);
@@ -397,6 +443,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
         },
       });
       if (!resultat) return false;
+      journaliserAcces("deverrouillage", "Déverrouillage par biométrie.");
       setVerrouille(false);
       setEssais(0);
       marquerActivite();
@@ -411,6 +458,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
       config,
       chargement,
       verrouille: verrouille && config.actif && Boolean(config.empreinte),
+      doitCreerPin: !chargement && !config.actif && lireOptions().pinObligatoire,
       essais,
       blocageJusqua,
       biometrieDisponible,
