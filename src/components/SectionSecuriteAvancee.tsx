@@ -134,10 +134,10 @@ export function SectionSecuriteAvancee() {
           }
           className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
         >
-          <option value={0}>Jamais</option>
+          <option value={3}>Après 3 codes faux (recommandé)</option>
+          <option value={5}>Après 5 codes faux</option>
           <option value={10}>Après 10 codes faux</option>
-          <option value={15}>Après 15 codes faux</option>
-          <option value={20}>Après 20 codes faux</option>
+          <option value={0}>Jamais</option>
         </select>
         <p className="text-xs text-muted-foreground">
           Attention : l'effacement est définitif. Gardez une sauvegarde par e-mail à jour.

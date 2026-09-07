@@ -35,7 +35,8 @@ export type OptionsSecurite = {
 export const OPTIONS_INITIALES: OptionsSecurite = {
   pinObligatoire: false,
   pinPremierDuJour: false,
-  effacementApresEchecs: 0,
+  // Effacement de sécurité dès 3 codes faux consécutifs.
+  effacementApresEchecs: 3,
   masquageArrierePlan: true,
   verrouActionsSensibles: false,
   journalAcces: true,
