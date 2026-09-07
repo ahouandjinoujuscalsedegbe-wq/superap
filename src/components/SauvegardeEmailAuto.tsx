@@ -133,6 +133,7 @@ export function SauvegardeEmailAuto() {
     const minuterie = window.setInterval(reprendre, DELAI_REESSAI);
     reprendre();
     return () => {
+      navigator.serviceWorker?.removeEventListener("message", depuisRelais);
       window.removeEventListener("online", reprendre);
       document.removeEventListener("visibilitychange", auRetour);
       window.clearInterval(minuterie);
