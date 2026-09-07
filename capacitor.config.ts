@@ -22,7 +22,7 @@ const config: CapacitorConfig = {
     // Écran de démarrage aux couleurs du logo (rose clair).
     SplashScreen: {
       launchShowDuration: 3000,
-      launchAutoHide: false,
+      launchAutoHide: true,
       backgroundColor: "#ffe4ee",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
