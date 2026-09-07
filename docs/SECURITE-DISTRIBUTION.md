@@ -21,8 +21,9 @@ et la fasse installer à votre place.
 - Au démarrage, le plugin natif `IntegriteApp` relit l'empreinte réelle de
   l'APK installé. Si elle diffère, l'application affiche un écran de blocage et
   n'ouvre aucune donnée.
-- Le même plugin signale un appareil rooté ou un émulateur : la synchronisation
-  en ligne est alors désactivée automatiquement.
+- Le contrôle natif se limite à la signature officielle. Les anciennes recherches
+  de fichiers root/émulateur ont été retirées pour ne pas ressembler aux techniques
+  d'évasion que Play Protect recherche dans les applications malveillantes.
 
 ## 3. Mises à jour sans jeton dans l'application
 
@@ -42,13 +43,12 @@ et la fasse installer à votre place.
   communiquez l'empreinte SHA-256 publiée pour que l'utilisateur puisse la
   comparer.
 
-## 5. Environnement d'exécution
+## 5. Compilation Android sûre
 
-- Root / émulateur détectés : avertissement à l'utilisateur + blocage de la
-  synchronisation.
-- Pour aller plus loin en production Play Store, activer l'API Play Integrity
-  côté Google et refuser la synchronisation si le verdict n'est pas
-  `MEETS_DEVICE_INTEGRITY`.
+- Le workflow refuse désormais de compiler si la clé Release manque : aucun APK
+  debug signé avec la clé publique Android ne peut être distribué par erreur.
+- Le débogage de la WebView est désactivé dans l'APK distribué.
+- Le code Release est réduit et obscurci par R8.
 
 ## 6. Coffre scellé par le code PIN
 

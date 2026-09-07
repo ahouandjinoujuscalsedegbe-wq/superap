@@ -4,7 +4,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
-import android.os.Build;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -12,7 +11,6 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-import java.io.File;
 import java.security.MessageDigest;
 
 /**
@@ -23,8 +21,10 @@ import java.security.MessageDigest;
  * avec une autre clé : la partie web compare l'empreinte à celle attendue et
  * refuse de démarrer si elle diffère.
  *
- * Renvoie également des indices d'appareil compromis (root, émulateur, mode
- * débogage) afin de désactiver la synchronisation cloud dans ce cas.
+ * Ce contrôle se limite volontairement au certificat de signature. Les
+ * recherches de fichiers root/émulateur ressemblent à des techniques
+ * d'évasion utilisées par des logiciels malveillants et peuvent déclencher
+ * les heuristiques de Play Protect.
  */
 @CapacitorPlugin(name = "IntegriteApp")
 public class IntegriteAppPlugin extends Plugin {
@@ -61,38 +61,11 @@ public class IntegriteAppPlugin extends Plugin {
         }
     }
 
-    private boolean rooteApparent() {
-        String[] chemins = {
-            "/system/app/Superuser.apk", "/sbin/su", "/system/bin/su", "/system/xbin/su",
-            "/data/local/xbin/su", "/data/local/bin/su", "/system/sd/xbin/su",
-            "/system/bin/failsafe/su", "/data/local/su", "/su/bin/su", "/magisk"
-        };
-        for (String c : chemins) {
-            if (new File(c).exists()) return true;
-        }
-        String tags = Build.TAGS;
-        return tags != null && tags.contains("test-keys");
-    }
-
-    private boolean emulateurApparent() {
-        String fp = Build.FINGERPRINT == null ? "" : Build.FINGERPRINT;
-        String modele = Build.MODEL == null ? "" : Build.MODEL;
-        String produit = Build.PRODUCT == null ? "" : Build.PRODUCT;
-        return fp.startsWith("generic")
-            || fp.contains("unknown")
-            || modele.contains("Emulator")
-            || modele.contains("Android SDK built for")
-            || produit.contains("sdk_gphone")
-            || "google_sdk".equals(produit);
-    }
-
     @PluginMethod
     public void verifier(PluginCall call) {
         JSObject r = new JSObject();
         r.put("paquet", getContext().getPackageName());
         r.put("signature", empreinteSignature());
-        r.put("rooté", rooteApparent());
-        r.put("emulateur", emulateurApparent());
         try {
             String installateur = getContext().getPackageManager()
                 .getInstallerPackageName(getContext().getPackageName());
