@@ -7,8 +7,7 @@
  * de l'APK en cours d'exécution à l'empreinte attendue (intégrée lors de la
  * compilation). Si elle diffère, l'application refuse de s'ouvrir.
  *
- * Sont également détectés les appareils manifestement compromis (root,
- * émulateur) : la synchronisation cloud y est désactivée.
+ * Le contrôle natif reste limité à la signature officielle de l'APK.
  */
 
 export type VerdictIntegrite = {
@@ -64,13 +63,11 @@ export async function verifierIntegriteApp(): Promise<VerdictIntegrite> {
     const plugin = registerPlugin<{
       verifier: () => Promise<{
         signature?: string;
-        rooté?: boolean;
-        emulateur?: boolean;
       }>;
     }>("IntegriteApp");
     const info = await plugin.verifier();
     const signature = (info.signature ?? "").toLowerCase();
-    const compromis = Boolean(info.rooté) || Boolean(info.emulateur);
+    const compromis = false;
     const attendues = empreintesAttendues();
 
     if (attendues.length === 0) {
