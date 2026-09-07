@@ -19,7 +19,7 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
       return { envoye: false, raison: "adresse_invalide" };
     }
 
-    const domaine = process.env["SENDER_DOMAIN"];
+    const domaine = process.env["SENDER_DOMAIN"] || "notify.jsc.com";
     const cle = process.env["LOVABLE_API_KEY"];
     if (!domaine || !cle) {
       return {
