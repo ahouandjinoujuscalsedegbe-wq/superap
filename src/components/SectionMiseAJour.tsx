@@ -66,9 +66,10 @@ export function SectionMiseAJour() {
       </div>
       <p className="text-sm text-muted-foreground">
         L'application vérifie automatiquement les nouvelles versions à son ouverture. Quand une mise
-        à jour existe, un message s'affiche et un seul clic suffit pour l'installer : vos données
-        restent intactes.
+        à jour existe, le téléchargement s'ouvre dans votre navigateur ; il suffit ensuite d'ouvrir
+        le fichier téléchargé pour installer la nouvelle version. Vos données restent intactes.
       </p>
+
 
       <button
         type="button"
