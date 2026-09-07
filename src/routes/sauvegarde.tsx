@@ -78,6 +78,25 @@ function PageSauvegarde() {
     typeof window === "undefined" ? [] : lireSauvegardes(),
   );
   const [attente, setAttente] = useState<ActionEnAttente | null>(null);
+  const [reglagesMail, setReglagesMail] = useState<ReglagesMail>(() =>
+    typeof window === "undefined" ? { email: "", appareil: "", configure: false, actif: false } : lireReglagesMail(),
+  );
+  const [colisEnAttente, setColisEnAttente] = useState(() =>
+    typeof window === "undefined" ? null : lireFile(),
+  );
+  const [reconfigurer, setReconfigurer] = useState(false);
+
+  const rafraichirEtatMail = () => {
+    setReglagesMail(lireReglagesMail());
+    setColisEnAttente(lireFile());
+  };
+
+  const basculerMail = () => {
+    const suivant = { ...lireReglagesMail(), actif: !reglagesMail.actif };
+    ecrireReglagesMail(suivant);
+    rafraichirEtatMail();
+    setInfo(suivant.actif ? "Sauvegarde e-mail automatique activée." : "Sauvegarde e-mail automatique désactivée.");
+  };
 
   const resume = useMemo(
     () => [
