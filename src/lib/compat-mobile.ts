@@ -1,7 +1,7 @@
 /**
  * Compatibilité WebView Android (Polyfills & Correctifs).
- * 
- * Ce fichier est conçu pour fonctionner même sur des moteurs JS anciens 
+ *
+ * Ce fichier est conçu pour fonctionner même sur des moteurs JS anciens
  * (Chrome 60+) et doit être exécuté AVANT tout autre import ESM.
  */
 
@@ -20,7 +20,7 @@ const g = globalThis as any;
 
 /**
  * Installation des API manquantes.
- * N'utilise AUCUNE syntaxe moderne (pas de ?., ??, ou let/const si on veut être parano, 
+ * N'utilise AUCUNE syntaxe moderne (pas de ?., ??, ou let/const si on veut être parano,
  * mais ES6 est supporté par Chrome 60+).
  */
 export function installerCompatibiliteMobile() {
@@ -30,7 +30,9 @@ export function installerCompatibiliteMobile() {
   }
   if (typeof g.crypto.randomUUID !== "function") {
     g.crypto.randomUUID = function () {
-      var alea = function () { return Math.floor(Math.random() * 16).toString(16); };
+      var alea = function () {
+        return Math.floor(Math.random() * 16).toString(16);
+      };
       var sortie = "";
       for (var i = 0; i < 36; i++) {
         if (i === 8 || i === 13 || i === 18 || i === 23) sortie += "-";

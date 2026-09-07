@@ -12,7 +12,13 @@ import {
  * sauvegardes chiffrées et la phrase de récupération qui permettra de les
  * rouvrir sur un autre téléphone.
  */
-export function ConfigurationSauvegarde() {
+export function ConfigurationSauvegarde({
+  forceOpen,
+  onFermer,
+}: {
+  forceOpen?: boolean;
+  onFermer?: () => void;
+}) {
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [appareil, setAppareil] = useState("MON TÉLÉPHONE");
@@ -22,10 +28,17 @@ export function ConfigurationSauvegarde() {
 
   useEffect(() => {
     const r = lireReglagesMail();
-    if (!r.configure) setVisible(true);
-  }, []);
+    setEmail(r.email || "");
+    setAppareil(r.appareil || "MON TÉLÉPHONE");
+    if (!r.configure || forceOpen) setVisible(true);
+  }, [forceOpen]);
 
   if (!visible) return null;
+
+  const fermer = () => {
+    setVisible(false);
+    onFermer?.();
+  };
 
   const valider = async () => {
     if (!estEmailValide(email)) {
@@ -48,7 +61,7 @@ export function ConfigurationSauvegarde() {
       configure: true,
       actif: true,
     });
-    setVisible(false);
+    fermer();
   };
 
   return (
@@ -125,7 +138,7 @@ export function ConfigurationSauvegarde() {
             type="button"
             onClick={() => {
               ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: true });
-              setVisible(false);
+              fermer();
               window.location.assign("/sauvegarde#recuperation");
             }}
             className="w-full rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary"
@@ -136,7 +149,7 @@ export function ConfigurationSauvegarde() {
             type="button"
             onClick={() => {
               ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: false });
-              setVisible(false);
+              fermer();
             }}
             className="w-full rounded-xl border border-input px-4 py-2.5 text-sm font-semibold"
           >

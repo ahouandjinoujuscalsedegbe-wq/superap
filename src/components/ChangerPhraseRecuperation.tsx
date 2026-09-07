@@ -57,8 +57,8 @@ export function ChangerPhraseRecuperation() {
       </h2>
       <p className="text-xs text-muted-foreground">
         Cette phrase protège les copies envoyées à votre adresse e-mail. Vous pouvez la remplacer
-        tant que vous avez accès à ce téléphone. Les copies déjà envoyées restent liées à
-        l'ancienne phrase : conservez-la si vous voulez encore les ouvrir.
+        tant que vous avez accès à ce téléphone. Les copies déjà envoyées restent liées à l'ancienne
+        phrase : conservez-la si vous voulez encore les ouvrir.
       </p>
 
       {aUnePhrase ? (

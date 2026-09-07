@@ -6,6 +6,7 @@ import {
   FileText,
   History,
   Lock,
+  Mail,
   RotateCcw,
   ShieldCheck,
   Trash2,
@@ -14,6 +15,7 @@ import {
 import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
+import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
@@ -29,6 +31,12 @@ import {
   viderPoints,
   type SauvegardeAuto,
 } from "@/lib/sauvegarde";
+import {
+  ecrireReglagesMail,
+  lireFile,
+  lireReglagesMail,
+  type ReglagesMail,
+} from "@/lib/sauvegarde-email";
 
 export const Route = createFileRoute("/sauvegarde")({
   head: () => ({
@@ -70,6 +78,31 @@ function PageSauvegarde() {
     typeof window === "undefined" ? [] : lireSauvegardes(),
   );
   const [attente, setAttente] = useState<ActionEnAttente | null>(null);
+  const [reglagesMail, setReglagesMail] = useState<ReglagesMail>(() =>
+    typeof window === "undefined"
+      ? { email: "", appareil: "", configure: false, actif: false }
+      : lireReglagesMail(),
+  );
+  const [colisEnAttente, setColisEnAttente] = useState(() =>
+    typeof window === "undefined" ? null : lireFile(),
+  );
+  const [reconfigurer, setReconfigurer] = useState(false);
+
+  const rafraichirEtatMail = () => {
+    setReglagesMail(lireReglagesMail());
+    setColisEnAttente(lireFile());
+  };
+
+  const basculerMail = () => {
+    const suivant = { ...lireReglagesMail(), actif: !reglagesMail.actif };
+    ecrireReglagesMail(suivant);
+    rafraichirEtatMail();
+    setInfo(
+      suivant.actif
+        ? "Sauvegarde e-mail automatique activée."
+        : "Sauvegarde e-mail automatique désactivée.",
+    );
+  };
 
   const resume = useMemo(
     () => [
@@ -222,6 +255,95 @@ function PageSauvegarde() {
         </p>
       ) : null}
 
+      <section className="carte space-y-3 p-4">
+        <h2 className="flex items-center gap-2 font-semibold">
+          <Mail className="h-4 w-4 text-primary" aria-hidden />
+          Sauvegarde sur mon e-mail
+        </h2>
+        {!reglagesMail.configure ? (
+          <p className="text-sm text-muted-foreground">
+            La sauvegarde e-mail n'est pas encore configurée. Elle le sera automatiquement au
+            prochain démarrage.
+          </p>
+        ) : (
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">État</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  reglagesMail.actif
+                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                }`}
+              >
+                {reglagesMail.actif ? "Automatique active" : "Mise en pause"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Adresse</span>
+              <span className="font-medium">{reglagesMail.email || "Non renseignée"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Appareil</span>
+              <span className="font-medium">{reglagesMail.appareil || "MON TÉLÉPHONE"}</span>
+            </div>
+            {reglagesMail.dernierEnvoi ? (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Dernier envoi</span>
+                <span className="font-medium">
+                  {new Date(reglagesMail.dernierEnvoi).toLocaleString("fr-FR")}
+                </span>
+              </div>
+            ) : null}
+            {reglagesMail.dernierEchec && !reglagesMail.dernierEnvoi ? (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Dernier essai</span>
+                <span className="font-medium text-destructive">
+                  Échec le {new Date(reglagesMail.dernierEchec).toLocaleString("fr-FR")}
+                </span>
+              </div>
+            ) : null}
+            {colisEnAttente ? (
+              <p className="rounded-xl bg-primary/10 px-3 py-2 text-xs">
+                Une sauvegarde est prête et partira automatiquement dès que possible.
+              </p>
+            ) : reglagesMail.derniereEmpreinte ? (
+              <p className="text-xs text-muted-foreground">
+                Dernière sauvegarde synchronisée avec l'appareil.
+              </p>
+            ) : null}
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          {reglagesMail.configure ? (
+            <button
+              type="button"
+              onClick={basculerMail}
+              className="rounded-xl border border-input px-3 py-2 text-sm font-semibold"
+            >
+              {reglagesMail.actif ? "Mettre en pause" : "Réactiver"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setReconfigurer(true)}
+            className={`rounded-xl border border-input px-3 py-2 text-sm font-semibold ${
+              reglagesMail.configure ? "" : "col-span-2"
+            }`}
+          >
+            {reglagesMail.configure ? "Modifier l'adresse" : "Configurer maintenant"}
+          </button>
+        </div>
+      </section>
+
+      <ConfigurationSauvegarde
+        forceOpen={reconfigurer}
+        onFermer={() => {
+          setReconfigurer(false);
+          rafraichirEtatMail();
+        }}
+      />
+
       <section className="carte p-4">
         <h2 className="font-semibold">Contenu à sauvegarder</h2>
         <ul className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -275,8 +397,6 @@ function PageSauvegarde() {
       <RecuperationNouveauTelephone />
 
       <ChangerPhraseRecuperation />
-
-
 
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">
