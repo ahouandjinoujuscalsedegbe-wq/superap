@@ -9,6 +9,11 @@ import {
   preparerColis,
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
+import {
+  confierColisArrierePlan,
+  oublierColisArrierePlan,
+  preparerArrierePlan,
+} from "@/lib/sauvegarde-arriere-plan";
 
 /** Délai avant chiffrement d'une saisie (évite un colis à chaque frappe). */
 const DELAI_CHIFFREMENT = 4_000;
