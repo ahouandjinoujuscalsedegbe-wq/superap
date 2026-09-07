@@ -99,6 +99,14 @@ export function SauvegardeEmailAuto() {
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
         ecrireFile(colis);
+        // Copie confiée au relais système : l'envoi se poursuit même une fois
+        // l'application fermée.
+        await confierColisArrierePlan({
+          email: actuel.email,
+          appareil: actuel.appareil,
+          colis: colis.contenu,
+          creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
+        });
         await envoyer();
       })();
     }, DELAI_CHIFFREMENT);
