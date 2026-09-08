@@ -25,6 +25,7 @@ export function ConfigurationSauvegarde({
   const [phrase, setPhrase] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState("");
+  const [phraseNotee, setPhraseNotee] = useState(false);
 
   useEffect(() => {
     const r = lireReglagesMail();
