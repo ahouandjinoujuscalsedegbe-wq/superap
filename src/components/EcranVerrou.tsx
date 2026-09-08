@@ -94,6 +94,8 @@ export function EcranVerrou() {
   if (!verrouille) return null;
 
   const bloque = restant > 0;
+  const seuilEffacement = lireOptions().effacementApresEchecs;
+  const derniereTentative = !bloque && seuilEffacement > 1 && essais >= seuilEffacement - 1;
 
   const valider = async (valeur: string) => {
     const ok = await verifierPin(valeur);
