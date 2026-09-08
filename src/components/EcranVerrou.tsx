@@ -141,6 +141,11 @@ export function EcranVerrou() {
             {essais} tentative{essais > 1 ? "s" : ""} incorrecte{essais > 1 ? "s" : ""}.
           </p>
         )}
+        {derniereTentative && (
+          <p className="text-xs font-semibold text-amber-500">
+            Dernière tentative : vérifiez bien votre code avant de le saisir.
+          </p>
+        )}
 
         {config.biometrie && codeDuJourRequis && (
           <p className="text-xs text-muted-foreground">
