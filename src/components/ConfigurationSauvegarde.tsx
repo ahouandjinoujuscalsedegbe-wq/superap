@@ -54,6 +54,10 @@ export function ConfigurationSauvegarde({
       setErreur("Les deux phrases saisies ne sont pas identiques.");
       return;
     }
+    if (!phraseNotee) {
+      setErreur("Confirmez d'abord que vous avez noté votre phrase de récupération.");
+      return;
+    }
     await enregistrerPhrase(phrase);
     ecrireReglagesMail({
       ...lireReglagesMail(),
