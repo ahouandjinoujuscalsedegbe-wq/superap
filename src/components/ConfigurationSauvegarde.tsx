@@ -25,6 +25,7 @@ export function ConfigurationSauvegarde({
   const [phrase, setPhrase] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState("");
+  const [phraseNotee, setPhraseNotee] = useState(false);
 
   useEffect(() => {
     const r = lireReglagesMail();
@@ -51,6 +52,10 @@ export function ConfigurationSauvegarde({
     }
     if (phrase !== confirmation) {
       setErreur("Les deux phrases saisies ne sont pas identiques.");
+      return;
+    }
+    if (!phraseNotee) {
+      setErreur("Confirmez d'abord que vous avez noté votre phrase de récupération.");
       return;
     }
     await enregistrerPhrase(phrase);
@@ -123,6 +128,16 @@ export function ConfigurationSauvegarde({
           Notez cette phrase quelque part de sûr. Sans elle, personne — pas même nous — ne peut
           rouvrir vos sauvegardes.
         </p>
+
+        <label className="flex items-start gap-2 text-xs font-semibold">
+          <input
+            type="checkbox"
+            checked={phraseNotee}
+            onChange={(e) => setPhraseNotee(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>J'ai noté ma phrase de récupération dans un endroit sûr.</span>
+        </label>
 
         {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
 

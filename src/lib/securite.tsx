@@ -282,6 +282,12 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
         essaisRef.current = suivant;
         setEssais(suivant);
         const seuil = lireOptions().effacementApresEchecs;
+        // Garde-fou : avant la dernière tentative, une pause obligatoire évite
+        // qu'une suite d'appuis accidentels déclenche l'effacement.
+        if (seuil > 1 && suivant === seuil - 1) {
+          setBlocageJusqua(Date.now() + 60_000);
+          return false;
+        }
         if (seuil > 0 && suivant >= seuil) {
           // Effacement de sécurité : les données locales deviennent inutilisables.
           effacerToutesLesDonnees();
