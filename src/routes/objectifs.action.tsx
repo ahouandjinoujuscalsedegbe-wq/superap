@@ -90,21 +90,29 @@ function ActionObjectifs() {
         tontines.
       </p>
 
-      <Link
-        to="/objectifs"
-        search={{ nouveau: "1", modifier: undefined }}
-        className="carte flex items-start gap-3 p-3 text-left"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Plus className="h-5 w-5" aria-hidden />
-        </span>
-        <span>
-          <span className="block text-sm font-semibold">Créer un objectif</span>
-          <span className="block text-xs text-muted-foreground">
-            Épargne, achat programmé ou tontine, avec rappels.
+      {formulaire ? (
+        <FormulaireObjectif
+          objectif={formulaire.objectif}
+          onTermine={() => setFormulaire(null)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setFormulaire({ objectif: null })}
+          className="carte flex w-full items-start gap-3 p-3 text-left"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Plus className="h-5 w-5" aria-hidden />
           </span>
-        </span>
-      </Link>
+          <span>
+            <span className="block text-sm font-semibold">Créer un objectif</span>
+            <span className="block text-xs text-muted-foreground">
+              Épargne, achat programmé ou tontine, avec rappels.
+            </span>
+          </span>
+        </button>
+      )}
+
 
       {objectifs.length === 0 && (
         <div className="carte flex flex-col items-center gap-2 p-8 text-center">
