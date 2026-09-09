@@ -68,8 +68,10 @@ export function RappelsObjectifs() {
 
   const repondre = useCallback(
     (echeance: EcheanceRappel, fait: boolean) => {
+      enregistrerEnvoiRappel(echeance);
       enregistrerReponse(echeance.cle, fait ? "confirme" : "refuse");
       if (fait) {
+
         const objectif = objectifs.find((o) => o.id === echeance.objectifId);
         if (objectif?.compteSource && objectif.compteEpargne) {
           ajouterTransfert({
