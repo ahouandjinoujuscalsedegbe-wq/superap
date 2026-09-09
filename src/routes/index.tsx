@@ -160,7 +160,7 @@ function Accueil() {
         </Link>
       </section>
 
-      <section className="relative grid grid-cols-2 grid-rows-2 gap-3">
+      <section className="relative grid grid-cols-2 grid-rows-[1fr_1fr] gap-3">
         <Link
           to="/budget"
           className="bouton-3d bouton-3d-budget coupe-simulation coupe-bas-droite row-start-1 col-start-1 relative flex flex-col gap-1 overflow-hidden p-4 pr-10 pb-10 text-left active:scale-[0.97]"
