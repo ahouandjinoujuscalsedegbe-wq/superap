@@ -30,6 +30,7 @@ function AjouterRevenu() {
   const { ajouterTransaction, sourcesRevenu, comptes, transactions, membres } = useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
+  const [frais, setFrais] = useState("");
   const [libelle, setLibelle] = useState("");
   const [source, setSource] = useState<string>(sourcesRevenu[0] ?? "Autre");
   const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
@@ -43,6 +44,7 @@ function AjouterRevenu() {
   );
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
+  const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
@@ -58,8 +60,13 @@ function AjouterRevenu() {
       compte,
       date: new Date(date).toISOString(),
       ...(membre ? { membre } : {}),
+      ...(fraisValeur > 0 ? { frais: fraisValeur } : {}),
     });
-    toast.success(`Revenu de ${formatFCFA(valeur)} enregistré.`);
+    toast.success(
+      fraisValeur > 0
+        ? `Revenu de ${formatFCFA(valeur)} enregistré (frais ${formatFCFA(fraisValeur)}, reçu réel ${formatFCFA(valeur - fraisValeur)}).`
+        : `Revenu de ${formatFCFA(valeur)} enregistré.`,
+    );
     navigate({ to: "/" });
   }
 
@@ -141,6 +148,26 @@ function AjouterRevenu() {
                 +{formatFCFA(m)}
               </button>
             ))}
+          </div>
+
+          <div className="mt-4 border-t border-border/70 pt-3">
+            <label htmlFor="frais-revenu" className="text-sm font-medium">
+              Frais de transaction supportés (FCFA)
+            </label>
+            <input
+              id="frais-revenu"
+              inputMode="numeric"
+              value={grouperMontant(frais)}
+              onChange={(ev) => setFrais(ev.target.value.replace(/[^\d]/g, ""))}
+              placeholder="0"
+              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Retrait, commission ou frais de mobile money. Montant réellement reçu :{" "}
+              <span className="font-semibold text-foreground">
+                {formatFCFA(Math.max(0, valeur - fraisValeur))}
+              </span>
+            </p>
           </div>
         </section>
 
