@@ -36,8 +36,8 @@ const LIBELLE_TYPE: Record<string, string> = {
 };
 
 function ActionObjectifs() {
-  const navigate = useNavigate();
   const { objectifs, modifierObjectif, supprimerObjectif } = useSuperApp();
+  const [formulaire, setFormulaire] = useState<{ objectif: Objectif | null } | null>(null);
   const [aSupprimer, setASupprimer] = useState<Objectif | null>(null);
   const [aCloturer, setACloturer] = useState<Objectif | null>(null);
   const [dateAtteinte, setDateAtteinte] = useState("");
