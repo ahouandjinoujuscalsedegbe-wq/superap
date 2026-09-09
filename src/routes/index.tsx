@@ -163,7 +163,7 @@ function Accueil() {
       <section className="relative grid grid-cols-2 grid-rows-2 gap-3">
         <Link
           to="/budget"
-          className="bouton-3d bouton-3d-budget coupe-bas-droite relative flex flex-col gap-1 overflow-hidden p-4 pr-10 pb-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-budget coupe-bas-droite row-start-1 col-start-1 relative flex flex-col gap-1 overflow-hidden p-4 pr-10 pb-10 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Wallet className="relative z-10 h-5 w-5" aria-hidden />
@@ -172,7 +172,7 @@ function Accueil() {
         </Link>
         <Link
           to="/rapport"
-          className="bouton-3d bouton-3d-rapport coupe-bas-gauche relative flex flex-col gap-1 overflow-hidden p-4 pb-10 pl-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-rapport coupe-bas-gauche row-start-1 col-start-2 relative flex flex-col gap-1 overflow-hidden p-4 pb-10 pl-10 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <FileText className="relative z-10 h-5 w-5" aria-hidden />
@@ -181,7 +181,7 @@ function Accueil() {
         </Link>
         <Link
           to="/comptes"
-          className="bouton-3d bouton-3d-mois coupe-haut-droite relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pr-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-mois coupe-haut-droite row-start-2 col-start-1 relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pr-10 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Landmark className="relative z-10 h-5 w-5" aria-hidden />
@@ -190,7 +190,7 @@ function Accueil() {
         </Link>
         <Link
           to="/enveloppes/details"
-          className="bouton-3d bouton-3d-enveloppes coupe-haut-gauche relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pl-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-enveloppes coupe-haut-gauche row-start-2 col-start-2 relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pl-10 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Layers className="relative z-10 h-5 w-5" aria-hidden />
