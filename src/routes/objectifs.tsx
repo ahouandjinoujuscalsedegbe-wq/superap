@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
+import { HistoriqueRappels } from "@/components/HistoriqueRappels";
+
 import { useSuperApp, type Objectif, type TypeObjectif, type UniteRappel } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
