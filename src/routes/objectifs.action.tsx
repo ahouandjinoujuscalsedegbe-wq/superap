@@ -91,7 +91,7 @@ function ActionObjectifs() {
 
       <Link
         to="/objectifs"
-        search={{ nouveau: "1" }}
+        search={{ nouveau: "1", modifier: undefined }}
         className="carte flex items-start gap-3 p-3 text-left"
       >
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -140,7 +140,7 @@ function ActionObjectifs() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => navigate({ to: "/objectifs", search: { modifier: o.id } })}
+              onClick={() => navigate({ to: "/objectifs", search: { modifier: o.id, nouveau: undefined } })}
               className="flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-sm font-medium"
             >
               <PencilLine className="h-4 w-4" aria-hidden /> Modifier
