@@ -30,6 +30,8 @@ export function HistoriqueOperations({ type }: { type: "revenu" | "depense" }) {
   );
 
   const total = lignes.reduce((s, t) => s + t.montant, 0);
+  const totalFrais = lignes.reduce((s, t) => s + Math.max(0, t.frais ?? 0), 0);
+  const totalReel = type === "revenu" ? total - totalFrais : total + totalFrais;
   const estRevenu = type === "revenu";
 
   return (
@@ -41,6 +43,12 @@ export function HistoriqueOperations({ type }: { type: "revenu" | "depense" }) {
         <p className="text-sm text-muted-foreground">
           {lignes.length} opération{lignes.length > 1 ? "s" : ""} · Total : {formatFCFA(total)}
         </p>
+        {totalFrais > 0 && (
+          <p className="text-sm text-muted-foreground">
+            Frais de transaction : {formatFCFA(totalFrais)} ·{" "}
+            {estRevenu ? "Réellement reçu" : "Coût réel"} : {formatFCFA(totalReel)}
+          </p>
+        )}
       </header>
 
       <section className="carte p-4">
@@ -77,6 +85,14 @@ export function HistoriqueOperations({ type }: { type: "revenu" | "depense" }) {
                     {t.categorie} · {t.compte}
                     {t.membre ? ` · ${t.membre}` : ""}
                   </span>
+                  {(t.frais ?? 0) > 0 && (
+                    <span className="mt-1 block text-xs break-words text-amber-600">
+                      Frais : {formatFCFA(t.frais ?? 0)} ·{" "}
+                      {estRevenu
+                        ? `Reçu réel : ${formatFCFA(t.montant - (t.frais ?? 0))}`
+                        : `Coût réel : ${formatFCFA(t.montant + (t.frais ?? 0))}`}
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`shrink-0 text-sm font-bold ${
