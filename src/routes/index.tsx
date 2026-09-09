@@ -132,7 +132,7 @@ function Accueil() {
       <section className="relative grid grid-cols-2 gap-3">
         <Link
           to="/revenu"
-          className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-revenu relative flex h-full min-h-28 flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <ArrowUpRight className="relative z-10 h-5 w-5" aria-hidden />
