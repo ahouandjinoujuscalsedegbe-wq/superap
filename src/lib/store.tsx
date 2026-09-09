@@ -171,6 +171,10 @@ export type Transfert = {
   montant: number;
   note: string;
   date: string;
+  /** Frais de transaction supportés lors du transfert (0 si aucun). */
+  frais?: number | undefined;
+  /** Compte qui supporte les frais : celui qui envoie ou celui qui reçoit. */
+  fraisSur?: "source" | "destination" | undefined;
 };
 
 export type Periode = "jour" | "semaine" | "mois" | "trimestre" | "semestre" | "annee";
