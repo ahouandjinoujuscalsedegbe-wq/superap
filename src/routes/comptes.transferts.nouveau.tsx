@@ -26,7 +26,14 @@ export const Route = createFileRoute("/comptes/transferts/nouveau")({
   component: NouveauTransfert,
 });
 
-type Demande = { source: string; destination: string; montant: number; note: string } | null;
+type Demande = {
+  source: string;
+  destination: string;
+  montant: number;
+  note: string;
+  frais: number;
+  fraisSur: "source" | "destination";
+} | null;
 
 const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
