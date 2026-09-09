@@ -6,11 +6,13 @@ import { formatFCFA } from "@/lib/format";
 import { idConseiller, notifierAlarme, programmerRappelsConseiller } from "@/lib/alarme-appareil";
 import {
   echeancesEnAttente,
+  enregistrerEnvoiRappel,
   enregistrerReponse,
   rappelsAProgrammer,
   titreType,
   type EcheanceRappel,
 } from "@/lib/rappels-objectifs";
+
 
 /** Vérification des échéances toutes les 2 minutes. */
 const PAS_MS = 120_000;
