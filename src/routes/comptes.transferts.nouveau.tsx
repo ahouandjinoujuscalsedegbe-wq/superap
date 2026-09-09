@@ -306,7 +306,13 @@ function NouveauTransfert() {
         titre="Confirmer le transfert"
         message={
           demande
-            ? `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} ?`
+            ? demande.frais > 0
+              ? `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} avec ${formatFCFA(demande.frais)} de frais ? Sortie réelle : ${formatFCFA(
+                  demande.montant + (demande.fraisSur === "source" ? demande.frais : 0),
+                )} · Reçu réel : ${formatFCFA(
+                  demande.montant - (demande.fraisSur === "destination" ? demande.frais : 0),
+                )}.`
+              : `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} ?`
             : ""
         }
         confirmerLabel="Confirmer"
