@@ -99,6 +99,12 @@ export type Transaction = {
   detteId?: string | undefined;
   /** Membre du foyer à l'origine de l'opération (mode couple). */
   membre?: string | undefined;
+  /**
+   * Frais supportés lors de l'opération (retrait, dépôt, commission…).
+   * Une dépense coûte réellement `montant + frais` au compte ;
+   * un revenu ne rapporte réellement que `montant - frais`.
+   */
+  frais?: number | undefined;
 };
 
 /** Opération supprimée, conservée 30 jours dans la corbeille. */
