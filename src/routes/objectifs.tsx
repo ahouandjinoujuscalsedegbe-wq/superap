@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
@@ -12,6 +12,10 @@ import { proposerAjustements } from "@/lib/ajustement-objectifs";
 import { joursRythme, rythmeObjectif } from "@/lib/rappels-objectifs";
 
 export const Route = createFileRoute("/objectifs")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    nouveau: typeof search["nouveau"] === "string" ? search["nouveau"] : undefined,
+    modifier: typeof search["modifier"] === "string" ? search["modifier"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Objectifs d'épargne — SUPER APP" },
@@ -111,6 +115,7 @@ function PageObjectifs() {
     supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
+  const recherche = Route.useSearch();
   const [ouvert, setOuvert] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [type, setType] = useState<TypeObjectif>("epargne");
@@ -217,6 +222,24 @@ function PageObjectifs() {
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Ouverture directe du formulaire depuis le bouton « Action » de la barre figée.
+  const traite = useRef("");
+  useEffect(() => {
+    const cle = `${recherche.nouveau ?? ""}|${recherche.modifier ?? ""}`;
+    if (!cle.replace("|", "") || traite.current === cle) return;
+    traite.current = cle;
+    if (recherche.modifier) {
+      const cible = objectifs.find((o) => o.id === recherche.modifier);
+      if (cible) modifier(cible);
+      return;
+    }
+    if (recherche.nouveau) {
+      setOuvert(true);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recherche.nouveau, recherche.modifier, objectifs]);
 
   const enregistrer = () => {
     if (!libelle.trim()) {
