@@ -550,25 +550,83 @@ function PageObjectifs() {
                   className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 />
               </label>
-              {type === "epargne" && (
-                <label className="block text-xs font-medium text-muted-foreground">
-                  Me rappeler de verser
-                  <select
-                    value={rappelEpargne}
-                    onChange={(e) => setRappelEpargne(e.target.value as "" | FrequenceTontine)}
-                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                  >
-                    <option value="">Pas de rappel</option>
-                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
-                      <option key={f} value={f}>
-                        {FREQUENCES[f].label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
             </>
           )}
+
+          {/* Alarme de rappel : proposée pour tous les objectifs. */}
+          <div className="space-y-3 rounded-xl border border-border/70 bg-background/50 p-3">
+            <label className="flex items-start gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                checked={rappelActif}
+                onChange={(e) => setRappelActif(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+              />
+              <span>
+                Me rappeler par une alarme
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                  Le téléphone sonne au rythme choisi et vous confirmez d'un geste si le versement a
+                  été fait.
+                </span>
+              </span>
+            </label>
+
+            {rappelActif && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block text-xs font-medium text-muted-foreground">
+                    Répéter tous les
+                    <select
+                      value={rappelIntervalle}
+                      onChange={(e) => setRappelIntervalle(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    >
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={String(n)}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-medium text-muted-foreground">
+                    Unité
+                    <select
+                      value={rappelUnite}
+                      onChange={(e) => setRappelUnite(e.target.value as UniteRappel)}
+                      className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    >
+                      {(Object.keys(UNITES) as UniteRappel[]).map((u) => (
+                        <option key={u} value={u}>
+                          {(Number(rappelIntervalle) || 1) > 1 ? UNITES[u].plusieurs : UNITES[u].un}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {type !== "tontine" && (
+                  <label className="block text-xs font-medium text-muted-foreground">
+                    Premier rappel (facultatif)
+                    <input
+                      type="date"
+                      value={rappelDebut}
+                      onChange={(e) => setRappelDebut(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    />
+                  </label>
+                )}
+                <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                  Rappel {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)}
+                  {type === "tontine"
+                    ? tDebut
+                      ? `, à partir du ${tDebut}.`
+                      : ", à partir de la première cotisation."
+                    : rappelDebut
+                      ? `, à partir du ${rappelDebut}.`
+                      : ", à partir d'aujourd'hui."}
+                </p>
+              </>
+            )}
+          </div>
           <label className="block text-xs font-medium text-muted-foreground">
             Enveloppe d'épargne associée (facultatif)
             <select
