@@ -304,7 +304,9 @@ function PageObjectifs() {
       prelevementAuto,
       rappelActif: rappelActif ? undefined : false,
       rappelUnite: rappelActif ? rappelUnite : undefined,
-      rappelIntervalle: rappelActif ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1)) : undefined,
+      rappelIntervalle: rappelActif
+        ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1))
+        : undefined,
       rappelDebut: rappelActif
         ? type === "tontine"
           ? tDebut
@@ -468,8 +470,8 @@ function PageObjectifs() {
                   />
                 </label>
                 <p className="self-end text-xs text-muted-foreground">
-                  Rythme des cotisations : {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)}{" "}
-                  (réglable plus bas).
+                  Rythme des cotisations :{" "}
+                  {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)} (réglable plus bas).
                 </p>
                 <label className="block text-xs font-medium text-muted-foreground">
                   Participants
@@ -778,8 +780,8 @@ function PageObjectifs() {
                 </p>
                 {s.objectif.type === "tontine" && s.objectif.tontineMontantTour && (
                   <p className="text-xs text-muted-foreground">
-                    {formatFCFA(s.objectif.tontineMontantTour)} · rang{" "}
-                    {s.objectif.tontineRang ?? 1}/{s.objectif.tontineParticipants ?? 1}
+                    {formatFCFA(s.objectif.tontineMontantTour)} · rang {s.objectif.tontineRang ?? 1}
+                    /{s.objectif.tontineParticipants ?? 1}
                     {s.objectif.tontineOrganisateur ? ` · ${s.objectif.tontineOrganisateur}` : ""}
                   </p>
                 )}
