@@ -184,6 +184,7 @@ function PageObjectifs() {
     setTRang(o.tontineRang ? String(o.tontineRang) : "");
     setTDebut(o.tontineDebut ?? "");
     setTOrganisateur(o.tontineOrganisateur ?? "");
+    setRappelEpargne(o.rappelFrequence ?? "");
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
