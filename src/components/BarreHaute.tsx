@@ -424,6 +424,20 @@ export function BarreHaute() {
             )}
           </div>
 
+          {(pathname === "/revenu" || pathname === "/depense") && (
+            <Link
+              to={pathname === "/revenu" ? "/historique/revenus" : "/historique/depenses"}
+              aria-label={
+                pathname === "/revenu"
+                  ? "Voir l'historique des revenus"
+                  : "Voir l'historique des dépenses"
+              }
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              <History className="h-5 w-5" aria-hidden />
+            </Link>
+          )}
+
           {accueil && (
             <Link
               to="/recherche"
