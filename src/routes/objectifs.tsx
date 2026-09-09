@@ -867,7 +867,6 @@ function PageObjectifs() {
           </article>
         ))}
       </section>
-
     </div>
   );
 }
