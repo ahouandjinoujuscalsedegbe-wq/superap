@@ -140,7 +140,9 @@ function ActionObjectifs() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => navigate({ to: "/objectifs", search: { modifier: o.id, nouveau: undefined } })}
+              onClick={() =>
+                navigate({ to: "/objectifs", search: { modifier: o.id, nouveau: undefined } })
+              }
               className="flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-sm font-medium"
             >
               <PencilLine className="h-4 w-4" aria-hidden /> Modifier

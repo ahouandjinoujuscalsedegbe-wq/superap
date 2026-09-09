@@ -132,6 +132,7 @@ const ACTIONS_OBJECTIFS = [
   {
     cle: "objectifs-creer",
     to: "/objectifs",
+    search: { nouveau: "1", modifier: undefined },
     label: "Créer un objectif",
     detail: "Épargne, achat programmé ou tontine, avec ses rappels.",
     icone: Plus,
@@ -187,6 +188,7 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/enveloppes/action", "Action sur l'enveloppe"],
   ["/enveloppes", "Enveloppes"],
   ["/dettes", "Dettes & Créances"],
+  ["/objectifs/action", "Action sur un objectif"],
   ["/objectifs", "Objectifs d'épargne"],
   ["/simulation", "Simulation"],
   ["/notifications", "Mon conseiller"],
@@ -213,6 +215,7 @@ const TITRES_ACTIONS: ReadonlyArray<readonly [chemin: string, titre: string]> = 
   ...ACTIONS_BUDGET.map((a) => [a.to, a.label] as const),
   ...ACTIONS_COMPTES.map((a) => [a.to, a.label] as const),
   ...ACTIONS_ENVELOPPES.map((a) => [a.to, a.label] as const),
+  ...[["/objectifs/action", "Action sur un objectif"] as const],
 ].sort((a, b) => b[0].length - a[0].length);
 
 function titreAction(pathname: string): string {
@@ -279,13 +282,16 @@ export function BarreHaute() {
     pathname === "/enveloppes" || pathname === "/enveloppes/" || pathname === "/enveloppes/details";
   const pageComptesAccueil = pathname === "/comptes" || pathname === "/comptes/";
   const pageBudgetAccueil = pathname === "/budget" || pathname === "/budget/";
-  const actions = pageBudgetAccueil
-    ? ACTIONS_BUDGET
-    : pageComptesAccueil
-      ? ACTIONS_COMPTES
-      : pageEnveloppesAccueil
-        ? ACTIONS_ENVELOPPES
-        : null;
+  const pageObjectifs = pathname === "/objectifs" || pathname === "/objectifs/";
+  const actions = pageObjectifs
+    ? ACTIONS_OBJECTIFS
+    : pageBudgetAccueil
+      ? ACTIONS_BUDGET
+      : pageComptesAccueil
+        ? ACTIONS_COMPTES
+        : pageEnveloppesAccueil
+          ? ACTIONS_ENVELOPPES
+          : null;
   const categorieInfos = !accueil
     ? infosCategorie(pathname) || infosCategorieComptes(pathname)
     : null;
@@ -574,11 +580,13 @@ export function BarreHaute() {
         id="menu-actions-page"
         role="menu"
         aria-label={
-          pageBudgetAccueil
-            ? "Actions de budgétisation"
-            : pageComptesAccueil
-              ? "Actions sur les comptes"
-              : "Actions sur les enveloppes"
+          pageObjectifs
+            ? "Actions sur les objectifs"
+            : pageBudgetAccueil
+              ? "Actions de budgétisation"
+              : pageComptesAccueil
+                ? "Actions sur les comptes"
+                : "Actions sur les enveloppes"
         }
         aria-hidden={!actionOuvert}
         className={`fixed inset-x-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-[71] flex max-h-[80dvh] flex-col overflow-y-auto overscroll-contain rounded-b-2xl border-b border-border bg-card px-3 pb-4 pt-3 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
@@ -605,6 +613,7 @@ export function BarreHaute() {
                 <li key={"cle" in a ? a.cle : a.to}>
                   <Link
                     to={a.to}
+                    search={("search" in a ? a.search : undefined) as never}
                     role="menuitem"
                     tabIndex={actionOuvert ? 0 : -1}
                     onClick={() => setActionOuvert(false)}
