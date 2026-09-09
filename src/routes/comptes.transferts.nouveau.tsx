@@ -82,11 +82,30 @@ function NouveauTransfert() {
       setErreur("Montant invalide : entrez un nombre entier de FCFA supérieur à zéro.");
       return;
     }
-    if (valeur > dispo) {
-      setErreur(`Solde insuffisant sur ${source} : ${formatFCFA(dispo)} disponibles.`);
+    const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
+    if (!Number.isFinite(fraisValeur) || fraisValeur < 0) {
+      setErreur("Frais invalides : entrez un nombre de FCFA égal ou supérieur à zéro.");
       return;
     }
-    setDemande({ source, destination, montant: valeur, note: note.trim() });
+    const sortieSource = valeur + (fraisSur === "source" ? fraisValeur : 0);
+    if (sortieSource > dispo) {
+      setErreur(
+        `Solde insuffisant sur ${source} : ${formatFCFA(dispo)} disponibles pour ${formatFCFA(sortieSource)} (frais compris).`,
+      );
+      return;
+    }
+    if (fraisSur === "destination" && fraisValeur >= valeur) {
+      setErreur("Les frais ne peuvent pas dépasser le montant reçu par le compte destinataire.");
+      return;
+    }
+    setDemande({
+      source,
+      destination,
+      montant: valeur,
+      note: note.trim(),
+      frais: fraisValeur,
+      fraisSur,
+    });
   }
 
   function confirmer() {
@@ -97,6 +116,7 @@ function NouveauTransfert() {
       montant: demande.montant,
       note: demande.note,
       date: new Date().toISOString(),
+      ...(demande.frais > 0 ? { frais: demande.frais, fraisSur: demande.fraisSur } : {}),
     });
     setDemande(null);
     toast.success("Transfert enregistré.");
