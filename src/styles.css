@@ -1096,13 +1096,13 @@ textarea {
   mask-image: radial-gradient(
     ellipse var(--simulation-rayon-x) var(--simulation-rayon-y) at var(--simulation-x)
       var(--simulation-y),
-    transparent 0 97%,
+    transparent 0 99.5%,
     #000 100%
   );
   -webkit-mask-image: radial-gradient(
     ellipse var(--simulation-rayon-x) var(--simulation-rayon-y) at var(--simulation-x)
       var(--simulation-y),
-    transparent 0 97%,
+    transparent 0 99.5%,
     #000 100%
   );
 }
