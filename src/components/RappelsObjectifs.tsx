@@ -96,7 +96,7 @@ export function RappelsObjectifs() {
           <HandCoins className="mt-0.5 h-5 w-5 text-primary" aria-hidden />
           <div>
             <p className="text-sm font-semibold">
-              {courante.type === "tontine" ? "Tontine" : "Épargne"} : {courante.libelle}
+              {titreType(courante.type)} : {courante.libelle}
             </p>
             <p className="text-xs text-muted-foreground">
               Cotisation n° {courante.numero}
