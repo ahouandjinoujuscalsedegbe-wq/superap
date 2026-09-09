@@ -372,46 +372,154 @@ function PageObjectifs() {
           <h2 className="text-sm font-semibold">
             {enEdition ? "Ajuster l'objectif" : "Créer un objectif"}
           </h2>
+
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">De quoi s'agit-il ?</p>
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              {(Object.keys(TYPES) as TypeObjectif[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={type === t}
+                  onClick={() => setType(t)}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-colors ${
+                    type === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-input bg-card text-muted-foreground"
+                  }`}
+                >
+                  <span aria-hidden>{TYPES[t].emoji}</span> {TYPES[t].label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{TYPES[type].aide}</p>
+          </div>
+
           <label className="block text-xs font-medium text-muted-foreground">
-            Nom de l'objectif
+            {type === "tontine" ? "Nom de la tontine" : "Nom de l'objectif"}
             <input
               value={libelle}
               onChange={(e) => setLibelle(e.target.value)}
-              placeholder="Voyage, moto, scolarité…"
+              placeholder={
+                type === "tontine"
+                  ? "Tontine du marché, groupe collègues…"
+                  : type === "achat"
+                    ? "Moto, téléphone, terrain…"
+                    : "Voyage, scolarité, réserve…"
+              }
               className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
             />
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block text-xs font-medium text-muted-foreground">
-              Montant visé (FCFA)
-              <input
-                inputMode="numeric"
-                value={grouperMontant(cible)}
-                onChange={(e) => setCible(deGrouperMontant(e.target.value))}
-                placeholder="500000"
-                className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-              />
-            </label>
-            <label className="block text-xs font-medium text-muted-foreground">
-              Déjà de côté
-              <input
-                inputMode="numeric"
-                value={grouperMontant(deja)}
-                onChange={(e) => setDeja(deGrouperMontant(e.target.value))}
-                placeholder="0"
-                className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-              />
-            </label>
-          </div>
-          <label className="block text-xs font-medium text-muted-foreground">
-            Date à atteindre
-            <input
-              type="date"
-              value={dateCible}
-              onChange={(e) => setDateCible(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-            />
-          </label>
+
+          {type === "tontine" ? (
+            <div className="space-y-3 rounded-xl border border-border/70 bg-background/50 p-3">
+              <p className="text-xs font-semibold">Paramètres de la tontine</p>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Cotisation (FCFA)
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(tMontant)}
+                    onChange={(e) => setTMontant(deGrouperMontant(e.target.value))}
+                    placeholder="10000"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Rythme
+                  <select
+                    value={tFrequence}
+                    onChange={(e) => setTFrequence(e.target.value as FrequenceTontine)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
+                      <option key={f} value={f}>
+                        {FREQUENCES[f].label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Participants
+                  <input
+                    inputMode="numeric"
+                    value={tParticipants}
+                    onChange={(e) => setTParticipants(e.target.value.replace(/\D/g, ""))}
+                    placeholder="12"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Mon rang de passage
+                  <input
+                    inputMode="numeric"
+                    value={tRang}
+                    onChange={(e) => setTRang(e.target.value.replace(/\D/g, ""))}
+                    placeholder="3"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Première cotisation
+                <input
+                  type="date"
+                  value={tDebut}
+                  onChange={(e) => setTDebut(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Organisateur / groupe (facultatif)
+                <input
+                  value={tOrganisateur}
+                  onChange={(e) => setTOrganisateur(e.target.value)}
+                  placeholder="Mama Adjo, groupe du quartier…"
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+              {apercuTontine && (
+                <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                  Vous recevrez environ {formatFCFA(apercuTontine.cible)} vers le{" "}
+                  {apercuTontine.dateCible}.
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-xs font-medium text-muted-foreground">
+                  {type === "achat" ? "Prix de l'achat (FCFA)" : "Montant visé (FCFA)"}
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(cible)}
+                    onChange={(e) => setCible(deGrouperMontant(e.target.value))}
+                    placeholder="500000"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Déjà de côté
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(deja)}
+                    onChange={(e) => setDeja(deGrouperMontant(e.target.value))}
+                    placeholder="0"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                {type === "achat" ? "Date d'achat souhaitée" : "Date à atteindre"}
+                <input
+                  type="date"
+                  value={dateCible}
+                  onChange={(e) => setDateCible(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+            </>
+          )}
           <label className="block text-xs font-medium text-muted-foreground">
             Enveloppe d'épargne associée (facultatif)
             <select
