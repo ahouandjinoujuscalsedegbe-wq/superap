@@ -105,6 +105,7 @@ function PageObjectifs() {
   } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
+  const [type, setType] = useState<TypeObjectif>("epargne");
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
@@ -115,10 +116,23 @@ function PageObjectifs() {
   const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const [ignores, setIgnores] = useState<string[]>([]);
+  const [filtre, setFiltre] = useState<"tous" | TypeObjectif>("tous");
+  // Paramètres propres aux tontines.
+  const [tMontant, setTMontant] = useState("");
+  const [tFrequence, setTFrequence] = useState<FrequenceTontine>("mensuelle");
+  const [tParticipants, setTParticipants] = useState("");
+  const [tRang, setTRang] = useState("");
+  const [tDebut, setTDebut] = useState("");
+  const [tOrganisateur, setTOrganisateur] = useState("");
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
     [objectifs, transactions, transferts],
+  );
+
+  const visibles = useMemo(
+    () => suivis.filter((s) => filtre === "tous" || (s.objectif.type ?? "epargne") === filtre),
+    [suivis, filtre],
   );
 
   const ajustements = useMemo(
@@ -126,8 +140,18 @@ function PageObjectifs() {
     [suivis, transactions, ignores],
   );
 
+  /** Aperçu du pot et de la date de réception pendant la saisie d'une tontine. */
+  const apercuTontine = useMemo(() => {
+    const montant = Number(tMontant.replace(/\s/g, ""));
+    const participants = Number(tParticipants.replace(/\s/g, ""));
+    const rang = Number(tRang.replace(/\s/g, ""));
+    if (!montant || !participants || !rang || !tDebut) return null;
+    return calculerTontine(montant, participants, rang, tDebut, tFrequence);
+  }, [tMontant, tParticipants, tRang, tDebut, tFrequence]);
+
   const reinitialiser = () => {
     setEnEdition(null);
+    setType("epargne");
     setLibelle("");
     setCible("");
     setDeja("");
@@ -136,12 +160,19 @@ function PageObjectifs() {
     setCompteSource("");
     setCompteEpargne("");
     setPrelevementAuto(true);
+    setTMontant("");
+    setTFrequence("mensuelle");
+    setTParticipants("");
+    setTRang("");
+    setTDebut("");
+    setTOrganisateur("");
     setOuvert(false);
   };
 
   /** Ouvre le formulaire pré-rempli pour ajuster un objectif existant. */
   const modifier = (o: Objectif) => {
     setEnEdition(o.id);
+    setType(o.type ?? "epargne");
     setLibelle(o.libelle);
     setCible(String(o.cible));
     setDeja(String(o.deja));
@@ -150,28 +181,72 @@ function PageObjectifs() {
     setCompteSource(o.compteSource ?? "");
     setCompteEpargne(o.compteEpargne ?? "");
     setPrelevementAuto(o.prelevementAuto ?? false);
+    setTMontant(o.tontineMontantTour ? String(o.tontineMontantTour) : "");
+    setTFrequence(o.tontineFrequence ?? "mensuelle");
+    setTParticipants(o.tontineParticipants ? String(o.tontineParticipants) : "");
+    setTRang(o.tontineRang ? String(o.tontineRang) : "");
+    setTDebut(o.tontineDebut ?? "");
+    setTOrganisateur(o.tontineOrganisateur ?? "");
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const enregistrer = () => {
-    const montant = Number(cible.replace(/\s/g, ""));
     if (!libelle.trim()) {
       toast.error("Donnez un nom à votre objectif.");
       return;
     }
-    if (!Number.isFinite(montant) || montant <= 0) {
-      toast.error("Montant visé invalide.");
-      return;
+
+    let montant = Number(cible.replace(/\s/g, ""));
+    let echeance = dateCible;
+    let infosTontine: Partial<Objectif> = {};
+
+    if (type === "tontine") {
+      const montantTour = Number(tMontant.replace(/\s/g, ""));
+      const participants = Number(tParticipants.replace(/\s/g, ""));
+      const rang = Number(tRang.replace(/\s/g, ""));
+      if (!montantTour || montantTour <= 0) {
+        toast.error("Indiquez le montant d'une cotisation.");
+        return;
+      }
+      if (!participants || participants < 2) {
+        toast.error("Indiquez le nombre de participants (au moins 2).");
+        return;
+      }
+      if (!rang || rang < 1 || rang > participants) {
+        toast.error("Votre rang de passage doit être compris entre 1 et le nombre de participants.");
+        return;
+      }
+      if (!tDebut) {
+        toast.error("Indiquez la date de la première cotisation.");
+        return;
+      }
+      const calcul = calculerTontine(montantTour, participants, rang, tDebut, tFrequence);
+      montant = calcul.cible;
+      echeance = calcul.dateCible;
+      infosTontine = {
+        tontineMontantTour: montantTour,
+        tontineFrequence: tFrequence,
+        tontineParticipants: participants,
+        tontineRang: rang,
+        tontineDebut: tDebut,
+        tontineOrganisateur: tOrganisateur.trim() || undefined,
+      };
+    } else {
+      if (!Number.isFinite(montant) || montant <= 0) {
+        toast.error("Montant visé invalide.");
+        return;
+      }
+      if (!echeance) {
+        toast.error("Choisissez une date à atteindre.");
+        return;
+      }
+      if (echeance <= new Date().toISOString().slice(0, 10)) {
+        toast.error("La date visée doit être dans le futur.");
+        return;
+      }
     }
-    if (!dateCible) {
-      toast.error("Choisissez une date à atteindre.");
-      return;
-    }
-    if (dateCible <= new Date().toISOString().slice(0, 10)) {
-      toast.error("La date visée doit être dans le futur.");
-      return;
-    }
+
     if (prelevementAuto) {
       if (!compteSource || !compteEpargne) {
         toast.error("Choisissez le compte à débiter et le compte d'épargne.");
@@ -186,13 +261,21 @@ function PageObjectifs() {
     }
     const donnees = {
       libelle: libelle.trim(),
+      type,
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
-      dateCible,
+      dateCible: echeance,
       enveloppeId: enveloppeId || undefined,
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
+      tontineMontantTour: undefined,
+      tontineFrequence: undefined,
+      tontineParticipants: undefined,
+      tontineRang: undefined,
+      tontineDebut: undefined,
+      tontineOrganisateur: undefined,
+      ...infosTontine,
     };
     if (enEdition) {
       modifierObjectif(enEdition, donnees);
@@ -201,8 +284,8 @@ function PageObjectifs() {
       ajouterObjectif(donnees);
       toast.success(
         prelevementAuto
-          ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
-          : "Objectif créé.",
+          ? "Objectif créé : le prélèvement démarre aussitôt."
+          : `${TYPES[type].label} enregistrée.`,
       );
     }
     reinitialiser();
