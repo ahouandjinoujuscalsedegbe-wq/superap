@@ -394,11 +394,25 @@ function PageObjectifs() {
           <article key={s.objectif.id} className="carte space-y-3 p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="truncate font-semibold">{s.objectif.libelle}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate font-semibold">{s.objectif.libelle}</h2>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    {TYPES[s.objectif.type ?? "epargne"].label}
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatFCFA(s.reuni)} sur {formatFCFA(s.objectif.cible)} · échéance{" "}
+                  {formatFCFA(s.reuni)} sur {formatFCFA(s.objectif.cible)} ·{" "}
+                  {s.objectif.type === "tontine" ? "réception prévue" : "échéance"}{" "}
                   {s.objectif.dateCible}
                 </p>
+                {s.objectif.type === "tontine" && s.objectif.tontineMontantTour && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatFCFA(s.objectif.tontineMontantTour)} ·{" "}
+                    {FREQUENCES[s.objectif.tontineFrequence ?? "mensuelle"].label} · rang{" "}
+                    {s.objectif.tontineRang ?? 1}/{s.objectif.tontineParticipants ?? 1}
+                    {s.objectif.tontineOrganisateur ? ` · ${s.objectif.tontineOrganisateur}` : ""}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 gap-1">
                 <button
