@@ -215,7 +215,7 @@ export function rappelsAProgrammer(
     for (const e of echeances.slice(0, 6)) {
       out.push({
         cle: e.cle,
-        titre: e.type === "tontine" ? `Tontine : ${e.libelle}` : `Épargne : ${e.libelle}`,
+        titre: `${titreType(e.type)} : ${e.libelle}`,
         texte: `Cotisation n° ${e.numero}${e.total ? `/${e.total}` : ""} prévue aujourd'hui. Ouvrez l'application pour confirmer ou refuser.`,
         quand: new Date(`${e.date}T08:00:00`),
       });

@@ -44,9 +44,7 @@ export function RappelsObjectifs() {
     if (!courante || notifiees.current.has(courante.cle)) return;
     notifiees.current.add(courante.cle);
     void notifierAlarme(
-      courante.type === "tontine"
-        ? `Tontine : ${courante.libelle}`
-        : `Épargne : ${courante.libelle}`,
+      `${titreType(courante.type)} : ${courante.libelle}`,
       `Cotisation de ${formatFCFA(courante.montant)} prévue le ${courante.date}. Avez-vous effectué le versement ?`,
     );
   }, [courante]);
