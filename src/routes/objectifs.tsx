@@ -119,6 +119,7 @@ function PageObjectifs() {
   const [tRang, setTRang] = useState("");
   const [tDebut, setTDebut] = useState("");
   const [tOrganisateur, setTOrganisateur] = useState("");
+  const [rappelEpargne, setRappelEpargne] = useState<"" | FrequenceTontine>("");
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
