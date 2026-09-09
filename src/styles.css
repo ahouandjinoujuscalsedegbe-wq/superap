@@ -1087,18 +1087,20 @@ textarea {
 :root {
   --simulation-largeur: 5.25rem;
   --simulation-hauteur: 3rem;
+  --simulation-rayon-x: calc(var(--simulation-largeur) / 2);
+  --simulation-rayon-y: calc(var(--simulation-hauteur) / 2);
   --simulation-demi-espace: 0.375rem;
 }
 
 @utility coupe-simulation {
   mask-image: radial-gradient(
-    ellipse var(--simulation-largeur) var(--simulation-hauteur) at var(--simulation-x)
+    ellipse var(--simulation-rayon-x) var(--simulation-rayon-y) at var(--simulation-x)
       var(--simulation-y),
     transparent 0 97%,
     #000 100%
   );
   -webkit-mask-image: radial-gradient(
-    ellipse var(--simulation-largeur) var(--simulation-hauteur) at var(--simulation-x)
+    ellipse var(--simulation-rayon-x) var(--simulation-rayon-y) at var(--simulation-x)
       var(--simulation-y),
     transparent 0 97%,
     #000 100%
