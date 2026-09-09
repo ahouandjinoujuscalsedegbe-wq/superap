@@ -461,7 +461,7 @@ export function BarreHaute() {
             >
               Action
             </button>
-          ) : (
+          ) : pathname === "/revenu" || pathname === "/depense" ? null : (
             <button
               type="button"
               onClick={() => setOuvert((v) => !v)}

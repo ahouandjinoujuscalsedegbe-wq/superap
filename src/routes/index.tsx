@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowDownRight,
+  ArrowLeftRight,
   ArrowUpRight,
   FileText,
   Calculator,
@@ -128,7 +129,7 @@ function Accueil() {
         </section>
       )}
 
-      <section className="grid grid-cols-2 gap-3">
+      <section className="relative grid grid-cols-2 gap-3">
         <Link
           to="/revenu"
           className="bouton-3d bouton-3d-revenu relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
@@ -146,6 +147,16 @@ function Accueil() {
           <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
           <span className="relative z-10 font-semibold">Ajouter une dépense</span>
           <span className="relative z-10 text-xs opacity-85">En 2 secondes</span>
+        </Link>
+
+        <Link
+          to="/comptes/transferts/nouveau"
+          className="bouton-3d-centre-large absolute bottom-0 left-1/2 z-20 flex -translate-x-1/2 translate-y-1/2 flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
+          aria-label="Effectuer une transaction"
+        >
+          <ArrowLeftRight className="h-5 w-5" aria-hidden />
+          <span className="text-[10px] font-semibold leading-none">Effectuer une</span>
+          <span className="text-[10px] font-semibold leading-none">transaction</span>
         </Link>
       </section>
 
