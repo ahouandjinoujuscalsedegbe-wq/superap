@@ -514,6 +514,8 @@ type Contexte = Etat & {
   reinitialiser: () => void;
   totalRevenus: number;
   totalDepenses: number;
+  /** Total des frais de transaction supportés ce mois-ci. */
+  totalFrais: number;
   solde: number;
   /** Solde des seuls comptes comptés dans le disponible. */
   soldeDisponible: number;
