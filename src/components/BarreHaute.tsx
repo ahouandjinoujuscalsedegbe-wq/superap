@@ -144,6 +144,8 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/budget/suivi", "Suivi du mois"],
   ["/budget/auto", "Proposition auto"],
   ["/budget", "Budgétisation"],
+  ["/historique/revenus", "Historique des revenus"],
+  ["/historique/depenses", "Historique des dépenses"],
   ["/revenu", "Ajouter un revenu"],
   ["/depense", "Ajouter une dépense"],
   ["/saisie", "Saisie intelligente"],
