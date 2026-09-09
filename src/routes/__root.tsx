@@ -209,6 +209,7 @@ function RootComponent() {
           <AlertesVersConseiller />
           <VeilleConseiller />
           <RappelBudgetMensuel />
+          <RappelsObjectifs />
           <RappelFinBudget />
           <BouleAnalyse />
           <GardeIntegrite />
