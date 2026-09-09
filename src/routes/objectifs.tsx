@@ -467,20 +467,10 @@ function PageObjectifs() {
                     className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                   />
                 </label>
-                <label className="block text-xs font-medium text-muted-foreground">
-                  Rythme
-                  <select
-                    value={tFrequence}
-                    onChange={(e) => setTFrequence(e.target.value as FrequenceTontine)}
-                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                  >
-                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
-                      <option key={f} value={f}>
-                        {FREQUENCES[f].label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <p className="self-end text-xs text-muted-foreground">
+                  Rythme des cotisations : {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)}{" "}
+                  (réglable plus bas).
+                </p>
                 <label className="block text-xs font-medium text-muted-foreground">
                   Participants
                   <input
