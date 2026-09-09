@@ -81,7 +81,6 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
   const [rappelIntervalle, setRappelIntervalle] = useState("1");
   const [rappelUnite, setRappelUnite] = useState<UniteRappel>("mois");
   const [rappelDebut, setRappelDebut] = useState("");
-  const [note, setNote] = useState("");
 
   const apercuTontine = useMemo(() => {
     const montant = Number(deGrouperMontant(tMontant));
@@ -216,7 +215,6 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
           ? tDebut
           : rappelDebut || undefined
         : undefined,
-      noteCloture: note.trim() || undefined,
       ...infosTontine,
     });
     toast.success("Objectif créé.");
@@ -278,15 +276,6 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
                       ? "Moto, téléphone, terrain…"
                       : "Voyage, scolarité, réserve…"
                 }
-                className={champ}
-              />
-            </label>
-            <label className="block text-xs font-medium text-muted-foreground">
-              Précision utile (facultatif)
-              <input
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Pourquoi cet objectif, avec qui, où…"
                 className={champ}
               />
             </label>
@@ -554,7 +543,6 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
             <dl className="space-y-1 text-xs">
               <Ligne t="Nature" v={TYPES[type].label} />
               <Ligne t="Nom" v={libelle || "—"} />
-              {note && <Ligne t="Précision" v={note} />}
               <Ligne t="Montant visé" v={formatFCFA(resultat.cible)} />
               <Ligne t="Échéance" v={resultat.dateCible || "—"} />
               {type !== "tontine" && (
