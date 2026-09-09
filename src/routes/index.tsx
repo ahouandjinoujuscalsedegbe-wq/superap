@@ -141,7 +141,7 @@ function Accueil() {
         </Link>
         <Link
           to="/depense"
-          className="bouton-3d bouton-3d-depense relative flex flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-depense relative flex h-full min-h-28 flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <ArrowDownRight className="relative z-10 h-5 w-5" aria-hidden />
@@ -163,7 +163,7 @@ function Accueil() {
       <section className="relative grid grid-cols-2 grid-rows-[1fr_1fr] gap-3">
         <Link
           to="/budget"
-          className="bouton-3d bouton-3d-budget coupe-simulation coupe-bas-droite row-start-1 col-start-1 relative flex flex-col gap-1 overflow-hidden p-4 pr-10 pb-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-budget relative flex h-full flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Wallet className="relative z-10 h-5 w-5" aria-hidden />
@@ -172,7 +172,7 @@ function Accueil() {
         </Link>
         <Link
           to="/rapport"
-          className="bouton-3d bouton-3d-rapport coupe-simulation coupe-bas-gauche row-start-1 col-start-2 relative flex flex-col gap-1 overflow-hidden p-4 pb-10 pl-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-rapport relative flex h-full flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <FileText className="relative z-10 h-5 w-5" aria-hidden />
@@ -181,7 +181,7 @@ function Accueil() {
         </Link>
         <Link
           to="/comptes"
-          className="bouton-3d bouton-3d-mois coupe-simulation coupe-haut-droite row-start-2 col-start-1 relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pr-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-mois relative flex h-full flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Landmark className="relative z-10 h-5 w-5" aria-hidden />
@@ -190,7 +190,7 @@ function Accueil() {
         </Link>
         <Link
           to="/enveloppes/details"
-          className="bouton-3d bouton-3d-enveloppes coupe-simulation coupe-haut-gauche row-start-2 col-start-2 relative flex flex-col gap-1 overflow-hidden p-4 pt-10 pl-10 text-left active:scale-[0.97]"
+          className="bouton-3d bouton-3d-enveloppes relative flex h-full flex-col gap-1 overflow-hidden p-4 text-left active:scale-[0.97]"
         >
           <span className="bouton-3d-brillance" aria-hidden />
           <Layers className="relative z-10 h-5 w-5" aria-hidden />
@@ -202,11 +202,11 @@ function Accueil() {
 
         <Link
           to="/simulation"
-          className="bouton-3d-centre col-span-2 row-span-2 row-start-1 col-start-1 flex place-self-center flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
+          className="bouton-3d-centre-large absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
           aria-label="Simulation"
         >
-          <Calculator className="h-6 w-6" aria-hidden />
-          <span className="text-xs font-semibold leading-none">Simulation</span>
+          <Calculator className="h-5 w-5" aria-hidden />
+          <span className="text-[11px] font-semibold leading-none">Simulation</span>
         </Link>
       </section>
 
