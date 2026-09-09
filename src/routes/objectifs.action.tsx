@@ -225,6 +225,9 @@ function ActionObjectifs() {
 
       {aSupprimer && (
         <Confirmation
+          ouvert
+          danger
+          confirmerLabel="Supprimer"
           titre="Supprimer cet objectif ?"
           message="Le suivi sera définitivement retiré. Vos opérations ne sont pas touchées."
           onAnnuler={() => setASupprimer(null)}
