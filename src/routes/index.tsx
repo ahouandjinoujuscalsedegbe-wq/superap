@@ -202,7 +202,7 @@ function Accueil() {
 
         <Link
           to="/simulation"
-          className="bouton-3d-centre col-span-2 row-span-2 flex place-self-center flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
+          className="bouton-3d-centre col-span-2 row-span-2 row-start-1 col-start-1 flex place-self-center flex-col items-center justify-center gap-0.5 active:scale-[0.97]"
           aria-label="Simulation"
         >
           <Calculator className="h-6 w-6" aria-hidden />
