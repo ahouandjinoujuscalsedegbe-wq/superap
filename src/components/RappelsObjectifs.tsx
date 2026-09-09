@@ -8,6 +8,7 @@ import {
   echeancesEnAttente,
   enregistrerReponse,
   rappelsAProgrammer,
+  titreType,
   type EcheanceRappel,
 } from "@/lib/rappels-objectifs";
 
