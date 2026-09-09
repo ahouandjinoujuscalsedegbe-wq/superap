@@ -51,7 +51,6 @@ import { Route as EnveloppesRenouvellementsRouteImport } from './routes/envelopp
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
 import { Route as HistoriqueDepensesRouteImport } from './routes/historique.depenses'
 import { Route as HistoriqueRevenusRouteImport } from './routes/historique.revenus'
-import { Route as ObjectifsActionRouteImport } from './routes/objectifs.action'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
@@ -287,11 +286,6 @@ const HistoriqueRevenusRoute = HistoriqueRevenusRouteImport.update({
   path: '/historique/revenus',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ObjectifsActionRoute = ObjectifsActionRouteImport.update({
-  id: '/action',
-  path: '/action',
-  getParentRoute: () => ObjectifsRoute,
-} as any)
 const ParametresIndexRoute = ParametresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -421,7 +415,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
-  '/objectifs': typeof ObjectifsRouteWithChildren
+  '/objectifs': typeof ObjectifsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
@@ -451,7 +445,6 @@ export interface FileRoutesByFullPath {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -486,7 +479,7 @@ export interface FileRoutesByTo {
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
-  '/objectifs': typeof ObjectifsRouteWithChildren
+  '/objectifs': typeof ObjectifsRoute
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -514,7 +507,6 @@ export interface FileRoutesByTo {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -553,7 +545,7 @@ export interface FileRoutesById {
   '/enveloppes': typeof EnveloppesRouteWithChildren
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
-  '/objectifs': typeof ObjectifsRouteWithChildren
+  '/objectifs': typeof ObjectifsRoute
   '/parametres': typeof ParametresRouteWithChildren
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
@@ -583,7 +575,6 @@ export interface FileRoutesById {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -653,7 +644,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -716,7 +706,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -784,7 +773,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -823,7 +811,7 @@ export interface RootRouteChildren {
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
   JournalRoute: typeof JournalRoute
   NotificationsRoute: typeof NotificationsRoute
-  ObjectifsRoute: typeof ObjectifsRouteWithChildren
+  ObjectifsRoute: typeof ObjectifsRoute
   ParametresRoute: typeof ParametresRouteWithChildren
   RechercheRoute: typeof RechercheRoute
   RevenuRoute: typeof RevenuRoute
@@ -1137,13 +1125,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoriqueRevenusRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/objectifs/action': {
-      id: '/objectifs/action'
-      path: '/action'
-      fullPath: '/objectifs/action'
-      preLoaderRoute: typeof ObjectifsActionRouteImport
-      parentRoute: typeof ObjectifsRoute
-    }
     '/parametres/': {
       id: '/parametres/'
       path: '/'
@@ -1411,18 +1392,6 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
   EnveloppesRouteChildren,
 )
 
-interface ObjectifsRouteChildren {
-  ObjectifsActionRoute: typeof ObjectifsActionRoute
-}
-
-const ObjectifsRouteChildren: ObjectifsRouteChildren = {
-  ObjectifsActionRoute: ObjectifsActionRoute,
-}
-
-const ObjectifsRouteWithChildren = ObjectifsRoute._addFileChildren(
-  ObjectifsRouteChildren,
-)
-
 interface ParametresRouteChildren {
   ParametresAlarmesRoute: typeof ParametresAlarmesRoute
   ParametresClavierRoute: typeof ParametresClavierRoute
@@ -1457,7 +1426,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnveloppesRoute: EnveloppesRouteWithChildren,
   JournalRoute: JournalRoute,
   NotificationsRoute: NotificationsRoute,
-  ObjectifsRoute: ObjectifsRouteWithChildren,
+  ObjectifsRoute: ObjectifsRoute,
   ParametresRoute: ParametresRouteWithChildren,
   RechercheRoute: RechercheRoute,
   RevenuRoute: RevenuRoute,
