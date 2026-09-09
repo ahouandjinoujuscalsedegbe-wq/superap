@@ -6,6 +6,7 @@ import { formatFCFA } from "@/lib/format";
 import { idConseiller, notifierAlarme, programmerRappelsConseiller } from "@/lib/alarme-appareil";
 import {
   echeancesEnAttente,
+  enregistrerEnvoiRappel,
   enregistrerReponse,
   rappelsAProgrammer,
   titreType,
@@ -44,6 +45,7 @@ export function RappelsObjectifs() {
   useEffect(() => {
     if (!courante || notifiees.current.has(courante.cle)) return;
     notifiees.current.add(courante.cle);
+    enregistrerEnvoiRappel(courante);
     void notifierAlarme(
       `${titreType(courante.type)} : ${courante.libelle}`,
       `Cotisation de ${formatFCFA(courante.montant)} prévue le ${courante.date}. Avez-vous effectué le versement ?`,
@@ -64,6 +66,7 @@ export function RappelsObjectifs() {
 
   const repondre = useCallback(
     (echeance: EcheanceRappel, fait: boolean) => {
+      enregistrerEnvoiRappel(echeance);
       enregistrerReponse(echeance.cle, fait ? "confirme" : "refuse");
       if (fait) {
         const objectif = objectifs.find((o) => o.id === echeance.objectifId);
