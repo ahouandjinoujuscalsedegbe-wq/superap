@@ -1518,28 +1518,46 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const totaux = useMemo(() => {
     let totalRevenus = 0;
     let totalDepenses = 0;
+    let totalFrais = 0;
     const depensesParEnveloppe: Record<string, number> = {};
     for (const t of transactions) {
       const duMois = t.date.slice(0, 7) === moisEnCours;
+      const frais = Math.max(0, t.frais ?? 0);
       if (t.type === "revenu") {
-        if (duMois) totalRevenus += t.montant;
+        // Un revenu ne rapporte réellement que ce qui reste après les frais.
+        if (duMois) {
+          totalRevenus += t.montant - frais;
+          totalFrais += frais;
+        }
         continue;
       }
-      if (duMois) totalDepenses += t.montant;
+      if (duMois) {
+        totalDepenses += t.montant + frais;
+        totalFrais += frais;
+      }
       depensesParEnveloppe[t.categorie] = (depensesParEnveloppe[t.categorie] ?? 0) + t.montant;
     }
-    return { totalRevenus, totalDepenses, depensesParEnveloppe };
-  }, [transactions, moisEnCours]);
+    // Les frais des transferts du mois pèsent aussi sur le budget réel.
+    for (const t of transferts) {
+      if (t.date.slice(0, 7) !== moisEnCours) continue;
+      totalFrais += Math.max(0, t.frais ?? 0);
+    }
+    return { totalRevenus, totalDepenses, totalFrais, depensesParEnveloppe };
+  }, [transactions, transferts, moisEnCours]);
 
   const soldesParCompte = useMemo(() => {
     const soldes: Record<string, number> = {};
     for (const c of comptes) soldes[c] = 0;
     for (const t of transactions) {
-      soldes[t.compte] = (soldes[t.compte] ?? 0) + (t.type === "revenu" ? t.montant : -t.montant);
+      const frais = Math.max(0, t.frais ?? 0);
+      const effet = t.type === "revenu" ? t.montant - frais : -(t.montant + frais);
+      soldes[t.compte] = (soldes[t.compte] ?? 0) + effet;
     }
     for (const t of transferts) {
-      soldes[t.source] = (soldes[t.source] ?? 0) - t.montant;
-      soldes[t.destination] = (soldes[t.destination] ?? 0) + t.montant;
+      const frais = Math.max(0, t.frais ?? 0);
+      const surSource = (t.fraisSur ?? "source") === "source";
+      soldes[t.source] = (soldes[t.source] ?? 0) - t.montant - (surSource ? frais : 0);
+      soldes[t.destination] = (soldes[t.destination] ?? 0) + t.montant - (surSource ? 0 : frais);
     }
     return soldes;
   }, [transactions, transferts, comptes]);
