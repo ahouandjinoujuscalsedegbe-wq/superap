@@ -12,6 +12,10 @@ import { proposerAjustements } from "@/lib/ajustement-objectifs";
 import { joursRythme, rythmeObjectif } from "@/lib/rappels-objectifs";
 
 export const Route = createFileRoute("/objectifs")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    nouveau: typeof search["nouveau"] === "string" ? search["nouveau"] : undefined,
+    modifier: typeof search["modifier"] === "string" ? search["modifier"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Objectifs d'épargne — SUPER APP" },
