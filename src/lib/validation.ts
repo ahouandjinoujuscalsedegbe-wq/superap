@@ -207,7 +207,20 @@ export function assainirTransfert(v: unknown): Transfert | null {
   const source = texteSur(v["source"], 60);
   const destination = texteSur(v["destination"], 60);
   if (!source || !destination || source === destination) return null;
-  return { id: v["id"], source, destination, montant, note: texteSur(v["note"]), date };
+  const t: Transfert = {
+    id: v["id"],
+    source,
+    destination,
+    montant,
+    note: texteSur(v["note"]),
+    date,
+  };
+  const frais = nombreSur(v["frais"]);
+  if (montantPositifOuNul(frais) && frais > 0) {
+    t.frais = frais;
+    t.fraisSur = v["fraisSur"] === "destination" ? "destination" : "source";
+  }
+  return t;
 }
 
 const PERIODES_VALIDES = ["jour", "semaine", "mois", "trimestre", "semestre", "annee"] as const;
