@@ -617,16 +617,44 @@ function PageObjectifs() {
       )}
 
       <section className="space-y-3">
+        {suivis.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {(["tous", "epargne", "achat", "tontine"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={filtre === f}
+                onClick={() => setFiltre(f)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                  filtre === f
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input bg-card text-muted-foreground"
+                }`}
+              >
+                {f === "tous"
+                  ? `Tous (${suivis.length})`
+                  : `${TYPES[f].label} (${suivis.filter((s) => (s.objectif.type ?? "epargne") === f).length})`}
+              </button>
+            ))}
+          </div>
+        )}
+
         {suivis.length === 0 && !ouvert && (
           <div className="carte flex flex-col items-center gap-2 p-8 text-center">
             <PiggyBank className="h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="text-sm text-muted-foreground">
-              Aucun objectif pour le moment. Créez-en un pour suivre votre épargne.
+              Aucun objectif pour le moment. Créez une épargne, un achat programmé ou une tontine.
             </p>
           </div>
         )}
 
-        {suivis.map((s) => (
+        {suivis.length > 0 && visibles.length === 0 && (
+          <p className="carte p-4 text-center text-sm text-muted-foreground">
+            Aucun élément de ce type pour le moment.
+          </p>
+        )}
+
+        {visibles.map((s) => (
           <article key={s.objectif.id} className="carte space-y-3 p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
