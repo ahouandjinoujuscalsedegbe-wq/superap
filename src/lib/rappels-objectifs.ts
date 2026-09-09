@@ -191,7 +191,100 @@ export function enregistrerReponse(cle: string, reponse: ReponseRappel): void {
   } catch {
     /* stockage saturé : la question sera reposée plus tard */
   }
+  marquerReponduJournal(cle, reponse);
 }
+
+/* ------------------------------------------------------------------ */
+/* Historique des rappels envoyés (stockage local)                     */
+/* ------------------------------------------------------------------ */
+
+const CLE_JOURNAL = "SA_JOURNAL_RAPPELS_V1";
+
+export type EtatRappel = "approuve" | "rejete" | "non_lu";
+
+export type LigneJournalRappel = {
+  cle: string;
+  objectifId: string;
+  libelle: string;
+  type: "tontine" | "epargne" | "achat";
+  /** Date de l'échéance concernée (YYYY-MM-DD). */
+  dateEcheance: string;
+  montant: number;
+  /** Date et heure d'envoi du rappel (ISO). */
+  envoyeLe: string;
+  /** Date et heure de la réponse (ISO), si l'utilisateur a répondu. */
+  reponduLe?: string;
+  etat: EtatRappel;
+};
+
+/** Tout l'historique des rappels, du plus récent au plus ancien. */
+export function lireJournalRappels(): LigneJournalRappel[] {
+  if (typeof localStorage === "undefined") return [];
+  try {
+    const brut = localStorage.getItem(CLE_JOURNAL);
+    if (!brut) return [];
+    const liste = JSON.parse(brut) as unknown;
+    if (!Array.isArray(liste)) return [];
+    return (liste as LigneJournalRappel[])
+      .filter((l) => l && typeof l.cle === "string" && typeof l.envoyeLe === "string")
+      .sort((a, b) => b.envoyeLe.localeCompare(a.envoyeLe));
+  } catch {
+    return [];
+  }
+}
+
+function ecrireJournal(lignes: LigneJournalRappel[]): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(CLE_JOURNAL, JSON.stringify(lignes.slice(0, 500)));
+  } catch {
+    /* stockage saturé : l'historique le plus ancien est simplement perdu */
+  }
+}
+
+/** Note qu'un rappel vient d'être envoyé (une seule fois par échéance). */
+export function enregistrerEnvoiRappel(e: EcheanceRappel, quand = new Date()): void {
+  const lignes = lireJournalRappels();
+  if (lignes.some((l) => l.cle === e.cle)) return;
+  lignes.unshift({
+    cle: e.cle,
+    objectifId: e.objectifId,
+    libelle: e.libelle,
+    type: e.type,
+    dateEcheance: e.date,
+    montant: e.montant,
+    envoyeLe: quand.toISOString(),
+    etat: "non_lu",
+  });
+  ecrireJournal(lignes);
+}
+
+/** Met à jour l'historique quand l'utilisateur approuve ou rejette un rappel. */
+export function marquerReponduJournal(
+  cle: string,
+  reponse: ReponseRappel,
+  quand = new Date(),
+): void {
+  const lignes = lireJournalRappels();
+  const ligne = lignes.find((l) => l.cle === cle);
+  if (!ligne) return;
+  ligne.etat = reponse === "confirme" ? "approuve" : "rejete";
+  ligne.reponduLe = quand.toISOString();
+  ecrireJournal(lignes);
+}
+
+/** Historique d'un objectif précis. */
+export function journalObjectif(objectifId: string): LigneJournalRappel[] {
+  return lireJournalRappels().filter((l) => l.objectifId === objectifId);
+}
+
+/** Libellé lisible d'un état de rappel. */
+export function libelleEtatRappel(etat: EtatRappel): string {
+  if (etat === "approuve") return "Approuvé";
+  if (etat === "rejete") return "Rejeté";
+  return "Non lu";
+}
+
 
 /** Échéances déjà arrivées et restées sans réponse. */
 export function echeancesEnAttente(
