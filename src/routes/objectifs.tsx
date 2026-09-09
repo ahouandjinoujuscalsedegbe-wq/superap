@@ -778,12 +778,19 @@ function PageObjectifs() {
                 </p>
                 {s.objectif.type === "tontine" && s.objectif.tontineMontantTour && (
                   <p className="text-xs text-muted-foreground">
-                    {formatFCFA(s.objectif.tontineMontantTour)} ·{" "}
-                    {FREQUENCES[s.objectif.tontineFrequence ?? "mensuelle"].label} · rang{" "}
+                    {formatFCFA(s.objectif.tontineMontantTour)} · rang{" "}
                     {s.objectif.tontineRang ?? 1}/{s.objectif.tontineParticipants ?? 1}
                     {s.objectif.tontineOrganisateur ? ` · ${s.objectif.tontineOrganisateur}` : ""}
                   </p>
                 )}
+                {(() => {
+                  const r = rythmeObjectif(s.objectif);
+                  return r ? (
+                    <p className="text-xs text-primary">
+                      🔔 Rappel {libelleRythme(r.intervalle, r.unite)}
+                    </p>
+                  ) : null;
+                })()}
               </div>
               <div className="flex shrink-0 gap-1">
                 <button
