@@ -108,8 +108,11 @@ export type ElementCorbeille = Transaction & { supprimeLe: string };
 /** Nature de l'objectif : épargne libre, achat programmé ou tontine. */
 export type TypeObjectif = "epargne" | "achat" | "tontine";
 
-/** Rythme des cotisations d'une tontine. */
+/** Rythme des cotisations d'une tontine (ancien format, conservé pour les données existantes). */
 export type FrequenceTontine = "hebdomadaire" | "quinzaine" | "mensuelle";
+
+/** Unité de répétition d'un rappel d'objectif, librement choisie par l'utilisateur. */
+export type UniteRappel = "jour" | "semaine" | "mois" | "annee";
 
 export type Objectif = {
   id: string;
