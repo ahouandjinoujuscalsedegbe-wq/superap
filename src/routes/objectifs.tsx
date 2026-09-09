@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
+import { Lightbulb, PiggyBank, Plus, Target } from "lucide-react";
 import { toast } from "sonner";
-import { Confirmation } from "@/components/Confirmation";
 import { HistoriqueRappels } from "@/components/HistoriqueRappels";
 
 import { useSuperApp, type Objectif, type TypeObjectif, type UniteRappel } from "@/lib/store";
@@ -112,7 +111,6 @@ function PageObjectifs() {
     comptesExclus,
     ajouterObjectif,
     modifierObjectif,
-    supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
   const recherche = Route.useSearch();
@@ -127,7 +125,6 @@ function PageObjectifs() {
   const [compteSource, setCompteSource] = useState("");
   const [compteEpargne, setCompteEpargne] = useState("");
   const [prelevementAuto, setPrelevementAuto] = useState(true);
-  const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const [ignores, setIgnores] = useState<string[]>([]);
   const [filtre, setFiltre] = useState<"tous" | TypeObjectif>("tous");
   // Paramètres propres aux tontines.
@@ -819,24 +816,6 @@ function PageObjectifs() {
                   ) : null;
                 })()}
               </div>
-              <div className="flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  onClick={() => modifier(s.objectif)}
-                  aria-label={`Modifier l'objectif ${s.objectif.libelle}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-primary hover:bg-primary/10"
-                >
-                  <Pencil className="h-4 w-4" aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setASupprimer(s.objectif.id)}
-                  aria-label={`Supprimer l'objectif ${s.objectif.libelle}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden />
-                </button>
-              </div>
             </div>
 
             <div
@@ -888,22 +867,6 @@ function PageObjectifs() {
           </article>
         ))}
       </section>
-
-      {aSupprimer && (
-        <Confirmation
-          ouvert
-          danger
-          confirmerLabel="Supprimer"
-          titre="Supprimer cet objectif ?"
-          message="Le suivi sera définitivement retiré. Vos opérations ne sont pas touchées."
-          onAnnuler={() => setASupprimer(null)}
-          onConfirmer={() => {
-            supprimerObjectif(aSupprimer);
-            setASupprimer(null);
-            toast.success("Objectif supprimé.");
-          }}
-        />
-      )}
     </div>
   );
 }
