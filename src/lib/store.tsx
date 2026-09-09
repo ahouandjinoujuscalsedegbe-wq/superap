@@ -1595,6 +1595,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ...actions,
       totalRevenus: totaux.totalRevenus,
       totalDepenses: totaux.totalDepenses,
+      totalFrais: totaux.totalFrais,
       solde: totaux.totalRevenus - totaux.totalDepenses,
       soldeDisponible,
       depensesParEnveloppe: totaux.depensesParEnveloppe,
