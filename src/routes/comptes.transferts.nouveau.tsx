@@ -45,6 +45,8 @@ function NouveauTransfert() {
   const [source, setSource] = useState(comptes[0] ?? "");
   const [destination, setDestination] = useState(comptes[1] ?? "");
   const [montant, setMontant] = useState("");
+  const [frais, setFrais] = useState("");
+  const [fraisSur, setFraisSur] = useState<"source" | "destination">("source");
   const [note, setNote] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
