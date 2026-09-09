@@ -3,10 +3,11 @@ import { useMemo, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
-import { useSuperApp, type FrequenceTontine, type Objectif, type TypeObjectif } from "@/lib/store";
+import { useSuperApp, type Objectif, type TypeObjectif, type UniteRappel } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
 import { proposerAjustements } from "@/lib/ajustement-objectifs";
+import { joursRythme, rythmeObjectif } from "@/lib/rappels-objectifs";
 
 export const Route = createFileRoute("/objectifs")({
   head: () => ({
@@ -64,11 +65,20 @@ const TYPES: Record<TypeObjectif, { label: string; aide: string; emoji: string }
   },
 };
 
-const FREQUENCES: Record<FrequenceTontine, { label: string; jours: number }> = {
-  hebdomadaire: { label: "Chaque semaine", jours: 7 },
-  quinzaine: { label: "Toutes les 2 semaines", jours: 14 },
-  mensuelle: { label: "Chaque mois", jours: 30 },
+/** Unités de répétition proposées, au singulier et au pluriel. */
+const UNITES: Record<UniteRappel, { un: string; plusieurs: string }> = {
+  jour: { un: "jour", plusieurs: "jours" },
+  semaine: { un: "semaine", plusieurs: "semaines" },
+  mois: { un: "mois", plusieurs: "mois" },
+  annee: { un: "an", plusieurs: "ans" },
 };
+
+/** Phrase lisible du rythme choisi : « tous les 15 jours ». */
+function libelleRythme(intervalle: number, unite: UniteRappel): string {
+  const n = Math.max(1, intervalle);
+  if (n === 1) return unite === "annee" ? "chaque année" : `chaque ${UNITES[unite].un}`;
+  return `tous les ${n} ${UNITES[unite].plusieurs}`;
+}
 
 /** Montant total reçu au tour et date estimée de réception d'une tontine. */
 function calculerTontine(
@@ -76,11 +86,12 @@ function calculerTontine(
   participants: number,
   rang: number,
   debut: string,
-  frequence: FrequenceTontine,
+  intervalle: number,
+  unite: UniteRappel,
 ): { cible: number; dateCible: string } {
   const cible = Math.max(0, Math.round(montantTour * participants));
   const depart = debut ? new Date(`${debut}T00:00:00`) : new Date();
-  const jours = FREQUENCES[frequence].jours * Math.max(0, rang - 1);
+  const jours = joursRythme({ unite, intervalle }) * Math.max(0, rang - 1);
   const arrivee = new Date(depart.getTime() + jours * 86_400_000);
   return { cible, dateCible: arrivee.toISOString().slice(0, 10) };
 }
@@ -114,12 +125,16 @@ function PageObjectifs() {
   const [filtre, setFiltre] = useState<"tous" | TypeObjectif>("tous");
   // Paramètres propres aux tontines.
   const [tMontant, setTMontant] = useState("");
-  const [tFrequence, setTFrequence] = useState<FrequenceTontine>("mensuelle");
+
   const [tParticipants, setTParticipants] = useState("");
   const [tRang, setTRang] = useState("");
   const [tDebut, setTDebut] = useState("");
   const [tOrganisateur, setTOrganisateur] = useState("");
-  const [rappelEpargne, setRappelEpargne] = useState<"" | FrequenceTontine>("");
+  // Rappel commun à tous les types d'objectifs.
+  const [rappelActif, setRappelActif] = useState(true);
+  const [rappelIntervalle, setRappelIntervalle] = useState("1");
+  const [rappelUnite, setRappelUnite] = useState<UniteRappel>("mois");
+  const [rappelDebut, setRappelDebut] = useState("");
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
@@ -142,8 +157,15 @@ function PageObjectifs() {
     const participants = Number(tParticipants.replace(/\s/g, ""));
     const rang = Number(tRang.replace(/\s/g, ""));
     if (!montant || !participants || !rang || !tDebut) return null;
-    return calculerTontine(montant, participants, rang, tDebut, tFrequence);
-  }, [tMontant, tParticipants, tRang, tDebut, tFrequence]);
+    return calculerTontine(
+      montant,
+      participants,
+      rang,
+      tDebut,
+      Number(rappelIntervalle) || 1,
+      rappelUnite,
+    );
+  }, [tMontant, tParticipants, tRang, tDebut, rappelIntervalle, rappelUnite]);
 
   const reinitialiser = () => {
     setEnEdition(null);
@@ -157,12 +179,14 @@ function PageObjectifs() {
     setCompteEpargne("");
     setPrelevementAuto(true);
     setTMontant("");
-    setTFrequence("mensuelle");
     setTParticipants("");
     setTRang("");
     setTDebut("");
     setTOrganisateur("");
-    setRappelEpargne("");
+    setRappelActif(true);
+    setRappelIntervalle("1");
+    setRappelUnite("mois");
+    setRappelDebut("");
     setOuvert(false);
   };
 
@@ -179,12 +203,15 @@ function PageObjectifs() {
     setCompteEpargne(o.compteEpargne ?? "");
     setPrelevementAuto(o.prelevementAuto ?? false);
     setTMontant(o.tontineMontantTour ? String(o.tontineMontantTour) : "");
-    setTFrequence(o.tontineFrequence ?? "mensuelle");
     setTParticipants(o.tontineParticipants ? String(o.tontineParticipants) : "");
     setTRang(o.tontineRang ? String(o.tontineRang) : "");
     setTDebut(o.tontineDebut ?? "");
     setTOrganisateur(o.tontineOrganisateur ?? "");
-    setRappelEpargne(o.rappelFrequence ?? "");
+    const rythme = rythmeObjectif(o);
+    setRappelActif(o.rappelActif !== false && rythme !== null);
+    setRappelIntervalle(String(rythme?.intervalle ?? 1));
+    setRappelUnite(rythme?.unite ?? "mois");
+    setRappelDebut(o.rappelDebut ?? o.tontineDebut ?? "");
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -221,12 +248,18 @@ function PageObjectifs() {
         toast.error("Indiquez la date de la première cotisation.");
         return;
       }
-      const calcul = calculerTontine(montantTour, participants, rang, tDebut, tFrequence);
+      const calcul = calculerTontine(
+        montantTour,
+        participants,
+        rang,
+        tDebut,
+        Number(rappelIntervalle) || 1,
+        rappelUnite,
+      );
       montant = calcul.cible;
       echeance = calcul.dateCible;
       infosTontine = {
         tontineMontantTour: montantTour,
-        tontineFrequence: tFrequence,
         tontineParticipants: participants,
         tontineRang: rang,
         tontineDebut: tDebut,
@@ -269,7 +302,15 @@ function PageObjectifs() {
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
-      rappelFrequence: type === "epargne" && rappelEpargne ? rappelEpargne : undefined,
+      rappelActif: rappelActif ? undefined : false,
+      rappelUnite: rappelActif ? rappelUnite : undefined,
+      rappelIntervalle: rappelActif ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1)) : undefined,
+      rappelDebut: rappelActif
+        ? type === "tontine"
+          ? tDebut
+          : rappelDebut || undefined
+        : undefined,
+      rappelFrequence: undefined,
       tontineMontantTour: undefined,
       tontineFrequence: undefined,
       tontineParticipants: undefined,
