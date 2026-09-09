@@ -134,6 +134,10 @@ export type Objectif = {
   tontineDebut?: string | undefined;
   /** Tontine : nom de l'organisateur ou du groupe. */
   tontineOrganisateur?: string | undefined;
+  /** Rythme des rappels de versement pour une épargne programmée. */
+  rappelFrequence?: FrequenceTontine | undefined;
+  /** false pour désactiver les rappels de cotisation de cet objectif. */
+  rappelActif?: boolean | undefined;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
   enveloppeId?: string | undefined;
   /** Compte débité chaque mois pour alimenter l'épargne de l'objectif. */

@@ -17,6 +17,7 @@ import { RappelsDepensesPlanifiees } from "@/components/RappelsDepensesPlanifiee
 import { RemplissageAuto } from "@/components/RemplissageAuto";
 import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto";
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
+import { RappelsObjectifs } from "@/components/RappelsObjectifs";
 import { RappelFinBudget } from "@/components/RappelFinBudget";
 import { BottomNav } from "../components/BottomNav";
 import { BarreHaute } from "../components/BarreHaute";
@@ -209,6 +210,7 @@ function RootComponent() {
           <AlertesVersConseiller />
           <VeilleConseiller />
           <RappelBudgetMensuel />
+          <RappelsObjectifs />
           <RappelFinBudget />
           <BouleAnalyse />
           <GardeIntegrite />

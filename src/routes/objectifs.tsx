@@ -119,6 +119,7 @@ function PageObjectifs() {
   const [tRang, setTRang] = useState("");
   const [tDebut, setTDebut] = useState("");
   const [tOrganisateur, setTOrganisateur] = useState("");
+  const [rappelEpargne, setRappelEpargne] = useState<"" | FrequenceTontine>("");
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
@@ -161,6 +162,7 @@ function PageObjectifs() {
     setTRang("");
     setTDebut("");
     setTOrganisateur("");
+    setRappelEpargne("");
     setOuvert(false);
   };
 
@@ -182,6 +184,7 @@ function PageObjectifs() {
     setTRang(o.tontineRang ? String(o.tontineRang) : "");
     setTDebut(o.tontineDebut ?? "");
     setTOrganisateur(o.tontineOrganisateur ?? "");
+    setRappelEpargne(o.rappelFrequence ?? "");
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -266,6 +269,7 @@ function PageObjectifs() {
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
+      rappelFrequence: type === "epargne" && rappelEpargne ? rappelEpargne : undefined,
       tontineMontantTour: undefined,
       tontineFrequence: undefined,
       tontineParticipants: undefined,
@@ -515,6 +519,23 @@ function PageObjectifs() {
                   className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 />
               </label>
+              {type === "epargne" && (
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Me rappeler de verser
+                  <select
+                    value={rappelEpargne}
+                    onChange={(e) => setRappelEpargne(e.target.value as "" | FrequenceTontine)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Pas de rappel</option>
+                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
+                      <option key={f} value={f}>
+                        {FREQUENCES[f].label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </>
           )}
           <label className="block text-xs font-medium text-muted-foreground">

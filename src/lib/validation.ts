@@ -165,6 +165,13 @@ export function assainirObjectif(v: unknown): Objectif | null {
     compteSource: texteSur(v["compteSource"], 60) || undefined,
     compteEpargne: texteSur(v["compteEpargne"], 60) || undefined,
     prelevementAuto: v["prelevementAuto"] === true,
+    rappelFrequence:
+      v["rappelFrequence"] === "hebdomadaire" ||
+      v["rappelFrequence"] === "quinzaine" ||
+      v["rappelFrequence"] === "mensuelle"
+        ? v["rappelFrequence"]
+        : undefined,
+    rappelActif: v["rappelActif"] === false ? false : undefined,
   };
 }
 
