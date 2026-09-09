@@ -1106,23 +1106,23 @@ textarea {
 }
 
 @utility coupe-haut-gauche {
-  --simulation-x: calc(100% + var(--simulation-demi-espace));
-  --simulation-y: calc(100% + var(--simulation-demi-espace));
+  --simulation-x: calc(0% - var(--simulation-demi-espace));
+  --simulation-y: calc(0% - var(--simulation-demi-espace));
 }
 
 @utility coupe-haut-droite {
-  --simulation-x: calc(0% - var(--simulation-demi-espace));
-  --simulation-y: calc(100% + var(--simulation-demi-espace));
-}
-
-@utility coupe-bas-gauche {
   --simulation-x: calc(100% + var(--simulation-demi-espace));
   --simulation-y: calc(0% - var(--simulation-demi-espace));
 }
 
-@utility coupe-bas-droite {
+@utility coupe-bas-gauche {
   --simulation-x: calc(0% - var(--simulation-demi-espace));
-  --simulation-y: calc(0% - var(--simulation-demi-espace));
+  --simulation-y: calc(100% + var(--simulation-demi-espace));
+}
+
+@utility coupe-bas-droite {
+  --simulation-x: calc(100% + var(--simulation-demi-espace));
+  --simulation-y: calc(100% + var(--simulation-demi-espace));
 }
 
 /* ===== Clignotement d'alerte de la boule flottante ===== */
