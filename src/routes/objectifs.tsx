@@ -519,6 +519,23 @@ function PageObjectifs() {
                   className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 />
               </label>
+              {type === "epargne" && (
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Me rappeler de verser
+                  <select
+                    value={rappelEpargne}
+                    onChange={(e) => setRappelEpargne(e.target.value as "" | FrequenceTontine)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    <option value="">Pas de rappel</option>
+                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
+                      <option key={f} value={f}>
+                        {FREQUENCES[f].label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </>
           )}
           <label className="block text-xs font-medium text-muted-foreground">
