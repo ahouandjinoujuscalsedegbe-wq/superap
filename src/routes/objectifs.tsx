@@ -50,6 +50,46 @@ const ETIQUETTES: Record<SuiviObjectif["etat"], string> = {
   en_danger: "En danger",
 };
 
+/** Les trois natures d'objectif proposées à l'utilisateur. */
+const TYPES: Record<TypeObjectif, { label: string; aide: string; emoji: string }> = {
+  epargne: {
+    label: "Épargne",
+    emoji: "🐖",
+    aide: "Mettre de l'argent de côté, sans achat précis.",
+  },
+  achat: {
+    label: "Achat programmé",
+    emoji: "🛒",
+    aide: "Un bien précis à acheter à une date donnée.",
+  },
+  tontine: {
+    label: "Tontine",
+    emoji: "🤝",
+    aide: "Cotisation régulière dans un groupe, avec un tour de réception.",
+  },
+};
+
+const FREQUENCES: Record<FrequenceTontine, { label: string; jours: number }> = {
+  hebdomadaire: { label: "Chaque semaine", jours: 7 },
+  quinzaine: { label: "Toutes les 2 semaines", jours: 14 },
+  mensuelle: { label: "Chaque mois", jours: 30 },
+};
+
+/** Montant total reçu au tour et date estimée de réception d'une tontine. */
+function calculerTontine(
+  montantTour: number,
+  participants: number,
+  rang: number,
+  debut: string,
+  frequence: FrequenceTontine,
+): { cible: number; dateCible: string } {
+  const cible = Math.max(0, Math.round(montantTour * participants));
+  const depart = debut ? new Date(`${debut}T00:00:00`) : new Date();
+  const jours = FREQUENCES[frequence].jours * Math.max(0, rang - 1);
+  const arrivee = new Date(depart.getTime() + jours * 86_400_000);
+  return { cible, dateCible: arrivee.toISOString().slice(0, 10) };
+}
+
 function PageObjectifs() {
   const {
     objectifs,
