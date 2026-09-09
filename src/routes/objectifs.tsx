@@ -859,7 +859,9 @@ function PageObjectifs() {
                 disponible.
               </p>
             )}
+            <HistoriqueRappels objectifId={s.objectif.id} />
           </article>
+
         ))}
       </section>
 
