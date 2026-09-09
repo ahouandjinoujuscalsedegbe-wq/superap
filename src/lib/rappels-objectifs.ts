@@ -73,7 +73,8 @@ export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
       : Math.max(
           1,
           Math.ceil(
-            (new Date(`${o.dateCible}T00:00:00`).getTime() - new Date(`${debut}T00:00:00`).getTime()) /
+            (new Date(`${o.dateCible}T00:00:00`).getTime() -
+              new Date(`${debut}T00:00:00`).getTime()) /
               (pas * 86_400_000),
           ),
         );
