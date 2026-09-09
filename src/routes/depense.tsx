@@ -35,6 +35,7 @@ function AjouterDepense() {
     useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
+  const [frais, setFrais] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [recherche, setRecherche] = useState("");
