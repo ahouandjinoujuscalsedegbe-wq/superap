@@ -35,6 +35,7 @@ function AjouterDepense() {
     useSuperApp();
   const navigate = useNavigate();
   const [montant, setMontant] = useState("");
+  const [frais, setFrais] = useState("");
   const [libelle, setLibelle] = useState("");
   const [enveloppe, setEnveloppe] = useState<string>(enveloppes[0]?.id ?? "vitaux");
   const [recherche, setRecherche] = useState("");
@@ -95,6 +96,7 @@ function AjouterDepense() {
   }, [libelle, transactions, enveloppe, enveloppes]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
+  const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
@@ -116,10 +118,15 @@ function AjouterDepense() {
       compte,
       date: new Date(date).toISOString(),
       ...(membre ? { membre } : {}),
+      ...(fraisValeur > 0 ? { frais: fraisValeur } : {}),
     });
     // L'IA locale apprend le lien libellé → icône à partir des dépenses validées.
     if (env && libelle.trim()) apprendreIcone(libelle, env.emoji);
-    toast.success(`Dépense de ${formatFCFA(valeur)} enregistrée.`);
+    toast.success(
+      fraisValeur > 0
+        ? `Dépense de ${formatFCFA(valeur)} enregistrée (frais ${formatFCFA(fraisValeur)}, coût réel ${formatFCFA(valeur + fraisValeur)}).`
+        : `Dépense de ${formatFCFA(valeur)} enregistrée.`,
+    );
     if (env) {
       const apres = etatEnveloppe(env, (depensesParEnveloppe[env.id] ?? 0) + valeur);
       if (apres.epuisee) {
@@ -190,6 +197,26 @@ function AjouterDepense() {
                 +{formatFCFA(m)}
               </button>
             ))}
+          </div>
+
+          <div className="mt-4 border-t border-border/70 pt-3">
+            <label htmlFor="frais-depense" className="text-sm font-medium">
+              Frais de transaction supportés (FCFA)
+            </label>
+            <input
+              id="frais-depense"
+              inputMode="numeric"
+              value={grouperMontant(frais)}
+              onChange={(ev) => setFrais(ev.target.value.replace(/[^\d]/g, ""))}
+              placeholder="0"
+              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Retrait, commission ou frais de mobile money. Coût réel de la dépense :{" "}
+              <span className="font-semibold text-foreground">
+                {formatFCFA(valeur + fraisValeur)}
+              </span>
+            </p>
           </div>
         </section>
 

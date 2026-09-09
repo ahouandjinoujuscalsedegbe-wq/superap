@@ -26,7 +26,14 @@ export const Route = createFileRoute("/comptes/transferts/nouveau")({
   component: NouveauTransfert,
 });
 
-type Demande = { source: string; destination: string; montant: number; note: string } | null;
+type Demande = {
+  source: string;
+  destination: string;
+  montant: number;
+  note: string;
+  frais: number;
+  fraisSur: "source" | "destination";
+} | null;
 
 const champ =
   "mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring";
@@ -38,6 +45,8 @@ function NouveauTransfert() {
   const [source, setSource] = useState(comptes[0] ?? "");
   const [destination, setDestination] = useState(comptes[1] ?? "");
   const [montant, setMontant] = useState("");
+  const [frais, setFrais] = useState("");
+  const [fraisSur, setFraisSur] = useState<"source" | "destination">("source");
   const [note, setNote] = useState("");
   const [demande, setDemande] = useState<Demande>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -73,11 +82,30 @@ function NouveauTransfert() {
       setErreur("Montant invalide : entrez un nombre entier de FCFA supérieur à zéro.");
       return;
     }
-    if (valeur > dispo) {
-      setErreur(`Solde insuffisant sur ${source} : ${formatFCFA(dispo)} disponibles.`);
+    const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
+    if (!Number.isFinite(fraisValeur) || fraisValeur < 0) {
+      setErreur("Frais invalides : entrez un nombre de FCFA égal ou supérieur à zéro.");
       return;
     }
-    setDemande({ source, destination, montant: valeur, note: note.trim() });
+    const sortieSource = valeur + (fraisSur === "source" ? fraisValeur : 0);
+    if (sortieSource > dispo) {
+      setErreur(
+        `Solde insuffisant sur ${source} : ${formatFCFA(dispo)} disponibles pour ${formatFCFA(sortieSource)} (frais compris).`,
+      );
+      return;
+    }
+    if (fraisSur === "destination" && fraisValeur >= valeur) {
+      setErreur("Les frais ne peuvent pas dépasser le montant reçu par le compte destinataire.");
+      return;
+    }
+    setDemande({
+      source,
+      destination,
+      montant: valeur,
+      note: note.trim(),
+      frais: fraisValeur,
+      fraisSur,
+    });
   }
 
   function confirmer() {
@@ -88,6 +116,7 @@ function NouveauTransfert() {
       montant: demande.montant,
       note: demande.note,
       date: new Date().toISOString(),
+      ...(demande.frais > 0 ? { frais: demande.frais, fraisSur: demande.fraisSur } : {}),
     });
     setDemande(null);
     toast.success("Transfert enregistré.");
@@ -177,8 +206,66 @@ function NouveauTransfert() {
             </div>
 
             <div>
+              <label htmlFor="frais-transfert" className="text-sm font-medium">
+                4. Frais de transaction supportés (FCFA)
+              </label>
+              <input
+                id="frais-transfert"
+                inputMode="numeric"
+                value={grouperMontant(frais)}
+                onChange={(ev) => setFrais(ev.target.value.replace(/[^\d]/g, ""))}
+                placeholder="0"
+                className={champ}
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Laissez 0 si cette transaction n'a coûté aucun frais.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(
+                  [
+                    { id: "source", label: "Frais retirés du compte qui envoie" },
+                    { id: "destination", label: "Frais retenus sur le montant reçu" },
+                  ] as const
+                ).map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    aria-pressed={fraisSur === o.id}
+                    onClick={() => setFraisSur(o.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                      fraisSur === o.id
+                        ? "border-primary bg-accent font-semibold text-accent-foreground"
+                        : "border-input bg-card text-muted-foreground"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 rounded-xl bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+                Sortie réelle de {source || "—"} :{" "}
+                <span className="font-semibold text-foreground">
+                  {formatFCFA(
+                    (Number(montant) || 0) +
+                      (fraisSur === "source" ? Number(frais.replace(/\s/g, "")) || 0 : 0),
+                  )}
+                </span>{" "}
+                · Reçu réel sur {destination || "—"} :{" "}
+                <span className="font-semibold text-foreground">
+                  {formatFCFA(
+                    Math.max(
+                      0,
+                      (Number(montant) || 0) -
+                        (fraisSur === "destination" ? Number(frais.replace(/\s/g, "")) || 0 : 0),
+                    ),
+                  )}
+                </span>
+              </p>
+            </div>
+
+            <div>
               <label htmlFor="note-transfert" className="text-sm font-medium">
-                4. Pourquoi ce transfert ? (facultatif)
+                5. Pourquoi ce transfert ? (facultatif)
               </label>
               <input
                 id="note-transfert"
@@ -219,7 +306,13 @@ function NouveauTransfert() {
         titre="Confirmer le transfert"
         message={
           demande
-            ? `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} ?`
+            ? demande.frais > 0
+              ? `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} avec ${formatFCFA(demande.frais)} de frais ? Sortie réelle : ${formatFCFA(
+                  demande.montant + (demande.fraisSur === "source" ? demande.frais : 0),
+                )} · Reçu réel : ${formatFCFA(
+                  demande.montant - (demande.fraisSur === "destination" ? demande.frais : 0),
+                )}.`
+              : `Transférer ${formatFCFA(demande.montant)} de ${demande.source} vers ${demande.destination} ?`
             : ""
         }
         confirmerLabel="Confirmer"

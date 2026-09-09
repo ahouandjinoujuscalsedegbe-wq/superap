@@ -74,6 +74,19 @@ function Transferts() {
                     {formatDateFr(t.date)}
                     {t.note ? ` · ${t.note}` : ""}
                   </p>
+                  {(t.frais ?? 0) > 0 && (
+                    <p className="text-xs break-words text-amber-600">
+                      Frais : {formatFCFA(t.frais ?? 0)} · Sortie réelle :{" "}
+                      {formatFCFA(
+                        t.montant + ((t.fraisSur ?? "source") === "source" ? (t.frais ?? 0) : 0),
+                      )}{" "}
+                      · Reçu réel :{" "}
+                      {formatFCFA(
+                        t.montant -
+                          ((t.fraisSur ?? "source") === "destination" ? (t.frais ?? 0) : 0),
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="text-sm font-semibold">{formatFCFA(t.montant)}</span>
