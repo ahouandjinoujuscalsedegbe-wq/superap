@@ -266,6 +266,7 @@ function PageObjectifs() {
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
+      rappelFrequence: type === "epargne" && rappelEpargne ? rappelEpargne : undefined,
       tontineMontantTour: undefined,
       tontineFrequence: undefined,
       tontineParticipants: undefined,
