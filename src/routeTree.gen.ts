@@ -51,7 +51,6 @@ import { Route as EnveloppesRenouvellementsRouteImport } from './routes/envelopp
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
 import { Route as HistoriqueDepensesRouteImport } from './routes/historique.depenses'
 import { Route as HistoriqueRevenusRouteImport } from './routes/historique.revenus'
-import { Route as ObjectifsActionRouteImport } from './routes/objectifs.action'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
@@ -71,6 +70,9 @@ import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.t
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 import { Route as EnveloppesModifierIndexRouteImport } from './routes/enveloppes.modifier.index'
 import { Route as EnveloppesModifierIdRouteImport } from './routes/enveloppes.modifier.$id'
+import { Route as ObjectifsActionIndexRouteImport } from './routes/objectifs.action.index'
+import { Route as ObjectifsActionCreerRouteImport } from './routes/objectifs.action.creer'
+import { Route as ObjectifsActionGererRouteImport } from './routes/objectifs.action.gerer'
 import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 import { Route as ApiPublicSauvegardeEnvoiRouteImport } from './routes/api/public/sauvegarde/envoi'
@@ -287,11 +289,6 @@ const HistoriqueRevenusRoute = HistoriqueRevenusRouteImport.update({
   path: '/historique/revenus',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ObjectifsActionRoute = ObjectifsActionRouteImport.update({
-  id: '/action',
-  path: '/action',
-  getParentRoute: () => ObjectifsRoute,
-} as any)
 const ParametresIndexRoute = ParametresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -388,6 +385,21 @@ const EnveloppesModifierIdRoute = EnveloppesModifierIdRouteImport.update({
   path: '/modifier/$id',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const ObjectifsActionIndexRoute = ObjectifsActionIndexRouteImport.update({
+  id: '/action/',
+  path: '/action/',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
+const ObjectifsActionCreerRoute = ObjectifsActionCreerRouteImport.update({
+  id: '/action/creer',
+  path: '/action/creer',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
+const ObjectifsActionGererRoute = ObjectifsActionGererRouteImport.update({
+  id: '/action/gerer',
+  path: '/action/gerer',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
 const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
   id: '/api/public/maj/apk',
   path: '/api/public/maj/apk',
@@ -451,7 +463,6 @@ export interface FileRoutesByFullPath {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -471,9 +482,12 @@ export interface FileRoutesByFullPath {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/objectifs/action/': typeof ObjectifsActionIndexRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -514,7 +528,6 @@ export interface FileRoutesByTo {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -534,9 +547,12 @@ export interface FileRoutesByTo {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier': typeof BudgetModifierIndexRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
+  '/objectifs/action': typeof ObjectifsActionIndexRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -583,7 +599,6 @@ export interface FileRoutesById {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
-  '/objectifs/action': typeof ObjectifsActionRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -603,9 +618,12 @@ export interface FileRoutesById {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
+  '/objectifs/action/': typeof ObjectifsActionIndexRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -653,7 +671,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -673,9 +690,12 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/objectifs/action/'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -716,7 +736,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -736,9 +755,12 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier'
     | '/comptes/transferts'
     | '/enveloppes/modifier'
+    | '/objectifs/action'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -784,7 +806,6 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
-    | '/objectifs/action'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -804,9 +825,12 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
+    | '/objectifs/action/'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -1137,13 +1161,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoriqueRevenusRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/objectifs/action': {
-      id: '/objectifs/action'
-      path: '/action'
-      fullPath: '/objectifs/action'
-      preLoaderRoute: typeof ObjectifsActionRouteImport
-      parentRoute: typeof ObjectifsRoute
-    }
     '/parametres/': {
       id: '/parametres/'
       path: '/'
@@ -1276,6 +1293,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/enveloppes/modifier/$id'
       preLoaderRoute: typeof EnveloppesModifierIdRouteImport
       parentRoute: typeof EnveloppesRoute
+    }
+    '/objectifs/action/': {
+      id: '/objectifs/action/'
+      path: '/action'
+      fullPath: '/objectifs/action/'
+      preLoaderRoute: typeof ObjectifsActionIndexRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
+    '/objectifs/action/creer': {
+      id: '/objectifs/action/creer'
+      path: '/action/creer'
+      fullPath: '/objectifs/action/creer'
+      preLoaderRoute: typeof ObjectifsActionCreerRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
+    '/objectifs/action/gerer': {
+      id: '/objectifs/action/gerer'
+      path: '/action/gerer'
+      fullPath: '/objectifs/action/gerer'
+      preLoaderRoute: typeof ObjectifsActionGererRouteImport
+      parentRoute: typeof ObjectifsRoute
     }
     '/api/public/maj/apk': {
       id: '/api/public/maj/apk'
@@ -1412,11 +1450,15 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ObjectifsRouteChildren {
-  ObjectifsActionRoute: typeof ObjectifsActionRoute
+  ObjectifsActionCreerRoute: typeof ObjectifsActionCreerRoute
+  ObjectifsActionGererRoute: typeof ObjectifsActionGererRoute
+  ObjectifsActionIndexRoute: typeof ObjectifsActionIndexRoute
 }
 
 const ObjectifsRouteChildren: ObjectifsRouteChildren = {
-  ObjectifsActionRoute: ObjectifsActionRoute,
+  ObjectifsActionCreerRoute: ObjectifsActionCreerRoute,
+  ObjectifsActionGererRoute: ObjectifsActionGererRoute,
+  ObjectifsActionIndexRoute: ObjectifsActionIndexRoute,
 }
 
 const ObjectifsRouteWithChildren = ObjectifsRoute._addFileChildren(

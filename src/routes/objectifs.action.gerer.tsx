@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, PencilLine, Plus, RotateCcw, Target, Trash2 } from "lucide-react";
+import { CheckCircle2, PencilLine, RotateCcw, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Confirmation } from "@/components/Confirmation";
@@ -8,25 +8,25 @@ import { FormulaireObjectif } from "@/components/FormulaireObjectif";
 import { useSuperApp, type Objectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 
-export const Route = createFileRoute("/objectifs/action")({
+export const Route = createFileRoute("/objectifs/action/gerer")({
   head: () => ({
     meta: [
-      { title: "Action sur un objectif — SUPER APP" },
+      { title: "Modifier, clôturer ou supprimer — SUPER APP" },
       {
         name: "description",
         content:
-          "Modifier, clôturer ou supprimer un objectif d'épargne, d'achat programmé ou de tontine.",
+          "Agir sur vos objectifs existants : ajuster, déclarer atteint, rouvrir ou supprimer.",
       },
-      { property: "og:title", content: "Action sur un objectif — SUPER APP" },
+      { property: "og:title", content: "Gérer mes objectifs — SUPER APP" },
       {
         property: "og:description",
-        content: "Toutes les opérations possibles sur vos objectifs, en un seul endroit.",
+        content: "Toutes les actions possibles sur vos épargnes, achats programmés et tontines.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: ActionObjectifs,
+  component: GererObjectifs,
 });
 
 const LIBELLE_TYPE: Record<string, string> = {
@@ -35,9 +35,9 @@ const LIBELLE_TYPE: Record<string, string> = {
   tontine: "Tontine",
 };
 
-function ActionObjectifs() {
+function GererObjectifs() {
   const { objectifs, modifierObjectif, supprimerObjectif } = useSuperApp();
-  const [formulaire, setFormulaire] = useState<{ objectif: Objectif | null } | null>(null);
+  const [aModifier, setAModifier] = useState<Objectif | null>(null);
   const [aSupprimer, setASupprimer] = useState<Objectif | null>(null);
   const [aCloturer, setACloturer] = useState<Objectif | null>(null);
   const [dateAtteinte, setDateAtteinte] = useState("");
@@ -82,33 +82,21 @@ function ActionObjectifs() {
     toast.success("Objectif rouvert.");
   };
 
+  if (aModifier) {
+    return (
+      <div className="space-y-4 p-4 pb-28">
+        <h1 className="text-lg font-semibold">Modifier « {aModifier.libelle} »</h1>
+        <FormulaireObjectif objectif={aModifier} onTermine={() => setAModifier(null)} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 p-4 pb-28">
-      <h1 className="text-lg font-semibold">Action sur un objectif</h1>
+      <h1 className="text-lg font-semibold">Modifier, clôturer ou supprimer</h1>
       <p className="text-sm text-muted-foreground">
-        Créez, modifiez, déclarez atteint ou supprimez vos objectifs d'épargne, achats programmés et
-        tontines.
+        Tous vos objectifs sont listés ici avec les actions possibles.
       </p>
-
-      {formulaire ? (
-        <FormulaireObjectif objectif={formulaire.objectif} onTermine={() => setFormulaire(null)} />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setFormulaire({ objectif: null })}
-          className="carte flex w-full items-start gap-3 p-3 text-left"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Plus className="h-5 w-5" aria-hidden />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold">Créer un objectif</span>
-            <span className="block text-xs text-muted-foreground">
-              Épargne, achat programmé ou tontine, avec rappels.
-            </span>
-          </span>
-        </button>
-      )}
 
       {objectifs.length === 0 && (
         <div className="carte flex flex-col items-center gap-2 p-8 text-center">
@@ -146,7 +134,7 @@ function ActionObjectifs() {
             <button
               type="button"
               onClick={() => {
-                setFormulaire({ objectif: o });
+                setAModifier(o);
                 if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className="flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-sm font-medium"
