@@ -127,6 +127,24 @@ const ACTIONS_BUDGET = [
   },
 ] as const;
 
+/** Options de la section « Action » de l'onglet Objectifs. */
+const ACTIONS_OBJECTIFS = [
+  {
+    cle: "objectifs-creer",
+    to: "/objectifs",
+    label: "Créer un objectif",
+    detail: "Épargne, achat programmé ou tontine, avec ses rappels.",
+    icone: Plus,
+  },
+  {
+    cle: "objectifs-action",
+    to: "/objectifs/action",
+    label: "Modifier, clôturer ou supprimer",
+    detail: "Ajuster un objectif, le déclarer atteint ou le retirer.",
+    icone: Pencil,
+  },
+] as const;
+
 /** Titre affiché dans la barre haute selon la page en cours. */
 const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/budget/planifier", "Planifier une dépense"],
