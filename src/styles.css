@@ -1081,22 +1081,48 @@ textarea {
   transition: transform 0.15s ease-out;
 }
 
-/* Découpes des coins intérieurs des 4 boutons entourant le bouton Simulation,
-   afin qu'ils cèdent une partie de leur surface pour l'accueillir au même plan. */
+/* Découpes elliptiques des 4 boutons : chaque coin intérieur suit exactement
+   un quart de l'ovale Simulation, avec le centre de l'ellipse placé au point
+   de rencontre des quatre boutons. */
+:root {
+  --simulation-largeur: 5.25rem;
+  --simulation-hauteur: 3rem;
+  --simulation-demi-espace: 0.375rem;
+}
+
+@utility coupe-simulation {
+  mask-image: radial-gradient(
+    ellipse var(--simulation-largeur) var(--simulation-hauteur) at var(--simulation-x)
+      var(--simulation-y),
+    transparent 0 97%,
+    #000 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--simulation-largeur) var(--simulation-hauteur) at var(--simulation-x)
+      var(--simulation-y),
+    transparent 0 97%,
+    #000 100%
+  );
+}
+
 @utility coupe-haut-gauche {
-  clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%, 0 38%);
+  --simulation-x: calc(100% + var(--simulation-demi-espace));
+  --simulation-y: calc(100% + var(--simulation-demi-espace));
 }
 
 @utility coupe-haut-droite {
-  clip-path: polygon(0 0, 62% 0, 100% 38%, 100% 100%, 0 100%);
+  --simulation-x: calc(0% - var(--simulation-demi-espace));
+  --simulation-y: calc(100% + var(--simulation-demi-espace));
 }
 
 @utility coupe-bas-gauche {
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 62% 100%, 0 62%);
+  --simulation-x: calc(100% + var(--simulation-demi-espace));
+  --simulation-y: calc(0% - var(--simulation-demi-espace));
 }
 
 @utility coupe-bas-droite {
-  clip-path: polygon(0 0, 100% 0, 100% 62%, 62% 100%, 0 100%);
+  --simulation-x: calc(0% - var(--simulation-demi-espace));
+  --simulation-y: calc(0% - var(--simulation-demi-espace));
 }
 
 /* ===== Clignotement d'alerte de la boule flottante ===== */
