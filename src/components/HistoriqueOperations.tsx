@@ -25,10 +25,7 @@ export function HistoriqueOperations({ type }: { type: "revenu" | "depense" }) {
   const { transactions } = useSuperApp();
 
   const lignes = useMemo(
-    () =>
-      transactions
-        .filter((t) => t.type === type)
-        .sort((a, b) => b.date.localeCompare(a.date)),
+    () => transactions.filter((t) => t.type === type).sort((a, b) => b.date.localeCompare(a.date)),
     [transactions, type],
   );
 
