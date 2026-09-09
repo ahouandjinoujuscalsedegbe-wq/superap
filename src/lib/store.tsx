@@ -108,8 +108,11 @@ export type ElementCorbeille = Transaction & { supprimeLe: string };
 /** Nature de l'objectif : épargne libre, achat programmé ou tontine. */
 export type TypeObjectif = "epargne" | "achat" | "tontine";
 
-/** Rythme des cotisations d'une tontine. */
+/** Rythme des cotisations d'une tontine (ancien format, conservé pour les données existantes). */
 export type FrequenceTontine = "hebdomadaire" | "quinzaine" | "mensuelle";
+
+/** Unité de répétition d'un rappel d'objectif, librement choisie par l'utilisateur. */
+export type UniteRappel = "jour" | "semaine" | "mois" | "annee";
 
 export type Objectif = {
   id: string;
@@ -134,8 +137,14 @@ export type Objectif = {
   tontineDebut?: string | undefined;
   /** Tontine : nom de l'organisateur ou du groupe. */
   tontineOrganisateur?: string | undefined;
-  /** Rythme des rappels de versement pour une épargne programmée. */
+  /** Ancien rythme des rappels d'épargne (converti automatiquement). */
   rappelFrequence?: FrequenceTontine | undefined;
+  /** Unité de répétition du rappel : jour, semaine, mois ou année. */
+  rappelUnite?: UniteRappel | undefined;
+  /** Nombre d'unités entre deux rappels (1 à 31). */
+  rappelIntervalle?: number | undefined;
+  /** Date du premier rappel (YYYY-MM-DD). */
+  rappelDebut?: string | undefined;
   /** false pour désactiver les rappels de cotisation de cet objectif. */
   rappelActif?: boolean | undefined;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */

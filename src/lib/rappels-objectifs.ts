@@ -7,25 +7,41 @@
  * sur l'appareil : aucune donnée ne sort du téléphone.
  */
 
-import type { FrequenceTontine, Objectif } from "./store";
+import type { FrequenceTontine, Objectif, UniteRappel } from "./store";
 
 const CLE = "SA_RAPPELS_OBJECTIFS_V1";
 
-/** Nombre de jours entre deux cotisations, selon le rythme choisi. */
+/** Nombre de jours entre deux cotisations, selon l'ancien rythme enregistré. */
 export const JOURS_FREQUENCE: Record<FrequenceTontine, number> = {
   hebdomadaire: 7,
   quinzaine: 14,
   mensuelle: 30,
 };
 
+/** Ancien rythme converti vers le nouveau format libre (unité + intervalle). */
+const CONVERSION: Record<FrequenceTontine, Rythme> = {
+  hebdomadaire: { unite: "semaine", intervalle: 1 },
+  quinzaine: { unite: "semaine", intervalle: 2 },
+  mensuelle: { unite: "mois", intervalle: 1 },
+};
+
+export type Rythme = { unite: UniteRappel; intervalle: number };
+
 export type ReponseRappel = "confirme" | "refuse";
+
+/** Intitulé affiché dans les rappels selon la nature de l'objectif. */
+export function titreType(type: "tontine" | "epargne" | "achat"): string {
+  if (type === "tontine") return "Tontine";
+  if (type === "achat") return "Achat programmé";
+  return "Épargne";
+}
 
 export type EcheanceRappel = {
   /** Identifiant unique « objectif:date ». */
   cle: string;
   objectifId: string;
   libelle: string;
-  type: "tontine" | "epargne";
+  type: "tontine" | "epargne" | "achat";
   /** Date de l'échéance (YYYY-MM-DD). */
   date: string;
   /** Montant attendu pour cette échéance. */
@@ -35,16 +51,45 @@ export type EcheanceRappel = {
   total?: number | undefined;
 };
 
-function ajouterJours(depart: string, jours: number): string {
+/** Avance une date d'un nombre d'unités, en respectant les longueurs de mois. */
+export function avancerDate(depart: string, rythme: Rythme): string {
   const d = new Date(`${depart}T00:00:00`);
-  return new Date(d.getTime() + jours * 86_400_000).toISOString().slice(0, 10);
+  const n = Math.max(1, Math.round(rythme.intervalle));
+  if (rythme.unite === "jour") d.setDate(d.getDate() + n);
+  else if (rythme.unite === "semaine") d.setDate(d.getDate() + 7 * n);
+  else if (rythme.unite === "annee") d.setFullYear(d.getFullYear() + n);
+  else {
+    // Mois : on garde le jour du mois quand il existe, sinon le dernier jour.
+    const jour = d.getDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + n);
+    const dernier = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(jour, dernier));
+  }
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Rythme de rappel d'un objectif, ou null s'il n'en a pas. */
-export function frequenceObjectif(o: Objectif): FrequenceTontine | null {
+/** Durée moyenne d'un intervalle, en jours (pour les estimations). */
+export function joursRythme(rythme: Rythme): number {
+  const n = Math.max(1, rythme.intervalle);
+  if (rythme.unite === "jour") return n;
+  if (rythme.unite === "semaine") return 7 * n;
+  if (rythme.unite === "annee") return 365 * n;
+  return 30 * n;
+}
+
+/**
+ * Rythme de rappel d'un objectif, quel que soit son type (épargne, achat ou
+ * tontine), ou null quand l'utilisateur n'a pas demandé de rappel.
+ */
+export function rythmeObjectif(o: Objectif): Rythme | null {
   if (o.rappelActif === false) return null;
-  if (o.type === "tontine") return o.tontineFrequence ?? "mensuelle";
-  if ((o.type ?? "epargne") === "epargne") return o.rappelFrequence ?? null;
+  if (o.rappelUnite && o.rappelIntervalle && o.rappelIntervalle > 0) {
+    return { unite: o.rappelUnite, intervalle: Math.min(31, Math.round(o.rappelIntervalle)) };
+  }
+  // Données créées avant le choix libre du rythme.
+  if (o.type === "tontine") return CONVERSION[o.tontineFrequence ?? "mensuelle"];
+  if (o.rappelFrequence) return CONVERSION[o.rappelFrequence];
   return null;
 }
 
@@ -55,18 +100,24 @@ function montantEcheance(o: Objectif, total: number): number {
   return total > 0 ? Math.round(reste / total) : reste;
 }
 
+/** Date du premier rappel de l'objectif. */
+function debutObjectif(o: Objectif): string {
+  if (o.rappelDebut) return o.rappelDebut;
+  if (o.type === "tontine" && o.tontineDebut) return o.tontineDebut;
+  return o.creeLe.slice(0, 10);
+}
+
 /** Toutes les échéances d'un objectif jusqu'à la date donnée (incluse). */
 export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
-  const frequence = frequenceObjectif(o);
-  if (!frequence) return [];
-  const pas = JOURS_FREQUENCE[frequence];
-  const debut =
-    o.type === "tontine" ? (o.tontineDebut ?? o.creeLe.slice(0, 10)) : o.creeLe.slice(0, 10);
+  const rythme = rythmeObjectif(o);
+  if (!rythme) return [];
+  const debut = debutObjectif(o);
   if (!debut) return [];
 
   const fin = jusqua.toISOString().slice(0, 10);
   const limite = o.type === "tontine" ? (o.tontineParticipants ?? 12) : Infinity;
   const dateFin = o.type === "tontine" ? undefined : o.dateCible;
+  const pasJours = joursRythme(rythme);
   const totalPrevu =
     o.type === "tontine"
       ? (o.tontineParticipants ?? 12)
@@ -75,10 +126,12 @@ export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
           Math.ceil(
             (new Date(`${o.dateCible}T00:00:00`).getTime() -
               new Date(`${debut}T00:00:00`).getTime()) /
-              (pas * 86_400_000),
+              (pasJours * 86_400_000),
           ),
         );
   const montant = montantEcheance(o, totalPrevu);
+  const type: EcheanceRappel["type"] =
+    o.type === "tontine" ? "tontine" : o.type === "achat" ? "achat" : "epargne";
 
   const out: EcheanceRappel[] = [];
   let date = debut;
@@ -89,13 +142,13 @@ export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
       cle: `${o.id}:${date}`,
       objectifId: o.id,
       libelle: o.libelle,
-      type: o.type === "tontine" ? "tontine" : "epargne",
+      type,
       date,
       montant,
       numero,
       total: Number.isFinite(totalPrevu) ? totalPrevu : undefined,
     });
-    date = ajouterJours(date, pas);
+    date = avancerDate(date, rythme);
     numero += 1;
   }
   return out;
@@ -169,7 +222,7 @@ export function rappelsAProgrammer(
     for (const e of echeances.slice(0, 6)) {
       out.push({
         cle: e.cle,
-        titre: e.type === "tontine" ? `Tontine : ${e.libelle}` : `Épargne : ${e.libelle}`,
+        titre: `${titreType(e.type)} : ${e.libelle}`,
         texte: `Cotisation n° ${e.numero}${e.total ? `/${e.total}` : ""} prévue aujourd'hui. Ouvrez l'application pour confirmer ou refuser.`,
         quand: new Date(`${e.date}T08:00:00`),
       });

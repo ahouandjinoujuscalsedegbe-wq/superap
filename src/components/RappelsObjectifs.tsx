@@ -8,6 +8,7 @@ import {
   echeancesEnAttente,
   enregistrerReponse,
   rappelsAProgrammer,
+  titreType,
   type EcheanceRappel,
 } from "@/lib/rappels-objectifs";
 
@@ -44,9 +45,7 @@ export function RappelsObjectifs() {
     if (!courante || notifiees.current.has(courante.cle)) return;
     notifiees.current.add(courante.cle);
     void notifierAlarme(
-      courante.type === "tontine"
-        ? `Tontine : ${courante.libelle}`
-        : `Épargne : ${courante.libelle}`,
+      `${titreType(courante.type)} : ${courante.libelle}`,
       `Cotisation de ${formatFCFA(courante.montant)} prévue le ${courante.date}. Avez-vous effectué le versement ?`,
     );
   }, [courante]);
@@ -97,7 +96,7 @@ export function RappelsObjectifs() {
           <HandCoins className="mt-0.5 h-5 w-5 text-primary" aria-hidden />
           <div>
             <p className="text-sm font-semibold">
-              {courante.type === "tontine" ? "Tontine" : "Épargne"} : {courante.libelle}
+              {titreType(courante.type)} : {courante.libelle}
             </p>
             <p className="text-xs text-muted-foreground">
               Cotisation n° {courante.numero}

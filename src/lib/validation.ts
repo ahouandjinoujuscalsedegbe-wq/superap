@@ -171,6 +171,15 @@ export function assainirObjectif(v: unknown): Objectif | null {
       v["rappelFrequence"] === "mensuelle"
         ? v["rappelFrequence"]
         : undefined,
+    rappelUnite:
+      v["rappelUnite"] === "jour" ||
+      v["rappelUnite"] === "semaine" ||
+      v["rappelUnite"] === "mois" ||
+      v["rappelUnite"] === "annee"
+        ? v["rappelUnite"]
+        : undefined,
+    rappelIntervalle: entierSur(v["rappelIntervalle"], 31),
+    rappelDebut: dateSure(v["rappelDebut"]) || undefined,
     rappelActif: v["rappelActif"] === false ? false : undefined,
   };
 }
