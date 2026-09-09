@@ -183,6 +183,11 @@ export function assainirObjectif(v: unknown): Objectif | null {
     rappelIntervalle: entierSur(v["rappelIntervalle"], 31),
     rappelDebut: dateSure(v["rappelDebut"]) || undefined,
     rappelActif: v["rappelActif"] === false ? false : undefined,
+    atteintLe: dateSure(v["atteintLe"]) || undefined,
+    montantFinal: montantValide(nombreSur(v["montantFinal"]))
+      ? nombreSur(v["montantFinal"])
+      : undefined,
+    noteCloture: texteSur(v["noteCloture"], 200) || undefined,
   };
 }
 
