@@ -131,13 +131,36 @@ export function assainirObjectif(v: unknown): Objectif | null {
   if (!dateCible || !creeLe) return null;
   const libelle = texteSur(v["libelle"], 80);
   if (!libelle) return null;
+  const type =
+    v["type"] === "achat" || v["type"] === "tontine" || v["type"] === "epargne"
+      ? v["type"]
+      : "epargne";
+  const frequence =
+    v["tontineFrequence"] === "hebdomadaire" ||
+    v["tontineFrequence"] === "quinzaine" ||
+    v["tontineFrequence"] === "mensuelle"
+      ? v["tontineFrequence"]
+      : undefined;
+  const entierSur = (x: unknown, max: number) => {
+    const n = Math.round(nombreSur(x, 0));
+    return n > 0 && n <= max ? n : undefined;
+  };
   return {
     id: v["id"],
     libelle,
     cible,
     dateCible,
     creeLe,
+    type,
     deja: nombreSur(v["deja"], 0),
+    tontineMontantTour: montantValide(nombreSur(v["tontineMontantTour"]))
+      ? nombreSur(v["tontineMontantTour"])
+      : undefined,
+    tontineFrequence: frequence,
+    tontineParticipants: entierSur(v["tontineParticipants"], 500),
+    tontineRang: entierSur(v["tontineRang"], 500),
+    tontineDebut: dateSure(v["tontineDebut"]) || undefined,
+    tontineOrganisateur: texteSur(v["tontineOrganisateur"], 60) || undefined,
     enveloppeId: idValide(v["enveloppeId"]) ? v["enveloppeId"] : undefined,
     compteSource: texteSur(v["compteSource"], 60) || undefined,
     compteEpargne: texteSur(v["compteEpargne"], 60) || undefined,

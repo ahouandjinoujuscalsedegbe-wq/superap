@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
-import { useSuperApp, type Objectif } from "@/lib/store";
+import { useSuperApp, type FrequenceTontine, type Objectif, type TypeObjectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
 import { proposerAjustements } from "@/lib/ajustement-objectifs";
@@ -45,6 +45,46 @@ const ETIQUETTES: Record<SuiviObjectif["etat"], string> = {
   en_danger: "En danger",
 };
 
+/** Les trois natures d'objectif proposées à l'utilisateur. */
+const TYPES: Record<TypeObjectif, { label: string; aide: string; emoji: string }> = {
+  epargne: {
+    label: "Épargne",
+    emoji: "🐖",
+    aide: "Mettre de l'argent de côté, sans achat précis.",
+  },
+  achat: {
+    label: "Achat programmé",
+    emoji: "🛒",
+    aide: "Un bien précis à acheter à une date donnée.",
+  },
+  tontine: {
+    label: "Tontine",
+    emoji: "🤝",
+    aide: "Cotisation régulière dans un groupe, avec un tour de réception.",
+  },
+};
+
+const FREQUENCES: Record<FrequenceTontine, { label: string; jours: number }> = {
+  hebdomadaire: { label: "Chaque semaine", jours: 7 },
+  quinzaine: { label: "Toutes les 2 semaines", jours: 14 },
+  mensuelle: { label: "Chaque mois", jours: 30 },
+};
+
+/** Montant total reçu au tour et date estimée de réception d'une tontine. */
+function calculerTontine(
+  montantTour: number,
+  participants: number,
+  rang: number,
+  debut: string,
+  frequence: FrequenceTontine,
+): { cible: number; dateCible: string } {
+  const cible = Math.max(0, Math.round(montantTour * participants));
+  const depart = debut ? new Date(`${debut}T00:00:00`) : new Date();
+  const jours = FREQUENCES[frequence].jours * Math.max(0, rang - 1);
+  const arrivee = new Date(depart.getTime() + jours * 86_400_000);
+  return { cible, dateCible: arrivee.toISOString().slice(0, 10) };
+}
+
 function PageObjectifs() {
   const {
     objectifs,
@@ -60,6 +100,7 @@ function PageObjectifs() {
   } = useSuperApp();
   const [ouvert, setOuvert] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
+  const [type, setType] = useState<TypeObjectif>("epargne");
   const [libelle, setLibelle] = useState("");
   const [cible, setCible] = useState("");
   const [deja, setDeja] = useState("");
@@ -70,10 +111,23 @@ function PageObjectifs() {
   const [prelevementAuto, setPrelevementAuto] = useState(true);
   const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const [ignores, setIgnores] = useState<string[]>([]);
+  const [filtre, setFiltre] = useState<"tous" | TypeObjectif>("tous");
+  // Paramètres propres aux tontines.
+  const [tMontant, setTMontant] = useState("");
+  const [tFrequence, setTFrequence] = useState<FrequenceTontine>("mensuelle");
+  const [tParticipants, setTParticipants] = useState("");
+  const [tRang, setTRang] = useState("");
+  const [tDebut, setTDebut] = useState("");
+  const [tOrganisateur, setTOrganisateur] = useState("");
 
   const suivis = useMemo(
     () => suivreObjectifs(objectifs, transactions, new Date(), transferts),
     [objectifs, transactions, transferts],
+  );
+
+  const visibles = useMemo(
+    () => suivis.filter((s) => filtre === "tous" || (s.objectif.type ?? "epargne") === filtre),
+    [suivis, filtre],
   );
 
   const ajustements = useMemo(
@@ -81,8 +135,18 @@ function PageObjectifs() {
     [suivis, transactions, ignores],
   );
 
+  /** Aperçu du pot et de la date de réception pendant la saisie d'une tontine. */
+  const apercuTontine = useMemo(() => {
+    const montant = Number(tMontant.replace(/\s/g, ""));
+    const participants = Number(tParticipants.replace(/\s/g, ""));
+    const rang = Number(tRang.replace(/\s/g, ""));
+    if (!montant || !participants || !rang || !tDebut) return null;
+    return calculerTontine(montant, participants, rang, tDebut, tFrequence);
+  }, [tMontant, tParticipants, tRang, tDebut, tFrequence]);
+
   const reinitialiser = () => {
     setEnEdition(null);
+    setType("epargne");
     setLibelle("");
     setCible("");
     setDeja("");
@@ -91,12 +155,19 @@ function PageObjectifs() {
     setCompteSource("");
     setCompteEpargne("");
     setPrelevementAuto(true);
+    setTMontant("");
+    setTFrequence("mensuelle");
+    setTParticipants("");
+    setTRang("");
+    setTDebut("");
+    setTOrganisateur("");
     setOuvert(false);
   };
 
   /** Ouvre le formulaire pré-rempli pour ajuster un objectif existant. */
   const modifier = (o: Objectif) => {
     setEnEdition(o.id);
+    setType(o.type ?? "epargne");
     setLibelle(o.libelle);
     setCible(String(o.cible));
     setDeja(String(o.deja));
@@ -105,28 +176,74 @@ function PageObjectifs() {
     setCompteSource(o.compteSource ?? "");
     setCompteEpargne(o.compteEpargne ?? "");
     setPrelevementAuto(o.prelevementAuto ?? false);
+    setTMontant(o.tontineMontantTour ? String(o.tontineMontantTour) : "");
+    setTFrequence(o.tontineFrequence ?? "mensuelle");
+    setTParticipants(o.tontineParticipants ? String(o.tontineParticipants) : "");
+    setTRang(o.tontineRang ? String(o.tontineRang) : "");
+    setTDebut(o.tontineDebut ?? "");
+    setTOrganisateur(o.tontineOrganisateur ?? "");
     setOuvert(true);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const enregistrer = () => {
-    const montant = Number(cible.replace(/\s/g, ""));
     if (!libelle.trim()) {
       toast.error("Donnez un nom à votre objectif.");
       return;
     }
-    if (!Number.isFinite(montant) || montant <= 0) {
-      toast.error("Montant visé invalide.");
-      return;
+
+    let montant = Number(cible.replace(/\s/g, ""));
+    let echeance = dateCible;
+    let infosTontine: Partial<Objectif> = {};
+
+    if (type === "tontine") {
+      const montantTour = Number(tMontant.replace(/\s/g, ""));
+      const participants = Number(tParticipants.replace(/\s/g, ""));
+      const rang = Number(tRang.replace(/\s/g, ""));
+      if (!montantTour || montantTour <= 0) {
+        toast.error("Indiquez le montant d'une cotisation.");
+        return;
+      }
+      if (!participants || participants < 2) {
+        toast.error("Indiquez le nombre de participants (au moins 2).");
+        return;
+      }
+      if (!rang || rang < 1 || rang > participants) {
+        toast.error(
+          "Votre rang de passage doit être compris entre 1 et le nombre de participants.",
+        );
+        return;
+      }
+      if (!tDebut) {
+        toast.error("Indiquez la date de la première cotisation.");
+        return;
+      }
+      const calcul = calculerTontine(montantTour, participants, rang, tDebut, tFrequence);
+      montant = calcul.cible;
+      echeance = calcul.dateCible;
+      infosTontine = {
+        tontineMontantTour: montantTour,
+        tontineFrequence: tFrequence,
+        tontineParticipants: participants,
+        tontineRang: rang,
+        tontineDebut: tDebut,
+        tontineOrganisateur: tOrganisateur.trim() || undefined,
+      };
+    } else {
+      if (!Number.isFinite(montant) || montant <= 0) {
+        toast.error("Montant visé invalide.");
+        return;
+      }
+      if (!echeance) {
+        toast.error("Choisissez une date à atteindre.");
+        return;
+      }
+      if (echeance <= new Date().toISOString().slice(0, 10)) {
+        toast.error("La date visée doit être dans le futur.");
+        return;
+      }
     }
-    if (!dateCible) {
-      toast.error("Choisissez une date à atteindre.");
-      return;
-    }
-    if (dateCible <= new Date().toISOString().slice(0, 10)) {
-      toast.error("La date visée doit être dans le futur.");
-      return;
-    }
+
     if (prelevementAuto) {
       if (!compteSource || !compteEpargne) {
         toast.error("Choisissez le compte à débiter et le compte d'épargne.");
@@ -141,13 +258,21 @@ function PageObjectifs() {
     }
     const donnees = {
       libelle: libelle.trim(),
+      type,
       cible: montant,
       deja: Number(deja.replace(/\s/g, "")) || 0,
-      dateCible,
+      dateCible: echeance,
       enveloppeId: enveloppeId || undefined,
       compteSource: prelevementAuto ? compteSource : undefined,
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
+      tontineMontantTour: undefined,
+      tontineFrequence: undefined,
+      tontineParticipants: undefined,
+      tontineRang: undefined,
+      tontineDebut: undefined,
+      tontineOrganisateur: undefined,
+      ...infosTontine,
     };
     if (enEdition) {
       modifierObjectif(enEdition, donnees);
@@ -156,8 +281,8 @@ function PageObjectifs() {
       ajouterObjectif(donnees);
       toast.success(
         prelevementAuto
-          ? "Objectif créé : le prélèvement mensuel démarre aussitôt."
-          : "Objectif créé.",
+          ? "Objectif créé : le prélèvement démarre aussitôt."
+          : `${TYPES[type].label} enregistrée.`,
       );
     }
     reinitialiser();
@@ -244,46 +369,154 @@ function PageObjectifs() {
           <h2 className="text-sm font-semibold">
             {enEdition ? "Ajuster l'objectif" : "Créer un objectif"}
           </h2>
+
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">De quoi s'agit-il ?</p>
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              {(Object.keys(TYPES) as TypeObjectif[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={type === t}
+                  onClick={() => setType(t)}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-colors ${
+                    type === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-input bg-card text-muted-foreground"
+                  }`}
+                >
+                  <span aria-hidden>{TYPES[t].emoji}</span> {TYPES[t].label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{TYPES[type].aide}</p>
+          </div>
+
           <label className="block text-xs font-medium text-muted-foreground">
-            Nom de l'objectif
+            {type === "tontine" ? "Nom de la tontine" : "Nom de l'objectif"}
             <input
               value={libelle}
               onChange={(e) => setLibelle(e.target.value)}
-              placeholder="Voyage, moto, scolarité…"
+              placeholder={
+                type === "tontine"
+                  ? "Tontine du marché, groupe collègues…"
+                  : type === "achat"
+                    ? "Moto, téléphone, terrain…"
+                    : "Voyage, scolarité, réserve…"
+              }
               className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
             />
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block text-xs font-medium text-muted-foreground">
-              Montant visé (FCFA)
-              <input
-                inputMode="numeric"
-                value={grouperMontant(cible)}
-                onChange={(e) => setCible(deGrouperMontant(e.target.value))}
-                placeholder="500000"
-                className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-              />
-            </label>
-            <label className="block text-xs font-medium text-muted-foreground">
-              Déjà de côté
-              <input
-                inputMode="numeric"
-                value={grouperMontant(deja)}
-                onChange={(e) => setDeja(deGrouperMontant(e.target.value))}
-                placeholder="0"
-                className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-              />
-            </label>
-          </div>
-          <label className="block text-xs font-medium text-muted-foreground">
-            Date à atteindre
-            <input
-              type="date"
-              value={dateCible}
-              onChange={(e) => setDateCible(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-            />
-          </label>
+
+          {type === "tontine" ? (
+            <div className="space-y-3 rounded-xl border border-border/70 bg-background/50 p-3">
+              <p className="text-xs font-semibold">Paramètres de la tontine</p>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Cotisation (FCFA)
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(tMontant)}
+                    onChange={(e) => setTMontant(deGrouperMontant(e.target.value))}
+                    placeholder="10000"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Rythme
+                  <select
+                    value={tFrequence}
+                    onChange={(e) => setTFrequence(e.target.value as FrequenceTontine)}
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  >
+                    {(Object.keys(FREQUENCES) as FrequenceTontine[]).map((f) => (
+                      <option key={f} value={f}>
+                        {FREQUENCES[f].label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Participants
+                  <input
+                    inputMode="numeric"
+                    value={tParticipants}
+                    onChange={(e) => setTParticipants(e.target.value.replace(/\D/g, ""))}
+                    placeholder="12"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Mon rang de passage
+                  <input
+                    inputMode="numeric"
+                    value={tRang}
+                    onChange={(e) => setTRang(e.target.value.replace(/\D/g, ""))}
+                    placeholder="3"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Première cotisation
+                <input
+                  type="date"
+                  value={tDebut}
+                  onChange={(e) => setTDebut(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Organisateur / groupe (facultatif)
+                <input
+                  value={tOrganisateur}
+                  onChange={(e) => setTOrganisateur(e.target.value)}
+                  placeholder="Mama Adjo, groupe du quartier…"
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+              {apercuTontine && (
+                <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                  Vous recevrez environ {formatFCFA(apercuTontine.cible)} vers le{" "}
+                  {apercuTontine.dateCible}.
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-xs font-medium text-muted-foreground">
+                  {type === "achat" ? "Prix de l'achat (FCFA)" : "Montant visé (FCFA)"}
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(cible)}
+                    onChange={(e) => setCible(deGrouperMontant(e.target.value))}
+                    placeholder="500000"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-muted-foreground">
+                  Déjà de côté
+                  <input
+                    inputMode="numeric"
+                    value={grouperMontant(deja)}
+                    onChange={(e) => setDeja(deGrouperMontant(e.target.value))}
+                    placeholder="0"
+                    className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </label>
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                {type === "achat" ? "Date d'achat souhaitée" : "Date à atteindre"}
+                <input
+                  type="date"
+                  value={dateCible}
+                  onChange={(e) => setDateCible(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-input bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </label>
+            </>
+          )}
           <label className="block text-xs font-medium text-muted-foreground">
             Enveloppe d'épargne associée (facultatif)
             <select
@@ -381,24 +614,66 @@ function PageObjectifs() {
       )}
 
       <section className="space-y-3">
+        {suivis.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {(["tous", "epargne", "achat", "tontine"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={filtre === f}
+                onClick={() => setFiltre(f)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                  filtre === f
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input bg-card text-muted-foreground"
+                }`}
+              >
+                {f === "tous"
+                  ? `Tous (${suivis.length})`
+                  : `${TYPES[f].label} (${suivis.filter((s) => (s.objectif.type ?? "epargne") === f).length})`}
+              </button>
+            ))}
+          </div>
+        )}
+
         {suivis.length === 0 && !ouvert && (
           <div className="carte flex flex-col items-center gap-2 p-8 text-center">
             <PiggyBank className="h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="text-sm text-muted-foreground">
-              Aucun objectif pour le moment. Créez-en un pour suivre votre épargne.
+              Aucun objectif pour le moment. Créez une épargne, un achat programmé ou une tontine.
             </p>
           </div>
         )}
 
-        {suivis.map((s) => (
+        {suivis.length > 0 && visibles.length === 0 && (
+          <p className="carte p-4 text-center text-sm text-muted-foreground">
+            Aucun élément de ce type pour le moment.
+          </p>
+        )}
+
+        {visibles.map((s) => (
           <article key={s.objectif.id} className="carte space-y-3 p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="truncate font-semibold">{s.objectif.libelle}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate font-semibold">{s.objectif.libelle}</h2>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    {TYPES[s.objectif.type ?? "epargne"].label}
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatFCFA(s.reuni)} sur {formatFCFA(s.objectif.cible)} · échéance{" "}
+                  {formatFCFA(s.reuni)} sur {formatFCFA(s.objectif.cible)} ·{" "}
+                  {s.objectif.type === "tontine" ? "réception prévue" : "échéance"}{" "}
                   {s.objectif.dateCible}
                 </p>
+                {s.objectif.type === "tontine" && s.objectif.tontineMontantTour && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatFCFA(s.objectif.tontineMontantTour)} ·{" "}
+                    {FREQUENCES[s.objectif.tontineFrequence ?? "mensuelle"].label} · rang{" "}
+                    {s.objectif.tontineRang ?? 1}/{s.objectif.tontineParticipants ?? 1}
+                    {s.objectif.tontineOrganisateur ? ` · ${s.objectif.tontineOrganisateur}` : ""}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 gap-1">
                 <button
