@@ -46,11 +46,13 @@ export function RappelsObjectifs() {
   useEffect(() => {
     if (!courante || notifiees.current.has(courante.cle)) return;
     notifiees.current.add(courante.cle);
+    enregistrerEnvoiRappel(courante);
     void notifierAlarme(
       `${titreType(courante.type)} : ${courante.libelle}`,
       `Cotisation de ${formatFCFA(courante.montant)} prévue le ${courante.date}. Avez-vous effectué le versement ?`,
     );
   }, [courante]);
+
 
   // Rappels programmés à l'avance : le téléphone sonne le jour dit.
   useEffect(() => {
