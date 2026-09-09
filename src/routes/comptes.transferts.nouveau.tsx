@@ -206,8 +206,66 @@ function NouveauTransfert() {
             </div>
 
             <div>
+              <label htmlFor="frais-transfert" className="text-sm font-medium">
+                4. Frais de transaction supportés (FCFA)
+              </label>
+              <input
+                id="frais-transfert"
+                inputMode="numeric"
+                value={grouperMontant(frais)}
+                onChange={(ev) => setFrais(ev.target.value.replace(/[^\d]/g, ""))}
+                placeholder="0"
+                className={champ}
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Laissez 0 si cette transaction n'a coûté aucun frais.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(
+                  [
+                    { id: "source", label: "Frais retirés du compte qui envoie" },
+                    { id: "destination", label: "Frais retenus sur le montant reçu" },
+                  ] as const
+                ).map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    aria-pressed={fraisSur === o.id}
+                    onClick={() => setFraisSur(o.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                      fraisSur === o.id
+                        ? "border-primary bg-accent font-semibold text-accent-foreground"
+                        : "border-input bg-card text-muted-foreground"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 rounded-xl bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+                Sortie réelle de {source || "—"} :{" "}
+                <span className="font-semibold text-foreground">
+                  {formatFCFA(
+                    (Number(montant) || 0) +
+                      (fraisSur === "source" ? Number(frais.replace(/\s/g, "")) || 0 : 0),
+                  )}
+                </span>{" "}
+                · Reçu réel sur {destination || "—"} :{" "}
+                <span className="font-semibold text-foreground">
+                  {formatFCFA(
+                    Math.max(
+                      0,
+                      (Number(montant) || 0) -
+                        (fraisSur === "destination" ? Number(frais.replace(/\s/g, "")) || 0 : 0),
+                    ),
+                  )}
+                </span>
+              </p>
+            </div>
+
+            <div>
               <label htmlFor="note-transfert" className="text-sm font-medium">
-                4. Pourquoi ce transfert ? (facultatif)
+                5. Pourquoi ce transfert ? (facultatif)
               </label>
               <input
                 id="note-transfert"
