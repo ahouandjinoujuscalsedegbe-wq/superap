@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
@@ -115,6 +115,7 @@ function PageObjectifs() {
     supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
+  const recherche = Route.useSearch();
   const [ouvert, setOuvert] = useState(false);
   const [enEdition, setEnEdition] = useState<string | null>(null);
   const [type, setType] = useState<TypeObjectif>("epargne");
