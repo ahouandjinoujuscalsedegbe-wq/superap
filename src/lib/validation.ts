@@ -110,6 +110,8 @@ export function assainirTransaction(v: unknown): Transaction | null {
   if (idValide(v["detteId"])) t.detteId = v["detteId"];
   const membre = texteSur(v["membre"], 40);
   if (membre) t.membre = membre;
+  const frais = nombreSur(v["frais"]);
+  if (montantPositifOuNul(frais) && frais > 0) t.frais = frais;
   return t;
 }
 
