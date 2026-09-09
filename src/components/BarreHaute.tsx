@@ -131,8 +131,7 @@ const ACTIONS_BUDGET = [
 const ACTIONS_OBJECTIFS = [
   {
     cle: "objectifs-creer",
-    to: "/objectifs",
-    search: { nouveau: "1", modifier: undefined },
+    to: "/objectifs/action",
     label: "Créer un objectif",
     detail: "Épargne, achat programmé ou tontine, avec ses rappels.",
     icone: Plus,

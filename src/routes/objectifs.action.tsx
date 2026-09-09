@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CheckCircle2, PencilLine, Plus, RotateCcw, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Confirmation } from "@/components/Confirmation";
+import { FormulaireObjectif } from "@/components/FormulaireObjectif";
 import { useSuperApp, type Objectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 
@@ -35,8 +36,8 @@ const LIBELLE_TYPE: Record<string, string> = {
 };
 
 function ActionObjectifs() {
-  const navigate = useNavigate();
   const { objectifs, modifierObjectif, supprimerObjectif } = useSuperApp();
+  const [formulaire, setFormulaire] = useState<{ objectif: Objectif | null } | null>(null);
   const [aSupprimer, setASupprimer] = useState<Objectif | null>(null);
   const [aCloturer, setACloturer] = useState<Objectif | null>(null);
   const [dateAtteinte, setDateAtteinte] = useState("");
@@ -89,21 +90,25 @@ function ActionObjectifs() {
         tontines.
       </p>
 
-      <Link
-        to="/objectifs"
-        search={{ nouveau: "1", modifier: undefined }}
-        className="carte flex items-start gap-3 p-3 text-left"
-      >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Plus className="h-5 w-5" aria-hidden />
-        </span>
-        <span>
-          <span className="block text-sm font-semibold">Créer un objectif</span>
-          <span className="block text-xs text-muted-foreground">
-            Épargne, achat programmé ou tontine, avec rappels.
+      {formulaire ? (
+        <FormulaireObjectif objectif={formulaire.objectif} onTermine={() => setFormulaire(null)} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setFormulaire({ objectif: null })}
+          className="carte flex w-full items-start gap-3 p-3 text-left"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Plus className="h-5 w-5" aria-hidden />
           </span>
-        </span>
-      </Link>
+          <span>
+            <span className="block text-sm font-semibold">Créer un objectif</span>
+            <span className="block text-xs text-muted-foreground">
+              Épargne, achat programmé ou tontine, avec rappels.
+            </span>
+          </span>
+        </button>
+      )}
 
       {objectifs.length === 0 && (
         <div className="carte flex flex-col items-center gap-2 p-8 text-center">
@@ -140,9 +145,10 @@ function ActionObjectifs() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() =>
-                navigate({ to: "/objectifs", search: { modifier: o.id, nouveau: undefined } })
-              }
+              onClick={() => {
+                setFormulaire({ objectif: o });
+                if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               className="flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-sm font-medium"
             >
               <PencilLine className="h-4 w-4" aria-hidden /> Modifier
