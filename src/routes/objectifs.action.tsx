@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CheckCircle2, PencilLine, Plus, RotateCcw, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Confirmation } from "@/components/Confirmation";
+import { FormulaireObjectif } from "@/components/FormulaireObjectif";
 import { useSuperApp, type Objectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 
