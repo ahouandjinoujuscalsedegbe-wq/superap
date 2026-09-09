@@ -3,12 +3,7 @@ import { useMemo, useState } from "react";
 import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Confirmation } from "@/components/Confirmation";
-import {
-  useSuperApp,
-  type FrequenceTontine,
-  type Objectif,
-  type TypeObjectif,
-} from "@/lib/store";
+import { useSuperApp, type FrequenceTontine, type Objectif, type TypeObjectif } from "@/lib/store";
 import { formatFCFA, grouperMontant, deGrouperMontant } from "@/lib/format";
 import { suivreObjectifs, type SuiviObjectif } from "@/lib/objectifs";
 import { proposerAjustements } from "@/lib/ajustement-objectifs";
@@ -214,7 +209,9 @@ function PageObjectifs() {
         return;
       }
       if (!rang || rang < 1 || rang > participants) {
-        toast.error("Votre rang de passage doit être compris entre 1 et le nombre de participants.");
+        toast.error(
+          "Votre rang de passage doit être compris entre 1 et le nombre de participants.",
+        );
         return;
       }
       if (!tDebut) {
