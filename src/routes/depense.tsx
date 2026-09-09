@@ -191,6 +191,26 @@ function AjouterDepense() {
               </button>
             ))}
           </div>
+
+          <div className="mt-4 border-t border-border/70 pt-3">
+            <label htmlFor="frais-depense" className="text-sm font-medium">
+              Frais de transaction supportés (FCFA)
+            </label>
+            <input
+              id="frais-depense"
+              inputMode="numeric"
+              value={grouperMontant(frais)}
+              onChange={(ev) => setFrais(ev.target.value.replace(/[^\d]/g, ""))}
+              placeholder="0"
+              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Retrait, commission ou frais de mobile money. Coût réel de la dépense :{" "}
+              <span className="font-semibold text-foreground">
+                {formatFCFA(valeur + fraisValeur)}
+              </span>
+            </p>
+          </div>
         </section>
 
         <section className="carte space-y-3 p-4">
