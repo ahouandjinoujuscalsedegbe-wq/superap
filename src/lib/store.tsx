@@ -161,6 +161,12 @@ export type Objectif = {
   compteEpargne?: string | undefined;
   /** true si le prélèvement mensuel est effectué automatiquement. */
   prelevementAuto?: boolean | undefined;
+  /** Date (YYYY-MM-DD) à laquelle l'utilisateur déclare l'objectif atteint. */
+  atteintLe?: string | undefined;
+  /** Montant réellement réuni au moment où l'objectif a été déclaré atteint. */
+  montantFinal?: number | undefined;
+  /** Remarque libre saisie lors de la clôture de l'objectif. */
+  noteCloture?: string | undefined;
   creeLe: string;
 };
 
