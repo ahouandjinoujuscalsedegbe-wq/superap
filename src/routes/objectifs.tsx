@@ -161,6 +161,7 @@ function PageObjectifs() {
     setTRang("");
     setTDebut("");
     setTOrganisateur("");
+    setRappelEpargne("");
     setOuvert(false);
   };
 
