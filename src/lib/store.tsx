@@ -105,6 +105,12 @@ export type Transaction = {
 export type ElementCorbeille = Transaction & { supprimeLe: string };
 
 /** Objectif d'épargne suivi par l'application. */
+/** Nature de l'objectif : épargne libre, achat programmé ou tontine. */
+export type TypeObjectif = "epargne" | "achat" | "tontine";
+
+/** Rythme des cotisations d'une tontine. */
+export type FrequenceTontine = "hebdomadaire" | "quinzaine" | "mensuelle";
+
 export type Objectif = {
   id: string;
   libelle: string;
@@ -114,6 +120,20 @@ export type Objectif = {
   dateCible: string;
   /** Montant déjà mis de côté avant le suivi. */
   deja: number;
+  /** Nature de l'objectif (défaut : épargne). */
+  type?: TypeObjectif | undefined;
+  /** Tontine : montant d'une cotisation. */
+  tontineMontantTour?: number | undefined;
+  /** Tontine : rythme des cotisations. */
+  tontineFrequence?: FrequenceTontine | undefined;
+  /** Tontine : nombre de participants (donc de tours). */
+  tontineParticipants?: number | undefined;
+  /** Tontine : rang de passage de l'utilisateur. */
+  tontineRang?: number | undefined;
+  /** Tontine : date de la première cotisation (YYYY-MM-DD). */
+  tontineDebut?: string | undefined;
+  /** Tontine : nom de l'organisateur ou du groupe. */
+  tontineOrganisateur?: string | undefined;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
   enveloppeId?: string | undefined;
   /** Compte débité chaque mois pour alimenter l'épargne de l'objectif. */
