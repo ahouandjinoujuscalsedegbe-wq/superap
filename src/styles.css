@@ -1081,6 +1081,24 @@ textarea {
   transition: transform 0.15s ease-out;
 }
 
+/* Découpes des coins intérieurs des 4 boutons entourant le bouton Simulation,
+   afin qu'ils cèdent une partie de leur surface pour l'accueillir au même plan. */
+@utility coupe-haut-gauche {
+  clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%, 0 38%);
+}
+
+@utility coupe-haut-droite {
+  clip-path: polygon(0 0, 62% 0, 100% 38%, 100% 100%, 0 100%);
+}
+
+@utility coupe-bas-gauche {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 62% 100%, 0 62%);
+}
+
+@utility coupe-bas-droite {
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 62% 100%, 0 100%);
+}
+
 /* ===== Clignotement d'alerte de la boule flottante ===== */
 @keyframes boule-clignotement {
   0%,
