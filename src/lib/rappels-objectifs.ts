@@ -29,6 +29,13 @@ export type Rythme = { unite: UniteRappel; intervalle: number };
 
 export type ReponseRappel = "confirme" | "refuse";
 
+/** Intitulé affiché dans les rappels selon la nature de l'objectif. */
+export function titreType(type: "tontine" | "epargne" | "achat"): string {
+  if (type === "tontine") return "Tontine";
+  if (type === "achat") return "Achat programmé";
+  return "Épargne";
+}
+
 export type EcheanceRappel = {
   /** Identifiant unique « objectif:date ». */
   cle: string;
