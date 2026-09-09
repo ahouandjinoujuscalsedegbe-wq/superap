@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lightbulb, Pencil, PiggyBank, Plus, Target, Trash2 } from "lucide-react";
+import { Lightbulb, PiggyBank, Plus, Target } from "lucide-react";
 import { toast } from "sonner";
-import { Confirmation } from "@/components/Confirmation";
 import { HistoriqueRappels } from "@/components/HistoriqueRappels";
 
 import { useSuperApp, type Objectif, type TypeObjectif, type UniteRappel } from "@/lib/store";
@@ -112,7 +111,6 @@ function PageObjectifs() {
     comptesExclus,
     ajouterObjectif,
     modifierObjectif,
-    supprimerObjectif,
     definirCompteDisponible,
   } = useSuperApp();
   const recherche = Route.useSearch();
@@ -127,7 +125,6 @@ function PageObjectifs() {
   const [compteSource, setCompteSource] = useState("");
   const [compteEpargne, setCompteEpargne] = useState("");
   const [prelevementAuto, setPrelevementAuto] = useState(true);
-  const [aSupprimer, setASupprimer] = useState<string | null>(null);
   const [ignores, setIgnores] = useState<string[]>([]);
   const [filtre, setFiltre] = useState<"tous" | TypeObjectif>("tous");
   // Paramètres propres aux tontines.
@@ -871,21 +868,6 @@ function PageObjectifs() {
         ))}
       </section>
 
-      {aSupprimer && (
-        <Confirmation
-          ouvert
-          danger
-          confirmerLabel="Supprimer"
-          titre="Supprimer cet objectif ?"
-          message="Le suivi sera définitivement retiré. Vos opérations ne sont pas touchées."
-          onAnnuler={() => setASupprimer(null)}
-          onConfirmer={() => {
-            supprimerObjectif(aSupprimer);
-            setASupprimer(null);
-            toast.success("Objectif supprimé.");
-          }}
-        />
-      )}
     </div>
   );
 }
