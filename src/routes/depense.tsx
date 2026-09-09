@@ -118,10 +118,15 @@ function AjouterDepense() {
       compte,
       date: new Date(date).toISOString(),
       ...(membre ? { membre } : {}),
+      ...(fraisValeur > 0 ? { frais: fraisValeur } : {}),
     });
     // L'IA locale apprend le lien libellé → icône à partir des dépenses validées.
     if (env && libelle.trim()) apprendreIcone(libelle, env.emoji);
-    toast.success(`Dépense de ${formatFCFA(valeur)} enregistrée.`);
+    toast.success(
+      fraisValeur > 0
+        ? `Dépense de ${formatFCFA(valeur)} enregistrée (frais ${formatFCFA(fraisValeur)}, coût réel ${formatFCFA(valeur + fraisValeur)}).`
+        : `Dépense de ${formatFCFA(valeur)} enregistrée.`,
+    );
     if (env) {
       const apres = etatEnveloppe(env, (depensesParEnveloppe[env.id] ?? 0) + valeur);
       if (apres.epuisee) {
