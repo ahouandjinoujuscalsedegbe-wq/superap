@@ -144,6 +144,8 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/budget/suivi", "Suivi du mois"],
   ["/budget/auto", "Proposition auto"],
   ["/budget", "Budgétisation"],
+  ["/historique/revenus", "Historique des revenus"],
+  ["/historique/depenses", "Historique des dépenses"],
   ["/revenu", "Ajouter un revenu"],
   ["/depense", "Ajouter une dépense"],
   ["/saisie", "Saisie intelligente"],
@@ -421,6 +423,20 @@ export function BarreHaute() {
               </p>
             )}
           </div>
+
+          {(pathname === "/revenu" || pathname === "/depense") && (
+            <Link
+              to={pathname === "/revenu" ? "/historique/revenus" : "/historique/depenses"}
+              aria-label={
+                pathname === "/revenu"
+                  ? "Voir l'historique des revenus"
+                  : "Voir l'historique des dépenses"
+              }
+              className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
+            >
+              <History className="h-5 w-5" aria-hidden />
+            </Link>
+          )}
 
           {accueil && (
             <Link

@@ -49,6 +49,8 @@ import { Route as EnveloppesCreerRouteImport } from './routes/enveloppes.creer'
 import { Route as EnveloppesDetailsRouteImport } from './routes/enveloppes.details'
 import { Route as EnveloppesRenouvellementsRouteImport } from './routes/enveloppes.renouvellements'
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
+import { Route as HistoriqueDepensesRouteImport } from './routes/historique.depenses'
+import { Route as HistoriqueRevenusRouteImport } from './routes/historique.revenus'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
@@ -274,6 +276,16 @@ const EnveloppesSecoursRoute = EnveloppesSecoursRouteImport.update({
   path: '/secours',
   getParentRoute: () => EnveloppesRoute,
 } as any)
+const HistoriqueDepensesRoute = HistoriqueDepensesRouteImport.update({
+  id: '/historique/depenses',
+  path: '/historique/depenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoriqueRevenusRoute = HistoriqueRevenusRouteImport.update({
+  id: '/historique/revenus',
+  path: '/historique/revenus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ParametresIndexRoute = ParametresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -431,6 +443,8 @@ export interface FileRoutesByFullPath {
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
+  '/historique/depenses': typeof HistoriqueDepensesRoute
+  '/historique/revenus': typeof HistoriqueRevenusRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -491,6 +505,8 @@ export interface FileRoutesByTo {
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
+  '/historique/depenses': typeof HistoriqueDepensesRoute
+  '/historique/revenus': typeof HistoriqueRevenusRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -557,6 +573,8 @@ export interface FileRoutesById {
   '/enveloppes/details': typeof EnveloppesDetailsRoute
   '/enveloppes/renouvellements': typeof EnveloppesRenouvellementsRoute
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
+  '/historique/depenses': typeof HistoriqueDepensesRoute
+  '/historique/revenus': typeof HistoriqueRevenusRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -624,6 +642,8 @@ export interface FileRouteTypes {
     | '/enveloppes/details'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
+    | '/historique/depenses'
+    | '/historique/revenus'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -684,6 +704,8 @@ export interface FileRouteTypes {
     | '/enveloppes/details'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
+    | '/historique/depenses'
+    | '/historique/revenus'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -749,6 +771,8 @@ export interface FileRouteTypes {
     | '/enveloppes/details'
     | '/enveloppes/renouvellements'
     | '/enveloppes/secours'
+    | '/historique/depenses'
+    | '/historique/revenus'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -795,6 +819,8 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SimulationRoute: typeof SimulationRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  HistoriqueDepensesRoute: typeof HistoriqueDepensesRoute
+  HistoriqueRevenusRoute: typeof HistoriqueRevenusRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
   ApiPublicMajApkRoute: typeof ApiPublicMajApkRoute
@@ -1084,6 +1110,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/enveloppes/secours'
       preLoaderRoute: typeof EnveloppesSecoursRouteImport
       parentRoute: typeof EnveloppesRoute
+    }
+    '/historique/depenses': {
+      id: '/historique/depenses'
+      path: '/historique/depenses'
+      fullPath: '/historique/depenses'
+      preLoaderRoute: typeof HistoriqueDepensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historique/revenus': {
+      id: '/historique/revenus'
+      path: '/historique/revenus'
+      fullPath: '/historique/revenus'
+      preLoaderRoute: typeof HistoriqueRevenusRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/parametres/': {
       id: '/parametres/'
@@ -1394,6 +1434,8 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SimulationRoute: SimulationRoute,
   SynchronisationRoute: SynchronisationRoute,
+  HistoriqueDepensesRoute: HistoriqueDepensesRoute,
+  HistoriqueRevenusRoute: HistoriqueRevenusRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
   ApiPublicMajApkRoute: ApiPublicMajApkRoute,
