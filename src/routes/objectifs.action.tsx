@@ -91,10 +91,7 @@ function ActionObjectifs() {
       </p>
 
       {formulaire ? (
-        <FormulaireObjectif
-          objectif={formulaire.objectif}
-          onTermine={() => setFormulaire(null)}
-        />
+        <FormulaireObjectif objectif={formulaire.objectif} onTermine={() => setFormulaire(null)} />
       ) : (
         <button
           type="button"
@@ -112,7 +109,6 @@ function ActionObjectifs() {
           </span>
         </button>
       )}
-
 
       {objectifs.length === 0 && (
         <div className="carte flex flex-col items-center gap-2 p-8 text-center">
@@ -151,8 +147,7 @@ function ActionObjectifs() {
               type="button"
               onClick={() => {
                 setFormulaire({ objectif: o });
-                if (typeof window !== "undefined")
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className="flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-sm font-medium"
             >
