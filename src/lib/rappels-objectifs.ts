@@ -285,7 +285,6 @@ export function libelleEtatRappel(etat: EtatRappel): string {
   return "Non lu";
 }
 
-
 /** Échéances déjà arrivées et restées sans réponse. */
 export function echeancesEnAttente(
   objectifs: Objectif[],

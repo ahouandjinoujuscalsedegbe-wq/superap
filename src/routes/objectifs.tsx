@@ -863,7 +863,6 @@ function PageObjectifs() {
             )}
             <HistoriqueRappels objectifId={s.objectif.id} />
           </article>
-
         ))}
       </section>
 

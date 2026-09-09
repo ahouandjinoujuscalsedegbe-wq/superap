@@ -13,7 +13,6 @@ import {
   type EcheanceRappel,
 } from "@/lib/rappels-objectifs";
 
-
 /** Vérification des échéances toutes les 2 minutes. */
 const PAS_MS = 120_000;
 
@@ -53,7 +52,6 @@ export function RappelsObjectifs() {
     );
   }, [courante]);
 
-
   // Rappels programmés à l'avance : le téléphone sonne le jour dit.
   useEffect(() => {
     if (chargement) return;
@@ -71,7 +69,6 @@ export function RappelsObjectifs() {
       enregistrerEnvoiRappel(echeance);
       enregistrerReponse(echeance.cle, fait ? "confirme" : "refuse");
       if (fait) {
-
         const objectif = objectifs.find((o) => o.id === echeance.objectifId);
         if (objectif?.compteSource && objectif.compteEpargne) {
           ajouterTransfert({
