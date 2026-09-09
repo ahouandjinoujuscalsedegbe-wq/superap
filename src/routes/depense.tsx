@@ -96,6 +96,7 @@ function AjouterDepense() {
   }, [libelle, transactions, enveloppe, enveloppes]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
+  const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
 
   function enregistrer(e: React.FormEvent) {
     e.preventDefault();
