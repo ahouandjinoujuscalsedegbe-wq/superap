@@ -137,8 +137,14 @@ export type Objectif = {
   tontineDebut?: string | undefined;
   /** Tontine : nom de l'organisateur ou du groupe. */
   tontineOrganisateur?: string | undefined;
-  /** Rythme des rappels de versement pour une épargne programmée. */
+  /** Ancien rythme des rappels d'épargne (converti automatiquement). */
   rappelFrequence?: FrequenceTontine | undefined;
+  /** Unité de répétition du rappel : jour, semaine, mois ou année. */
+  rappelUnite?: UniteRappel | undefined;
+  /** Nombre d'unités entre deux rappels (1 à 31). */
+  rappelIntervalle?: number | undefined;
+  /** Date du premier rappel (YYYY-MM-DD). */
+  rappelDebut?: string | undefined;
   /** false pour désactiver les rappels de cotisation de cet objectif. */
   rappelActif?: boolean | undefined;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
