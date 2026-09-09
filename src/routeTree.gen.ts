@@ -71,6 +71,8 @@ import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.
 import { Route as EnveloppesModifierIndexRouteImport } from './routes/enveloppes.modifier.index'
 import { Route as EnveloppesModifierIdRouteImport } from './routes/enveloppes.modifier.$id'
 import { Route as ObjectifsActionIndexRouteImport } from './routes/objectifs.action.index'
+import { Route as ObjectifsActionCreerRouteImport } from './routes/objectifs.action.creer'
+import { Route as ObjectifsActionGererRouteImport } from './routes/objectifs.action.gerer'
 import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 import { Route as ApiPublicSauvegardeEnvoiRouteImport } from './routes/api/public/sauvegarde/envoi'
@@ -388,6 +390,16 @@ const ObjectifsActionIndexRoute = ObjectifsActionIndexRouteImport.update({
   path: '/action/',
   getParentRoute: () => ObjectifsRoute,
 } as any)
+const ObjectifsActionCreerRoute = ObjectifsActionCreerRouteImport.update({
+  id: '/action/creer',
+  path: '/action/creer',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
+const ObjectifsActionGererRoute = ObjectifsActionGererRouteImport.update({
+  id: '/action/gerer',
+  path: '/action/gerer',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
 const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
   id: '/api/public/maj/apk',
   path: '/api/public/maj/apk',
@@ -470,6 +482,8 @@ export interface FileRoutesByFullPath {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
@@ -533,6 +547,8 @@ export interface FileRoutesByTo {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier': typeof BudgetModifierIndexRoute
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
@@ -602,6 +618,8 @@ export interface FileRoutesById {
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
+  '/objectifs/action/creer': typeof ObjectifsActionCreerRoute
+  '/objectifs/action/gerer': typeof ObjectifsActionGererRoute
   '/budget/modifier/': typeof BudgetModifierIndexRoute
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
@@ -672,6 +690,8 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
@@ -735,6 +755,8 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier'
     | '/comptes/transferts'
     | '/enveloppes/modifier'
@@ -803,6 +825,8 @@ export interface FileRouteTypes {
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
+    | '/objectifs/action/creer'
+    | '/objectifs/action/gerer'
     | '/budget/modifier/'
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
@@ -1277,6 +1301,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObjectifsActionIndexRouteImport
       parentRoute: typeof ObjectifsRoute
     }
+    '/objectifs/action/creer': {
+      id: '/objectifs/action/creer'
+      path: '/action/creer'
+      fullPath: '/objectifs/action/creer'
+      preLoaderRoute: typeof ObjectifsActionCreerRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
+    '/objectifs/action/gerer': {
+      id: '/objectifs/action/gerer'
+      path: '/action/gerer'
+      fullPath: '/objectifs/action/gerer'
+      preLoaderRoute: typeof ObjectifsActionGererRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
     '/api/public/maj/apk': {
       id: '/api/public/maj/apk'
       path: '/api/public/maj/apk'
@@ -1412,10 +1450,14 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ObjectifsRouteChildren {
+  ObjectifsActionCreerRoute: typeof ObjectifsActionCreerRoute
+  ObjectifsActionGererRoute: typeof ObjectifsActionGererRoute
   ObjectifsActionIndexRoute: typeof ObjectifsActionIndexRoute
 }
 
 const ObjectifsRouteChildren: ObjectifsRouteChildren = {
+  ObjectifsActionCreerRoute: ObjectifsActionCreerRoute,
+  ObjectifsActionGererRoute: ObjectifsActionGererRoute,
   ObjectifsActionIndexRoute: ObjectifsActionIndexRoute,
 }
 

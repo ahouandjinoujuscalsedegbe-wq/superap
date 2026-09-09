@@ -550,10 +550,7 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
               )}
               {type === "tontine" && (
                 <>
-                  <Ligne
-                    t="Cotisation"
-                    v={formatFCFA(Number(deGrouperMontant(tMontant)) || 0)}
-                  />
+                  <Ligne t="Cotisation" v={formatFCFA(Number(deGrouperMontant(tMontant)) || 0)} />
                   <Ligne t="Participants" v={tParticipants || "—"} />
                   <Ligne t="Mon rang" v={tRang || "—"} />
                   <Ligne t="Première cotisation" v={tDebut || "—"} />

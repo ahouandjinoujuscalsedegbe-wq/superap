@@ -131,14 +131,14 @@ const ACTIONS_BUDGET = [
 const ACTIONS_OBJECTIFS = [
   {
     cle: "objectifs-creer",
-    to: "/objectifs/action",
+    to: "/objectifs/action/creer",
     label: "Créer un objectif",
     detail: "Épargne, achat programmé ou tontine, avec ses rappels.",
     icone: Plus,
   },
   {
     cle: "objectifs-action",
-    to: "/objectifs/action",
+    to: "/objectifs/action/gerer",
     label: "Modifier, clôturer ou supprimer",
     detail: "Ajuster un objectif, le déclarer atteint ou le retirer.",
     icone: Pencil,
@@ -187,6 +187,8 @@ const TITRES: ReadonlyArray<readonly [prefix: string, titre: string]> = [
   ["/enveloppes/action", "Action sur l'enveloppe"],
   ["/enveloppes", "Enveloppes"],
   ["/dettes", "Dettes & Créances"],
+  ["/objectifs/action/creer", "Créer un objectif"],
+  ["/objectifs/action/gerer", "Modifier, clôturer ou supprimer"],
   ["/objectifs/action", "Action sur un objectif"],
   ["/objectifs", "Objectifs d'épargne"],
   ["/simulation", "Simulation"],
@@ -214,6 +216,7 @@ const TITRES_ACTIONS: ReadonlyArray<readonly [chemin: string, titre: string]> = 
   ...ACTIONS_BUDGET.map((a) => [a.to, a.label] as const),
   ...ACTIONS_COMPTES.map((a) => [a.to, a.label] as const),
   ...ACTIONS_ENVELOPPES.map((a) => [a.to, a.label] as const),
+  ...ACTIONS_OBJECTIFS.map((a) => [a.to, a.label] as const),
   ...[["/objectifs/action", "Action sur un objectif"] as const],
 ].sort((a, b) => b[0].length - a[0].length);
 
