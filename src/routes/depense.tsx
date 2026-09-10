@@ -110,11 +110,17 @@ function AjouterDepense() {
   }, [reconnue, choixManuel]);
 
   const enveloppeAuto = !choixManuel && reconnue?.enveloppe === enveloppe ? reconnue : null;
-  const suggestion = useMemo(() => {
-    if (!reconnue || reconnue.enveloppe === enveloppe) return null;
-    const env = enveloppes.find((e) => e.id === reconnue.enveloppe);
-    return env ? { ...reconnue, nom: env.nom, emoji: env.emoji } : null;
-  }, [reconnue, enveloppe, enveloppes]);
+
+  // Suggestions par NOM d'enveloppe (et catégorie), indépendantes du montant.
+  const suggestions = useMemo(() => {
+    return suggererEnveloppes(libelle, enveloppes, transactions, 4)
+      .filter((s) => s.enveloppe !== enveloppe)
+      .map((s) => {
+        const env = enveloppes.find((e) => e.id === s.enveloppe);
+        return env ? { ...s, nom: env.nom, emoji: env.emoji } : null;
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null);
+  }, [libelle, enveloppes, transactions, enveloppe]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
   const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
