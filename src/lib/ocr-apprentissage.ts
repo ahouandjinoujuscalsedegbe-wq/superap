@@ -254,6 +254,25 @@ export function appliquerApprentissage(
     }
   }
 
+  // Montant habituel : si la lecture n'a rien trouvé de fiable, ou si le
+  // montant lu s'écarte fortement de l'habitude du commerçant (souvent une
+  // ligne mal lue), on propose le montant typique à la place.
+  const typique = regle.montantTypique;
+  if (typique && typique > 0 && regle.validations >= 2) {
+    const lu = extrait.montant;
+    const ecartFort = lu > 0 && (lu < typique * 0.3 || lu > typique * 3);
+    if (lu <= 0 || ecartFort) {
+      resultat.montant = typique;
+      resultat.explicationMontant =
+        lu <= 0
+          ? `Aucun montant fiable lu : j'ai repris votre montant habituel chez ${regle.libelle}.`
+          : `Le montant lu (${lu.toLocaleString("fr-FR")} FCFA) semble faux pour ${regle.libelle} : j'ai repris votre montant habituel, à vérifier.`;
+      ajustements.push("Montant habituel proposé");
+      // Proposition à confirmer : on n'augmente pas la confiance au-delà.
+      resultat.confiance = Math.min(resultat.confiance, 0.7);
+    }
+  }
+
   if (regle.libelle && cleTicket(regle.libelle) !== cleTicket(extrait.libelle)) {
     resultat.libelle = regle.libelle;
     ajustements.push(`Libellé « ${regle.libelle} »`);
@@ -350,6 +369,18 @@ export function apprendreTicket(entree: ValidationTicket, memoire = lireMemoireO
   }
 
   const cles = motsCles(texte);
+
+  // Historique des montants validés chez ce commerçant → montant habituel
+  // (médiane), qui sert de repli quand la lecture est douteuse.
+  memoire.montantsValides = memoire.montantsValides ?? {};
+  const valides = [...(memoire.montantsValides[cle] ?? []), valide.montant]
+    .filter((v) => v > 0)
+    .slice(-12);
+  memoire.montantsValides[cle] = valides;
+  const triees = [...valides].sort((a, b) => a - b);
+  const montantTypique =
+    triees.length > 0 ? Math.round(triees[Math.floor(triees.length / 2)] ?? 0) : undefined;
+
   memoire.regles[cle] = {
     libelle: valide.libelle.trim() || existante?.libelle || propose.libelle,
     motsCles: Array.from(new Set([...(existante?.motsCles ?? []), ...cles])).slice(0, 12),
@@ -357,6 +388,7 @@ export function apprendreTicket(entree: ValidationTicket, memoire = lireMemoireO
     ...(valide.enveloppe ? { enveloppe: valide.enveloppe } : {}),
     ...(valide.compte ? { compte: valide.compte } : {}),
     ...(sourcePreferee ? { sourcePreferee } : {}),
+    ...(montantTypique ? { montantTypique } : {}),
     validations: (existante?.validations ?? 0) + (corrige ? 0 : 1),
     corrections: (existante?.corrections ?? 0) + (corrige ? 1 : 0),
     majAt: new Date().toISOString(),
