@@ -437,16 +437,24 @@ function assainirIconesComptes(brut: unknown): Record<string, string> {
 
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
-  const comptes = assainirComptes(brut.comptes);
+  const comptesLus = assainirComptes(brut.comptes);
+  // Les deux comptes dédiés aux dettes et aux créances existent toujours :
+  // c'est là que se reflète tout ce que je dois et tout ce qu'on me doit.
+  const comptes = [
+    ...(comptesLus.length > 0 ? comptesLus : [...COMPTES]),
+    ...[COMPTE_DETTES, COMPTE_CREANCES].filter((c) => !comptesLus.includes(c)),
+  ];
+  const exclusLus = brut.comptesExclus
+    ? assainirComptes(brut.comptesExclus)
+    : comptes.filter((c) => estCompteNonDisponible(c));
   const limite = Date.now() - JOURS_CORBEILLE * 86400000;
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
     categories: assainirListe(brut.categories, assainirCategorie),
-    comptes: comptes.length > 0 ? comptes : [...COMPTES],
-    comptesExclus: brut.comptesExclus
-      ? assainirComptes(brut.comptesExclus)
-      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+    comptes,
+    // Ces comptes de suivi ne gonflent jamais le solde disponible.
+    comptesExclus: Array.from(new Set([...exclusLus, COMPTE_DETTES, COMPTE_CREANCES])),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
     iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
