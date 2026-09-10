@@ -83,7 +83,9 @@ export function detecterLimites(etat: EtatIA): BilanLimites {
       domaine: "Prévisions",
       titre: `Mon historique remonte à ${anciennete} jour(s) seulement.`,
       detail:
-        "Mes prévisions s'appuient sur 60 jours et ma comparaison saisonnière sur un an. Avant cela, je devine plus que je ne calcule.",
+        anciennete >= 14
+          ? "Mes prévisions croisent déjà votre tendance récente et le mois dernier, mais elles gagnent encore en précision jusqu'à 60 jours d'historique, et la comparaison saisonnière demande un an."
+          : "Mes prévisions existent dès maintenant mais restent provisoires : elles se fient surtout à vos derniers jours. Elles deviennent solides vers 60 jours, et la comparaison saisonnière demande un an.",
       gravite: anciennete < 30 ? "bloquante" : "reserve",
     });
   }
@@ -208,9 +210,9 @@ export function detecterLimites(etat: EtatIA): BilanLimites {
   limites.push({
     id: "langage",
     domaine: "Compréhension",
-    titre: "Je comprends des questions par mots-clés, pas le langage libre.",
+    titre: "Je comprends beaucoup de formulations, mais pas le langage totalement libre.",
     detail:
-      "Une question tournée autrement peut ne pas être comprise : reformulez avec un mot comme comptes, dettes, objectifs, planifié, alertes, prévisions.",
+      "Je tolère les synonymes (« projet », « mettre de côté »…) et les fautes de frappe, mais je ne suis pas un grand modèle de langage : une question très éloignée de vos finances peut rester sans réponse.",
     gravite: "reserve",
   });
 
