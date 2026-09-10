@@ -1,16 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { PencilLine, Trash2, X } from "lucide-react";
+import { PencilLine, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
-import { FormulaireCompte, type DemandeCompte } from "@/components/FormulaireCompte";
 import { suggererIcone } from "@/lib/icone-auto";
 import { enregistrerActionCompte } from "@/lib/historique-comptes";
-
-type Demande = DemandeCompte | { type: "suppression"; nom: string };
 
 export const Route = createFileRoute("/comptes/action")({
   head: () => ({
@@ -37,19 +34,14 @@ function ActionComptes() {
     comptes,
     comptesExclus,
     iconesComptes,
-    definirIconeCompte,
-    definirCompteDisponible,
     transactions,
     nomUtilisateur,
     transferts,
     soldesParCompte,
-    ajouterTransaction,
-    renommerCompte,
     supprimerCompte,
   } = useSuperApp();
 
-  const [enEdition, setEnEdition] = useState<string | null>(null);
-  const [demande, setDemande] = useState<Demande | null>(null);
+  const [suppression, setSuppression] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
   function retirer(compte: string) {
@@ -65,75 +57,25 @@ function ActionComptes() {
       setErreur("Videz d'abord ce compte : son solde n'est pas nul.");
       return;
     }
-    setDemande({ type: "suppression", nom: compte });
+    setSuppression(compte);
   }
 
-  function confirmer() {
-    if (!demande) return;
+  function confirmerSuppression() {
+    if (suppression === null) return;
     const auteur = nomUtilisateur?.trim() || "Utilisateur";
-    if (demande.type === "renommage") {
-      if (demande.disponible === comptesExclus.includes(demande.ancien)) {
-        definirCompteDisponible(demande.ancien, demande.disponible);
-      }
-      if (demande.nom !== demande.ancien) {
-        renommerCompte(demande.ancien, demande.nom);
-      }
-      definirIconeCompte(demande.nom, demande.emoji);
-      if (demande.ajustement !== 0) {
-        ajouterTransaction({
-          type: demande.ajustement > 0 ? "revenu" : "depense",
-          montant: Math.abs(demande.ajustement),
-          libelle: "AJUSTEMENT DE SOLDE",
-          categorie: "Autre",
-          compte: demande.nom,
-          date: new Date().toISOString().slice(0, 10),
-        });
-      }
-      const changements = [
-        demande.nom !== demande.ancien ? `nom : « ${demande.ancien} » → « ${demande.nom} »` : null,
-        demande.ajustement !== 0
-          ? `solde ajusté de ${formatFCFA(Math.abs(demande.ajustement))}`
-          : null,
-        demande.disponible === comptesExclus.includes(demande.ancien)
-          ? `solde disponible : ${demande.disponible ? "compté" : "exclu"}`
-          : null,
-      ].filter(Boolean);
-      enregistrerActionCompte({
-        compte: demande.nom,
-        ancienNom: demande.ancien !== demande.nom ? demande.ancien : undefined,
-        action: demande.ancien !== demande.nom ? "renommage" : "modification",
-        auteur,
-        details: changements.length > 0 ? changements.join(" · ") : "logo mis à jour",
-      });
-      toast.success(`Compte « ${demande.nom} » enregistré.`, {
-        description: "Retour à la liste des comptes.",
-      });
-      setDemande(null);
-      setEnEdition(null);
-      navigate({ to: "/comptes" });
-      return;
-    }
-    if (demande.type === "suppression") {
-      supprimerCompte(demande.nom);
-      enregistrerActionCompte({
-        compte: demande.nom,
-        action: "suppression",
-        auteur,
-        details: "Compte retiré du foyer (solde nul, sans opération liée).",
-      });
-      toast.success(`Compte « ${demande.nom} » supprimé.`, {
-        description: "Retour à la liste des comptes.",
-      });
-      setDemande(null);
-      setEnEdition(null);
-      navigate({ to: "/comptes" });
-      return;
-    }
-    setDemande(null);
-    setEnEdition(null);
+    supprimerCompte(suppression);
+    enregistrerActionCompte({
+      compte: suppression,
+      action: "suppression",
+      auteur,
+      details: "Compte retiré du foyer (solde nul, sans opération liée).",
+    });
+    toast.success(`Compte « ${suppression} » supprimé.`, {
+      description: "Retour à la liste des comptes.",
+    });
+    setSuppression(null);
+    navigate({ to: "/comptes" });
   }
-
-  const danger = demande?.type === "suppression";
 
   return (
     <div className="page-anim space-y-5">
@@ -171,7 +113,12 @@ function ActionComptes() {
                   <span className="flex shrink-0 gap-2">
                     <button
                       type="button"
-                      onClick={() => setEnEdition(c)}
+                      onClick={() =>
+                        navigate({
+                          to: "/comptes/modifier/$compte",
+                          params: { compte: encodeURIComponent(c) },
+                        })
+                      }
                       aria-label={`Modifier ${c}`}
                       className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent/40"
                     >
@@ -193,43 +140,6 @@ function ActionComptes() {
         )}
       </section>
 
-      {enEdition !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Modifier le compte"
-          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center"
-          onClick={() => setEnEdition(null)}
-        >
-          <div
-            className="carte popup-anim w-full max-w-md space-y-4 p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="text-base font-semibold">Modifier le compte</h3>
-                <p className="text-xs text-muted-foreground">Renommez le compte « {enEdition} ».</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEnEdition(null)}
-                aria-label="Fermer"
-                className="rounded-full p-1.5 transition-colors hover:bg-secondary"
-              >
-                <X aria-hidden className="h-4 w-4" />
-              </button>
-            </div>
-
-            <FormulaireCompte
-              key={enEdition}
-              compte={enEdition}
-              onDemande={setDemande}
-              onAnnuler={() => setEnEdition(null)}
-            />
-          </div>
-        </div>
-      )}
-
       <ErreurPopup
         ouvert={erreur !== null}
         message={erreur ?? ""}
@@ -237,52 +147,29 @@ function ActionComptes() {
       />
 
       <Confirmation
-        ouvert={demande !== null}
-        titre={danger ? "Supprimer ce compte ?" : "Confirmer la modification"}
-        message={
-          danger
-            ? `Le compte « ${demande?.type === "suppression" ? demande.nom : ""} » sera définitivement supprimé. Cette action est irréversible.`
-            : "Vérifiez le nouveau nom du compte avant de valider."
-        }
+        ouvert={suppression !== null}
+        titre="Supprimer ce compte ?"
+        message={`Le compte « ${suppression ?? ""} » sera définitivement supprimé. Cette action est irréversible.`}
         details={
-          demande?.type === "renommage"
+          suppression !== null
             ? [
                 {
                   label: "Logo",
-                  avant: iconesComptes[demande.ancien] ?? suggererIcone(demande.ancien, "compte"),
-                  apres: demande.emoji || suggererIcone(demande.nom, "compte"),
+                  apres: iconesComptes[suppression] ?? suggererIcone(suppression, "compte"),
                 },
-                { label: "Nom", avant: demande.ancien, apres: demande.nom },
-                {
-                  label: "Solde",
-                  avant: formatFCFA(soldesParCompte[demande.ancien] ?? 0),
-                  apres: formatFCFA((soldesParCompte[demande.ancien] ?? 0) + demande.ajustement),
-                },
+                { label: "Compte", apres: suppression },
+                { label: "Solde", apres: formatFCFA(soldesParCompte[suppression] ?? 0) },
                 {
                   label: "Solde disponible",
-                  avant: comptesExclus.includes(demande.ancien) ? "Exclu" : "Compté",
-                  apres: demande.disponible ? "Compté" : "Exclu",
+                  apres: comptesExclus.includes(suppression) ? "Exclu" : "Compté",
                 },
               ]
-            : demande?.type === "suppression"
-              ? [
-                  {
-                    label: "Logo",
-                    apres: iconesComptes[demande.nom] ?? suggererIcone(demande.nom, "compte"),
-                  },
-                  { label: "Compte", apres: demande.nom },
-                  { label: "Solde", apres: formatFCFA(soldesParCompte[demande.nom] ?? 0) },
-                  {
-                    label: "Solde disponible",
-                    apres: comptesExclus.includes(demande.nom) ? "Exclu" : "Compté",
-                  },
-                ]
-              : []
+            : []
         }
-        confirmerLabel={danger ? "Supprimer" : "Enregistrer"}
-        danger={danger}
-        onConfirmer={confirmer}
-        onAnnuler={() => setDemande(null)}
+        confirmerLabel="Supprimer"
+        danger
+        onConfirmer={confirmerSuppression}
+        onAnnuler={() => setSuppression(null)}
       />
     </div>
   );
