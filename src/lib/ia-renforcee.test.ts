@@ -13,9 +13,7 @@ import type { DonneesUnifiees } from "./ia-unifiee";
 
 describe("comprehension", () => {
   it("normalise les accents et la ponctuation", () => {
-    expect(normaliserQuestion("Où en sont mes Objectifs ?")).toBe(
-      "ou en sont mes objectifs",
-    );
+    expect(normaliserQuestion("Où en sont mes Objectifs ?")).toBe("ou en sont mes objectifs");
   });
 
   it("retire les mots vides", () => {
@@ -144,11 +142,7 @@ describe("conseilsFins", () => {
         type: "revenu",
         montant,
         libelle: "Revenu",
-        date: new Date(
-          maintenant.getFullYear(),
-          maintenant.getMonth() - i,
-          5,
-        ).toISOString(),
+        date: new Date(maintenant.getFullYear(), maintenant.getMonth() - i, 5).toISOString(),
       }),
     );
     const conseils = conseilsFins(donnees(revenus), maintenant);

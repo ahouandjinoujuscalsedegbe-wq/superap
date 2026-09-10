@@ -187,8 +187,7 @@ export function trouverRegle(
       }
     }
     const proche =
-      k.length >= 4 &&
-      (cle.includes(k) || k.includes(cle) || distanceMots(cle, k, 2) <= 2);
+      k.length >= 4 && (cle.includes(k) || k.includes(cle) || distanceMots(cle, k, 2) <= 2);
     const score = communs * 2 + (proche ? 3 : 0) + Math.min(3, regle.validations);
     if (communs === 0 && !proche) continue;
     if (!meilleur || score > meilleur.score) meilleur = { cle: k, regle, score };

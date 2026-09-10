@@ -54,8 +54,7 @@ export function conseilsFins(donnees: DonneesUnifiees, maintenant = new Date()):
     liste.push(Math.abs(t.montant));
     parPoste.set(cle, liste);
   }
-  const inhabituelles: { libelle: string; poste: string; montant: number; habitude: number }[] =
-    [];
+  const inhabituelles: { libelle: string; poste: string; montant: number; habitude: number }[] = [];
   for (const t of recentes) {
     const cle = t.categorie || "divers";
     const montant = Math.abs(t.montant);
