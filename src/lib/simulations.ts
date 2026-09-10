@@ -88,7 +88,9 @@ export function simulerDepense(
   const capacite = capaciteMensuelle(ctx.transactions);
   const etalement = Math.max(1, saisie.etalementMois);
   const parMois = saisie.montant / etalement;
-  const lignesTraj = trajectoire(ctx.soldeDisponible, capacite, (i) => (i < etalement ? -parMois : 0));
+  const lignesTraj = trajectoire(ctx.soldeDisponible, capacite, (i) =>
+    i < etalement ? -parMois : 0,
+  );
   const marge = Math.max(0, rythmeJournalier(ctx.transactions) * 15);
   const verdict = verdictDeTrajectoire(lignesTraj, marge);
 
@@ -211,7 +213,10 @@ export function simulerObjectif(
           : "Cet objectif est atteignable au rythme actuel.",
     lignes: [
       { libelle: "Reste à réunir", valeur: fcfa(restant) },
-      { libelle: "Effort mensuel nécessaire", valeur: `${fcfa(effort)} pendant ${moisRestants} mois` },
+      {
+        libelle: "Effort mensuel nécessaire",
+        valeur: `${fcfa(effort)} pendant ${moisRestants} mois`,
+      },
       { libelle: "Capacité d'épargne libre", valeur: fcfa(capacite - effortsExistants) },
       {
         libelle: "Date réaliste au rythme actuel",
@@ -349,8 +354,10 @@ export function simulerDette(
   const duree = Math.ceil(saisie.montant / mensualite);
   const emprunt = saisie.sens === "emprunter";
 
-  const lignesTraj = trajectoire(emprunt ? ctx.soldeDisponible + saisie.montant : ctx.soldeDisponible, capacite, (i) =>
-    i < duree ? -mensualite : 0,
+  const lignesTraj = trajectoire(
+    emprunt ? ctx.soldeDisponible + saisie.montant : ctx.soldeDisponible,
+    capacite,
+    (i) => (i < duree ? -mensualite : 0),
   );
   const verdict = verdictDeTrajectoire(lignesTraj, rythmeJournalier(ctx.transactions) * 15);
 
@@ -367,7 +374,13 @@ export function simulerDette(
     lignes: [
       { libelle: "Durée estimée", valeur: `${duree} mois` },
       { libelle: "Effort mensuel", valeur: fcfa(mensualite) },
-      { libelle: "Part de votre capacité", valeur: capacite > 0 ? `${Math.round((mensualite / capacite) * 100)} %` : "au-delà de votre capacité" },
+      {
+        libelle: "Part de votre capacité",
+        valeur:
+          capacite > 0
+            ? `${Math.round((mensualite / capacite) * 100)} %`
+            : "au-delà de votre capacité",
+      },
       { libelle: "Dettes déjà en cours", valeur: fcfa(totalDettes) },
     ],
     trajectoire: lignesTraj,
@@ -375,7 +388,9 @@ export function simulerDette(
       emprunt
         ? "Un emprunt n'a de sens que si la mensualité tient sans toucher aux enveloppes du quotidien."
         : "Rembourser plus vite libère durablement votre capacité mensuelle.",
-      totalDettes > 0 ? `Il vous reste ${fcfa(totalDettes)} de dettes à rembourser par ailleurs.` : "Vous n'avez aucune autre dette en cours.",
+      totalDettes > 0
+        ? `Il vous reste ${fcfa(totalDettes)} de dettes à rembourser par ailleurs.`
+        : "Vous n'avez aucune autre dette en cours.",
     ],
   };
 }
@@ -519,7 +534,8 @@ export function suggestionsSimulation(ctx: ContexteSimulation): SuggestionSimula
       id: `tontine-${tontine.id}`,
       type: "tontine",
       titre: `Vérifier la tontine « ${tontine.libelle} »`,
-      raison: "Comparez ce qu'elle vous coûte chaque mois et ce qu'elle vous rapportera à votre tour.",
+      raison:
+        "Comparez ce qu'elle vous coûte chaque mois et ce qu'elle vous rapportera à votre tour.",
       valeurs: {
         montantTour: tontine.tontineMontantTour ?? 0,
         participants: tontine.tontineParticipants ?? 10,
