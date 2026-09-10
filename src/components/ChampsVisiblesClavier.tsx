@@ -10,9 +10,18 @@ function estChampSaisie(cible: EventTarget | null): cible is ChampSaisie {
   if (cible instanceof HTMLTextAreaElement || cible instanceof HTMLSelectElement) return true;
   if (cible.isContentEditable) return true;
   if (!(cible instanceof HTMLInputElement)) return false;
-  return !["button", "checkbox", "color", "file", "hidden", "image", "radio", "range", "reset", "submit"].includes(
-    cible.type,
-  );
+  return ![
+    "button",
+    "checkbox",
+    "color",
+    "file",
+    "hidden",
+    "image",
+    "radio",
+    "range",
+    "reset",
+    "submit",
+  ].includes(cible.type);
 }
 
 function peutDefiler(element: HTMLElement): boolean {
@@ -49,8 +58,7 @@ export function ChampsVisiblesClavier() {
 
       const viewport = window.visualViewport;
       const hautEcran = viewport?.offsetTop ?? 0;
-      const basEcran =
-        hautEcran + (viewport?.height ?? window.innerHeight) - hauteurClavierInterne;
+      const basEcran = hautEcran + (viewport?.height ?? window.innerHeight) - hauteurClavierInterne;
       const limiteHaut = hautEcran + MARGE_HAUT;
       const limiteBas = Math.max(limiteHaut + 48, basEcran - MARGE_CLAVIER);
 
