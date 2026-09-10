@@ -84,8 +84,6 @@ function PageDonneesConseiller() {
       .map((t) => new Date(t.date).getTime())
       .filter((t) => Number.isFinite(t));
     const anciennete = dates.length ? Math.floor((Date.now() - Math.min(...dates)) / JOUR_MS) : 0;
-    const max = Math.max(1, ...mois.map((m) => m.cumul), 1);
-    void max;
     return [
       {
         id: "operations",
