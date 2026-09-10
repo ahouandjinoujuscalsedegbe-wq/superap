@@ -28,6 +28,7 @@ import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { PanneauConseiller } from "@/components/PanneauConseiller";
 import { SelecteurEnveloppes } from "@/components/SelecteurEnveloppes";
 import { useSuperApp } from "@/lib/store";
+import { retourIntelligent } from "@/lib/retour";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
 import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";

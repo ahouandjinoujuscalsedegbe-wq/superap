@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { Vault } from "lucide-react";
 import {
   PAGES_SENSIBLES,
@@ -8,6 +8,7 @@ import {
   ouvrirCoffreSensible,
 } from "@/lib/coffre-sensible";
 import { lireOptions } from "@/lib/securite-avancee";
+import { retourIntelligent } from "@/lib/retour";
 
 /**
  * Deuxième coffre : les pages sensibles (objectifs, dettes, sauvegarde,

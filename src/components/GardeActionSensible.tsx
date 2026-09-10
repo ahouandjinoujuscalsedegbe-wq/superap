@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useSecurite } from "@/lib/securite";
 import { empreinteCode, lireOptions } from "@/lib/securite-avancee";
 import { PavePin } from "./PavePin";
+import { retourIntelligent } from "@/lib/retour";
 
 /** Pages contenant des actions irréversibles ou une sortie de données. */
 const PAGES_PROTEGEES = ["/parametres/donnees", "/sauvegarde", "/parametres/securite"];
