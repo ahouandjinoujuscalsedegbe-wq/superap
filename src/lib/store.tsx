@@ -752,6 +752,16 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /** Classement manuel : rattache une dépense existante à une autre enveloppe. */
+  const reclasserTransaction = useCallback((id: string, enveloppeId: string) => {
+    setEtat((e) => ({
+      ...e,
+      transactions: e.transactions.map((t) =>
+        t.id === id && t.type === "depense" ? { ...t, categorie: enveloppeId } : t,
+      ),
+    }));
+  }, []);
+
   /** Remet une opération de la corbeille dans les comptes. */
   const restaurerTransaction = useCallback((id: string) => {
     setEtat((e) => {
