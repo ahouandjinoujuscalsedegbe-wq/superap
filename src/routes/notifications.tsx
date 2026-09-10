@@ -449,13 +449,23 @@ function PageNotifications() {
         >
           <Search className="h-5 w-5" aria-hidden />
         </button>
+        {/* Accès direct, sans menu caché, à la page « Mes données & fiabilité ». */}
+        <button
+          type="button"
+          onClick={() => void router.navigate({ to: "/conseiller/donnees" })}
+          aria-label="Mes données et fiabilité"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-primary-foreground/20 px-2.5 py-1.5 text-[0.7rem] font-semibold"
+        >
+          <BarChart3 className="h-4 w-4" aria-hidden />
+          Mes données
+        </button>
         <button
           type="button"
           onClick={() => setMenu((v) => !v)}
-          aria-label="Menu de la discussion"
+          aria-label="Options de la discussion"
           className="rounded-full p-2"
         >
-          <MoreVertical className="h-5 w-5" aria-hidden />
+          <Settings2 className="h-5 w-5" aria-hidden />
         </button>
       </header>
 
