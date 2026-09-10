@@ -1493,6 +1493,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     [
       ajouterTransaction,
       supprimerTransaction,
+      reclasserTransaction,
       ajouterCompte,
       definirIconeCompte,
       definirCompteDisponible,
