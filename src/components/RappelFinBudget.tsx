@@ -70,12 +70,13 @@ export function RappelFinBudget() {
     if (reglages.notification) void notifierAlarme(titre, texte, true);
 
     setSonne(true);
+    const bruitOk = sonAutorise(reglages, true);
     const bip = () => {
-      if (reglages.son) void jouerSonAlarme(reglages.volume, true);
-      if (reglages.vibration) void vibrerAlarme(true);
+      if (reglages.son && bruitOk) void jouerSonAlarme(reglages.volume, true);
+      if (reglages.vibration && bruitOk) void vibrerAlarme(true);
     };
     bip();
-    if (reglages.son || reglages.vibration) {
+    if ((reglages.son || reglages.vibration) && bruitOk) {
       bips.current = window.setInterval(bip, PAS_BIP_MS);
       finSonnerie.current = window.setTimeout(arreterSonnerie, DUREE_SONNERIE_MS);
     }

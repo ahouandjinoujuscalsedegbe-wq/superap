@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useSuperApp } from "@/lib/store";
+import { lireReglagesAlarme, sonAutorise } from "@/lib/alarme";
 import {
   declencherAlarmeAppareil,
   demanderPermissionNotification,
@@ -37,12 +38,14 @@ export function RappelsDepensesPlanifiees() {
       marquerRappelSonne(due.cle);
       const titre = `Dépense à effectuer : ${due.budget.libelle}`;
       const texte = `${formatFCFA(due.budget.montant)} prévu${due.budget.heure ? ` à ${due.budget.heure}` : ""}. Confirmez si la dépense a bien été réalisée.`;
+      const reglages = lireReglagesAlarme();
+      const bruitOk = sonAutorise(reglages, true, maintenant);
       void declencherAlarmeAppareil({
-        volume: 70,
+        volume: reglages.volume,
         urgent: true,
-        son: true,
-        vibration: true,
-        notification: true,
+        son: reglages.son && bruitOk,
+        vibration: reglages.vibration && bruitOk,
+        notification: reglages.notification,
         titre,
         texte,
       });
