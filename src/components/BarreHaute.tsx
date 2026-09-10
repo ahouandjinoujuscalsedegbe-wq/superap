@@ -496,7 +496,7 @@ export function BarreHaute() {
               <BarChart3 className="h-4 w-4" aria-hidden />
               Mes données
             </Link>
-          ) : (
+          ) : accueil ? (
             <button
               type="button"
               onClick={() => setOuvert((v) => !v)}
@@ -512,7 +512,7 @@ export function BarreHaute() {
                 <MoreVertical className="h-5 w-5" aria-hidden />
               )}
             </button>
-          )}
+          ) : null}
         </div>
       </header>
 
