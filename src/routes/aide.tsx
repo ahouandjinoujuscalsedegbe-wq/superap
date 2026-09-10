@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
   Wallet,
   PiggyBank,
@@ -12,21 +13,31 @@ import {
   Bell,
   Lock,
   HelpCircle,
+  Target,
+  Handshake,
+  Camera,
+  Keyboard,
+  RefreshCw,
+  LifeBuoy,
+  ArrowLeft,
+  BarChart3,
+  Mail,
 } from "lucide-react";
 
 export const Route = createFileRoute("/aide")({
   head: () => ({
     meta: [
-      { title: "Aide — Guide d'utilisation de SUPER APP" },
+      { title: "Aide et guides — SUPER APP" },
       {
         name: "description",
         content:
-          "Guide pratique : enveloppes, saisie des revenus et dépenses, comptes, simulation, conseiller intelligent et confidentialité des données locales.",
+          "Guides pas à pas : comptes, enveloppes, revenus et dépenses, dettes, objectifs, budget, simulation, conseiller local, sécurité et sauvegarde chiffrée.",
       },
-      { property: "og:title", content: "Aide — SUPER APP" },
+      { property: "og:title", content: "Aide et guides — SUPER APP" },
       {
         property: "og:description",
-        content: "Questions fréquentes et guide d'utilisation du budget du foyer.",
+        content:
+          "Tous les guides d'utilisation du budget familial en FCFA : premiers pas, fonctions avancées, sécurité et dépannage.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -35,143 +46,336 @@ export const Route = createFileRoute("/aide")({
   component: Aide,
 });
 
+type Lien = { to: string; libelle: string };
+
+type Guide = {
+  id: string;
+  icone: typeof Wallet;
+  titre: string;
+  resume: string;
+  etapes: string[];
+  liens?: Lien[];
+  motsCles: string;
+};
+
+const DEMARRAGE: string[] = [
+  "Créez vos comptes : espèces, banque, MoMo, Moov Money, Wave, carte… et indiquez pour chacun s'il compte dans le solde disponible.",
+  "Créez vos enveloppes : nourriture, transport, scolarité, santé, loisirs… avec un montant mensuel pour chacune.",
+  "Enregistrez vos revenus du mois depuis l'accueil.",
+  "Enregistrez vos dépenses : l'enveloppe est reconnue automatiquement et le compte est déduit tout seul.",
+  "Regardez le bilan et les rapports pour comprendre où part l'argent.",
+];
+
+const GUIDES: Guide[] = [
+  {
+    id: "comptes",
+    icone: Wallet,
+    titre: "Les comptes",
+    resume:
+      "Chaque endroit où se trouve votre argent est un compte. Le total de vos comptes inclus forme le solde disponible.",
+    etapes: [
+      "Ouvrez « Les comptes » puis « Action » pour créer, modifier ou supprimer un compte.",
+      "À la création, choisissez si le compte entre dans le solde disponible. Une épargne, un compte réservé ou le solde Diamant peuvent en être exclus.",
+      "Les transferts entre comptes se font depuis « Transferts » ; vous pouvez indiquer les frais et qui les supporte.",
+      "L'historique d'un compte montre chaque mouvement avec la date, l'heure, le libellé et les frais.",
+    ],
+    liens: [
+      { to: "/comptes", libelle: "Ouvrir les comptes" },
+      { to: "/comptes/transferts/nouveau", libelle: "Faire un transfert" },
+    ],
+    motsCles: "compte banque momo wave especes solde transfert frais",
+  },
+  {
+    id: "enveloppes",
+    icone: PiggyBank,
+    titre: "Les enveloppes",
+    resume:
+      "Une enveloppe est une petite tirelire virtuelle par besoin. Elle vous dit à tout moment ce qu'il vous reste pour ce besoin.",
+    etapes: [
+      "Créez vos enveloppes par catégorie et sous-catégorie pour les retrouver facilement.",
+      "Le 1er de chaque mois, toutes les enveloppes se rechargent automatiquement à leur montant prévu.",
+      "Pendant les deux premiers jours du mois, des rappels vous invitent à ajuster le budget avant qu'il ne s'applique.",
+      "Quand une enveloppe est presque vide ou dépassée, une alerte apparaît sur l'accueil et sur la page de dépense.",
+      "Si une enveloppe manque d'argent, « Secours » vous montre celles qui peuvent l'aider sans se mettre en danger.",
+    ],
+    liens: [
+      { to: "/enveloppes", libelle: "Ouvrir les enveloppes" },
+      { to: "/enveloppes/secours", libelle: "Secours d'une enveloppe" },
+    ],
+    motsCles: "enveloppe budget mensuel renouvellement alerte depassement secours",
+  },
+  {
+    id: "operations",
+    icone: TrendingUp,
+    titre: "Revenus, dépenses et frais",
+    resume:
+      "Toute entrée et toute sortie d'argent s'enregistre en quelques secondes, avec les frais éventuels.",
+    etapes: [
+      "« Ajouter un revenu » : montant, source, compte de réception, frais éventuels. Vous voyez le montant réellement reçu.",
+      "« Ajouter une dépense » : montant, libellé, frais. L'enveloppe est proposée automatiquement et le compte en découle.",
+      "Si la reconnaissance se trompe, appuyez sur « Changer », ou reclassez plus tard avec « Classement manuel » dans l'historique.",
+      "Les montants s'affichent toujours avec des séparateurs de milliers, en francs CFA.",
+    ],
+    liens: [
+      { to: "/revenu", libelle: "Ajouter un revenu" },
+      { to: "/depense", libelle: "Ajouter une dépense" },
+      { to: "/historique/depenses", libelle: "Historique des dépenses" },
+      { to: "/historique/revenus", libelle: "Historique des revenus" },
+    ],
+    motsCles: "revenu depense frais montant recu classement manuel historique",
+  },
+  {
+    id: "budget",
+    icone: Calendar,
+    titre: "Budgétisation et suivi",
+    resume:
+      "Prévoyez le mois, puis comparez ce que vous aviez prévu avec ce que vous avez réellement dépensé.",
+    etapes: [
+      "« Budgétisation » regroupe le plan du mois, le bilan et le suivi.",
+      "Le budget automatique analyse vos derniers mois et propose des montants. Vous choisissez les dates, modifiez chaque ligne, excluez ce que vous voulez, puis appliquez.",
+      "Le suivi planifié/réel compare mois par mois, par enveloppe, catégorie ou libellé, avec des couleurs claires.",
+      "Les dépenses planifiées actives ne sont pas recomptées dans la proposition automatique.",
+    ],
+    liens: [
+      { to: "/budget", libelle: "Ouvrir la budgétisation" },
+      { to: "/budget/suivi", libelle: "Suivi planifié / réel" },
+      { to: "/rapport", libelle: "Rapports mensuels" },
+    ],
+    motsCles: "budget plan bilan suivi planifie reel rapport mois",
+  },
+  {
+    id: "objectifs",
+    icone: Target,
+    titre: "Objectifs : épargne, achat, tontine",
+    resume:
+      "Un objectif vous aide à mettre de côté régulièrement pour un projet, un achat programmé ou une tontine.",
+    etapes: [
+      "La page « Objectifs » ne fait qu'afficher vos objectifs classés par type ; toutes les actions passent par le bouton « Action ».",
+      "« Créer un nouvel objectif » ouvre un assistant guidé : type, montant visé, échéance, compte, enveloppe et prélèvement automatique.",
+      "« Modifier, clôturer ou supprimer » ouvre la page de gestion d'un objectif existant.",
+      "Les rappels se règlent librement (de 1 à 31 jours, semaines, mois ou années). Vous répondez Oui ou Non, et une confirmation peut créer le versement.",
+      "L'historique des rappels garde la trace de chaque réponse.",
+    ],
+    liens: [
+      { to: "/objectifs", libelle: "Voir mes objectifs" },
+      { to: "/objectifs/action", libelle: "Actions sur les objectifs" },
+    ],
+    motsCles: "objectif epargne achat tontine rappel versement prelevement",
+  },
+  {
+    id: "dettes",
+    icone: Handshake,
+    titre: "Dettes et créances",
+    resume: "Suivez ce que vous devez et ce qu'on vous doit, avec les remboursements partiels.",
+    etapes: [
+      "Enregistrez une dette ou une créance avec la personne concernée, le montant et l'échéance.",
+      "Chaque remboursement, même partiel, met le solde à jour.",
+      "Les échéances proches vous sont rappelées.",
+    ],
+    liens: [{ to: "/dettes", libelle: "Ouvrir dettes et créances" }],
+    motsCles: "dette creance pret remboursement echeance",
+  },
+  {
+    id: "simulation",
+    icone: BarChart3,
+    titre: "Simulation avant de décider",
+    resume:
+      "Avant de vous engager, voyez l'effet d'une décision sur votre argent, jusqu'à douze mois à l'avance.",
+    etapes: [
+      "Six scénarios : objectif, dépense, tontine, dette, revenu et économie.",
+      "Chaque simulation donne un verdict clair, une trajectoire sur les mois à venir et des conseils.",
+      "Des suggestions prêtes à l'emploi sont proposées à partir de vos propres opérations, enveloppes, objectifs et dettes.",
+    ],
+    liens: [{ to: "/simulation", libelle: "Ouvrir la simulation" }],
+    motsCles: "simulation scenario projection avant achat decision",
+  },
+  {
+    id: "conseiller",
+    icone: Lightbulb,
+    titre: "Mon conseiller",
+    resume:
+      "Un assistant qui vit dans votre téléphone : il analyse vos habitudes et répond à vos questions, sans Internet.",
+    etapes: [
+      "Posez vos questions en français courant ; les fautes de frappe sont tolérées.",
+      "Le bouton « Mes données » montre ce que le conseiller sait, sa fiabilité et la fiabilité de chaque objectif.",
+      "Le conseiller annonce lui-même ses limites : il ne devine pas ce qu'il n'a jamais vu.",
+      "Plus vous enregistrez d'opérations, plus ses prévisions et ses conseils deviennent précis.",
+    ],
+    liens: [
+      { to: "/notifications", libelle: "Ouvrir Mon conseiller" },
+      { to: "/conseiller/donnees", libelle: "Mes données et fiabilité" },
+    ],
+    motsCles: "conseiller ia intelligence question fiabilite limites donnees",
+  },
+  {
+    id: "saisie",
+    icone: Camera,
+    titre: "Saisie rapide, photos de tickets et clavier",
+    resume: "Plusieurs façons d'aller vite au moment d'enregistrer une opération.",
+    etapes: [
+      "La boule rose flottante ouvre la saisie rapide depuis presque toutes les pages.",
+      "La lecture d'un ticket ou d'un reçu par photo remplit le montant et le libellé ; vos corrections lui apprennent à mieux faire.",
+      "Le clavier interne de l'application peut remplacer le clavier du téléphone ; le champ en cours de saisie reste toujours visible au-dessus du clavier.",
+      "La recherche globale retrouve une opération, un compte, une enveloppe ou un objectif.",
+    ],
+    liens: [
+      { to: "/saisie", libelle: "Saisie rapide" },
+      { to: "/recherche", libelle: "Recherche globale" },
+      { to: "/parametres/clavier", libelle: "Réglages du clavier" },
+    ],
+    motsCles: "saisie rapide ticket photo ocr clavier recherche",
+  },
+  {
+    id: "securite",
+    icone: Lock,
+    titre: "Sécurité et confidentialité",
+    resume:
+      "Vos données financières restent dans la mémoire de l'application, chiffrées, sur votre téléphone.",
+    etapes: [
+      "Code PIN obligatoire, empreinte digitale possible, verrouillage automatique après inactivité.",
+      "Un mot de passe d'action protège toute modification et toute suppression.",
+      "Après plusieurs codes faux, l'effacement de sécurité peut se déclencher.",
+      "Mode invité, blocage des captures d'écran et journal d'audit sont disponibles dans les réglages.",
+    ],
+    liens: [
+      { to: "/parametres/securite", libelle: "Réglages de sécurité" },
+      { to: "/parametres/donnees", libelle: "Mes données locales" },
+    ],
+    motsCles: "securite pin biometrie chiffrement mot de passe suppression confidentialite",
+  },
+  {
+    id: "sauvegarde",
+    icone: Mail,
+    titre: "Sauvegarde et changement de téléphone",
+    resume:
+      "Une copie chiffrée peut être envoyée par e-mail pour retrouver vos données sur un nouvel appareil.",
+    etapes: [
+      "Activez la sauvegarde chiffrée et notez soigneusement votre phrase de récupération : sans elle, rien ne peut être relu.",
+      "Les sauvegardes partent automatiquement ; hors connexion, elles attendent et repartent plus tard.",
+      "Sur le nouveau téléphone, utilisez la récupération avec l'e-mail reçu ou le fichier de sauvegarde.",
+      "Faites toujours une sauvegarde avant de changer d'appareil ou de réinstaller.",
+    ],
+    liens: [{ to: "/sauvegarde", libelle: "Sauvegarde et récupération" }],
+    motsCles: "sauvegarde email chiffree phrase recuperation nouveau telephone restauration",
+  },
+  {
+    id: "maj",
+    icone: RefreshCw,
+    titre: "Mises à jour de l'application",
+    resume: "L'application vérifie s'il existe une version plus récente et vous propose l'installer.",
+    etapes: [
+      "Ouvrez « Mises à jour » pour voir la version installée et la version disponible.",
+      "Si le téléchargement échoue, réessayez plus tard : la nouvelle version n'est peut-être pas encore publiée.",
+      "Vos données ne sont jamais effacées par une mise à jour.",
+    ],
+    liens: [{ to: "/parametres/mises-a-jour", libelle: "Vérifier les mises à jour" }],
+    motsCles: "mise a jour version apk telechargement",
+  },
+];
+
 const AVANTAGES = [
   {
     icone: Wallet,
     titre: "Tout votre argent en un coup d'œil",
     texte:
-      "Voyez immédiatement votre solde disponible, vos revenus et vos dépenses du mois. Plus besoin de chercher dans plusieurs applications ou messages.",
+      "Solde disponible, revenus et dépenses du mois s'affichent dès l'ouverture, sans rien chercher.",
   },
   {
     icone: PiggyBank,
-    titre: "Des enveloppes pour ne plus dépasser son budget",
+    titre: "On ne dépasse plus sans le savoir",
     texte:
-      "Chaque enveloppe est comme une petite tirelire virtuelle. Vous savez exactement combien il vous reste pour chaque besoin du foyer.",
-  },
-  {
-    icone: TrendingUp,
-    titre: "Un suivi intelligent de vos habitudes",
-    texte:
-      "L'application apprend de vos comportements pour vous avertir quand une dépense est inhabituelle et pour vous proposer un budget adapté.",
+      "Les enveloppes montrent en temps réel ce qu'il reste pour chaque besoin, et alertent avant le dépassement.",
   },
   {
     icone: Shield,
-    titre: "Vos données restent sur votre téléphone",
+    titre: "Vos données ne quittent pas votre téléphone",
     texte:
-      "Vos informations financières ne quittent pas votre appareil. Elles sont chiffrées et protégées par un code PIN ou votre empreinte digitale.",
+      "Aucun envoi en ligne pour l'usage normal. Tout est chiffré localement et protégé par votre code.",
   },
   {
     icone: Smartphone,
-    titre: "Fonctionne même sans connexion Internet",
-    texte:
-      "Saisissez vos revenus et dépenses à tout moment. Vous n'avez pas besoin de connexion pour gérer votre argent au quotidien.",
+    titre: "Fonctionne sans connexion",
+    texte: "Enregistrez et consultez à tout moment, même sans réseau ni forfait Internet.",
   },
   {
     icone: Users,
-    titre: "Conçue pour le foyer et la famille",
+    titre: "Pensée pour le foyer",
     texte:
-      "Que vous viviez seul, en couple ou en famille, l'application vous aide à organiser l'argent du foyer de manière claire et transparente.",
-  },
-];
-
-const FACILITES = [
-  {
-    icone: Lightbulb,
-    titre: "Saisie intelligente",
-    texte:
-      "La boule flottante rose vous permet d'ajouter une dépense ou un revenu rapidement. Elle reste accessible depuis presque toutes les pages.",
-  },
-  {
-    icone: Calendar,
-    titre: "Renouvellement automatique des enveloppes",
-    texte:
-      "Le 1er de chaque mois, vos enveloppes se rechargent automatiquement. Vous n'avez plus à tout recalculer à la main.",
-  },
-  {
-    icone: TrendingUp,
-    titre: "Budget automatique proposé",
-    texte:
-      "L'application analyse vos six derniers mois et vous propose un budget mensuel. Vous pouvez le modifier avant de l'appliquer.",
-  },
-  {
-    icone: Search,
-    titre: "Recherche de toutes vos opérations",
-    texte:
-      "Retrouvez facilement un revenu, une dépense, un compte ou une enveloppe grâce à la recherche globale.",
+      "Seul, en couple ou en famille, chacun comprend où va l'argent grâce aux enveloppes et aux rapports.",
   },
   {
     icone: Bell,
-    titre: "Rappels et alertes",
+    titre: "Elle vous rappelle au bon moment",
     texte:
-      "Recevez des rappels pour modifier votre budget au début du mois et des alertes quand une enveloppe est presque vide.",
-  },
-  {
-    icone: Lock,
-    titre: "Sécurité renforcée",
-    texte:
-      "Code PIN, biométrie et chiffrement triple protègent vos données. Même quelqu'un qui prendrait votre téléphone ne pourrait pas lire vos informations.",
+      "Renouvellement des enveloppes, budget du mois, objectifs, échéances de dettes : rien ne s'oublie.",
   },
 ];
 
 const FAQ = [
   {
-    q: "Comment fonctionne une enveloppe ?",
-    r: "Chaque enveloppe reçoit un plafond mensuel. Quand vous dépensez, vous choisissez l'enveloppe concernée et le montant disponible diminue. Le 1er du mois suivant, l'enveloppe se recharge automatiquement.",
-  },
-  {
-    q: "Comment enregistrer un revenu ?",
-    r: "Appuyez sur le bouton « Ajouter un revenu » en haut de l'accueil. Saisissez le montant, la source (salaire, activité, remboursement...), le compte de réception et validez.",
-  },
-  {
-    q: "Comment enregistrer une dépense ?",
-    r: "Appuyez sur « Ajouter une dépense ». Saisissez le montant, choisissez l'enveloppe concernée (le compte source se remplit automatiquement), ajoutez un libellé et validez.",
-  },
-  {
-    q: "À quoi sert l'onglet Comptes ?",
-    r: "Il liste tous vos supports d'argent : espèces, compte bancaire, MoMo, Moov Money, Wave, carte virtuelle, etc. Vous pouvez choisir si un compte fait partie du solde disponible ou s'il est réservé.",
-  },
-  {
     q: "Qu'est-ce que le solde disponible ?",
-    r: "C'est l'argent que vous pouvez utiliser librement au jour le jour. Les comptes épargne, les comptes exclus et les enveloppes d'objectifs d'épargne ne sont pas comptés dedans.",
+    r: "C'est l'argent utilisable librement au quotidien. Les comptes que vous avez exclus (épargne, comptes réservés, solde Diamant) n'y sont pas comptés.",
   },
   {
-    q: "Comment fonctionne la Simulation ?",
-    r: "Avant un gros achat, entrez le montant dans « Si je dépense… ». L'application vous montre immédiatement l'effet sur votre solde, vos enveloppes et les mois à venir.",
+    q: "Pourquoi je ne choisis plus le compte quand je dépense ?",
+    r: "Le compte est déduit de l'enveloppe choisie. Cela évite les erreurs et fait gagner du temps. Vous pouvez toujours vérifier le compte utilisé dans l'historique.",
   },
   {
-    q: "Qu'est-ce que le conseiller intelligent ?",
-    r: "C'est un assistant local qui analyse vos habitudes et répond à vos questions. Il reste dans votre téléphone : aucune donnée financière n'est envoyée sur Internet.",
+    q: "Comment l'application devine-t-elle l'enveloppe ?",
+    r: "Elle compare votre libellé au nom des enveloppes, à leurs catégories, à un vocabulaire local et à vos habitudes passées. Elle affiche sa confiance et vous pouvez toujours corriger.",
   },
   {
-    q: "Comment protéger mes données ?",
-    r: "Dans Paramètres, activez le code PIN et la biométrie. Vos données sont chiffrées avec trois couches de sécurité. Vous pouvez aussi effacer toutes les données depuis les Paramètres.",
+    q: "Pourquoi me demande-t-on un mot de passe pour modifier ou supprimer ?",
+    r: "Toutes les modifications et suppressions sont protégées par un mot de passe que vous définissez, pour éviter les gestes involontaires ou une main étrangère.",
   },
   {
-    q: "Puis-je exporter mes données ?",
-    r: "Oui, depuis la section Sauvegarde et chiffrement. Vous pouvez créer une copie chiffrée de vos données pour les conserver en sécurité.",
+    q: "Les enveloppes se renouvellent quand ?",
+    r: "Automatiquement le 1er de chaque mois. Pendant les deux premiers jours, des rappels vous laissent le temps d'ajuster avant que la proposition ne s'applique.",
   },
   {
-    q: "Que se passe-t-il si je change de téléphone ?",
-    r: "Vous pouvez transférer votre sauvegarde chiffrée sur le nouvel appareil. Comme les données restent locale, pensez à faire une sauvegarde avant de changer de téléphone.",
+    q: "Que deviennent mes données si je perds mon téléphone ?",
+    r: "Sans sauvegarde chiffrée, elles sont perdues, car rien n'est stocké en ligne. Activez la sauvegarde par e-mail et conservez la phrase de récupération.",
   },
   {
-    q: "L'application est-elle gratuite ?",
-    r: "Oui, elle fonctionne entièrement sur votre appareil sans abonnement. Aucune publicité ne lit vos données financières.",
+    q: "Le conseiller envoie-t-il mes questions sur Internet ?",
+    r: "Non. Il fonctionne entièrement dans le téléphone. C'est aussi pourquoi il a des limites, qu'il vous indique lui-même.",
   },
   {
-    q: "Comment signaler un problème ?",
-    r: "Utilisez le Journal de diagnostic dans le menu latéral. Il vous aide à comprendre ce qui se passe et à partager des informations utiles si vous avez besoin d'aide.",
+    q: "Puis-je enregistrer les frais d'une opération ?",
+    r: "Oui. Chaque revenu, dépense et transfert accepte des frais, et l'application distingue le montant brut, les frais, le coût réel et le montant reçu.",
+  },
+  {
+    q: "Comment revenir en arrière dans l'application ?",
+    r: "Le bouton Retour en haut et le bouton du téléphone suivent le même chemin : ils remontent d'un niveau jusqu'à l'accueil. Sur l'accueil, deux appuis rapides ferment l'application.",
+  },
+  {
+    q: "L'application est-elle payante ?",
+    r: "Non. Elle fonctionne sur votre appareil, sans abonnement et sans publicité qui lirait vos données.",
   },
 ];
 
-function Section({ titre, children }: { titre: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold tracking-tight">{titre}</h2>
-      {children}
-    </section>
-  );
-}
+const DEPANNAGE = [
+  {
+    q: "Le clavier cache le champ que je remplis",
+    r: "Le champ actif est automatiquement remonté au-dessus du clavier. Si cela persiste sur une page, fermez puis rouvrez la page, et vérifiez le réglage du clavier dans les paramètres.",
+  },
+  {
+    q: "Une enveloppe affiche un montant que je ne comprends pas",
+    r: "Ouvrez son détail : chaque mouvement est daté et expliqué, y compris les renouvellements, les prélèvements d'objectifs et les secours.",
+  },
+  {
+    q: "Le téléchargement de la mise à jour échoue",
+    r: "Cela signifie que la nouvelle version n'est pas encore disponible au téléchargement. Réessayez plus tard ; votre version actuelle continue de fonctionner normalement.",
+  },
+  {
+    q: "J'ai oublié mon code",
+    r: "Par sécurité, aucun code ne peut être retrouvé. Après plusieurs erreurs, l'effacement de sécurité peut se déclencher ; seule une sauvegarde chiffrée permet de retrouver les données.",
+  },
+  {
+    q: "Quelque chose semble bloqué",
+    r: "Ouvrez le journal de diagnostic : il liste ce qui s'est passé récemment et aide à identifier le problème.",
+  },
+];
 
 function Carte({
   icone: Icon,
@@ -196,123 +400,153 @@ function Carte({
 }
 
 function Aide() {
+  const [recherche, setRecherche] = useState("");
+
+  const guides = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
+    if (!q) return GUIDES;
+    return GUIDES.filter((g) =>
+      `${g.titre} ${g.resume} ${g.etapes.join(" ")} ${g.motsCles}`.toLowerCase().includes(q),
+    );
+  }, [recherche]);
+
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Aide</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Aide et guides</h1>
         <p className="text-sm text-muted-foreground">
-          Tout comprendre en quelques minutes pour utiliser SUPER APP avec confiance.
+          Tout ce que fait SUPER APP, expliqué simplement : premiers pas, guides par sujet,
+          questions fréquentes et dépannage.
         </p>
       </header>
 
       <section className="carte space-y-3 p-4">
-        <h2 className="text-lg font-semibold tracking-tight">Bienvenue dans SUPER APP</h2>
-        <p className="text-sm text-muted-foreground">
-          SUPER APP est votre compagnon de gestion budgétaire familiale. Elle vous aide à connaître
-          l'état de votre argent, à planifier vos dépenses et à atteindre vos objectifs sans stress.
-          Tout reste sur votre téléphone : vos données ne sont ni vendues, ni envoyées en ligne.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Cette page répond aux questions essentielles : comment l'utiliser, pourquoi elle est
-          utile, quels avantages elle offre et comment vos informations sont protégées.
-        </p>
+        <h2 className="text-lg font-semibold tracking-tight">En cinq minutes</h2>
+        <ol className="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
+          {DEMARRAGE.map((e) => (
+            <li key={e}>{e}</li>
+          ))}
+        </ol>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Link to="/comptes" className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+            Créer un compte
+          </Link>
+          <Link
+            to="/enveloppes"
+            className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary"
+          >
+            Créer une enveloppe
+          </Link>
+          <Link to="/revenu" className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+            Ajouter un revenu
+          </Link>
+          <Link to="/depense" className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+            Ajouter une dépense
+          </Link>
+        </div>
       </section>
 
-      <Section titre="Comment utiliser l'application ?">
-        <ol className="carte list-inside list-decimal space-y-2 p-4 text-sm text-muted-foreground">
-          <li>
-            <strong>Créez vos comptes</strong> : allez dans « Les comptes » depuis l'accueil et
-            ajoutez vos supports d'argent (espèces, banque, mobile money, etc.).
-          </li>
-          <li>
-            <strong>Créez vos enveloppes</strong> : dans « Les enveloppes », définissez vos
-            catégories de dépenses (nourriture, transport, scolarité, loisirs, etc.).
-          </li>
-          <li>
-            <strong>Enregistrez vos revenus</strong> : utilisez le bouton « Ajouter un revenu » en
-            haut de l'accueil.
-          </li>
-          <li>
-            <strong>Enregistrez vos dépenses</strong> : utilisez « Ajouter une dépense » et
-            choisissez l'enveloppe concernée.
-          </li>
-          <li>
-            <strong>Suivez votre budget</strong> : ouvrez « Budgétisation » pour comparer ce que
-            vous avez prévu et ce que vous avez réellement dépensé.
-          </li>
-          <li>
-            <strong>Demandez conseil</strong> : dans « Mon conseiller », posez vos questions et
-            recevez des réponses personnalisées basées sur vos propres données.
-          </li>
-          <li>
-            <strong>Simulez avant d'acheter</strong> : utilisez le bouton « Simulation » pour voir
-            l'impact d'une grosse dépense avant de vous engager.
-          </li>
-        </ol>
-      </Section>
+      <section className="space-y-3">
+        <label className="block space-y-1">
+          <span className="text-sm font-medium">Chercher dans l'aide</span>
+          <span className="carte flex items-center gap-2 px-3 py-2">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            <input
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              placeholder="Exemple : enveloppe, tontine, sauvegarde…"
+              className="w-full bg-transparent text-sm outline-none"
+            />
+          </span>
+        </label>
 
-      <Section titre="Pourquoi cette application est-elle importante ?">
-        <p className="text-sm text-muted-foreground">
-          Gérer l'argent du foyer peut devenir compliqué quand plusieurs comptes, plusieurs dépenses
-          et plusieurs objectifs se mélangent. SUPER APP centralise tout en un seul endroit et vous
-          donne une vision claire.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Elle vous aide à éviter les fins de mois difficiles, à anticiper les grosses dépenses et à
-          mettre de côté sereinement pour vos projets. Elle devient de plus en plus pertinente au
-          fur et à mesure que vous l'utilisez, car elle apprend de vos habitudes.
-        </p>
-      </Section>
+        <h2 className="text-lg font-semibold tracking-tight">Les guides</h2>
+        {guides.length === 0 ? (
+          <p className="carte p-4 text-sm text-muted-foreground">
+            Aucun guide ne correspond à « {recherche} ». Essayez un autre mot, par exemple
+            « dépense », « objectif » ou « sécurité ».
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {guides.map((g) => {
+              const Icon = g.icone;
+              return (
+                <details key={g.id} className="carte p-4">
+                  <summary className="flex cursor-pointer items-start gap-3">
+                    <span className="shrink-0 rounded-xl bg-primary/10 p-2 text-primary">
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="space-y-1">
+                      <span className="block font-semibold">{g.titre}</span>
+                      <span className="block text-sm text-muted-foreground">{g.resume}</span>
+                    </span>
+                  </summary>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    {g.etapes.map((e) => (
+                      <li key={e} className="flex gap-2">
+                        <span aria-hidden>•</span>
+                        <span>{e}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {g.liens && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {g.liens.map((l) => (
+                        <Link
+                          key={l.to}
+                          to={l.to}
+                          className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary"
+                        >
+                          {l.libelle}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </details>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-      <Section titre="Quelle est la nécessité de SUPER APP ?">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="carte p-4">
-            <h3 className="font-semibold">Sans budget, on dépense à l'aveugle</h3>
-            <p className="text-sm text-muted-foreground">
-              L'application donne une limite claire à chaque catégorie de dépense.
-            </p>
-          </div>
-          <div className="carte p-4">
-            <h3 className="font-semibold">Les objectifs ont besoin de discipline</h3>
-            <p className="text-sm text-muted-foreground">
-              Les prélèvements automatiques vers vos objectifs d'épargne vous aident à avancer sans
-              y penser.
-            </p>
-          </div>
-          <div className="carte p-4">
-            <h3 className="font-semibold">La famille doit pouvoir suivre</h3>
-            <p className="text-sm text-muted-foreground">
-              Tout le monde peut comprendre où va l'argent du foyer grâce aux enveloppes et aux
-              rapports simples.
-            </p>
-          </div>
-          <div className="carte p-4">
-            <h3 className="font-semibold">La confidentialité est essentielle</h3>
-            <p className="text-sm text-muted-foreground">
-              Vos données financières sont trop sensibles pour être stockées n'importe où. Ici,
-              elles restent chez vous.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      <Section titre="Les avantages de SUPER APP">
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">Ce que l'application vous apporte</h2>
         <div className="grid gap-3">
           {AVANTAGES.map((a) => (
             <Carte key={a.titre} icone={a.icone} titre={a.titre} texte={a.texte} />
           ))}
         </div>
-      </Section>
+      </section>
 
-      <Section titre="Les facilités que procure l'application">
-        <div className="grid gap-3">
-          {FACILITES.map((f) => (
-            <Carte key={f.titre} icone={f.icone} titre={f.titre} texte={f.texte} />
-          ))}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">Se déplacer dans l'application</h2>
+        <div className="carte space-y-2 p-4 text-sm text-muted-foreground">
+          <p className="flex gap-2">
+            <ArrowLeft className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              Le bouton Retour en haut et celui du téléphone remontent d'un seul niveau, toujours
+              vers la même entrée, jusqu'à l'accueil.
+            </span>
+          </p>
+          <p className="flex gap-2">
+            <Keyboard className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              Pendant une saisie, le champ rempli reste visible au-dessus du clavier, qu'il soit
+              interne ou celui du téléphone.
+            </span>
+          </p>
+          <p className="flex gap-2">
+            <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              Le menu latéral (les trois points) n'existe que sur l'accueil ; les autres pages
+              gardent une barre épurée.
+            </span>
+          </p>
         </div>
-      </Section>
+      </section>
 
-      <Section titre="Questions fréquentes">
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">Questions fréquentes</h2>
         <div className="space-y-3">
           {FAQ.map((item) => (
             <details key={item.q} className="carte p-4">
@@ -324,18 +558,33 @@ function Aide() {
             </details>
           ))}
         </div>
-      </Section>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">Quand quelque chose ne va pas</h2>
+        <div className="space-y-3">
+          {DEPANNAGE.map((item) => (
+            <details key={item.q} className="carte p-4">
+              <summary className="flex cursor-pointer items-center gap-2 font-semibold">
+                <LifeBuoy className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                {item.q}
+              </summary>
+              <p className="mt-2 text-sm text-muted-foreground">{item.r}</p>
+            </details>
+          ))}
+        </div>
+      </section>
 
       <section className="carte space-y-2 p-4">
-        <h2 className="font-semibold">Confiance et tranquillité d'esprit</h2>
+        <h2 className="font-semibold">Ce que l'application ne fait pas</h2>
         <p className="text-sm text-muted-foreground">
-          SUPER APP est conçue pour être simple, sûre et utile au quotidien. Vous gardez le contrôle
-          total de vos données. L'application ne prend aucune décision à votre place : elle vous
-          propose, vous choisissez.
+          Elle ne se connecte à aucune banque, ne lit aucun message, et ne décide rien à votre
+          place. Elle travaille uniquement avec ce que vous enregistrez : plus vous êtes régulier,
+          plus ses analyses sont justes.
         </p>
         <p className="text-sm text-muted-foreground">
-          Si vous êtes perdu, commencez par ajouter un compte, une enveloppe et une dépense. En
-          quelques minutes, vous verrez déjà l'intérêt d'avoir tout organisé au même endroit.
+          Si vous débutez : un compte, une enveloppe, une dépense. En quelques minutes, vous verrez
+          déjà l'intérêt de tout garder au même endroit.
         </p>
       </section>
     </div>
