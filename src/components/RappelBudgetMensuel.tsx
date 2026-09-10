@@ -27,7 +27,9 @@ const PAS_BIP_MS = 3_000;
  * la proposition locale devient le budget du mois.
  */
 export function RappelBudgetMensuel() {
-  const { transactions, enveloppes, budgets, modifierEnveloppe, chargement } = useSuperApp();
+  const { transactions, enveloppes, budgets, systeme, chargement } = useSuperApp();
+  // Application automatique après échéance : aucun mot de passe demandé.
+  const modifierEnveloppe = systeme.modifierEnveloppe;
   const [visible, setVisible] = useState(false);
   const [sonne, setSonne] = useState(false);
   const bips = useRef<number | null>(null);

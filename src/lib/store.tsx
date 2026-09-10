@@ -14,6 +14,7 @@ import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
+import { demanderMotDePasse } from "./mot-de-passe-actions";
 import {
   assainirBudget,
   assainirCategorie,
@@ -515,6 +516,13 @@ type Contexte = Etat & {
   definirMembres: (noms: string[]) => void;
   definirTransparence: (v: number) => void;
   definirNomUtilisateur: (nom: string) => void;
+  /** Actions internes non protégées, réservées aux automatismes de l'application. */
+  systeme: {
+    modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
+    modifierObjectif: (id: string, o: Partial<Omit<Objectif, "id" | "creeLe">>) => void;
+    modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
+    modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
+  };
   remplacerEtat: (e: Partial<Etat>) => void;
   etatComplet: () => Etat;
   reinitialiser: () => void;
@@ -1400,32 +1408,42 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   const reinitialiser = useCallback(() => setEtat(ETAT_INITIAL), []);
 
+  const proteger = useCallback(
+    <A extends unknown[]>(fn: (...a: A) => void, libelle: string) =>
+      (...a: A) => {
+        void demanderMotDePasse(libelle).then((ok) => {
+          if (ok) fn(...a);
+        });
+      },
+    [],
+  );
+
   const actions = useMemo(
     () => ({
       ajouterTransaction,
-      supprimerTransaction,
+      supprimerTransaction: proteger(supprimerTransaction, "Confirmez la suppression."),
       ajouterCompte,
-      definirIconeCompte,
-      definirCompteDisponible,
-      renommerCompte,
-      supprimerCompte,
+      definirIconeCompte: proteger(definirIconeCompte, "Confirmez la modification."),
+      definirCompteDisponible: proteger(definirCompteDisponible, "Confirmez la modification."),
+      renommerCompte: proteger(renommerCompte, "Confirmez la modification."),
+      supprimerCompte: proteger(supprimerCompte, "Confirmez la suppression."),
       deplacerCompte,
       reinitialiserOrdreComptes,
       ajouterTransfert,
-      supprimerTransfert,
+      supprimerTransfert: proteger(supprimerTransfert, "Confirmez la suppression."),
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
-      modifierEnveloppe,
-      supprimerEnveloppe,
+      modifierEnveloppe: proteger(modifierEnveloppe, "Confirmez la modification."),
+      supprimerEnveloppe: proteger(supprimerEnveloppe, "Confirmez la suppression."),
       deplacerEnveloppe,
       ajouterCategorie,
-      definirIconeCategorie,
-      renommerCategorie,
-      supprimerCategorie,
+      definirIconeCategorie: proteger(definirIconeCategorie, "Confirmez la modification."),
+      renommerCategorie: proteger(renommerCategorie, "Confirmez la modification."),
+      supprimerCategorie: proteger(supprimerCategorie, "Confirmez la suppression."),
       ajouterSousCategorie,
-      renommerSousCategorie,
-      supprimerSousCategorie,
+      renommerSousCategorie: proteger(renommerSousCategorie, "Confirmez la modification."),
+      supprimerSousCategorie: proteger(supprimerSousCategorie, "Confirmez la suppression."),
       reordonnerCategories,
       reordonnerSousCategories,
       restaurerCategories,
@@ -1433,25 +1451,31 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       convertirBudget,
       genererEcheancesDues,
       reporterBudget,
-      modifierBudget,
-      supprimerBudget,
+      modifierBudget: proteger(modifierBudget, "Confirmez la modification."),
+      supprimerBudget: proteger(supprimerBudget, "Confirmez la suppression."),
       ajouterDette,
-      modifierDette,
-      supprimerDette,
+      modifierDette: proteger(modifierDette, "Confirmez la modification."),
+      supprimerDette: proteger(supprimerDette, "Confirmez la suppression."),
       ajouterRemboursement,
-      supprimerRemboursement,
+      supprimerRemboursement: proteger(supprimerRemboursement, "Confirmez la suppression."),
       restaurerTransaction,
-      supprimerDefinitivement,
-      viderCorbeille,
+      supprimerDefinitivement: proteger(supprimerDefinitivement, "Confirmez la suppression."),
+      viderCorbeille: proteger(viderCorbeille, "Confirmez la suppression."),
       ajouterObjectif,
-      modifierObjectif,
-      supprimerObjectif,
+      modifierObjectif: proteger(modifierObjectif, "Confirmez la modification."),
+      supprimerObjectif: proteger(supprimerObjectif, "Confirmez la suppression."),
       definirMembres,
       definirTransparence,
       definirNomUtilisateur,
       remplacerEtat,
       etatComplet,
-      reinitialiser,
+      reinitialiser: proteger(reinitialiser, "Confirmez la réinitialisation."),
+      systeme: {
+        modifierEnveloppe,
+        modifierObjectif,
+        modifierBudget,
+        modifierDette,
+      },
     }),
     [
       ajouterTransaction,
@@ -1504,6 +1528,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       remplacerEtat,
       etatComplet,
       reinitialiser,
+      proteger,
     ],
   );
 
