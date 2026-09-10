@@ -606,10 +606,12 @@ async function telechargerAPKNatif(
     // remplace par l'URL d'asset de l'API GitHub, authentifiée par le jeton.
     let cible = url;
     let entetes: Record<string, string> = { Accept: "application/vnd.android.package-archive" };
+    let viaRelais = false;
     const nomApk = url.split("/").pop()?.split("?")[0] ?? "";
     if (!lireTokenGithub() && nomApk.endsWith(".apk")) {
       // Relais du serveur : il résout l'adresse de téléchargement signée.
       cible = `${RELAIS_MAJ}/api/public/maj/apk?nom=${encodeURIComponent(nomApk)}`;
+      viaRelais = true;
     } else if (lireTokenGithub() && url.includes("github.com")) {
       const nomFichier = nomApk;
       const trouve = nomFichier ? await trouverAsset(nomFichier) : null;
@@ -625,19 +627,36 @@ async function telechargerAPKNatif(
     }
 
     const { CapacitorHttp } = await import("@capacitor/core");
-    const reponse = await CapacitorHttp.get({
+    let reponse = await CapacitorHttp.get({
       url: cible,
       headers: entetes,
       responseType: "blob",
       readTimeout: 180000,
       connectTimeout: 30000,
     });
+
+    // Le relais peut être indisponible (serveur non publié, 404/503) : on
+    // retente alors directement l'adresse de téléchargement du manifeste.
+    if (viaRelais && (reponse.status < 200 || reponse.status >= 300)) {
+      reponse = await CapacitorHttp.get({
+        url,
+        headers: { Accept: "application/vnd.android.package-archive" },
+        responseType: "blob",
+        readTimeout: 180000,
+        connectTimeout: 30000,
+      });
+    }
+
     if (reponse.status < 200 || reponse.status >= 300) {
       return {
         ok: false,
-        message: `Le serveur a répondu ${reponse.status} lors du téléchargement de l'APK.`,
+        message:
+          reponse.status === 404
+            ? "La nouvelle version n'a pas pu être téléchargée : le fichier d'installation n'est pas encore disponible en ligne. Réessayez un peu plus tard."
+            : `Le serveur a répondu ${reponse.status} lors du téléchargement de l'APK.`,
       };
     }
+
 
     const brut = reponse.data as unknown;
     let base64: string;
