@@ -16,6 +16,7 @@ import {
 } from "@/lib/extraction";
 import { contexteBenin } from "@/lib/tickets-benin";
 import { noterAction } from "@/lib/memoire-utilisateur";
+import { distanceMots } from "@/lib/comprehension";
 
 const CLE = "superapp:ocr:apprentissage:v1";
 
@@ -31,6 +32,8 @@ export type RegleCommercant = {
   compte?: string;
   /** Provenance du montant qui s'est révélée juste le plus souvent. */
   sourcePreferee?: SourceMontant;
+  /** Montant habituel de ce commerçant (médiane des validations). */
+  montantTypique?: number;
   validations: number;
   corrections: number;
   majAt: string;
@@ -48,6 +51,8 @@ export type MemoireOcr = {
   };
   /** Tickets jamais compris (aucun montant fiable) à enseigner. */
   echecs: { texte: string; date: string }[];
+  /** Montants validés par commerçant, pour apprendre le montant habituel. */
+  montantsValides?: Record<string, number[]>;
 };
 
 const VIDE: MemoireOcr = {
