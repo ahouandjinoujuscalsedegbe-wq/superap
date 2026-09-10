@@ -211,7 +211,9 @@ export function classerDepense(
     parHistorique(mots, transactions),
     parNom(mots, enveloppes),
     parLexique(mots, enveloppes),
-  ].filter((c): c is ClassementEnveloppe => c !== null && enveloppes.some((e) => e.id === c.enveloppe));
+  ].filter(
+    (c): c is ClassementEnveloppe => c !== null && enveloppes.some((e) => e.id === c.enveloppe),
+  );
 
   if (candidats.length === 0) return null;
   // L'historique prime, puis la meilleure confiance.

@@ -249,8 +249,8 @@ function AjouterDepense() {
                 ✨
               </span>
               <span className="min-w-0 flex-1">
-                Classée automatiquement dans « {enveloppeChoisie?.nom} » (
-                {enveloppeAuto.confiance} %)
+                Classée automatiquement dans « {enveloppeChoisie?.nom} » ({enveloppeAuto.confiance}{" "}
+                %)
                 <span className="block text-muted-foreground">{enveloppeAuto.raison}</span>
               </span>
               <button
@@ -265,7 +265,6 @@ function AjouterDepense() {
               </button>
             </div>
           )}
-
 
           {suggestion && (
             <button
