@@ -15,8 +15,12 @@
 
 const CLE = "SA_RAPPEL_BUDGET_V1";
 
-/** Heures de sonnerie, chaque jour concerné. */
-export const HEURES_RAPPEL = [0, 6, 12, 18] as const;
+/**
+ * Heures de sonnerie, chaque jour concerné. Choisies aux moments où
+ * l'utilisateur est réveillé et disponible (matin, midi, fin d'après-midi,
+ * début de soirée) : plus aucun rappel en pleine nuit.
+ */
+export const HEURES_RAPPEL = [8, 12, 17, 20] as const;
 /** Nombre de jours (à partir du 1er) où l'alarme rappelle l'utilisateur. */
 export const JOURS_RAPPEL = 2;
 /** Durée maximale d'une sonnerie non touchée (5 minutes). */
