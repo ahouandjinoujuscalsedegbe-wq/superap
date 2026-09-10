@@ -37,9 +37,95 @@ function fcfa(montant: number): string {
 
 function PageDonneesConseiller() {
   const router = useRouter();
-  const { transactions } = useSuperApp();
+  const {
+    transactions,
+    transferts,
+    enveloppes,
+    budgets,
+    dettes,
+    objectifs,
+    depensesParEnveloppe,
+    soldeDisponible,
+  } = useSuperApp();
   const ia = useIaUnifiee();
   const bilan = useMemo(() => detecterLimites(ia), [ia]);
+
+  // Fiabilité, dépenses et simulation, objectif par objectif.
+  const fichesObjectifs = useMemo(() => {
+    const ctx: ContexteSimulation = {
+      transactions,
+      transferts,
+      enveloppes,
+      budgets,
+      dettes,
+      objectifs,
+      depensesParEnveloppe,
+      soldeDisponible,
+    };
+    return suivreObjectifs(objectifs, transactions, new Date(), transferts).map((s) => {
+      const o = s.objectif;
+      const debut = new Date(o.creeLe).getTime();
+      const jours = Number.isFinite(debut)
+        ? Math.max(0, Math.floor((Date.now() - debut) / JOUR_MS))
+        : 0;
+
+      // Mouvements réellement rattachés à cet objectif.
+      const depensesLiees = o.enveloppeId
+        ? transactions.filter(
+            (t) =>
+              t.type === "depense" &&
+              t.categorie === o.enveloppeId &&
+              new Date(t.date).getTime() >= debut,
+          )
+        : [];
+      const versements = transferts.filter((t) => t.note.startsWith(`Objectif:${o.id}`));
+      const mouvements = depensesLiees.length + versements.length;
+      const totalDepenses = depensesLiees.reduce((somme, t) => somme + t.montant, 0);
+      const totalVersements = versements.reduce((somme, t) => somme + t.montant, 0);
+
+      // Fiabilité propre à l'objectif : plus il est suivi, plus le calcul est sûr.
+      const points =
+        Math.min(35, mouvements * 7) + // preuves de mouvements
+        Math.min(25, Math.round((jours / 90) * 25)) + // ancienneté du suivi
+        (o.enveloppeId || o.compteEpargne ? 15 : 0) + // rattachement clair
+        (s.rythmeMensuel > 0 ? 15 : 0) + // épargne réellement constatée
+        Math.round((bilan.fiabilite / 100) * 10); // qualité générale des données
+      const fiabilite = Math.max(5, Math.min(100, points));
+
+      const simulation = simulerObjectif(ctx, {
+        cible: o.cible,
+        deja: s.reuni,
+        dateCible: o.dateCible,
+      });
+
+      return {
+        id: o.id,
+        libelle: o.libelle,
+        fiabilite,
+        jours,
+        mouvements,
+        totalDepenses,
+        totalVersements,
+        suivi: s,
+        simulation,
+        rattachement: o.compteEpargne
+          ? "compte d'épargne dédié"
+          : o.enveloppeId
+            ? "enveloppe dédiée"
+            : "aucun rattachement (calcul approximatif)",
+      };
+    });
+  }, [
+    objectifs,
+    transactions,
+    transferts,
+    enveloppes,
+    budgets,
+    dettes,
+    depensesParEnveloppe,
+    soldeDisponible,
+    bilan.fiabilite,
+  ]);
 
   // Regroupe les opérations par mois calendaire, du plus récent au plus ancien.
   const mois = useMemo(() => {
