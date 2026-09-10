@@ -48,7 +48,7 @@ export function SelecteurEnveloppes({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-foreground/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[80] flex flex-col justify-end bg-foreground/40 backdrop-blur-sm">
       <button type="button" aria-label="Fermer" onClick={fermer} className="flex-1" />
       <div className="flex max-h-[75vh] animate-montee flex-col rounded-t-3xl bg-background pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         {/* Tête du panneau */}

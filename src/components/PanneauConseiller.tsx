@@ -65,7 +65,7 @@ export function PanneauConseiller({
     );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-foreground/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[80] flex flex-col justify-end bg-foreground/40 backdrop-blur-sm">
       <button type="button" aria-label="Fermer le panneau" onClick={onFermer} className="flex-1" />
       <div className="max-h-[82vh] overflow-y-auto rounded-t-3xl bg-background p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
         <div className="mb-3 flex items-center justify-between">
