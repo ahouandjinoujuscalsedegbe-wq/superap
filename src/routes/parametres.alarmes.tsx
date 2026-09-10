@@ -11,6 +11,7 @@ import {
   type ReglagesAlarme,
 } from "@/lib/alarme";
 import { demanderPermissionNotification } from "@/lib/alarme-appareil";
+import { HEURES_RAPPEL } from "@/lib/rappel-budget";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -162,6 +163,67 @@ function PageAlarmes() {
             className="h-5 w-5"
           />
         </label>
+      </section>
+
+      <section className="carte space-y-3 p-4">
+        <h2 className="text-base font-semibold">Heures de repos</h2>
+        <p className="text-xs text-muted-foreground">
+          Pendant ces heures, le téléphone ne sonne pas et ne vibre pas. Les rappels restent
+          affichés et vous les retrouvez dès le matin.
+        </p>
+
+        <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          Ne pas sonner la nuit
+          <input
+            type="checkbox"
+            checked={reglages.heuresCalmes}
+            onChange={(e) => maj({ heuresCalmes: e.target.checked })}
+            className="h-5 w-5"
+          />
+        </label>
+
+        <div className="flex items-center gap-3">
+          <label className="flex-1 text-sm">
+            <span className="block text-xs text-muted-foreground">De</span>
+            <input
+              type="time"
+              value={reglages.debutCalme}
+              disabled={!reglages.heuresCalmes}
+              onChange={(e) => maj({ debutCalme: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+            />
+          </label>
+          <label className="flex-1 text-sm">
+            <span className="block text-xs text-muted-foreground">À</span>
+            <input
+              type="time"
+              value={reglages.finCalme}
+              disabled={!reglages.heuresCalmes}
+              onChange={(e) => maj({ finCalme: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+            />
+          </label>
+        </div>
+
+        <label className="flex items-center justify-between gap-3 text-sm font-medium">
+          Laisser sonner les alertes graves même la nuit
+          <input
+            type="checkbox"
+            checked={reglages.urgentesTouteHeure}
+            disabled={!reglages.heuresCalmes}
+            onChange={(e) => maj({ urgentesTouteHeure: e.target.checked })}
+            className="h-5 w-5"
+          />
+        </label>
+
+        <p className="text-xs text-muted-foreground">
+          Rappels du budget du mois : {HEURES_RAPPEL.map((h) => `${h} h`).join(", ")} pendant les
+          deux premiers jours du mois.
+        </p>
+      </section>
+
+      <section className="carte space-y-4 p-4">
+
 
         <button
           type="button"
