@@ -223,6 +223,24 @@ export type Remboursement = {
   montant: number;
   date: string;
   note?: string | undefined;
+  /** Transfert de compte créé par ce remboursement, s'il y en a un. */
+  transfertId?: string | undefined;
+};
+
+/** Paiement échelonné programmé d'une dette (ou d'une créance attendue). */
+export type EcheancierDette = {
+  /** Montant de chaque versement. */
+  montant: number;
+  /** Nombre d'unités entre deux versements (1 à 31). */
+  intervalle: number;
+  unite: UniteRappel;
+  /** Prochaine échéance (YYYY-MM-DD). */
+  prochaine: string;
+  /** Heure de l'alarme de rappel (HH:MM). */
+  heure: string;
+  /** Compte à utiliser pour le versement. */
+  compte?: string | undefined;
+  actif: boolean;
 };
 
 export type Dette = {
@@ -235,6 +253,8 @@ export type Dette = {
   note?: string | undefined;
   /** Date limite de remboursement (YYYY-MM-DD), optionnelle. */
   dateLimite?: string | undefined;
+  /** Paiement échelonné programmé, avec alarme de rappel. */
+  echeancier?: EcheancierDette | undefined;
   creeLe: string;
   remboursements: Remboursement[];
 };
@@ -244,6 +264,17 @@ export function resteDu(d: Dette): number {
   const rembourse = d.remboursements.reduce((s, r) => s + r.montant, 0);
   return Math.max(0, d.montantInitial - rembourse);
 }
+
+/** Compte dédié à tout ce que je dois à quelqu'un. */
+export const COMPTE_DETTES = "Je dois à quelqu'un 🤔";
+/** Compte dédié à tout ce que quelqu'un me doit. */
+export const COMPTE_CREANCES = "Quelqu'un me doit 🤔";
+
+/** Compte dédié correspondant au sens d'une fiche. */
+export function compteDedie(sens: "dette" | "creance"): string {
+  return sens === "dette" ? COMPTE_DETTES : COMPTE_CREANCES;
+}
+
 
 export const COMPTES = [
   "Espèces",
