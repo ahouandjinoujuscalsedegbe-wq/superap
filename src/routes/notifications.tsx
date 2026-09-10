@@ -379,7 +379,10 @@ function PageNotifications() {
   let dernierJour = "";
 
   return (
-    <div className="fixed inset-0 z-30 flex flex-col">
+    <div
+      className="fixed inset-x-0 top-0 z-30 flex flex-col"
+      style={{ height: hauteurVisible ? `${hauteurVisible}px` : "100dvh" }}
+    >
       {/* En-tête de conversation */}
       <header className="flex items-center gap-2 bg-primary px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] text-primary-foreground">
         <button
