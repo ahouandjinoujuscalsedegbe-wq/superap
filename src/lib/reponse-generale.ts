@@ -237,11 +237,17 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
     }
 
     case "resume":
-    default:
+    default: {
+      const bilan = detecterLimites(etat);
       return {
         reponse: resumeReseau(etat)[0] ?? etat.cerveau.resume,
-        details: [...resumeReseau(etat).slice(1), ...phrasesHabitudes(etat.habitudes).slice(0, 2)],
+        details: [
+          ...resumeReseau(etat).slice(1),
+          ...phrasesHabitudes(etat.habitudes).slice(0, 2),
+          bilan.avertissement,
+        ],
       };
+    }
   }
 }
 
@@ -250,12 +256,14 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
  * le conseiller répond quand même avec ce qu'il sait de l'utilisateur.
  */
 export function repondreParDefaut(etat: EtatIA): ReponseGenerale {
+  const bilan = detecterLimites(etat);
   return {
     reponse:
-      "Je n'ai pas bien saisi la question, mais voici où vous en êtes, d'après tout ce que j'observe.",
+      "Je n'ai pas compris votre question : c'est une de mes limites, je fonctionne par mots-clés et non en langage libre.",
     details: [
       ...resumeReseau(etat),
-      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes.",
+      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes, limites.",
+      bilan.avertissement,
     ],
   };
 }
