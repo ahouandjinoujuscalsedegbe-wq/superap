@@ -178,7 +178,6 @@ function AjouterDepense() {
 
       <AlerteEnveloppes />
 
-
       {favoris.length > 0 && (
         <section className="carte space-y-2 p-4">
           <p className="text-sm font-medium">Dépenses habituelles</p>
@@ -315,7 +314,6 @@ function AjouterDepense() {
           >
             Classement manuel
           </button>
-
 
           <button
             type="button"

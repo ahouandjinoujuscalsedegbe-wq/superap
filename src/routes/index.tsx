@@ -14,7 +14,6 @@ import {
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -117,7 +116,6 @@ function Accueil() {
       )}
 
       <AlerteEnveloppes compact />
-
 
       <section className="relative grid grid-cols-2 gap-3">
         <Link
