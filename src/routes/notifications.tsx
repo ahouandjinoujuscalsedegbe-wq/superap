@@ -205,26 +205,42 @@ function PageNotifications() {
     if (enBas) bas.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [memoire.messages.length, ecrit, enBas]);
 
-  // Clavier à l'écran : la page suit la hauteur réellement visible
-  // (visualViewport), pour que ni le fil ni le champ de saisie ne passent
-  // sous le clavier — sur navigateur comme dans l'application Android.
-  const [hauteurVisible, setHauteurVisible] = useState<number | null>(null);
+  // Le clavier natif réduit visualViewport, tandis que le clavier interne est
+  // superposé. On tient compte des deux pour conserver toute la discussion
+  // dans la zone réellement lisible, champ de saisie inclus.
+  const [zoneVisible, setZoneVisible] = useState({ hauteur: 0, haut: 0 });
+  const hauteurClavierInterne = useRef(0);
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) return;
     const maj = () => {
-      setHauteurVisible(Math.round(vv.height));
-      // Si le champ est actif (clavier ouvert), on garde le dernier message visible.
+      const hauteurFenetre = vv?.height ?? window.innerHeight;
+      const haut = vv?.offsetTop ?? 0;
+      const hauteur = Math.max(160, hauteurFenetre - hauteurClavierInterne.current);
+      setZoneVisible({ hauteur: Math.round(hauteur), haut: Math.round(haut) });
+
+      // Après le redimensionnement, le dernier message et la saisie remontent
+      // ensemble au-dessus du clavier sans empêcher de consulter le fil.
       if (document.activeElement === champ.current) {
-        window.setTimeout(() => bas.current?.scrollIntoView({ block: "end" }), 60);
+        window.requestAnimationFrame(() => {
+          fil.current?.scrollTo({ top: fil.current.scrollHeight, behavior: "auto" });
+        });
       }
     };
+    const surClavierInterne = (evenement: Event) => {
+      const hauteur = (evenement as CustomEvent<number>).detail;
+      hauteurClavierInterne.current = Number.isFinite(hauteur) ? Math.max(0, hauteur) : 0;
+      maj();
+    };
     maj();
-    vv.addEventListener("resize", maj);
-    vv.addEventListener("scroll", maj);
+    vv?.addEventListener("resize", maj);
+    vv?.addEventListener("scroll", maj);
+    window.addEventListener("resize", maj);
+    window.addEventListener("super-app:clavier-hauteur", surClavierInterne);
     return () => {
-      vv.removeEventListener("resize", maj);
-      vv.removeEventListener("scroll", maj);
+      vv?.removeEventListener("resize", maj);
+      vv?.removeEventListener("scroll", maj);
+      window.removeEventListener("resize", maj);
+      window.removeEventListener("super-app:clavier-hauteur", surClavierInterne);
     };
   }, []);
 
@@ -380,8 +396,11 @@ function PageNotifications() {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 z-30 flex flex-col"
-      style={{ height: hauteurVisible ? `${hauteurVisible}px` : "100dvh" }}
+      className="fixed inset-x-0 z-30 flex min-h-0 flex-col overflow-hidden"
+      style={{
+        top: `${zoneVisible.haut}px`,
+        height: zoneVisible.hauteur ? `${zoneVisible.hauteur}px` : "100dvh",
+      }}
     >
       {/* En-tête de conversation */}
       <header className="flex items-center gap-2 bg-primary px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] text-primary-foreground">
@@ -539,7 +558,7 @@ function PageNotifications() {
           const el = e.currentTarget;
           setEnBas(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
-        className="fond-discussion flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 py-3"
+        className="fond-discussion min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-3 py-3"
       >
         {!prete && (
           <p className="py-8 text-center text-xs text-muted-foreground">
@@ -837,7 +856,7 @@ function PageNotifications() {
       )}
 
       {/* Barre de saisie */}
-      <div className="bg-card/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] pt-2">
+      <div className="shrink-0 bg-card/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] pt-2">
         {citation && (
           <div className="mb-1.5 flex items-start gap-2 rounded-xl border-l-4 border-primary bg-muted/60 px-2 py-1.5 text-xs">
             <div className="min-w-0 flex-1">
