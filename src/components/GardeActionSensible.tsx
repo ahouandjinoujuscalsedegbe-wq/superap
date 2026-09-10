@@ -14,6 +14,7 @@ const CLE_SESSION = "superapp:securite:actions-ouvertes";
 /** Exige le code avant les actions sensibles (purge, export, sauvegarde). */
 export function GardeActionSensible() {
   const { pathname } = useLocation();
+  const router = useRouter();
   const { config } = useSecurite();
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState("");

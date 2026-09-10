@@ -16,6 +16,7 @@ import { retourIntelligent } from "@/lib/retour";
  */
 export function GardeCoffreSensible() {
   const { pathname } = useLocation();
+  const router = useRouter();
   const [phrase, setPhrase] = useState("");
   const [erreur, setErreur] = useState("");
   const [ouvert, setOuvert] = useState(() => coffreSensibleOuvert());
