@@ -67,7 +67,7 @@ export function GardeCoffreSensible() {
         </button>
         <button
           type="button"
-          onClick={() => window.history.back()}
+          onClick={() => retourIntelligent(router)}
           className="w-full rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
         >
           Retour

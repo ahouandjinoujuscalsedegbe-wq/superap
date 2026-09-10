@@ -423,10 +423,7 @@ export function BarreHaute() {
           ) : (
             <button
               type="button"
-              onClick={() => {
-                if (window.history.length > 1) router.history.back();
-                else router.navigate({ to: "/" });
-              }}
+              onClick={() => retourIntelligent(router)}
               aria-label="Retour"
               className="shrink-0 rounded-full p-2 text-foreground transition-transform duration-200 active:scale-95"
             >

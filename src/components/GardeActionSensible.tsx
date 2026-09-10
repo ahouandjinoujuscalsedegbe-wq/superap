@@ -73,7 +73,7 @@ export function GardeActionSensible() {
         {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
         <button
           type="button"
-          onClick={() => window.history.back()}
+          onClick={() => retourIntelligent(router)}
           className="w-full rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
         >
           Retour
