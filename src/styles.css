@@ -181,7 +181,17 @@
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
     overflow-x: hidden;
+    scroll-padding-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.75rem);
+    scroll-padding-bottom: calc(var(--app-keyboard-height) + 1rem);
   }
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  scroll-margin-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.75rem);
+  scroll-margin-bottom: calc(var(--app-keyboard-height) + 1rem);
 }
 
 /* Surfaces translucides : l'opacité suit le réglage utilisateur. */

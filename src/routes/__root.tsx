@@ -44,6 +44,7 @@ import { GardeIntegrite } from "@/components/GardeIntegrite";
 import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { SauvegardeEmailAuto } from "@/components/SauvegardeEmailAuto";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
+import { ChampsVisiblesClavier } from "@/components/ChampsVisiblesClavier";
 
 function NotFoundComponent() {
   return (
@@ -199,6 +200,7 @@ function RootComponent() {
           <BarreHaute />
           {!pleinEcran && <BottomNav />}
           <ClavierInterne />
+          <ChampsVisiblesClavier />
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
           <EcranVerrou />
