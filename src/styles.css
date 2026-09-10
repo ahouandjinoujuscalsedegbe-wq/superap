@@ -69,6 +69,7 @@
   --surface-alpha: 0.85;
   --app-nav-height: 5.75rem;
   --app-keyboard-height: 0px;
+  --app-native-keyboard-height: 0px;
   --modal-max-height: calc(
     100dvh - max(1rem, env(safe-area-inset-top, 0px)) -
       max(1rem, env(safe-area-inset-bottom, 0px)) - var(--app-keyboard-height)
@@ -181,7 +182,29 @@
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
     overflow-x: hidden;
+    scroll-padding-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.75rem);
+    scroll-padding-bottom: calc(var(--app-keyboard-height) + 1rem);
   }
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  scroll-margin-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.75rem);
+  scroll-margin-bottom: calc(var(--app-keyboard-height) + 1rem);
+}
+
+/* Une fenêtre contenant le champ actif se réduit elle aussi au-dessus du
+   clavier. Son contenu peut alors défiler au lieu de rester figé derrière. */
+.fixed[data-champ-clavier-actif="true"] {
+  bottom: calc(var(--app-keyboard-height) + var(--app-native-keyboard-height)) !important;
+  max-height: calc(
+    100dvh - var(--app-keyboard-height) - var(--app-native-keyboard-height)
+  ) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Surfaces translucides : l'opacité suit le réglage utilisateur. */
