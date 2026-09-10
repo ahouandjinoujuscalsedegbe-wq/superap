@@ -47,6 +47,7 @@ function conteneursDefilables(champ: HTMLElement): HTMLElement[] {
 export function ChampsVisiblesClavier() {
   useEffect(() => {
     let champActif: ChampSaisie | null = null;
+    let panneauActif: HTMLElement | null = null;
     let hauteurClavierInterne = 0;
     let animation = 0;
     let rappel = 0;
@@ -58,6 +59,13 @@ export function ChampsVisiblesClavier() {
 
       const viewport = window.visualViewport;
       const hautEcran = viewport?.offsetTop ?? 0;
+      const hauteurNative = viewport
+        ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+        : 0;
+      document.documentElement.style.setProperty(
+        "--app-native-keyboard-height",
+        `${Math.round(hauteurNative)}px`,
+      );
       const basEcran = hautEcran + (viewport?.height ?? window.innerHeight) - hauteurClavierInterne;
       const limiteHaut = hautEcran + MARGE_HAUT;
       const limiteBas = Math.max(limiteHaut + 48, basEcran - MARGE_CLAVIER);
@@ -95,6 +103,9 @@ export function ChampsVisiblesClavier() {
     const surFocus = (evenement: FocusEvent) => {
       if (!estChampSaisie(evenement.target)) return;
       champActif = evenement.target;
+      panneauActif?.removeAttribute("data-champ-clavier-actif");
+      panneauActif = champActif.closest<HTMLElement>(".fixed");
+      panneauActif?.setAttribute("data-champ-clavier-actif", "true");
       planifier();
       // Android annonce parfois la taille finale du clavier après l'événement focus.
       planifier(100);
@@ -102,6 +113,8 @@ export function ChampsVisiblesClavier() {
     const surPerteFocus = (evenement: FocusEvent) => {
       if (evenement.target === champActif && !estChampSaisie(evenement.relatedTarget)) {
         champActif = null;
+        panneauActif?.removeAttribute("data-champ-clavier-actif");
+        panneauActif = null;
       }
     };
     const surSaisie = (evenement: Event) => {
@@ -127,6 +140,8 @@ export function ChampsVisiblesClavier() {
     return () => {
       window.clearTimeout(rappel);
       if (animation) window.cancelAnimationFrame(animation);
+      panneauActif?.removeAttribute("data-champ-clavier-actif");
+      document.documentElement.style.removeProperty("--app-native-keyboard-height");
       document.removeEventListener("focusin", surFocus, true);
       document.removeEventListener("focusout", surPerteFocus, true);
       document.removeEventListener("input", surSaisie, true);
