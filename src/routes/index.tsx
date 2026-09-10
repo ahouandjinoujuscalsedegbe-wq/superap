@@ -58,10 +58,8 @@ function Accueil() {
   const dettesEchues = dettes.filter(
     (d) => d.dateLimite && d.dateLimite <= aujourdHui && resteDu(d) > 0,
   );
-  const enveloppesRouges = enveloppes.filter(
-    (e) => etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).plafondAtteint,
-  );
-  const rappels = echeancesProches.length + dettesEchues.length + enveloppesRouges.length;
+  // Les enveloppes en dépassement ont leur propre alerte dédiée (AlerteEnveloppes).
+  const rappels = echeancesProches.length + dettesEchues.length;
 
   // Analyse locale : prévision d'épuisement des enveloppes et dépenses inhabituelles.
 
