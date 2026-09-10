@@ -42,6 +42,12 @@ function AjouterDepense() {
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [categorieChoisie, setCategorieChoisie] = useState<string | null>(null);
   const [sousCategorieChoisie, setSousCategorieChoisie] = useState<string | null>(null);
+  /** Vrai dès que l'utilisateur choisit lui-même une enveloppe : le classement auto s'arrête. */
+  const [choixManuel, setChoixManuel] = useState(false);
+  function choisirEnveloppe(id: string) {
+    setChoixManuel(true);
+    setEnveloppe(id);
+  }
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
