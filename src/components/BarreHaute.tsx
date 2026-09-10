@@ -19,6 +19,7 @@ import {
   ListOrdered,
   History,
   ArrowLeftRight,
+  BarChart3,
 } from "lucide-react";
 
 import { useSuperApp } from "@/lib/store";
@@ -485,7 +486,17 @@ export function BarreHaute() {
             >
               Action
             </button>
-          ) : pathname === "/revenu" || pathname === "/depense" ? null : (
+          ) : pathname === "/revenu" || pathname === "/depense" ? null : pathname ===
+              "/notifications" ? (
+            <Link
+              to="/conseiller/donnees"
+              aria-label="Mes données et fiabilité"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition-transform duration-200 active:scale-95"
+            >
+              <BarChart3 className="h-4 w-4" aria-hidden />
+              Mes données
+            </Link>
+          ) : (
             <button
               type="button"
               onClick={() => setOuvert((v) => !v)}
