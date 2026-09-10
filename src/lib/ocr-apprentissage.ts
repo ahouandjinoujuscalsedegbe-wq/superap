@@ -16,6 +16,7 @@ import {
 } from "@/lib/extraction";
 import { contexteBenin } from "@/lib/tickets-benin";
 import { noterAction } from "@/lib/memoire-utilisateur";
+import { distanceMots } from "@/lib/comprehension";
 
 const CLE = "superapp:ocr:apprentissage:v1";
 
@@ -31,6 +32,8 @@ export type RegleCommercant = {
   compte?: string;
   /** Provenance du montant qui s'est révélée juste le plus souvent. */
   sourcePreferee?: SourceMontant;
+  /** Montant habituel de ce commerçant (médiane des validations). */
+  montantTypique?: number;
   validations: number;
   corrections: number;
   majAt: string;
@@ -48,6 +51,8 @@ export type MemoireOcr = {
   };
   /** Tickets jamais compris (aucun montant fiable) à enseigner. */
   echecs: { texte: string; date: string }[];
+  /** Montants validés par commerçant, pour apprendre le montant habituel. */
+  montantsValides?: Record<string, number[]>;
 };
 
 const VIDE: MemoireOcr = {
@@ -124,6 +129,7 @@ export function lireMemoireOcr(): MemoireOcr {
       regles: lu.regles ?? {},
       stats: { ...VIDE.stats, ...(lu.stats ?? {}) },
       echecs: Array.isArray(lu.echecs) ? lu.echecs : [],
+      montantsValides: lu.montantsValides ?? {},
     };
   } catch {
     return { ...VIDE, regles: {}, echecs: [] };
@@ -162,10 +168,26 @@ export function trouverRegle(
   if (direct) return { cle, regle: direct };
 
   const contenu = sansAccents(texte);
+  // Mots du ticket, pour la comparaison tolérante aux fautes de lecture
+  // (l'OCR confond souvent des lettres : « rn » → « m », « 0 » → « o »…).
+  const motsTicket = contenu.split(/\s+/).filter((m) => m.length >= 3);
   let meilleur: { cle: string; regle: RegleCommercant; score: number } | undefined;
   for (const [k, regle] of Object.entries(memoire.regles)) {
-    const communs = regle.motsCles.filter((m) => contenu.includes(m)).length;
-    const proche = k.length >= 4 && (cle.includes(k) || k.includes(cle));
+    let communs = 0;
+    for (const appris of regle.motsCles) {
+      if (contenu.includes(appris)) {
+        communs += 1;
+        continue;
+      }
+      // Correspondance floue : un mot du ticket à distance d'édition ≤ 1
+      // (≤ 2 pour les mots longs) d'un mot appris compte aussi.
+      const tolerance = appris.length >= 8 ? 2 : 1;
+      if (motsTicket.some((m) => distanceMots(m, appris, tolerance) <= tolerance)) {
+        communs += 0.5;
+      }
+    }
+    const proche =
+      k.length >= 4 && (cle.includes(k) || k.includes(cle) || distanceMots(cle, k, 2) <= 2);
     const score = communs * 2 + (proche ? 3 : 0) + Math.min(3, regle.validations);
     if (communs === 0 && !proche) continue;
     if (!meilleur || score > meilleur.score) meilleur = { cle: k, regle, score };
@@ -228,6 +250,25 @@ export function appliquerApprentissage(
       resultat.sourceMontant = regle.sourcePreferee;
       resultat.explicationMontant = `Montant repris de « ${etiquetteSource(regle.sourcePreferee)} », comme vous l'aviez corrigé pour ${regle.libelle}.`;
       ajustements.push(`Montant recalculé (${etiquetteSource(regle.sourcePreferee)})`);
+    }
+  }
+
+  // Montant habituel : si la lecture n'a rien trouvé de fiable, ou si le
+  // montant lu s'écarte fortement de l'habitude du commerçant (souvent une
+  // ligne mal lue), on propose le montant typique à la place.
+  const typique = regle.montantTypique;
+  if (typique && typique > 0 && regle.validations >= 2) {
+    const lu = extrait.montant;
+    const ecartFort = lu > 0 && (lu < typique * 0.3 || lu > typique * 3);
+    if (lu <= 0 || ecartFort) {
+      resultat.montant = typique;
+      resultat.explicationMontant =
+        lu <= 0
+          ? `Aucun montant fiable lu : j'ai repris votre montant habituel chez ${regle.libelle}.`
+          : `Le montant lu (${lu.toLocaleString("fr-FR")} FCFA) semble faux pour ${regle.libelle} : j'ai repris votre montant habituel, à vérifier.`;
+      ajustements.push("Montant habituel proposé");
+      // Proposition à confirmer : on n'augmente pas la confiance au-delà.
+      resultat.confiance = Math.min(resultat.confiance, 0.7);
     }
   }
 
@@ -327,6 +368,18 @@ export function apprendreTicket(entree: ValidationTicket, memoire = lireMemoireO
   }
 
   const cles = motsCles(texte);
+
+  // Historique des montants validés chez ce commerçant → montant habituel
+  // (médiane), qui sert de repli quand la lecture est douteuse.
+  memoire.montantsValides = memoire.montantsValides ?? {};
+  const valides = [...(memoire.montantsValides[cle] ?? []), valide.montant]
+    .filter((v) => v > 0)
+    .slice(-12);
+  memoire.montantsValides[cle] = valides;
+  const triees = [...valides].sort((a, b) => a - b);
+  const montantTypique =
+    triees.length > 0 ? Math.round(triees[Math.floor(triees.length / 2)] ?? 0) : undefined;
+
   memoire.regles[cle] = {
     libelle: valide.libelle.trim() || existante?.libelle || propose.libelle,
     motsCles: Array.from(new Set([...(existante?.motsCles ?? []), ...cles])).slice(0, 12),
@@ -334,6 +387,7 @@ export function apprendreTicket(entree: ValidationTicket, memoire = lireMemoireO
     ...(valide.enveloppe ? { enveloppe: valide.enveloppe } : {}),
     ...(valide.compte ? { compte: valide.compte } : {}),
     ...(sourcePreferee ? { sourcePreferee } : {}),
+    ...(montantTypique ? { montantTypique } : {}),
     validations: (existante?.validations ?? 0) + (corrige ? 0 : 1),
     corrections: (existante?.corrections ?? 0) + (corrige ? 1 : 0),
     majAt: new Date().toISOString(),

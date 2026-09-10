@@ -16,6 +16,9 @@ import {
 } from "./ia-unifiee";
 import { phrasesHabitudes } from "./memoire-utilisateur";
 import { detecterLimites, phrasesLimites } from "./limites-ia";
+import { classerQuestion } from "./comprehension";
+import { projectionRobuste } from "./previsions-robustes";
+import { conseilsFins } from "./conseils-fins";
 
 export type ReponseGenerale = { reponse: string; details: string[] };
 
@@ -52,6 +55,7 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
   { id: "planifie", motif: /planifi|prevu|suivi|compare|ecart|reel/ },
   { id: "previsions", motif: /prevision|projection|fin du mois|prochain mois|futur|tiendrai/ },
   { id: "alertes", motif: /alerte|probleme|risque|danger|attention|vigilance/ },
+  { id: "conseils", motif: /conseil|astuce|recommandation|quoi faire|comment ameliorer/ },
   {
     id: "resume",
     motif: /resume|point global|situation generale|ou en est|comment ca va|bilan general/,
@@ -64,7 +68,10 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
  */
 export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale | null {
   const q = normaliser(question);
-  const domaine = DOMAINES.find((d) => d.motif.test(q))?.id;
+  // 1. Chemin rapide : motifs exacts historiques.
+  // 2. Repli : classement tolérant aux fautes et aux synonymes
+  //    (compréhension renforcée, toujours hors ligne).
+  const domaine = DOMAINES.find((d) => d.motif.test(q))?.id ?? classerQuestion(question)?.id;
   if (!domaine) return null;
 
   switch (domaine) {
@@ -205,11 +212,16 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
 
     case "previsions": {
       const b = etat.mensuel;
+      const robuste = projectionRobuste(etat.donnees.transactions);
       return {
-        reponse: `Au rythme de ${fcfa(b.rythmeJour)} par jour, vos dépenses devraient atteindre ${fcfa(
-          b.projection,
+        reponse: `Au rythme de ${fcfa(robuste.rythme || b.rythmeJour)} par jour, vos dépenses devraient atteindre ${fcfa(
+          robuste.projection || b.projection,
         )} d'ici la fin du mois.`,
         details: [
+          robuste.methode,
+          robuste.fiabilite !== "bonne"
+            ? `Fiabilité : ${robuste.fiabilite === "estimee" ? "estimation intermédiaire" : "provisoire"} — la projection s'affirmera avec davantage de saisies.`
+            : "Fiabilité : bonne, votre historique est suffisamment profond.",
           `Revenus du mois : ${fcfa(b.revenus)} — dépenses déjà réalisées : ${fcfa(b.depenses)}.`,
           `Taux d'épargne actuel : ${b.tauxEpargne} %.`,
           b.moyenneSaison > 0
@@ -219,6 +231,24 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
             : "Je manque encore d'historique pour comparer à la même période des années passées.",
           etat.cerveau.faits ? etat.cerveau.resume : "",
         ].filter((d) => d.length > 0),
+      };
+    }
+
+    case "conseils": {
+      const fins = conseilsFins(etat.donnees);
+      if (fins.length === 0) {
+        return {
+          reponse:
+            "Je n'ai rien détecté d'inhabituel ce mois-ci : pas de dépense anormale, pas de petite fuite répétée, pas de surplus dormant.",
+          details: [
+            "Continuez à enregistrer vos opérations : mes conseils deviennent plus fins à mesure que j'accumule vos habitudes.",
+            `Maturité de mon apprentissage : ${etat.maturite} %.`,
+          ],
+        };
+      }
+      return {
+        reponse: `J'ai ${fins.length} conseil(s) précis pour vous ce mois-ci :`,
+        details: fins,
       };
     }
 
@@ -241,10 +271,12 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
     case "resume":
     default: {
       const bilan = detecterLimites(etat);
+      const fins = conseilsFins(etat.donnees);
       return {
         reponse: resumeReseau(etat)[0] ?? etat.cerveau.resume,
         details: [
           ...resumeReseau(etat).slice(1),
+          ...fins.slice(0, 2),
           ...phrasesHabitudes(etat.habitudes).slice(0, 2),
           bilan.avertissement,
         ],
@@ -261,10 +293,10 @@ export function repondreParDefaut(etat: EtatIA): ReponseGenerale {
   const bilan = detecterLimites(etat);
   return {
     reponse:
-      "Je n'ai pas compris votre question : c'est une de mes limites, je fonctionne par mots-clés et non en langage libre.",
+      "Je n'ai pas compris votre question — cela reste une de mes limites : je comprends beaucoup de formulations, même avec des fautes de frappe, mais je ne suis pas un grand modèle de langage.",
     details: [
       ...resumeReseau(etat),
-      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes, limites.",
+      "Essayez par exemple : comptes, dettes, objectifs, planifié, prévisions, alertes, conseils, limites.",
       bilan.avertissement,
     ],
   };
