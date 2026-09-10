@@ -6,7 +6,8 @@ import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
-import { classerDepense } from "@/lib/classement-enveloppe";
+import { classerDepense, suggererEnveloppes } from "@/lib/classement-enveloppe";
+import AlerteEnveloppes from "@/components/AlerteEnveloppes";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
