@@ -368,11 +368,13 @@ function PageDonneesConseiller() {
                     </span>
                     <span>
                       Effort nécessaire :{" "}
-                      <strong className="text-foreground">{fcfa(f.suivi.effortMensuel)}</strong>/mois
+                      <strong className="text-foreground">{fcfa(f.suivi.effortMensuel)}</strong>
+                      /mois
                     </span>
                     <span>
                       Rythme constaté :{" "}
-                      <strong className="text-foreground">{fcfa(f.suivi.rythmeMensuel)}</strong>/mois
+                      <strong className="text-foreground">{fcfa(f.suivi.rythmeMensuel)}</strong>
+                      /mois
                     </span>
                   </div>
 
