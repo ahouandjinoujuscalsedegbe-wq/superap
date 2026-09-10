@@ -14,6 +14,7 @@ import type {
   Budget,
   CategorieEnveloppe,
   Dette,
+  EcheancierDette,
   ElementCorbeille,
   Enveloppe,
   Objectif,
