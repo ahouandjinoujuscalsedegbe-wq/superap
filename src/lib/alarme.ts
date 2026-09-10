@@ -33,6 +33,14 @@ export type ReglagesAlarme = {
   predictions: boolean;
   /** Alarme quand une enveloppe dépasse son plafond de dépenses. */
   plafonds: boolean;
+  /** Heures calmes : aucune sonnerie ni vibration pendant la nuit. */
+  heuresCalmes: boolean;
+  /** Début des heures calmes, au format HH:MM. */
+  debutCalme: string;
+  /** Fin des heures calmes, au format HH:MM. */
+  finCalme: string;
+  /** Laisser sonner malgré tout les alertes graves pendant les heures calmes. */
+  urgentesTouteHeure: boolean;
   /** Seuil de solde minimal par compte (nom du compte -> montant FCFA). */
   seuilsComptes: Record<string, number>;
 };
@@ -46,8 +54,48 @@ export const REGLAGES_ALARME_DEFAUT: ReglagesAlarme = {
   avanceJours: 2,
   predictions: true,
   plafonds: true,
+  heuresCalmes: true,
+  debutCalme: "22:00",
+  finCalme: "07:00",
+  urgentesTouteHeure: false,
   seuilsComptes: {},
 };
+
+/** Convertit « HH:MM » en minutes depuis minuit ; -1 si invalide. */
+function minutes(heure: string): number {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(heure);
+  if (!m) return -1;
+  const h = Number(m[1]);
+  const mn = Number(m[2]);
+  if (h > 23 || mn > 59) return -1;
+  return h * 60 + mn;
+}
+
+/** Vérifie et nettoie une heure « HH:MM ». */
+function heureValide(valeur: unknown, defaut: string): string {
+  return typeof valeur === "string" && minutes(valeur) >= 0 ? valeur : defaut;
+}
+
+/** Sommes-nous dans la plage de silence choisie par l'utilisateur ? */
+export function enHeuresCalmes(r: ReglagesAlarme, maintenant = new Date()): boolean {
+  if (!r.heuresCalmes) return false;
+  const debut = minutes(r.debutCalme);
+  const fin = minutes(r.finCalme);
+  if (debut < 0 || fin < 0 || debut === fin) return false;
+  const m = maintenant.getHours() * 60 + maintenant.getMinutes();
+  return debut < fin ? m >= debut && m < fin : m >= debut || m < fin;
+}
+
+/**
+ * Le son et la vibration sont-ils autorisés à cet instant ?
+ * Les notifications visuelles, elles, restent toujours délivrées.
+ */
+export function sonAutorise(r: ReglagesAlarme, urgent = false, maintenant = new Date()): boolean {
+  if (!r.active) return false;
+  if (!enHeuresCalmes(r, maintenant)) return true;
+  return urgent && r.urgentesTouteHeure;
+}
+
 
 /** Nettoie les seuils par compte : uniquement des montants positifs. */
 function lireSeuils(brut: unknown): Record<string, number> {
