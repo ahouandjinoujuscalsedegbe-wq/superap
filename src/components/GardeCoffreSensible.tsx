@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { Vault } from "lucide-react";
 import {
   PAGES_SENSIBLES,
@@ -8,6 +8,7 @@ import {
   ouvrirCoffreSensible,
 } from "@/lib/coffre-sensible";
 import { lireOptions } from "@/lib/securite-avancee";
+import { retourIntelligent } from "@/lib/retour";
 
 /**
  * Deuxième coffre : les pages sensibles (objectifs, dettes, sauvegarde,
@@ -15,6 +16,7 @@ import { lireOptions } from "@/lib/securite-avancee";
  */
 export function GardeCoffreSensible() {
   const { pathname } = useLocation();
+  const router = useRouter();
   const [phrase, setPhrase] = useState("");
   const [erreur, setErreur] = useState("");
   const [ouvert, setOuvert] = useState(() => coffreSensibleOuvert());
@@ -67,7 +69,7 @@ export function GardeCoffreSensible() {
         </button>
         <button
           type="button"
-          onClick={() => window.history.back()}
+          onClick={() => retourIntelligent(router)}
           className="w-full rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
         >
           Retour

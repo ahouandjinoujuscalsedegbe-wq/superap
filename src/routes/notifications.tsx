@@ -28,6 +28,7 @@ import { DiscussionVocaleCoach } from "@/components/DiscussionVocaleCoach";
 import { PanneauConseiller } from "@/components/PanneauConseiller";
 import { SelecteurEnveloppes } from "@/components/SelecteurEnveloppes";
 import { useSuperApp } from "@/lib/store";
+import { retourIntelligent } from "@/lib/retour";
 import { EXEMPLES_QUESTIONS } from "@/lib/assistant-local";
 import { bilansEnveloppes } from "@/lib/coach-enveloppe";
 import { arreterLecture, lireAVoixHaute, vocalisationDisponible } from "@/lib/vocalisation";
@@ -360,7 +361,7 @@ function PageNotifications() {
       <header className="flex items-center gap-2 bg-primary px-2 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] text-primary-foreground">
         <button
           type="button"
-          onClick={() => router.history.back()}
+          onClick={() => retourIntelligent(router)}
           aria-label="Retour"
           className="rounded-full p-2"
         >

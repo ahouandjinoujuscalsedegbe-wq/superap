@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useSecurite } from "@/lib/securite";
 import { empreinteCode, lireOptions } from "@/lib/securite-avancee";
 import { PavePin } from "./PavePin";
+import { retourIntelligent } from "@/lib/retour";
 
 /** Pages contenant des actions irréversibles ou une sortie de données. */
 const PAGES_PROTEGEES = ["/parametres/donnees", "/sauvegarde", "/parametres/securite"];
@@ -13,6 +14,7 @@ const CLE_SESSION = "superapp:securite:actions-ouvertes";
 /** Exige le code avant les actions sensibles (purge, export, sauvegarde). */
 export function GardeActionSensible() {
   const { pathname } = useLocation();
+  const router = useRouter();
   const { config } = useSecurite();
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState("");
@@ -73,7 +75,7 @@ export function GardeActionSensible() {
         {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
         <button
           type="button"
-          onClick={() => window.history.back()}
+          onClick={() => retourIntelligent(router)}
           className="w-full rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
         >
           Retour
