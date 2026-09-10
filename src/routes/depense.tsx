@@ -243,6 +243,30 @@ function AjouterDepense() {
         <section className="carte space-y-3 p-4">
           <p className="text-sm font-medium">Enveloppe</p>
 
+          {enveloppeAuto && (
+            <div className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs">
+              <span aria-hidden className="text-base">
+                ✨
+              </span>
+              <span className="min-w-0 flex-1">
+                Classée automatiquement dans « {enveloppeChoisie?.nom} » (
+                {enveloppeAuto.confiance} %)
+                <span className="block text-muted-foreground">{enveloppeAuto.raison}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setChoixManuel(true);
+                  setPanneauOuvert(true);
+                }}
+                className="shrink-0 font-semibold text-primary"
+              >
+                Changer
+              </button>
+            </div>
+          )}
+
+
           {suggestion && (
             <button
               type="button"
