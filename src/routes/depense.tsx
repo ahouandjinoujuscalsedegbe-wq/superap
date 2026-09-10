@@ -273,22 +273,46 @@ function AjouterDepense() {
             </div>
           )}
 
-          {suggestion && (
-            <button
-              type="button"
-              onClick={() => choisirEnveloppe(suggestion.enveloppe)}
-              className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
-            >
-              <span aria-hidden className="text-base">
-                {suggestion.emoji}
-              </span>
-              <span className="min-w-0 flex-1">
-                Suggestion : « {suggestion.nom} » ({suggestion.confiance} %)
-                <span className="block text-muted-foreground">{suggestion.raison}</span>
-              </span>
-              <span className="shrink-0 font-semibold text-primary">Utiliser</span>
-            </button>
+          {suggestions.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">
+                Enveloppes correspondant au nom que vous avez écrit :
+              </p>
+              {suggestions.map((s) => (
+                <button
+                  key={s.enveloppe}
+                  type="button"
+                  onClick={() => choisirEnveloppe(s.enveloppe)}
+                  className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
+                >
+                  <span aria-hidden className="text-base">
+                    {s.emoji}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    « {s.nom} » ({s.confiance} %)
+                    <span className="block text-muted-foreground">{s.raison}</span>
+                  </span>
+                  <span className="shrink-0 font-semibold text-primary">Utiliser</span>
+                </button>
+              ))}
+            </div>
           )}
+
+          {/* Reprendre la main sur le classement automatique. */}
+          <button
+            type="button"
+            onClick={() => {
+              setChoixManuel(true);
+              setPanneauOuvert(true);
+              setRecherche("");
+              setCategorieChoisie(null);
+              setSousCategorieChoisie(null);
+            }}
+            className="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs font-semibold"
+          >
+            Classement manuel
+          </button>
+
 
           <button
             type="button"
