@@ -4,7 +4,7 @@ import { AlarmClock, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { ajusterAuRevenu, proposerDotations } from "@/lib/budget-auto";
-import { lireReglagesAlarme } from "@/lib/alarme";
+import { lireReglagesAlarme, sonAutorise } from "@/lib/alarme";
 import { jouerSonAlarme, notifierAlarme, vibrerAlarme } from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {
@@ -111,12 +111,13 @@ export function RappelBudgetMensuel() {
     } else {
       void publierAlerteConseiller({ titre: titreRappel, texte: texteRappel, urgent: true });
     }
+    const bruitOk = sonAutorise(reglages, true);
     const bip = () => {
-      if (reglages.son) void jouerSonAlarme(reglages.volume, true);
-      if (reglages.vibration) void vibrerAlarme(true);
+      if (reglages.son && bruitOk) void jouerSonAlarme(reglages.volume, true);
+      if (reglages.vibration && bruitOk) void vibrerAlarme(true);
     };
     bip();
-    if (reglages.son || reglages.vibration) {
+    if ((reglages.son || reglages.vibration) && bruitOk) {
       bips.current = window.setInterval(bip, PAS_BIP_MS);
       // La sonnerie s'arrête d'elle-même au bout de 5 minutes.
       finSonnerie.current = window.setTimeout(arreterSonnerie, DUREE_SONNERIE_MS);

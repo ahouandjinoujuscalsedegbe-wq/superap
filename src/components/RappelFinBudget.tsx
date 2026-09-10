@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AlarmClock, Wand2, X } from "lucide-react";
-import { lireReglagesAlarme } from "@/lib/alarme";
+import { lireReglagesAlarme, sonAutorise } from "@/lib/alarme";
 import { jouerSonAlarme, notifierAlarme, vibrerAlarme } from "@/lib/alarme-appareil";
 import { publierAlerteConseiller } from "@/lib/alertes-conseiller";
 import {

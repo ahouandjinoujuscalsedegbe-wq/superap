@@ -7,6 +7,7 @@ import {
   declencherAlarmeAppareil,
   lireReglagesAlarme,
   reporterAlarme,
+  sonAutorise,
   type Alarme,
 } from "@/lib/alarme";
 
@@ -38,11 +39,14 @@ export function AlarmeIntelligente() {
     dejaSonnees.current = new Set(liste.map((a) => a.id));
 
     if (nouvelle && reglages.active) {
+      // Pendant les heures calmes, la notification reste affichée mais
+      // le téléphone ne sonne pas et ne vibre pas.
+      const bruitOk = sonAutorise(reglages, nouvelle.niveau === "alerte");
       void declencherAlarmeAppareil({
         volume: reglages.volume,
         urgent: nouvelle.niveau === "alerte",
-        son: reglages.son,
-        vibration: reglages.vibration,
+        son: reglages.son && bruitOk,
+        vibration: reglages.vibration && bruitOk,
         notification: reglages.notification,
         titre: nouvelle.titre,
         texte: nouvelle.texte,

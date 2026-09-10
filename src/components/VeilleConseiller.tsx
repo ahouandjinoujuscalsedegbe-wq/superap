@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSuperApp } from "@/lib/store";
 import { useCerveau } from "@/lib/cerveau/hook";
-import { lireReglagesAlarme } from "@/lib/alarme";
+import { lireReglagesAlarme, sonAutorise } from "@/lib/alarme";
 import {
   declencherAlarmeAppareil,
   idConseiller,
@@ -152,11 +152,12 @@ export function VeilleConseiller() {
         publications.find((p) => p.niveau === "alarme") ??
         publications.find((p) => p.niveau === "alerte");
       if (grave && reglages.active) {
+        const bruitOk = sonAutorise(reglages, grave.niveau === "alarme");
         await declencherAlarmeAppareil({
           volume: reglages.volume,
           urgent: grave.niveau === "alarme",
-          son: reglages.son && grave.niveau === "alarme",
-          vibration: reglages.vibration,
+          son: reglages.son && grave.niveau === "alarme" && bruitOk,
+          vibration: reglages.vibration && bruitOk,
           notification: false,
           titre: grave.titre,
           texte: grave.texte,
