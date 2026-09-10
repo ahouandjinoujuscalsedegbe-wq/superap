@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowDown,
+  BarChart3,
   Check,
   CheckCheck,
   Copy,
