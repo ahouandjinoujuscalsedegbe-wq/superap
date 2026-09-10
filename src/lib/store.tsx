@@ -1349,7 +1349,26 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         const id = crypto.randomUUID();
         const creeLe = new Date().toISOString().slice(0, 10);
         const fiche: Dette = { ...d, id, creeLe, remboursements: [] };
-        const etatSuivant: Etat = { ...e, dettes: [fiche, ...e.dettes] };
+        const dedie = compteDedie(d.sens);
+        // Miroir sur le compte dédié : une dette pèse en moins sur
+        // « Je dois à quelqu'un », une créance s'inscrit sur
+        // « Quelqu'un me doit » et disparaîtra au remboursement.
+        const miroir: Transaction = {
+          id: crypto.randomUUID(),
+          type: d.sens === "dette" ? "depense" : "revenu",
+          montant: d.montantInitial,
+          libelle:
+            d.sens === "dette" ? `Dette envers ${d.personne}` : `Créance sur ${d.personne}`,
+          categorie: "dettes",
+          compte: dedie,
+          date: new Date(creeLe).toISOString(),
+          detteId: id,
+        };
+        const etatSuivant: Etat = {
+          ...e,
+          dettes: [fiche, ...e.dettes],
+          transactions: [miroir, ...e.transactions],
+        };
         if (!compte) return etatSuivant;
         // Une dette contractée fait entrer de l'argent ; une créance accordée en fait sortir.
         const mouvement: Transaction = {
@@ -1363,7 +1382,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           date: new Date(creeLe).toISOString(),
           detteId: id,
         };
-        return { ...etatSuivant, transactions: [mouvement, ...e.transactions] };
+        return { ...etatSuivant, transactions: [mouvement, ...etatSuivant.transactions] };
       });
     },
     [],
