@@ -123,6 +123,10 @@ export function lireReglagesAlarme(): ReglagesAlarme {
       avanceJours: Math.min(15, Math.max(0, Number(objet.avanceJours ?? 2))),
       predictions: objet.predictions ?? true,
       plafonds: objet.plafonds ?? true,
+      heuresCalmes: objet.heuresCalmes ?? true,
+      debutCalme: heureValide(objet.debutCalme, "22:00"),
+      finCalme: heureValide(objet.finCalme, "07:00"),
+      urgentesTouteHeure: objet.urgentesTouteHeure ?? false,
       seuilsComptes: lireSeuils(objet.seuilsComptes),
     };
   } catch {
