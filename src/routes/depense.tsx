@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { apprendreIcone } from "@/lib/icone-auto";
