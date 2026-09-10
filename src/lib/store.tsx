@@ -454,6 +454,8 @@ type Contexte = Etat & {
   sourcesRevenu: string[];
   ajouterTransaction: (t: Omit<Transaction, "id">) => void;
   supprimerTransaction: (id: string) => void;
+  /** Change l'enveloppe d'une dépense déjà enregistrée (classement manuel). */
+  reclasserTransaction: (id: string, enveloppeId: string) => void;
   ajouterCompte: (nom: string, dansDisponible?: boolean, emoji?: string) => void;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
