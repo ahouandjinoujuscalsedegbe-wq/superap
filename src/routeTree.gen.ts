@@ -39,6 +39,7 @@ import { Route as ComptesActionRouteImport } from './routes/comptes.action'
 import { Route as ComptesCreerRouteImport } from './routes/comptes.creer'
 import { Route as ComptesHistoriqueRouteImport } from './routes/comptes.historique'
 import { Route as ComptesTransfertsRouteImport } from './routes/comptes.transferts'
+import { Route as ConseillerDonneesRouteImport } from './routes/conseiller.donnees'
 import { Route as EnveloppesIndexRouteImport } from './routes/enveloppes.index'
 import { Route as EnveloppesActionRouteImport } from './routes/enveloppes.action'
 import { Route as EnveloppesBudgetMensuelRouteImport } from './routes/enveloppes.budget-mensuel'
@@ -229,6 +230,11 @@ const ComptesTransfertsRoute = ComptesTransfertsRouteImport.update({
   id: '/transferts',
   path: '/transferts',
   getParentRoute: () => ComptesRoute,
+} as any)
+const ConseillerDonneesRoute = ConseillerDonneesRouteImport.update({
+  id: '/conseiller/donnees',
+  path: '/conseiller/donnees',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EnveloppesIndexRoute = EnveloppesIndexRouteImport.update({
   id: '/',
@@ -464,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/comptes/creer': typeof ComptesCreerRoute
   '/comptes/historique': typeof ComptesHistoriqueRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
+  '/conseiller/donnees': typeof ConseillerDonneesRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -530,6 +537,7 @@ export interface FileRoutesByTo {
   '/comptes/action': typeof ComptesActionRoute
   '/comptes/creer': typeof ComptesCreerRoute
   '/comptes/historique': typeof ComptesHistoriqueRoute
+  '/conseiller/donnees': typeof ConseillerDonneesRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -603,6 +611,7 @@ export interface FileRoutesById {
   '/comptes/creer': typeof ComptesCreerRoute
   '/comptes/historique': typeof ComptesHistoriqueRoute
   '/comptes/transferts': typeof ComptesTransfertsRouteWithChildren
+  '/conseiller/donnees': typeof ConseillerDonneesRoute
   '/enveloppes/action': typeof EnveloppesActionRoute
   '/enveloppes/budget-mensuel': typeof EnveloppesBudgetMensuelRoute
   '/enveloppes/categories': typeof EnveloppesCategoriesRoute
@@ -677,6 +686,7 @@ export interface FileRouteTypes {
     | '/comptes/creer'
     | '/comptes/historique'
     | '/comptes/transferts'
+    | '/conseiller/donnees'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
     | '/enveloppes/categories'
@@ -743,6 +753,7 @@ export interface FileRouteTypes {
     | '/comptes/action'
     | '/comptes/creer'
     | '/comptes/historique'
+    | '/conseiller/donnees'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
     | '/enveloppes/categories'
@@ -815,6 +826,7 @@ export interface FileRouteTypes {
     | '/comptes/creer'
     | '/comptes/historique'
     | '/comptes/transferts'
+    | '/conseiller/donnees'
     | '/enveloppes/action'
     | '/enveloppes/budget-mensuel'
     | '/enveloppes/categories'
@@ -877,6 +889,7 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SimulationRoute: typeof SimulationRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  ConseillerDonneesRoute: typeof ConseillerDonneesRoute
   HistoriqueDepensesRoute: typeof HistoriqueDepensesRoute
   HistoriqueRevenusRoute: typeof HistoriqueRevenusRoute
   RapportMoisRoute: typeof RapportMoisRoute
@@ -1098,6 +1111,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/comptes/transferts'
       preLoaderRoute: typeof ComptesTransfertsRouteImport
       parentRoute: typeof ComptesRoute
+    }
+    '/conseiller/donnees': {
+      id: '/conseiller/donnees'
+      path: '/conseiller/donnees'
+      fullPath: '/conseiller/donnees'
+      preLoaderRoute: typeof ConseillerDonneesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/enveloppes/': {
       id: '/enveloppes/'
@@ -1547,6 +1567,7 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SimulationRoute: SimulationRoute,
   SynchronisationRoute: SynchronisationRoute,
+  ConseillerDonneesRoute: ConseillerDonneesRoute,
   HistoriqueDepensesRoute: HistoriqueDepensesRoute,
   HistoriqueRevenusRoute: HistoriqueRevenusRoute,
   RapportMoisRoute: RapportMoisRoute,
