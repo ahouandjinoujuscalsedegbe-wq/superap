@@ -205,6 +205,29 @@ function PageNotifications() {
     if (enBas) bas.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [memoire.messages.length, ecrit, enBas]);
 
+  // Clavier à l'écran : la page suit la hauteur réellement visible
+  // (visualViewport), pour que ni le fil ni le champ de saisie ne passent
+  // sous le clavier — sur navigateur comme dans l'application Android.
+  const [hauteurVisible, setHauteurVisible] = useState<number | null>(null);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const maj = () => {
+      setHauteurVisible(Math.round(vv.height));
+      // Si le champ est actif (clavier ouvert), on garde le dernier message visible.
+      if (document.activeElement === champ.current) {
+        window.setTimeout(() => bas.current?.scrollIntoView({ block: "end" }), 60);
+      }
+    };
+    maj();
+    vv.addEventListener("resize", maj);
+    vv.addEventListener("scroll", maj);
+    return () => {
+      vv.removeEventListener("resize", maj);
+      vv.removeEventListener("scroll", maj);
+    };
+  }, []);
+
   const enregistrer = (suivante: MemoireCoach) => {
     setMemoire(suivante);
     memoireRef.current = suivante;
