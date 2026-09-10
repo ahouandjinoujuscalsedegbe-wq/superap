@@ -487,7 +487,7 @@ export function BarreHaute() {
               Action
             </button>
           ) : pathname === "/revenu" || pathname === "/depense" ? null : pathname ===
-              "/notifications" ? (
+            "/notifications" ? (
             <Link
               to="/conseiller/donnees"
               aria-label="Mes données et fiabilité"
