@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Brain, CalendarRange, LineChart, Sun, Volume2, Square, X } from "lucide-react";
 import { FicheAnalyses } from "@/components/FicheAnalyses";
 import { FicheOutils } from "@/components/FicheOutils";
+import { LimitesIa } from "@/components/LimitesIa";
 import { vocalisationDisponible } from "@/lib/vocalisation";
 import { useCerveau } from "@/lib/cerveau/hook";
 import { etatApprentissage, resumeReseau, useIaUnifiee } from "@/lib/ia-unifiee";
@@ -172,6 +173,8 @@ export function PanneauConseiller({
               ))}
             </ul>
           </section>
+
+          <LimitesIa etat={ia} />
 
           <section className="carte space-y-2 p-3">
             <div className="flex items-center justify-between gap-2">
