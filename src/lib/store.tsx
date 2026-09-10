@@ -14,6 +14,7 @@ import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
+import { demanderMotDePasse } from "./mot-de-passe-actions";
 import {
   assainirBudget,
   assainirCategorie,
@@ -515,6 +516,13 @@ type Contexte = Etat & {
   definirMembres: (noms: string[]) => void;
   definirTransparence: (v: number) => void;
   definirNomUtilisateur: (nom: string) => void;
+  /** Actions internes non protégées, réservées aux automatismes de l'application. */
+  systeme: {
+    modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
+    modifierObjectif: (id: string, o: Partial<Omit<Objectif, "id" | "creeLe">>) => void;
+    modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
+    modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
+  };
   remplacerEtat: (e: Partial<Etat>) => void;
   etatComplet: () => Etat;
   reinitialiser: () => void;
@@ -1461,7 +1469,13 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       definirNomUtilisateur,
       remplacerEtat,
       etatComplet,
-      reinitialiser: proteger(reinitialiser, "Confirmez la suppression."),
+      reinitialiser: proteger(reinitialiser, "Confirmez la réinitialisation."),
+      systeme: {
+        modifierEnveloppe,
+        modifierObjectif,
+        modifierBudget,
+        modifierDette,
+      },
     }),
     [
       ajouterTransaction,
