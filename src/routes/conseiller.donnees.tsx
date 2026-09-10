@@ -43,7 +43,13 @@ function PageDonneesConseiller() {
   const mois = useMemo(() => {
     const parMois = new Map<
       string,
-      { cle: string; revenus: number; depenses: number; montantRevenus: number; montantDepenses: number }
+      {
+        cle: string;
+        revenus: number;
+        depenses: number;
+        montantRevenus: number;
+        montantDepenses: number;
+      }
     >();
     for (const t of transactions) {
       const d = new Date(t.date);
@@ -68,9 +74,7 @@ function PageDonneesConseiller() {
     const lignes = [...parMois.values()].sort((a, b) => a.cle.localeCompare(b.cle));
     // Cumul d'opérations pour voir quand les seuils de fiabilité sont franchis.
     let cumul = 0;
-    return lignes
-      .map((l) => ({ ...l, cumul: (cumul += l.revenus + l.depenses) }))
-      .reverse();
+    return lignes.map((l) => ({ ...l, cumul: (cumul += l.revenus + l.depenses) })).reverse();
   }, [transactions]);
 
   const libelleMois = (cle: string) =>
@@ -173,8 +177,8 @@ function PageDonneesConseiller() {
           </div>
           <p className="text-xs text-muted-foreground">{bilan.avertissement}</p>
           <p className="text-xs text-muted-foreground">
-            {atteints} jalon(s) sur {jalons.length} franchi(s). Chaque jalon franchi fait monter
-            ce score.
+            {atteints} jalon(s) sur {jalons.length} franchi(s). Chaque jalon franchi fait monter ce
+            score.
           </p>
         </section>
 
@@ -193,7 +197,10 @@ function PageDonneesConseiller() {
                     {ok ? (
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
                     ) : (
-                      <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                      <CircleDashed
+                        className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                        aria-hidden
+                      />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">{j.titre}</p>
@@ -230,8 +237,8 @@ function PageDonneesConseiller() {
           </h2>
           {mois.length === 0 ? (
             <p className="py-4 text-center text-xs text-muted-foreground">
-              Aucune opération saisie pour l'instant. Chaque revenu ou dépense enregistré remplit
-              ce tableau et fait monter la fiabilité.
+              Aucune opération saisie pour l'instant. Chaque revenu ou dépense enregistré remplit ce
+              tableau et fait monter la fiabilité.
             </p>
           ) : (
             <ul className="divide-y divide-border text-sm">
