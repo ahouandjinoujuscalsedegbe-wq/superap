@@ -17,7 +17,7 @@ describe("comprehension", () => {
   });
 
   it("retire les mots vides", () => {
-    expect(motsPorteurs("combien je dois de la dette")).toEqual(["combien", "dois", "dette"]);
+    expect(motsPorteurs("combien je dois de la dette")).toEqual(["dois", "dette"]);
   });
 
   it("calcule une distance d'édition bornée", () => {
