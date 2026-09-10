@@ -15,6 +15,7 @@ import {
   type EtatIA,
 } from "./ia-unifiee";
 import { phrasesHabitudes } from "./memoire-utilisateur";
+import { detecterLimites, phrasesLimites } from "./limites-ia";
 
 export type ReponseGenerale = { reponse: string; details: string[] };
 
@@ -34,6 +35,11 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
   {
     id: "capacites",
     motif: /que sais tu|que peux tu|tes capacites|aide moi a te parler|tu sais quoi/,
+  },
+  {
+    id: "limites",
+    motif:
+      /limite|tu ne sais pas|ce que tu ne sais|faiblesse|defaut|fiabilite|fiable|tu te trompes|erreur de l ia|confiance en toi|marge d erreur/,
   },
   {
     id: "apprentissage",
@@ -71,14 +77,30 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
           "« est-ce que je respecte mon budget planifié ? », « quelles alertes aujourd'hui ? »",
           "« qu'est-ce que tu as appris de moi ? », « fais-moi le point général ».",
           `Maturité actuelle de mon apprentissage : ${etat.maturite} %.`,
+          "Demandez-moi aussi « quelles sont tes limites ? » : je vous dirai ce que je ne sais pas faire.",
         ],
       };
 
-    case "apprentissage":
+    case "limites": {
+      const bilan = detecterLimites(etat);
       return {
-        reponse: `J'apprends de tout ce que vous faites : j'en suis à ${etat.maturite} % de maturité.`,
-        details: etatApprentissage(etat),
+        reponse: `Voici honnêtement mes limites : ma fiabilité estimée aujourd'hui est de ${bilan.fiabilite} %. ${bilan.avertissement}`,
+        details: [
+          ...bilan.limites.map(
+            (l) => `${l.gravite === "bloquante" ? "⛔" : "⚠️"} ${l.titre} ${l.detail}`,
+          ),
+          ...bilan.horsPortee,
+        ],
       };
+    }
+
+    case "apprentissage": {
+      const bilan = detecterLimites(etat);
+      return {
+        reponse: `J'apprends de tout ce que vous faites : j'en suis à ${etat.maturite} % de maturité, pour une fiabilité estimée de ${bilan.fiabilite} %.`,
+        details: [...etatApprentissage(etat), ...phrasesLimites(bilan).slice(1, 4)],
+      };
+    }
 
     case "comptes": {
       const { soldeDisponible, solde, comptesExclus } = etat.donnees;
@@ -217,11 +239,17 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
     }
 
     case "resume":
-    default:
+    default: {
+      const bilan = detecterLimites(etat);
       return {
         reponse: resumeReseau(etat)[0] ?? etat.cerveau.resume,
-        details: [...resumeReseau(etat).slice(1), ...phrasesHabitudes(etat.habitudes).slice(0, 2)],
+        details: [
+          ...resumeReseau(etat).slice(1),
+          ...phrasesHabitudes(etat.habitudes).slice(0, 2),
+          bilan.avertissement,
+        ],
       };
+    }
   }
 }
 
@@ -230,12 +258,14 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
  * le conseiller répond quand même avec ce qu'il sait de l'utilisateur.
  */
 export function repondreParDefaut(etat: EtatIA): ReponseGenerale {
+  const bilan = detecterLimites(etat);
   return {
     reponse:
-      "Je n'ai pas bien saisi la question, mais voici où vous en êtes, d'après tout ce que j'observe.",
+      "Je n'ai pas compris votre question : c'est une de mes limites, je fonctionne par mots-clés et non en langage libre.",
     details: [
       ...resumeReseau(etat),
-      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes.",
+      "Demandez-moi : comptes, dettes, objectifs, planifié, alertes, limites.",
+      bilan.avertissement,
     ],
   };
 }
