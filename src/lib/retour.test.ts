@@ -23,9 +23,7 @@ describe("arbre de retour", () => {
   });
 
   it("normalise une barre finale et ignore les paramètres", () => {
-    expect(cheminParent("/objectifs/action/creer/?source=accueil#haut")).toBe(
-      "/objectifs/action",
-    );
+    expect(cheminParent("/objectifs/action/creer/?source=accueil#haut")).toBe("/objectifs/action");
   });
 
   it("garde un repli arborescent pour une future page", () => {
