@@ -70,8 +70,8 @@ export function SectionMotDePasseActions() {
         <h2 className="text-sm font-bold tracking-tight">Mot de passe des modifications</h2>
       </div>
       <p className="text-xs text-muted-foreground">
-        Une fois défini, ce mot de passe est demandé avant chaque modification et chaque
-        suppression (opérations, comptes, enveloppes, budgets, dettes, objectifs, corbeille).
+        Une fois défini, ce mot de passe est demandé avant chaque modification et chaque suppression
+        (opérations, comptes, enveloppes, budgets, dettes, objectifs, corbeille).
       </p>
       <p className="text-xs font-semibold">
         État : {defini ? "protection active" : "aucun mot de passe défini"}

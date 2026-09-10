@@ -49,7 +49,10 @@ export function DemandeMotDePasseAction() {
 
   return (
     <div className="fixed inset-0 z-[97] flex items-center justify-center bg-background/95 px-6">
-      <form onSubmit={valider} className="surface w-full max-w-xs space-y-4 rounded-2xl border border-border p-5 text-center">
+      <form
+        onSubmit={valider}
+        className="surface w-full max-w-xs space-y-4 rounded-2xl border border-border p-5 text-center"
+      >
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border text-primary">
           <Lock className="h-5 w-5" aria-hidden />
         </span>

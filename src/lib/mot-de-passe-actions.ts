@@ -35,13 +35,9 @@ export function nouveauSelMdp(): string {
 
 /** Condensé PBKDF2-SHA256 (150 000 tours) du mot de passe. */
 export async function empreinteMotDePasse(mdp: string, sel: string): Promise<string> {
-  const cle = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(mdp),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
+  const cle = await crypto.subtle.importKey("raw", new TextEncoder().encode(mdp), "PBKDF2", false, [
+    "deriveBits",
+  ]);
   const bits = await crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
