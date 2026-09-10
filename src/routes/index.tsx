@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import AlerteEnveloppes from "@/components/AlerteEnveloppes";
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -12,7 +13,6 @@ import {
 } from "lucide-react";
 import { resteDu, useSuperApp } from "@/lib/store";
 import { formatDateFr, formatFCFA } from "@/lib/format";
-import { etatEnveloppe } from "@/lib/enveloppe-etat";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,8 +41,6 @@ function Accueil() {
     transactions,
     budgets,
     dettes,
-    enveloppes,
-    depensesParEnveloppe,
     chargement,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
@@ -58,10 +56,8 @@ function Accueil() {
   const dettesEchues = dettes.filter(
     (d) => d.dateLimite && d.dateLimite <= aujourdHui && resteDu(d) > 0,
   );
-  const enveloppesRouges = enveloppes.filter(
-    (e) => etatEnveloppe(e, depensesParEnveloppe[e.id] ?? 0).plafondAtteint,
-  );
-  const rappels = echeancesProches.length + dettesEchues.length + enveloppesRouges.length;
+  // Les enveloppes en dépassement ont leur propre alerte dédiée (AlerteEnveloppes).
+  const rappels = echeancesProches.length + dettesEchues.length;
 
   // Analyse locale : prévision d'épuisement des enveloppes et dépenses inhabituelles.
 
@@ -115,19 +111,11 @@ function Accueil() {
                 </span>
               </li>
             ))}
-            {enveloppesRouges.map((e) => (
-              <li key={e.id} className="flex justify-between gap-2">
-                <Link
-                  to="/enveloppes/details"
-                  className="truncate underline-offset-2 hover:underline"
-                >
-                  {e.emoji} {e.nom} — plafond atteint
-                </Link>
-              </li>
-            ))}
           </ul>
         </section>
       )}
+
+      <AlerteEnveloppes compact />
 
       <section className="relative grid grid-cols-2 gap-3">
         <Link

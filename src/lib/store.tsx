@@ -454,6 +454,8 @@ type Contexte = Etat & {
   sourcesRevenu: string[];
   ajouterTransaction: (t: Omit<Transaction, "id">) => void;
   supprimerTransaction: (id: string) => void;
+  /** Change l'enveloppe d'une dépense déjà enregistrée (classement manuel). */
+  reclasserTransaction: (id: string, enveloppeId: string) => void;
   ajouterCompte: (nom: string, dansDisponible?: boolean, emoji?: string) => void;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
@@ -748,6 +750,16 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         corbeille: [{ ...cible, supprimeLe: new Date().toISOString() }, ...corbeille],
       };
     });
+  }, []);
+
+  /** Classement manuel : rattache une dépense existante à une autre enveloppe. */
+  const reclasserTransaction = useCallback((id: string, enveloppeId: string) => {
+    setEtat((e) => ({
+      ...e,
+      transactions: e.transactions.map((t) =>
+        t.id === id && t.type === "depense" ? { ...t, categorie: enveloppeId } : t,
+      ),
+    }));
   }, []);
 
   /** Remet une opération de la corbeille dans les comptes. */
@@ -1422,6 +1434,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     () => ({
       ajouterTransaction,
       supprimerTransaction: proteger(supprimerTransaction, "Confirmez la suppression."),
+      reclasserTransaction: proteger(reclasserTransaction, "Confirmez la modification."),
       ajouterCompte,
       definirIconeCompte: proteger(definirIconeCompte, "Confirmez la modification."),
       definirCompteDisponible: proteger(definirCompteDisponible, "Confirmez la modification."),
@@ -1480,6 +1493,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     [
       ajouterTransaction,
       supprimerTransaction,
+      reclasserTransaction,
       ajouterCompte,
       definirIconeCompte,
       definirCompteDisponible,

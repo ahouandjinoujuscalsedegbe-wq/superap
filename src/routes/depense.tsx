@@ -6,7 +6,8 @@ import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
-import { classerDepense } from "@/lib/classement-enveloppe";
+import { classerDepense, suggererEnveloppes } from "@/lib/classement-enveloppe";
+import AlerteEnveloppes from "@/components/AlerteEnveloppes";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
@@ -109,11 +110,17 @@ function AjouterDepense() {
   }, [reconnue, choixManuel]);
 
   const enveloppeAuto = !choixManuel && reconnue?.enveloppe === enveloppe ? reconnue : null;
-  const suggestion = useMemo(() => {
-    if (!reconnue || reconnue.enveloppe === enveloppe) return null;
-    const env = enveloppes.find((e) => e.id === reconnue.enveloppe);
-    return env ? { ...reconnue, nom: env.nom, emoji: env.emoji } : null;
-  }, [reconnue, enveloppe, enveloppes]);
+
+  // Suggestions par NOM d'enveloppe (et catégorie), indépendantes du montant.
+  const suggestions = useMemo(() => {
+    return suggererEnveloppes(libelle, enveloppes, transactions, 4)
+      .filter((s) => s.enveloppe !== enveloppe)
+      .map((s) => {
+        const env = enveloppes.find((e) => e.id === s.enveloppe);
+        return env ? { ...s, nom: env.nom, emoji: env.emoji } : null;
+      })
+      .filter((s): s is NonNullable<typeof s> => s !== null);
+  }, [libelle, enveloppes, transactions, enveloppe]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
   const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
@@ -168,6 +175,8 @@ function AjouterDepense() {
         <h1 className="text-2xl font-bold tracking-tight">Ajouter une dépense</h1>
         <p className="text-sm text-muted-foreground">Sortie d'argent du foyer</p>
       </header>
+
+      <AlerteEnveloppes />
 
       {favoris.length > 0 && (
         <section className="carte space-y-2 p-4">
@@ -266,22 +275,45 @@ function AjouterDepense() {
             </div>
           )}
 
-          {suggestion && (
-            <button
-              type="button"
-              onClick={() => choisirEnveloppe(suggestion.enveloppe)}
-              className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
-            >
-              <span aria-hidden className="text-base">
-                {suggestion.emoji}
-              </span>
-              <span className="min-w-0 flex-1">
-                Suggestion : « {suggestion.nom} » ({suggestion.confiance} %)
-                <span className="block text-muted-foreground">{suggestion.raison}</span>
-              </span>
-              <span className="shrink-0 font-semibold text-primary">Utiliser</span>
-            </button>
+          {suggestions.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">
+                Enveloppes correspondant au nom que vous avez écrit :
+              </p>
+              {suggestions.map((s) => (
+                <button
+                  key={s.enveloppe}
+                  type="button"
+                  onClick={() => choisirEnveloppe(s.enveloppe)}
+                  className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
+                >
+                  <span aria-hidden className="text-base">
+                    {s.emoji}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    « {s.nom} » ({s.confiance} %)
+                    <span className="block text-muted-foreground">{s.raison}</span>
+                  </span>
+                  <span className="shrink-0 font-semibold text-primary">Utiliser</span>
+                </button>
+              ))}
+            </div>
           )}
+
+          {/* Reprendre la main sur le classement automatique. */}
+          <button
+            type="button"
+            onClick={() => {
+              setChoixManuel(true);
+              setPanneauOuvert(true);
+              setRecherche("");
+              setCategorieChoisie(null);
+              setSousCategorieChoisie(null);
+            }}
+            className="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs font-semibold"
+          >
+            Classement manuel
+          </button>
 
           <button
             type="button"

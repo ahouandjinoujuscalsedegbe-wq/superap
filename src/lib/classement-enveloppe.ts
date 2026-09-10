@@ -221,3 +221,77 @@ export function classerDepense(
   candidats.sort((a, b) => ordre[a.source] - ordre[b.source] || b.confiance - a.confiance);
   return candidats[0] ?? null;
 }
+
+/**
+ * Suggestions d'enveloppes classées par ressemblance du NOM avec le libellé saisi.
+ *
+ * Contrairement à `classerDepense`, cette fonction renvoie plusieurs pistes :
+ * correspondance exacte du nom, début de nom, mot commun, catégorie ou
+ * sous-catégorie, puis famille du lexique. Rien ne dépend du montant.
+ */
+export function suggererEnveloppes(
+  libelle: string,
+  enveloppes: Enveloppe[],
+  transactions: Transaction[] = [],
+  maximum = 4,
+): ClassementEnveloppe[] {
+  const texte = normaliserQuestion(libelle);
+  const mots = motsPorteurs(libelle).filter((m) => m.length >= 3);
+  if (!texte.trim() || enveloppes.length === 0) return [];
+
+  // Enveloppes déjà utilisées pour des libellés proches : léger bonus.
+  const habitudes = new Map<string, number>();
+  for (const t of transactions) {
+    if (t.type !== "depense" || !t.categorie) continue;
+    const cible = normaliserQuestion(t.libelle);
+    if (mots.some((m) => contientMot(cible, m))) {
+      habitudes.set(t.categorie, (habitudes.get(t.categorie) ?? 0) + 1);
+    }
+  }
+
+  const resultats: ClassementEnveloppe[] = [];
+  for (const e of enveloppes) {
+    const nom = normaliserQuestion(e.nom);
+    const cat = normaliserQuestion(e.categorie ?? "");
+    const sous = normaliserQuestion(e.sousCategorie ?? "");
+    let score = 0;
+    let raison = "";
+
+    if (nom && (texte === nom || texte.includes(nom) || nom.includes(texte))) {
+      score = 95;
+      raison = `Le nom « ${e.nom} » correspond à ce que vous avez écrit.`;
+    } else if (mots.some((m) => nom.split(" ").some((n) => n.startsWith(m) || m.startsWith(n)))) {
+      score = 82;
+      raison = `Le nom « ${e.nom} » commence comme votre libellé.`;
+    } else if (mots.some((m) => contientMot(nom, m))) {
+      score = 74;
+      raison = `Un mot de votre libellé ressemble au nom « ${e.nom} ».`;
+    } else if (mots.some((m) => contientMot(cat, m) || contientMot(sous, m))) {
+      score = 66;
+      raison = `Correspond à la catégorie « ${e.sousCategorie || e.categorie} ».`;
+    } else {
+      // Famille du lexique du quotidien rattachée à cette enveloppe.
+      const texteEnv = texteEnveloppe(e);
+      const famille = Object.entries(LEXIQUE).find(
+        ([nomFamille, termes]) =>
+          contientMot(texteEnv, nomFamille) &&
+          termes.some((terme) => mots.some((m) => contientMot(terme, m) || contientMot(m, terme))),
+      );
+      if (famille) {
+        score = 60;
+        raison = `Dépense reconnue comme « ${famille[0]} ».`;
+      }
+    }
+
+    if (score === 0) continue;
+    const bonus = Math.min(8, (habitudes.get(e.id) ?? 0) * 2);
+    resultats.push({
+      enveloppe: e.id,
+      confiance: Math.min(99, score + bonus),
+      raison,
+      source: score >= 66 ? "nom" : "lexique",
+    });
+  }
+
+  return resultats.sort((a, b) => b.confiance - a.confiance).slice(0, maximum);
+}
