@@ -1,10 +1,12 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeft, CheckCircle2, CircleDashed, Database, TrendingUp } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDashed, Database, Target, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { retourIntelligent } from "@/lib/retour";
 import { useIaUnifiee } from "@/lib/ia-unifiee";
 import { detecterLimites } from "@/lib/limites-ia";
+import { suivreObjectifs } from "@/lib/objectifs";
+import { simulerObjectif, type ContexteSimulation } from "@/lib/simulations";
 
 export const Route = createFileRoute("/conseiller/donnees")({
   head: () => ({
