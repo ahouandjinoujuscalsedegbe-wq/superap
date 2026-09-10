@@ -196,13 +196,21 @@
   padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
 }
 
+/* Espace libre sous chaque page : hauteur de la barre + bouton central en
+   lévitation + marge de confort, pour que rien ne finisse sous la barre. */
 .app-page-shell {
-  padding-bottom: calc(var(--app-nav-height) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+  padding-bottom: calc(var(--app-nav-height) + env(safe-area-inset-bottom, 0px) + 3.5rem);
 }
 
+/* La barre du bas est totalement opaque : aucun texte ne doit se voir
+   « à travers » ni sembler caché dessous. */
 .app-bottom-nav {
   min-height: calc(var(--app-nav-height) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 -10px 24px -18px rgba(0, 0, 0, 0.35);
 }
 
 .app-keyboard {
