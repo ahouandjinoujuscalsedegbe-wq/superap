@@ -262,7 +262,8 @@ const GUIDES: Guide[] = [
     id: "maj",
     icone: RefreshCw,
     titre: "Mises à jour de l'application",
-    resume: "L'application vérifie s'il existe une version plus récente et vous propose l'installer.",
+    resume:
+      "L'application vérifie s'il existe une version plus récente et vous propose l'installer.",
     etapes: [
       "Ouvrez « Mises à jour » pour voir la version installée et la version disponible.",
       "Si le téléchargement échoue, réessayez plus tard : la nouvelle version n'est peut-être pas encore publiée.",
@@ -463,8 +464,8 @@ function Aide() {
         <h2 className="text-lg font-semibold tracking-tight">Les guides</h2>
         {guides.length === 0 ? (
           <p className="carte p-4 text-sm text-muted-foreground">
-            Aucun guide ne correspond à « {recherche} ». Essayez un autre mot, par exemple
-            « dépense », « objectif » ou « sécurité ».
+            Aucun guide ne correspond à « {recherche} ». Essayez un autre mot, par exemple « dépense
+            », « objectif » ou « sécurité ».
           </p>
         ) : (
           <div className="space-y-3">
