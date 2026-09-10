@@ -87,13 +87,27 @@ function AjouterDepense() {
     [transactions],
   );
 
-  // Suggestion d'enveloppe apprise des saisies passées.
+  // Reconnaissance automatique de l'enveloppe à partir du libellé saisi.
+  const reconnue = useMemo(
+    () => classerDepense(libelle, enveloppes, transactions),
+    [libelle, enveloppes, transactions],
+  );
+
+  // Tant que l'utilisateur n'a pas choisi lui-même, l'enveloppe reconnue est appliquée.
+  const dernierClassement = useRef<string | null>(null);
+  useEffect(() => {
+    if (choixManuel || !reconnue) return;
+    if (dernierClassement.current === reconnue.enveloppe) return;
+    dernierClassement.current = reconnue.enveloppe;
+    setEnveloppe(reconnue.enveloppe);
+  }, [reconnue, choixManuel]);
+
+  const enveloppeAuto = !choixManuel && reconnue?.enveloppe === enveloppe ? reconnue : null;
   const suggestion = useMemo(() => {
-    const s = suggererEnveloppe(libelle, transactions);
-    if (!s || s.enveloppe === enveloppe) return null;
-    const env = enveloppes.find((e) => e.id === s.enveloppe);
-    return env ? { ...s, nom: env.nom, emoji: env.emoji } : null;
-  }, [libelle, transactions, enveloppe, enveloppes]);
+    if (!reconnue || reconnue.enveloppe === enveloppe) return null;
+    const env = enveloppes.find((e) => e.id === reconnue.enveloppe);
+    return env ? { ...reconnue, nom: env.nom, emoji: env.emoji } : null;
+  }, [reconnue, enveloppe, enveloppes]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
   const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
