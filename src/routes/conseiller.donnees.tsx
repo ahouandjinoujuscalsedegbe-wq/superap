@@ -1,10 +1,12 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeft, CheckCircle2, CircleDashed, Database, TrendingUp } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDashed, Database, Target, TrendingUp } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { retourIntelligent } from "@/lib/retour";
 import { useIaUnifiee } from "@/lib/ia-unifiee";
 import { detecterLimites } from "@/lib/limites-ia";
+import { suivreObjectifs } from "@/lib/objectifs";
+import { simulerObjectif, type ContexteSimulation } from "@/lib/simulations";
 
 export const Route = createFileRoute("/conseiller/donnees")({
   head: () => ({
@@ -35,9 +37,95 @@ function fcfa(montant: number): string {
 
 function PageDonneesConseiller() {
   const router = useRouter();
-  const { transactions } = useSuperApp();
+  const {
+    transactions,
+    transferts,
+    enveloppes,
+    budgets,
+    dettes,
+    objectifs,
+    depensesParEnveloppe,
+    soldeDisponible,
+  } = useSuperApp();
   const ia = useIaUnifiee();
   const bilan = useMemo(() => detecterLimites(ia), [ia]);
+
+  // Fiabilité, dépenses et simulation, objectif par objectif.
+  const fichesObjectifs = useMemo(() => {
+    const ctx: ContexteSimulation = {
+      transactions,
+      transferts,
+      enveloppes,
+      budgets,
+      dettes,
+      objectifs,
+      depensesParEnveloppe,
+      soldeDisponible,
+    };
+    return suivreObjectifs(objectifs, transactions, new Date(), transferts).map((s) => {
+      const o = s.objectif;
+      const debut = new Date(o.creeLe).getTime();
+      const jours = Number.isFinite(debut)
+        ? Math.max(0, Math.floor((Date.now() - debut) / JOUR_MS))
+        : 0;
+
+      // Mouvements réellement rattachés à cet objectif.
+      const depensesLiees = o.enveloppeId
+        ? transactions.filter(
+            (t) =>
+              t.type === "depense" &&
+              t.categorie === o.enveloppeId &&
+              new Date(t.date).getTime() >= debut,
+          )
+        : [];
+      const versements = transferts.filter((t) => t.note.startsWith(`Objectif:${o.id}`));
+      const mouvements = depensesLiees.length + versements.length;
+      const totalDepenses = depensesLiees.reduce((somme, t) => somme + t.montant, 0);
+      const totalVersements = versements.reduce((somme, t) => somme + t.montant, 0);
+
+      // Fiabilité propre à l'objectif : plus il est suivi, plus le calcul est sûr.
+      const points =
+        Math.min(35, mouvements * 7) + // preuves de mouvements
+        Math.min(25, Math.round((jours / 90) * 25)) + // ancienneté du suivi
+        (o.enveloppeId || o.compteEpargne ? 15 : 0) + // rattachement clair
+        (s.rythmeMensuel > 0 ? 15 : 0) + // épargne réellement constatée
+        Math.round((bilan.fiabilite / 100) * 10); // qualité générale des données
+      const fiabilite = Math.max(5, Math.min(100, points));
+
+      const simulation = simulerObjectif(ctx, {
+        cible: o.cible,
+        deja: s.reuni,
+        dateCible: o.dateCible,
+      });
+
+      return {
+        id: o.id,
+        libelle: o.libelle,
+        fiabilite,
+        jours,
+        mouvements,
+        totalDepenses,
+        totalVersements,
+        suivi: s,
+        simulation,
+        rattachement: o.compteEpargne
+          ? "compte d'épargne dédié"
+          : o.enveloppeId
+            ? "enveloppe dédiée"
+            : "aucun rattachement (calcul approximatif)",
+      };
+    });
+  }, [
+    objectifs,
+    transactions,
+    transferts,
+    enveloppes,
+    budgets,
+    dettes,
+    depensesParEnveloppe,
+    soldeDisponible,
+    bilan.fiabilite,
+  ]);
 
   // Regroupe les opérations par mois calendaire, du plus récent au plus ancien.
   const mois = useMemo(() => {
@@ -227,6 +315,109 @@ function PageDonneesConseiller() {
               );
             })}
           </ul>
+        </section>
+
+        {/* Fiabilité de chaque objectif */}
+        <section className="carte space-y-3 p-4">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <Target className="h-4 w-4 text-primary" aria-hidden />
+            Fiabilité de chaque objectif
+          </h2>
+          {fichesObjectifs.length === 0 ? (
+            <p className="py-3 text-center text-xs text-muted-foreground">
+              Aucun objectif enregistré pour l'instant.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {fichesObjectifs.map((f) => (
+                <li key={f.id} className="space-y-2 rounded-xl border border-border p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{f.libelle}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Suivi depuis {f.jours} jour(s) · {f.rattachement}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-sm font-bold text-primary">{f.fiabilite} %</span>
+                  </div>
+                  <div
+                    className="h-1.5 overflow-hidden rounded-full bg-muted"
+                    role="progressbar"
+                    aria-valuenow={f.fiabilite}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Fiabilité de l'objectif ${f.libelle}`}
+                  >
+                    <div className="h-full bg-primary" style={{ width: `${f.fiabilite}%` }} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      Réuni : <strong className="text-foreground">{fcfa(f.suivi.reuni)}</strong>
+                    </span>
+                    <span>
+                      Reste : <strong className="text-foreground">{fcfa(f.suivi.restant)}</strong>
+                    </span>
+                    <span>
+                      Dépenses liées :{" "}
+                      <strong className="text-destructive">{fcfa(f.totalDepenses)}</strong>
+                    </span>
+                    <span>
+                      Versements :{" "}
+                      <strong className="text-success">{fcfa(f.totalVersements)}</strong>
+                    </span>
+                    <span>
+                      Effort nécessaire :{" "}
+                      <strong className="text-foreground">{fcfa(f.suivi.effortMensuel)}</strong>
+                      /mois
+                    </span>
+                    <span>
+                      Rythme constaté :{" "}
+                      <strong className="text-foreground">{fcfa(f.suivi.rythmeMensuel)}</strong>
+                      /mois
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    {f.mouvements} mouvement(s) enregistré(s) pour cet objectif :{" "}
+                    {f.mouvements >= 5
+                      ? "les calculs s'appuient sur des faits réguliers."
+                      : "trop peu de mouvements, les estimations restent provisoires."}
+                  </p>
+
+                  <div className="rounded-lg bg-muted/60 p-2 text-xs">
+                    <p className="font-semibold">
+                      Simulation :{" "}
+                      <span
+                        className={
+                          f.simulation.verdict === "favorable"
+                            ? "text-success"
+                            : f.simulation.verdict === "tendu"
+                              ? "text-warning"
+                              : "text-destructive"
+                        }
+                      >
+                        {f.simulation.verdict === "favorable"
+                          ? "atteignable"
+                          : f.simulation.verdict === "tendu"
+                            ? "tendu"
+                            : "risqué"}
+                      </span>
+                    </p>
+                    <p className="text-muted-foreground">{f.simulation.message}</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {f.simulation.lignes.map((l) => (
+                        <li key={l.libelle} className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">{l.libelle}</span>
+                          <span className="font-medium">{l.valeur}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* Données saisies par mois */}
