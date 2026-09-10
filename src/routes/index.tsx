@@ -113,19 +113,12 @@ function Accueil() {
                 </span>
               </li>
             ))}
-            {enveloppesRouges.map((e) => (
-              <li key={e.id} className="flex justify-between gap-2">
-                <Link
-                  to="/enveloppes/details"
-                  className="truncate underline-offset-2 hover:underline"
-                >
-                  {e.emoji} {e.nom} — plafond atteint
-                </Link>
-              </li>
-            ))}
           </ul>
         </section>
       )}
+
+      <AlerteEnveloppes compact />
+
 
       <section className="relative grid grid-cols-2 gap-3">
         <Link
