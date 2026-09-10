@@ -137,7 +137,8 @@ export function detecterLimites(etat: EtatIA): BilanLimites {
       id: "enveloppes",
       domaine: "Budget",
       titre: "Aucune enveloppe créée.",
-      detail: "Sans enveloppes, je ne peux ni surveiller un plafond ni vous alerter d'un dépassement.",
+      detail:
+        "Sans enveloppes, je ne peux ni surveiller un plafond ni vous alerter d'un dépassement.",
       gravite: "reserve",
     });
   }

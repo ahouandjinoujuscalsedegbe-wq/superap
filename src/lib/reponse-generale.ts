@@ -86,7 +86,9 @@ export function repondreGeneral(question: string, etat: EtatIA): ReponseGenerale
       return {
         reponse: `Voici honnêtement mes limites : ma fiabilité estimée aujourd'hui est de ${bilan.fiabilite} %. ${bilan.avertissement}`,
         details: [
-          ...bilan.limites.map((l) => `${l.gravite === "bloquante" ? "⛔" : "⚠️"} ${l.titre} ${l.detail}`),
+          ...bilan.limites.map(
+            (l) => `${l.gravite === "bloquante" ? "⛔" : "⚠️"} ${l.titre} ${l.detail}`,
+          ),
           ...bilan.horsPortee,
         ],
       };
