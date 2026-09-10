@@ -129,6 +129,7 @@ export function lireMemoireOcr(): MemoireOcr {
       regles: lu.regles ?? {},
       stats: { ...VIDE.stats, ...(lu.stats ?? {}) },
       echecs: Array.isArray(lu.echecs) ? lu.echecs : [],
+      montantsValides: lu.montantsValides ?? {},
     };
   } catch {
     return { ...VIDE, regles: {}, echecs: [] };
@@ -167,10 +168,27 @@ export function trouverRegle(
   if (direct) return { cle, regle: direct };
 
   const contenu = sansAccents(texte);
+  // Mots du ticket, pour la comparaison tolérante aux fautes de lecture
+  // (l'OCR confond souvent des lettres : « rn » → « m », « 0 » → « o »…).
+  const motsTicket = contenu.split(/\s+/).filter((m) => m.length >= 3);
   let meilleur: { cle: string; regle: RegleCommercant; score: number } | undefined;
   for (const [k, regle] of Object.entries(memoire.regles)) {
-    const communs = regle.motsCles.filter((m) => contenu.includes(m)).length;
-    const proche = k.length >= 4 && (cle.includes(k) || k.includes(cle));
+    let communs = 0;
+    for (const appris of regle.motsCles) {
+      if (contenu.includes(appris)) {
+        communs += 1;
+        continue;
+      }
+      // Correspondance floue : un mot du ticket à distance d'édition ≤ 1
+      // (≤ 2 pour les mots longs) d'un mot appris compte aussi.
+      const tolerance = appris.length >= 8 ? 2 : 1;
+      if (motsTicket.some((m) => distanceMots(m, appris, tolerance) <= tolerance)) {
+        communs += 0.5;
+      }
+    }
+    const proche =
+      k.length >= 4 &&
+      (cle.includes(k) || k.includes(cle) || distanceMots(cle, k, 2) <= 2);
     const score = communs * 2 + (proche ? 3 : 0) + Math.min(3, regle.validations);
     if (communs === 0 && !proche) continue;
     if (!meilleur || score > meilleur.score) meilleur = { cle: k, regle, score };
