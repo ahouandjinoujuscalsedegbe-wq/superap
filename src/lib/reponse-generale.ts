@@ -15,6 +15,7 @@ import {
   type EtatIA,
 } from "./ia-unifiee";
 import { phrasesHabitudes } from "./memoire-utilisateur";
+import { detecterLimites, phrasesLimites } from "./limites-ia";
 
 export type ReponseGenerale = { reponse: string; details: string[] };
 
@@ -34,6 +35,11 @@ const DOMAINES: { id: string; motif: RegExp }[] = [
   {
     id: "capacites",
     motif: /que sais tu|que peux tu|tes capacites|aide moi a te parler|tu sais quoi/,
+  },
+  {
+    id: "limites",
+    motif:
+      /limite|tu ne sais pas|ce que tu ne sais|faiblesse|defaut|fiabilite|fiable|tu te trompes|erreur de l ia|confiance en toi|marge d erreur/,
   },
   {
     id: "apprentissage",
