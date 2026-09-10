@@ -15,6 +15,7 @@ import {
   PinOff,
   Search,
   Send,
+  Settings2,
   Smile,
   Square,
   ThumbsDown,
