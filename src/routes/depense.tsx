@@ -180,7 +180,7 @@ function AjouterDepense() {
                 onClick={() => {
                   setMontant(String(f.montant));
                   setLibelle(f.libelle);
-                  if (enveloppes.some((e) => e.id === f.categorie)) setEnveloppe(f.categorie);
+                  if (enveloppes.some((e) => e.id === f.categorie)) choisirEnveloppe(f.categorie);
                   // Le compte suit automatiquement l'enveloppe choisie.
                 }}
                 className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
@@ -246,7 +246,7 @@ function AjouterDepense() {
           {suggestion && (
             <button
               type="button"
-              onClick={() => setEnveloppe(suggestion.enveloppe)}
+              onClick={() => choisirEnveloppe(suggestion.enveloppe)}
               className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
             >
               <span aria-hidden className="text-base">
@@ -366,7 +366,7 @@ function AjouterDepense() {
                             type="button"
                             aria-pressed={actif}
                             onClick={() => {
-                              setEnveloppe(e.id);
+                              choisirEnveloppe(e.id);
                               setRecherche("");
                               setCategorieChoisie(null);
                               setSousCategorieChoisie(null);
@@ -437,7 +437,7 @@ function AjouterDepense() {
                             type="button"
                             aria-pressed={actif}
                             onClick={() => {
-                              setEnveloppe(e.id);
+                              choisirEnveloppe(e.id);
                               setRecherche("");
                               setCategorieChoisie(null);
                               setSousCategorieChoisie(null);
