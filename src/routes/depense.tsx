@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { COMPTES, useSuperApp } from "@/lib/store";
 import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
 import { operationsFrequentes } from "@/lib/favoris";
-import { suggererEnveloppe } from "@/lib/ia-avancee";
+import { classerDepense } from "@/lib/classement-enveloppe";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/depense")({
@@ -42,6 +42,12 @@ function AjouterDepense() {
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [categorieChoisie, setCategorieChoisie] = useState<string | null>(null);
   const [sousCategorieChoisie, setSousCategorieChoisie] = useState<string | null>(null);
+  /** Vrai dès que l'utilisateur choisit lui-même une enveloppe : le classement auto s'arrête. */
+  const [choixManuel, setChoixManuel] = useState(false);
+  function choisirEnveloppe(id: string) {
+    setChoixManuel(true);
+    setEnveloppe(id);
+  }
 
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
@@ -87,13 +93,27 @@ function AjouterDepense() {
     [transactions],
   );
 
-  // Suggestion d'enveloppe apprise des saisies passées.
+  // Reconnaissance automatique de l'enveloppe à partir du libellé saisi.
+  const reconnue = useMemo(
+    () => classerDepense(libelle, enveloppes, transactions),
+    [libelle, enveloppes, transactions],
+  );
+
+  // Tant que l'utilisateur n'a pas choisi lui-même, l'enveloppe reconnue est appliquée.
+  const dernierClassement = useRef<string | null>(null);
+  useEffect(() => {
+    if (choixManuel || !reconnue) return;
+    if (dernierClassement.current === reconnue.enveloppe) return;
+    dernierClassement.current = reconnue.enveloppe;
+    setEnveloppe(reconnue.enveloppe);
+  }, [reconnue, choixManuel]);
+
+  const enveloppeAuto = !choixManuel && reconnue?.enveloppe === enveloppe ? reconnue : null;
   const suggestion = useMemo(() => {
-    const s = suggererEnveloppe(libelle, transactions);
-    if (!s || s.enveloppe === enveloppe) return null;
-    const env = enveloppes.find((e) => e.id === s.enveloppe);
-    return env ? { ...s, nom: env.nom, emoji: env.emoji } : null;
-  }, [libelle, transactions, enveloppe, enveloppes]);
+    if (!reconnue || reconnue.enveloppe === enveloppe) return null;
+    const env = enveloppes.find((e) => e.id === reconnue.enveloppe);
+    return env ? { ...reconnue, nom: env.nom, emoji: env.emoji } : null;
+  }, [reconnue, enveloppe, enveloppes]);
 
   const valeur = Number(montant.replace(/\s/g, "")) || 0;
   const fraisValeur = Number(frais.replace(/\s/g, "")) || 0;
@@ -160,7 +180,7 @@ function AjouterDepense() {
                 onClick={() => {
                   setMontant(String(f.montant));
                   setLibelle(f.libelle);
-                  if (enveloppes.some((e) => e.id === f.categorie)) setEnveloppe(f.categorie);
+                  if (enveloppes.some((e) => e.id === f.categorie)) choisirEnveloppe(f.categorie);
                   // Le compte suit automatiquement l'enveloppe choisie.
                 }}
                 className="rounded-full border border-input bg-card px-3 py-1.5 text-xs"
@@ -223,10 +243,33 @@ function AjouterDepense() {
         <section className="carte space-y-3 p-4">
           <p className="text-sm font-medium">Enveloppe</p>
 
+          {enveloppeAuto && (
+            <div className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs">
+              <span aria-hidden className="text-base">
+                ✨
+              </span>
+              <span className="min-w-0 flex-1">
+                Classée automatiquement dans « {enveloppeChoisie?.nom} » ({enveloppeAuto.confiance}{" "}
+                %)
+                <span className="block text-muted-foreground">{enveloppeAuto.raison}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setChoixManuel(true);
+                  setPanneauOuvert(true);
+                }}
+                className="shrink-0 font-semibold text-primary"
+              >
+                Changer
+              </button>
+            </div>
+          )}
+
           {suggestion && (
             <button
               type="button"
-              onClick={() => setEnveloppe(suggestion.enveloppe)}
+              onClick={() => choisirEnveloppe(suggestion.enveloppe)}
               className="flex w-full items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs"
             >
               <span aria-hidden className="text-base">
@@ -346,7 +389,7 @@ function AjouterDepense() {
                             type="button"
                             aria-pressed={actif}
                             onClick={() => {
-                              setEnveloppe(e.id);
+                              choisirEnveloppe(e.id);
                               setRecherche("");
                               setCategorieChoisie(null);
                               setSousCategorieChoisie(null);
@@ -417,7 +460,7 @@ function AjouterDepense() {
                             type="button"
                             aria-pressed={actif}
                             onClick={() => {
-                              setEnveloppe(e.id);
+                              choisirEnveloppe(e.id);
                               setRecherche("");
                               setCategorieChoisie(null);
                               setSousCategorieChoisie(null);
