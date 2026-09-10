@@ -96,7 +96,6 @@ export function sonAutorise(r: ReglagesAlarme, urgent = false, maintenant = new 
   return urgent && r.urgentesTouteHeure;
 }
 
-
 /** Nettoie les seuils par compte : uniquement des montants positifs. */
 function lireSeuils(brut: unknown): Record<string, number> {
   if (!brut || typeof brut !== "object") return {};

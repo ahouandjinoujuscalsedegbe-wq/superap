@@ -11,6 +11,7 @@ import {
   type ReglagesAlarme,
 } from "@/lib/alarme";
 import { demanderPermissionNotification } from "@/lib/alarme-appareil";
+import { HEURES_RAPPEL } from "@/lib/rappel-budget";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
