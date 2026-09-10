@@ -1434,6 +1434,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     () => ({
       ajouterTransaction,
       supprimerTransaction: proteger(supprimerTransaction, "Confirmez la suppression."),
+      reclasserTransaction: proteger(reclasserTransaction, "Confirmez la modification."),
       ajouterCompte,
       definirIconeCompte: proteger(definirIconeCompte, "Confirmez la modification."),
       definirCompteDisponible: proteger(definirCompteDisponible, "Confirmez la modification."),
