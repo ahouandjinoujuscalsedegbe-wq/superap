@@ -182,6 +182,8 @@ export type Transfert = {
   frais?: number | undefined;
   /** Compte qui supporte les frais : celui qui envoie ou celui qui reçoit. */
   fraisSur?: "source" | "destination" | undefined;
+  /** Fiche de dette ou de créance à l'origine de ce transfert. */
+  detteId?: string | undefined;
 };
 
 export type Periode = "jour" | "semaine" | "mois" | "trimestre" | "semestre" | "annee";
@@ -223,6 +225,24 @@ export type Remboursement = {
   montant: number;
   date: string;
   note?: string | undefined;
+  /** Transfert de compte créé par ce remboursement, s'il y en a un. */
+  transfertId?: string | undefined;
+};
+
+/** Paiement échelonné programmé d'une dette (ou d'une créance attendue). */
+export type EcheancierDette = {
+  /** Montant de chaque versement. */
+  montant: number;
+  /** Nombre d'unités entre deux versements (1 à 31). */
+  intervalle: number;
+  unite: UniteRappel;
+  /** Prochaine échéance (YYYY-MM-DD). */
+  prochaine: string;
+  /** Heure de l'alarme de rappel (HH:MM). */
+  heure: string;
+  /** Compte à utiliser pour le versement. */
+  compte?: string | undefined;
+  actif: boolean;
 };
 
 export type Dette = {
@@ -235,6 +255,8 @@ export type Dette = {
   note?: string | undefined;
   /** Date limite de remboursement (YYYY-MM-DD), optionnelle. */
   dateLimite?: string | undefined;
+  /** Paiement échelonné programmé, avec alarme de rappel. */
+  echeancier?: EcheancierDette | undefined;
   creeLe: string;
   remboursements: Remboursement[];
 };
@@ -244,6 +266,17 @@ export function resteDu(d: Dette): number {
   const rembourse = d.remboursements.reduce((s, r) => s + r.montant, 0);
   return Math.max(0, d.montantInitial - rembourse);
 }
+
+/** Compte dédié à tout ce que je dois à quelqu'un. */
+export const COMPTE_DETTES = "Je dois à quelqu'un 🤔";
+/** Compte dédié à tout ce que quelqu'un me doit. */
+export const COMPTE_CREANCES = "Quelqu'un me doit 🤔";
+
+/** Compte dédié correspondant au sens d'une fiche. */
+export function compteDedie(sens: "dette" | "creance"): string {
+  return sens === "dette" ? COMPTE_DETTES : COMPTE_CREANCES;
+}
+
 
 export const COMPTES = [
   "Espèces",
@@ -404,16 +437,24 @@ function assainirIconesComptes(brut: unknown): Record<string, string> {
 
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
-  const comptes = assainirComptes(brut.comptes);
+  const comptesLus = assainirComptes(brut.comptes);
+  // Les deux comptes dédiés aux dettes et aux créances existent toujours :
+  // c'est là que se reflète tout ce que je dois et tout ce qu'on me doit.
+  const comptes = [
+    ...(comptesLus.length > 0 ? comptesLus : [...COMPTES]),
+    ...[COMPTE_DETTES, COMPTE_CREANCES].filter((c) => !comptesLus.includes(c)),
+  ];
+  const exclusLus = brut.comptesExclus
+    ? assainirComptes(brut.comptesExclus)
+    : comptes.filter((c) => estCompteNonDisponible(c));
   const limite = Date.now() - JOURS_CORBEILLE * 86400000;
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
     enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
     categories: assainirListe(brut.categories, assainirCategorie),
-    comptes: comptes.length > 0 ? comptes : [...COMPTES],
-    comptesExclus: brut.comptesExclus
-      ? assainirComptes(brut.comptesExclus)
-      : (comptes.length > 0 ? comptes : [...COMPTES]).filter((c) => estCompteNonDisponible(c)),
+    comptes,
+    // Ces comptes de suivi ne gonflent jamais le solde disponible.
+    comptesExclus: Array.from(new Set([...exclusLus, COMPTE_DETTES, COMPTE_CREANCES])),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
     iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
@@ -435,8 +476,8 @@ const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
   categories: CATEGORIES_PAR_DEFAUT,
-  comptes: [...COMPTES],
-  comptesExclus: [],
+  comptes: [...COMPTES, COMPTE_DETTES, COMPTE_CREANCES],
+  comptesExclus: [COMPTE_DETTES, COMPTE_CREANCES],
   ordreComptes: [],
   iconesComptes: {},
   transferts: [],
@@ -1308,7 +1349,26 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         const id = crypto.randomUUID();
         const creeLe = new Date().toISOString().slice(0, 10);
         const fiche: Dette = { ...d, id, creeLe, remboursements: [] };
-        const etatSuivant: Etat = { ...e, dettes: [fiche, ...e.dettes] };
+        const dedie = compteDedie(d.sens);
+        // Miroir sur le compte dédié : une dette pèse en moins sur
+        // « Je dois à quelqu'un », une créance s'inscrit sur
+        // « Quelqu'un me doit » et disparaîtra au remboursement.
+        const miroir: Transaction = {
+          id: crypto.randomUUID(),
+          type: d.sens === "dette" ? "depense" : "revenu",
+          montant: d.montantInitial,
+          libelle:
+            d.sens === "dette" ? `Dette envers ${d.personne}` : `Créance sur ${d.personne}`,
+          categorie: "dettes",
+          compte: dedie,
+          date: new Date(creeLe).toISOString(),
+          detteId: id,
+        };
+        const etatSuivant: Etat = {
+          ...e,
+          dettes: [fiche, ...e.dettes],
+          transactions: [miroir, ...e.transactions],
+        };
         if (!compte) return etatSuivant;
         // Une dette contractée fait entrer de l'argent ; une créance accordée en fait sortir.
         const mouvement: Transaction = {
@@ -1322,7 +1382,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           date: new Date(creeLe).toISOString(),
           detteId: id,
         };
-        return { ...etatSuivant, transactions: [mouvement, ...e.transactions] };
+        return { ...etatSuivant, transactions: [mouvement, ...etatSuivant.transactions] };
       });
     },
     [],

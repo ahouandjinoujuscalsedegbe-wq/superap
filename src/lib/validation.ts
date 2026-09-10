@@ -14,6 +14,7 @@ import type {
   Budget,
   CategorieEnveloppe,
   Dette,
+  EcheancierDette,
   ElementCorbeille,
   Enveloppe,
   Objectif,
@@ -225,6 +226,7 @@ export function assainirTransfert(v: unknown): Transfert | null {
     t.frais = frais;
     t.fraisSur = v["fraisSur"] === "destination" ? "destination" : "source";
   }
+  if (idValide(v["detteId"])) t.detteId = v["detteId"];
   return t;
 }
 
@@ -339,7 +341,35 @@ export function assainirRemboursement(v: unknown): Remboursement | null {
   const r: Remboursement = { id: v["id"], montant, date };
   const note = texteSur(v["note"]);
   if (note) r.note = note;
+  if (idValide(v["transfertId"])) r.transfertId = v["transfertId"];
   return r;
+}
+
+const UNITES_RAPPEL = ["jour", "semaine", "mois", "annee"] as const;
+
+/** Nettoie l'échéancier de paiement d'une dette ou d'une créance. */
+function assainirEcheancier(v: unknown): EcheancierDette | null {
+  if (!estObjet(v)) return null;
+  const montant = nombreSur(v["montant"]);
+  if (!montantValide(montant)) return null;
+  const prochaine = dateSure(v["prochaine"]);
+  if (!prochaine) return null;
+  const unite = UNITES_RAPPEL.find((u) => u === v["unite"]) ?? "mois";
+  const brutIntervalle = Math.round(nombreSur(v["intervalle"], 1));
+  const intervalle = Math.min(31, Math.max(1, brutIntervalle || 1));
+  const heureBrute = texteSur(v["heure"], 5);
+  const heure = /^\d{1,2}:\d{2}$/.test(heureBrute) ? heureBrute : "08:00";
+  const e: EcheancierDette = {
+    montant,
+    intervalle,
+    unite,
+    prochaine,
+    heure,
+    actif: v["actif"] !== false,
+  };
+  const compte = texteSur(v["compte"], 60);
+  if (compte) e.compte = compte;
+  return e;
 }
 
 export function assainirDette(v: unknown): Dette | null {
@@ -367,6 +397,8 @@ export function assainirDette(v: unknown): Dette | null {
   if (note) d.note = note;
   const dateLimite = dateSure(v["dateLimite"]);
   if (dateLimite) d.dateLimite = dateLimite;
+  const echeancier = assainirEcheancier(v["echeancier"]);
+  if (echeancier) d.echeancier = echeancier;
   return d;
 }
 
