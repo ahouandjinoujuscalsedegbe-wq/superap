@@ -51,6 +51,7 @@ import { Route as EnveloppesRenouvellementsRouteImport } from './routes/envelopp
 import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secours'
 import { Route as HistoriqueDepensesRouteImport } from './routes/historique.depenses'
 import { Route as HistoriqueRevenusRouteImport } from './routes/historique.revenus'
+import { Route as ObjectifsIndexRouteImport } from './routes/objectifs.index'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
@@ -289,6 +290,11 @@ const HistoriqueRevenusRoute = HistoriqueRevenusRouteImport.update({
   path: '/historique/revenus',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ObjectifsIndexRoute = ObjectifsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
 const ParametresIndexRoute = ParametresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -473,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/budget/': typeof BudgetIndexRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/objectifs/': typeof ObjectifsIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
   '/budget/modifier/$id': typeof BudgetModifierIdRoute
@@ -500,7 +507,6 @@ export interface FileRoutesByTo {
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
   '/notifications': typeof NotificationsRoute
-  '/objectifs': typeof ObjectifsRouteWithChildren
   '/recherche': typeof RechercheRoute
   '/revenu': typeof RevenuRoute
   '/saisie': typeof SaisieRoute
@@ -538,6 +544,7 @@ export interface FileRoutesByTo {
   '/budget': typeof BudgetIndexRoute
   '/comptes': typeof ComptesIndexRoute
   '/enveloppes': typeof EnveloppesIndexRoute
+  '/objectifs': typeof ObjectifsIndexRoute
   '/parametres': typeof ParametresIndexRoute
   '/rapport': typeof RapportIndexRoute
   '/budget/modifier/$id': typeof BudgetModifierIdRoute
@@ -609,6 +616,7 @@ export interface FileRoutesById {
   '/budget/': typeof BudgetIndexRoute
   '/comptes/': typeof ComptesIndexRoute
   '/enveloppes/': typeof EnveloppesIndexRoute
+  '/objectifs/': typeof ObjectifsIndexRoute
   '/parametres/': typeof ParametresIndexRoute
   '/rapport/': typeof RapportIndexRoute
   '/budget/modifier/$id': typeof BudgetModifierIdRoute
@@ -681,6 +689,7 @@ export interface FileRouteTypes {
     | '/budget/'
     | '/comptes/'
     | '/enveloppes/'
+    | '/objectifs/'
     | '/parametres/'
     | '/rapport/'
     | '/budget/modifier/$id'
@@ -708,7 +717,6 @@ export interface FileRouteTypes {
     | '/dettes'
     | '/journal'
     | '/notifications'
-    | '/objectifs'
     | '/recherche'
     | '/revenu'
     | '/saisie'
@@ -746,6 +754,7 @@ export interface FileRouteTypes {
     | '/budget'
     | '/comptes'
     | '/enveloppes'
+    | '/objectifs'
     | '/parametres'
     | '/rapport'
     | '/budget/modifier/$id'
@@ -816,6 +825,7 @@ export interface FileRouteTypes {
     | '/budget/'
     | '/comptes/'
     | '/enveloppes/'
+    | '/objectifs/'
     | '/parametres/'
     | '/rapport/'
     | '/budget/modifier/$id'
@@ -1161,6 +1171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoriqueRevenusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/objectifs/': {
+      id: '/objectifs/'
+      path: '/'
+      fullPath: '/objectifs/'
+      preLoaderRoute: typeof ObjectifsIndexRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
     '/parametres/': {
       id: '/parametres/'
       path: '/'
@@ -1450,12 +1467,14 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ObjectifsRouteChildren {
+  ObjectifsIndexRoute: typeof ObjectifsIndexRoute
   ObjectifsActionCreerRoute: typeof ObjectifsActionCreerRoute
   ObjectifsActionGererRoute: typeof ObjectifsActionGererRoute
   ObjectifsActionIndexRoute: typeof ObjectifsActionIndexRoute
 }
 
 const ObjectifsRouteChildren: ObjectifsRouteChildren = {
+  ObjectifsIndexRoute: ObjectifsIndexRoute,
   ObjectifsActionCreerRoute: ObjectifsActionCreerRoute,
   ObjectifsActionGererRoute: ObjectifsActionGererRoute,
   ObjectifsActionIndexRoute: ObjectifsActionIndexRoute,
