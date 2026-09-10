@@ -42,8 +42,6 @@ function Accueil() {
     transactions,
     budgets,
     dettes,
-    enveloppes,
-    depensesParEnveloppe,
     chargement,
   } = useSuperApp();
   const dernieres = transactions.slice(0, 8);
