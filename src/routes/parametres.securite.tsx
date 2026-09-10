@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SectionSecurite } from "@/components/SectionSecurite";
 import { SectionSecuriteAvancee } from "@/components/SectionSecuriteAvancee";
+import { SectionMotDePasseActions } from "@/components/SectionMotDePasseActions";
 
 export const Route = createFileRoute("/parametres/securite")({
   head: () => ({
