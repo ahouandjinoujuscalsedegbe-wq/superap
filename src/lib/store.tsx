@@ -182,6 +182,8 @@ export type Transfert = {
   frais?: number | undefined;
   /** Compte qui supporte les frais : celui qui envoie ou celui qui reçoit. */
   fraisSur?: "source" | "destination" | undefined;
+  /** Fiche de dette ou de créance à l'origine de ce transfert. */
+  detteId?: string | undefined;
 };
 
 export type Periode = "jour" | "semaine" | "mois" | "trimestre" | "semestre" | "annee";
