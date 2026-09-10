@@ -493,16 +493,6 @@ function PageNotifications() {
             <button
               type="button"
               onClick={() => {
-                setMenu(false);
-                void router.navigate({ to: "/conseiller/donnees" });
-              }}
-              className="block w-full px-3 py-2.5 text-left"
-            >
-              Mes données &amp; fiabilité
-            </button>
-            <button
-              type="button"
-              onClick={() => {
                 setRapides(true);
                 setMenu(false);
               }}
