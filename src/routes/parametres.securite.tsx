@@ -27,6 +27,7 @@ function PageSecurite() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight">Sécurité et verrouillage</h1>
       <SectionSecurite />
+      <SectionMotDePasseActions />
       <SectionSecuriteAvancee />
     </div>
   );
