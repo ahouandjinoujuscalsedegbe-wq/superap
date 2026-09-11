@@ -21,7 +21,7 @@ const PAS_MS = 120_000;
  * alors enregistré comme un transfert vers le compte dédié) ou le reporte.
  */
 export function RappelsDettes() {
-  const { dettes, ajouterRemboursement, modifierDette, chargement } = useSuperApp();
+  const { dettes, ajouterRemboursement, systeme, chargement } = useSuperApp();
   const [tic, setTic] = useState(0);
   const notifiees = useRef<Set<string>>(new Set());
 
@@ -69,27 +69,19 @@ export function RappelsDettes() {
           d.id,
           { montant: echeance.montant, date: echeance.date, note: "Échéance confirmée" },
           e?.compte,
-          { systeme: true },
         );
         toast.success("Versement enregistré entre vos comptes.");
       } else {
         toast("Échéance reportée au rythme suivant.");
       }
       if (e) {
-        modifierDette(
-          d.id,
-          {
-            echeancier: {
-              ...e,
-              prochaine: avancerEcheance(e.prochaine, e.intervalle, e.unite),
-            },
-          },
-          { systeme: true },
-        );
+        systeme.modifierDette(d.id, {
+          echeancier: { ...e, prochaine: avancerEcheance(e.prochaine, e.intervalle, e.unite) },
+        });
       }
       setTic((n) => n + 1);
     },
-    [ajouterRemboursement, modifierDette],
+    [ajouterRemboursement, systeme],
   );
 
   if (!courante) return null;
