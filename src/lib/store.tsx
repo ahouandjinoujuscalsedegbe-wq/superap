@@ -1405,6 +1405,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       dettes: e.dettes.filter((x) => x.id !== id),
       // Les mouvements de trésorerie liés à la fiche disparaissent avec elle.
       transactions: e.transactions.filter((t) => t.detteId !== id),
+      transferts: e.transferts.filter((t) => t.detteId !== id),
     }));
   }, []);
 
@@ -1417,46 +1418,63 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       setEtat((e) => {
         const cible = e.dettes.find((x) => x.id === detteId);
         if (!cible) return e;
+        const dedie = compteDedie(cible.sens);
+        // Rembourser une dette : l'argent part du compte choisi vers le compte
+        // « Je dois à quelqu'un », qui s'allège d'autant. Encaisser une créance :
+        // l'argent revient du compte « Quelqu'un me doit » vers le compte choisi.
+        const transfert = compte
+          ? assainirTransfert({
+              id: crypto.randomUUID(),
+              source: cible.sens === "dette" ? compte : dedie,
+              destination: cible.sens === "dette" ? dedie : compte,
+              montant: r.montant,
+              note:
+                cible.sens === "dette"
+                  ? `Remboursement à ${cible.personne}`
+                  : `Remboursement reçu de ${cible.personne}`,
+              date: new Date(r.date).toISOString(),
+              detteId,
+            })
+          : null;
+        const nouveau: Remboursement = {
+          ...r,
+          id: crypto.randomUUID(),
+          ...(transfert ? { transfertId: transfert.id } : {}),
+        };
         const dettes = e.dettes.map((x) =>
           x.id === detteId
             ? {
                 ...x,
-                remboursements: [...x.remboursements, { ...r, id: crypto.randomUUID() }].sort(
-                  (a, b) => a.date.localeCompare(b.date),
+                remboursements: [...x.remboursements, nouveau].sort((a, b) =>
+                  a.date.localeCompare(b.date),
                 ),
               }
             : x,
         );
-        if (!compte) return { ...e, dettes };
-        // Rembourser une dette sort de l'argent ; encaisser une créance en fait entrer.
-        const mouvement: Transaction = {
-          id: crypto.randomUUID(),
-          type: cible.sens === "dette" ? "depense" : "revenu",
-          montant: r.montant,
-          libelle:
-            cible.sens === "dette"
-              ? `Remboursement à ${cible.personne}`
-              : `Encaissement de ${cible.personne}`,
-          categorie: "dettes",
-          compte,
-          date: new Date(r.date).toISOString(),
-          detteId,
+        return {
+          ...e,
+          dettes,
+          transferts: transfert ? [transfert, ...e.transferts] : e.transferts,
         };
-        return { ...e, dettes, transactions: [mouvement, ...e.transactions] };
       });
     },
     [],
   );
 
   const supprimerRemboursement = useCallback((detteId: string, remboursementId: string) => {
-    setEtat((e) => ({
-      ...e,
-      dettes: e.dettes.map((x) =>
-        x.id === detteId
-          ? { ...x, remboursements: x.remboursements.filter((r) => r.id !== remboursementId) }
-          : x,
-      ),
-    }));
+    setEtat((e) => {
+      const cible = e.dettes.find((x) => x.id === detteId);
+      const lie = cible?.remboursements.find((r) => r.id === remboursementId)?.transfertId;
+      return {
+        ...e,
+        dettes: e.dettes.map((x) =>
+          x.id === detteId
+            ? { ...x, remboursements: x.remboursements.filter((r) => r.id !== remboursementId) }
+            : x,
+        ),
+        transferts: lie ? e.transferts.filter((t) => t.id !== lie) : e.transferts,
+      };
+    });
   }, []);
 
   const definirTransparence = useCallback((v: number) => {
