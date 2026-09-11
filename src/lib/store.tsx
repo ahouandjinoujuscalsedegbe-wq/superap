@@ -277,7 +277,6 @@ export function compteDedie(sens: "dette" | "creance"): string {
   return sens === "dette" ? COMPTE_DETTES : COMPTE_CREANCES;
 }
 
-
 export const COMPTES = [
   "Espèces",
   "Banque",
@@ -1357,8 +1356,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           id: crypto.randomUUID(),
           type: d.sens === "dette" ? "depense" : "revenu",
           montant: d.montantInitial,
-          libelle:
-            d.sens === "dette" ? `Dette envers ${d.personne}` : `Créance sur ${d.personne}`,
+          libelle: d.sens === "dette" ? `Dette envers ${d.personne}` : `Créance sur ${d.personne}`,
           categorie: "dettes",
           compte: dedie,
           date: new Date(creeLe).toISOString(),
