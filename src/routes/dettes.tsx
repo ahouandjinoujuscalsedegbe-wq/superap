@@ -10,7 +10,8 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { resteDu, useSuperApp, type Dette } from "@/lib/store";
+import { resteDu, useSuperApp, type Dette, type UniteRappel } from "@/lib/store";
+import { jourLocal, libelleRythme } from "@/lib/echeancier-dettes";
 import { formatDateFr, formatFCFA, grouperMontant } from "@/lib/format";
 import { Confirmation } from "@/components/Confirmation";
 import { ErreurPopup } from "@/components/ErreurPopup";
@@ -42,6 +43,13 @@ type Formulaire = {
   montant: string;
   dateLimite: string;
   note: string;
+  echActif: boolean;
+  echMontant: string;
+  echIntervalle: string;
+  echUnite: UniteRappel;
+  echProchaine: string;
+  echHeure: string;
+  echCompte: string;
 };
 
 const FORM_VIDE: Formulaire = {
@@ -50,6 +58,13 @@ const FORM_VIDE: Formulaire = {
   montant: "",
   dateLimite: "",
   note: "",
+  echActif: false,
+  echMontant: "",
+  echIntervalle: "1",
+  echUnite: "mois",
+  echProchaine: jourLocal(),
+  echHeure: "09:00",
+  echCompte: "",
 };
 
 type Dialogue =
@@ -105,6 +120,13 @@ function PageDettes() {
       montant: String(d.montantInitial),
       dateLimite: d.dateLimite ?? "",
       note: d.note ?? "",
+      echActif: Boolean(d.echeancier?.actif),
+      echMontant: d.echeancier ? String(d.echeancier.montant) : "",
+      echIntervalle: String(d.echeancier?.intervalle ?? 1),
+      echUnite: d.echeancier?.unite ?? "mois",
+      echProchaine: d.echeancier?.prochaine ?? jourLocal(),
+      echHeure: d.echeancier?.heure ?? "09:00",
+      echCompte: d.echeancier?.compte ?? "",
     });
     setCompteMouvement("");
     setDialogue({ type: "modifier", dette: d });
@@ -113,8 +135,28 @@ function PageDettes() {
   const ouvrirRemboursement = (d: Dette) => {
     setMontantRemb("");
     setDateRemb(new Date().toISOString().slice(0, 10));
-    setCompteRemb("");
+    setCompteRemb(d.echeancier?.compte ?? "");
+    setMontantRemb(d.echeancier ? String(Math.min(resteDu(d), d.echeancier.montant)) : "");
     setDialogue({ type: "rembourser", dette: d });
+  };
+
+  /** Construit l'échéancier à partir du formulaire, ou rien s'il est désactivé/incomplet. */
+  const echeancierDuFormulaire = () => {
+    if (!form.echActif) return undefined;
+    const montant = Number(form.echMontant);
+    const intervalle = Number(form.echIntervalle);
+    if (!Number.isFinite(montant) || montant <= 0) return undefined;
+    if (!Number.isFinite(intervalle) || intervalle < 1 || intervalle > 31) return undefined;
+    if (!form.echProchaine || !form.echHeure) return undefined;
+    return {
+      montant,
+      intervalle: Math.round(intervalle),
+      unite: form.echUnite,
+      prochaine: form.echProchaine,
+      heure: form.echHeure,
+      actif: true,
+      ...(form.echCompte ? { compte: form.echCompte } : {}),
+    };
   };
 
   const soumettreFormulaire = () => {
@@ -132,6 +174,13 @@ function PageDettes() {
       montant < dialogue.dette.montantInitial - resteDu(dialogue.dette)
     ) {
       setErreur("Le montant initial ne peut pas être inférieur au total déjà remboursé.");
+      return;
+    }
+    const echeancier = echeancierDuFormulaire();
+    if (form.echActif && !echeancier) {
+      setErreur(
+        "Échéancier incomplet : indiquez un montant, un rythme entre 1 et 31, une date et une heure.",
+      );
       return;
     }
     const label = form.sens === "dette" ? "Dette envers" : "Créance sur";
@@ -183,6 +232,12 @@ function PageDettes() {
               },
             ]
           : []),
+        {
+          label: "Paiement échelonné",
+          apres: echeancier
+            ? `${formatFCFA(echeancier.montant)} — ${libelleRythme(echeancier)}, dès le ${formatDateFr(echeancier.prochaine)} à ${echeancier.heure}${echeancier.compte ? ` (compte ${echeancier.compte})` : ""}`
+            : "Aucun",
+        },
         { label: "Résumé", apres: `${label} ${form.personne.trim()} : ${formatFCFA(montant)}` },
       ],
       action: () => {
@@ -192,6 +247,7 @@ function PageDettes() {
           montantInitial: montant,
           note: form.note.trim() || undefined,
           dateLimite: form.dateLimite || undefined,
+          echeancier: echeancierDuFormulaire(),
         };
         if (dialogue?.type === "modifier") modifierDette(dialogue.dette.id, base);
         else ajouterDette(base, compteMouvement || undefined);
