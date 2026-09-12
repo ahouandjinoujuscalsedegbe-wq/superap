@@ -19,6 +19,7 @@ import { PrelevementObjectifsAuto } from "@/components/PrelevementObjectifsAuto"
 import { RappelBudgetMensuel } from "@/components/RappelBudgetMensuel";
 import { RappelsObjectifs } from "@/components/RappelsObjectifs";
 import { RappelFinBudget } from "@/components/RappelFinBudget";
+import { RappelsDettes } from "@/components/RappelsDettes";
 import { BottomNav } from "../components/BottomNav";
 import { BarreHaute } from "../components/BarreHaute";
 import { ClavierInterne } from "../components/ClavierInterne";
