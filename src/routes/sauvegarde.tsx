@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Archive,
@@ -90,6 +90,12 @@ function PageSauvegarde() {
   });
   const [colisEnAttente, setColisEnAttente] = useState<ReturnType<typeof lireFile>>(null);
   const [reconfigurer, setReconfigurer] = useState(false);
+
+  useEffect(() => {
+    setSauvegardes(lireSauvegardes());
+    setReglagesMail(lireReglagesMail());
+    setColisEnAttente(lireFile());
+  }, []);
 
   const rafraichirEtatMail = () => {
     setReglagesMail(lireReglagesMail());
