@@ -9,6 +9,7 @@
 import type { Budget, Dette, Enveloppe, Transaction } from "./store";
 import { resteDu } from "./store";
 import { dotationDe } from "./enveloppe-etat";
+import { indexerParMois } from "./rapport-index";
 
 export type LigneEnveloppe = {
   id: string;
@@ -161,9 +162,8 @@ export function construireRapport(
     })
     .filter((r) => {
       // Écarte celles déjà payées : même enveloppe, même montant, depuis l'échéance.
-      return !effectuees.some(
+      return !candidates.some(
         (t) =>
-          t.type === "depense" &&
           t.date.slice(0, 10) >= r.echeance &&
           Math.abs(t.montant - r.montant) < 1 &&
           t.categorie === (donnees.budgets ?? []).find((b) => b.id === r.id)?.enveloppeId,
