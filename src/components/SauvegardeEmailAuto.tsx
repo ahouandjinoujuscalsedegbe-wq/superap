@@ -112,6 +112,9 @@ export function SauvegardeEmailAuto() {
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
         ecrireFile(colis);
+        // Coffre de versions : la copie datée s'ajoute sans écraser les
+        // précédentes, pour pouvoir revenir à un jour précis.
+        ajouterVersion(colis, actuel.appareil, false);
         // Copie confiée au relais système : l'envoi se poursuit même une fois
         // l'application fermée.
         await confierColisArrierePlan({
