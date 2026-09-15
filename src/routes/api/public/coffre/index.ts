@@ -12,6 +12,25 @@ import { createFileRoute } from "@tanstack/react-router";
  */
 
 const VERSIONS_GARDEES = 10;
+const CORPS_MAX = 12_500_000;
+const FENETRE_MS = 60_000;
+const REQUETES_PAR_FENETRE = 40;
+const limites = new Map<string, { depuis: number; nombre: number }>();
+
+function estLimitee(request: Request): boolean {
+  const maintenant = Date.now();
+  const adresse =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "inconnue";
+  const courante = limites.get(adresse);
+  if (!courante || maintenant - courante.depuis >= FENETRE_MS) {
+    limites.set(adresse, { depuis: maintenant, nombre: 1 });
+    return false;
+  }
+  courante.nombre += 1;
+  return courante.nombre > REQUETES_PAR_FENETRE;
+}
 
 const ENTETES = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +62,13 @@ export const Route = createFileRoute("/api/public/coffre/")({
       OPTIONS: async () => new Response(null, { status: 204, headers: ENTETES }),
 
       POST: async ({ request }) => {
+        if (estLimitee(request)) {
+          return reponse({ ok: false, raison: "trop_de_requetes" }, 429);
+        }
+        const tailleAnnoncee = Number(request.headers.get("content-length") ?? 0);
+        if (tailleAnnoncee > CORPS_MAX) {
+          return reponse({ ok: false, raison: "requete_trop_grande" }, 413);
+        }
         let corps: Corps;
         try {
           corps = (await request.json()) as Corps;

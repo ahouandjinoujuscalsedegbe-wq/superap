@@ -363,6 +363,11 @@ export async function lireSecurise(cle: string): Promise<string | null> {
  */
 const files = new Map<string, Promise<void>>();
 
+/** Attend que toutes les écritures déjà demandées soient réellement terminées. */
+export async function attendreEcrituresSecurisees(): Promise<void> {
+  await Promise.all([...files.values()]);
+}
+
 /** Écrit une valeur dans le stockage local, toujours chiffrée, dans l'ordre. */
 export function ecrireSecurise(cle: string, valeur: string): Promise<void> {
   const precedent = files.get(cle) ?? Promise.resolve();

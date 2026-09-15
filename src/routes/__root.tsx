@@ -47,6 +47,7 @@ import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { SauvegardeEmailAuto } from "@/components/SauvegardeEmailAuto";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 import { ChampsVisiblesClavier } from "@/components/ChampsVisiblesClavier";
+import { LimiteErreur } from "@/components/LimiteErreur";
 
 function NotFoundComponent() {
   return (
@@ -198,14 +199,14 @@ function RootComponent() {
             </div>
           </main>
 
-          <RappelsDepensesPlanifiees />
-          <MemoireHabitudes />
+          <LimiteErreur nom="rappels planifiés"><RappelsDepensesPlanifiees /></LimiteErreur>
+          <LimiteErreur nom="mémoire des habitudes"><MemoireHabitudes /></LimiteErreur>
 
           <RemplissageAuto />
           <PrelevementObjectifsAuto />
           <BarreHaute />
           {!pleinEcran && <BottomNav />}
-          <ClavierInterne />
+          <LimiteErreur nom="clavier"><ClavierInterne /></LimiteErreur>
           <ChampsVisiblesClavier />
           <MajusculesPartout />
           <Toaster position="top-center" richColors />
@@ -223,7 +224,7 @@ function RootComponent() {
           <RappelsObjectifs />
           <RappelsDettes />
           <RappelFinBudget />
-          <BouleAnalyse />
+          <LimiteErreur nom="analyse"><BouleAnalyse /></LimiteErreur>
           <GardeIntegrite />
           <ConfigurationSauvegarde />
           <SauvegardeEmailAuto />
