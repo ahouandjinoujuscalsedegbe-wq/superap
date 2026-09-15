@@ -84,6 +84,10 @@ export type ColisEnAttente = {
   empreinte: string;
   contenu: string;
   taille: number;
+  /** Rangement dans le coffre e-mail (année-mois, rubrique, nom saisi). */
+  classement?: string;
+  /** Rubrique technique du rangement. */
+  rubrique?: string;
 };
 
 /* ------------------------------- Réglages -------------------------------- */
