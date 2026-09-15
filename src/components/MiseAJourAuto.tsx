@@ -9,6 +9,9 @@ import {
   type EtapeInstallation,
   type Manifeste,
 } from "@/lib/version";
+import { protegerAvantMiseAJour } from "@/lib/sauvegarde-avant-maj";
+import { instantaneEtat } from "@/lib/instantane";
+import { useSuperApp } from "@/lib/store";
 
 /**
  * Boîte de dialogue de mise à jour, partagée par la vérification automatique
@@ -22,6 +25,8 @@ export function DialogueMiseAJour({
   onFermer: () => void;
 }) {
   const [etape, setEtape] = useState<EtapeInstallation | null>(null);
+  const [protection, setProtection] = useState<string | null>(null);
+  const app = useSuperApp();
 
   useEffect(() => {
     const surTouche = (e: KeyboardEvent) => {
@@ -103,6 +108,22 @@ export function DialogueMiseAJour({
             type="button"
             disabled={enCours}
             onClick={async () => {
+              setEtape({
+                etape: "telechargement",
+                message: "Mise à l'abri de vos données avant la mise à jour...",
+              });
+              const abri = await protegerAvantMiseAJour(instantaneEtat(app));
+              setProtection(
+                [
+                  abri.fichier
+                    ? "Copie de secours enregistrée dans les Documents du téléphone."
+                    : null,
+                  abri.email === "envoye" ? "Copie envoyée à votre adresse e-mail." : null,
+                  ...abri.avertissements,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+              );
               setEtape({ etape: "telechargement", message: "Téléchargement en cours..." });
               const resultat = await installerMiseAJour(manifeste.url, setEtape, {
                 ...(manifeste.sha256 ? { sha256: manifeste.sha256 } : {}),
