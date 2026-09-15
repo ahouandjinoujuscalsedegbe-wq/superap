@@ -42,6 +42,7 @@ export function ModeMultiAppareil() {
   }, []);
 
   if (!reglages) return null;
+  const courant: ReglagesMulti = reglages;
 
   function enregistrer(r: ReglagesMulti) {
     setReglages(r);
@@ -66,7 +67,7 @@ export function ModeMultiAppareil() {
       const reponse = await envoyerColisSauvegarde({
         data: {
           email: email.trim(),
-          appareil: reglages.cetAppareil,
+          appareil: courant.cetAppareil,
           colis: paquet.contenu,
           creeLe: new Date(paquet.creeLe).toLocaleString("fr-FR"),
         },
@@ -77,7 +78,7 @@ export function ModeMultiAppareil() {
       }
       ecrireReglagesMail({ ...lireReglagesMail(), email: email.trim(), configure: true });
       enregistrer(
-        noterAppareil({ ...reglages, actif: true }, reglages.cetAppareil, {
+        noterAppareil({ ...courant, actif: true }, courant.cetAppareil, {
           dernierEnvoi: new Date().toISOString(),
         }),
       );
@@ -124,7 +125,7 @@ export function ModeMultiAppareil() {
       await enregistrerPhrase(phrase.trim());
       ecrireReglagesMail({ ...lireReglagesMail(), email: email.trim(), configure: true });
       enregistrer(
-        noterAppareil({ ...reglages, actif: true }, reglages.cetAppareil, {
+        noterAppareil({ ...courant, actif: true }, courant.cetAppareil, {
           dernierImport: new Date().toISOString(),
         }),
       );
