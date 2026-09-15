@@ -23,6 +23,6 @@ export function instantaneEtat(etat: Etat): Partial<Etat> {
     corbeille: etat.corbeille,
     membres: etat.membres,
     transparence: etat.transparence,
-    nomUtilisateur: etat.nomUtilisateur,
+    ...(etat.nomUtilisateur ? { nomUtilisateur: etat.nomUtilisateur } : {}),
   };
 }
