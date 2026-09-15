@@ -1,5 +1,8 @@
-# Tâches
+# Audit général
 
-- [x] Supprimer les trois points du menu latéral sur /revenu et /depense
-- [x] Maintenir tous les champs actifs visibles au-dessus des claviers interne et du téléphone
-- [x] Unifier les boutons Retour selon une hiérarchie en arbre stable
+- [ ] Examiner la compilation et les dépendances
+- [ ] Examiner les erreurs d’exécution et les écrans
+- [ ] Examiner la sécurité, le stockage local et les sauvegardes
+- [ ] Examiner les parcours métier et les tests
+- [ ] Corriger les défauts vérifiés
+- [ ] Valider les corrections
