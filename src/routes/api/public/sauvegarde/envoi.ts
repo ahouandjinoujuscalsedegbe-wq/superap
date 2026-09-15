@@ -46,6 +46,7 @@ export const Route = createFileRoute("/api/public/sauvegarde/envoi")({
               sender_domain: "notify.superappbudget.com",
               subject: `SUPER APP — sauvegarde chiffrée (${appareil})`,
               text: texte,
+              html: `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`,
               purpose: "transactional",
               label: "sauvegarde-chiffree",
               idempotency_key: crypto.randomUUID(),
