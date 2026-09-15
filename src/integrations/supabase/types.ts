@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      coffre_email: {
+        Row: {
+          appareil: string | null
+          classement: string | null
+          cle: string
+          contenu: string
+          cree_le: string
+          empreinte: string
+          id: string
+          taille: number | null
+        }
+        Insert: {
+          appareil?: string | null
+          classement?: string | null
+          cle: string
+          contenu: string
+          cree_le?: string
+          empreinte: string
+          id?: string
+          taille?: number | null
+        }
+        Update: {
+          appareil?: string | null
+          classement?: string | null
+          cle?: string
+          contenu?: string
+          cree_le?: string
+          empreinte?: string
+          id?: string
+          taille?: number | null
+        }
+        Relationships: []
+      }
       coffre_sync: {
         Row: {
           appareil: string
