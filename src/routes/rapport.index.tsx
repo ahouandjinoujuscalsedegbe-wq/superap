@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { ChevronRight, FileText, SlidersHorizontal, X } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import { construireRapport, libelleMois, moisDisponibles } from "@/lib/rapport-mensuel";
+import { libelleMois } from "@/lib/rapport-mensuel";
+import { resumesMensuels } from "@/lib/rapport-index";
 
 export const Route = createFileRoute("/rapport/")({
   head: () => ({
