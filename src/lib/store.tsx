@@ -1485,6 +1485,20 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const remplacerEtat = useCallback((nouveau: Partial<Etat>) => {
+    // Une copie restaurée rapporte aussi les réglages personnels et les
+    // saisies en cours : ils sont remis en place avant l'état principal.
+    const extra = nouveau as unknown as {
+      reglages?: unknown;
+      brouillons?: unknown;
+    };
+    if (extra.reglages) appliquerReglages(extra.reglages);
+    if (extra.brouillons && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem(CLE_BROUILLONS, JSON.stringify(extra.brouillons));
+      } catch {
+        // Espace saturé : l'état principal reste prioritaire.
+      }
+    }
     // Tout ce qui vient de l'extérieur (sauvegarde, synchronisation) est
     // systématiquement assaini avant d'entrer dans l'application.
     setEtat((e) => assainirEtat({ ...ETAT_INITIAL, ...e, ...nouveau }));
