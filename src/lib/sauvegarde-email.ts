@@ -174,6 +174,61 @@ async function cinqCles(phrase: string): Promise<CryptoKey[]> {
   );
 }
 
+/* ------------------------------ Compression ------------------------------ */
+
+/**
+ * Marqueur de contenu compressé. Les anciens colis (non compressés) restent
+ * lisibles : l'absence du marqueur signifie « texte brut ».
+ */
+const MARQUE_GZIP = "GZ1|";
+
+async function viderFlux(flux: ReadableStream<Uint8Array>): Promise<Uint8Array> {
+  const morceaux: Uint8Array[] = [];
+  const lecteur = flux.getReader();
+  for (;;) {
+    const { done, value } = await lecteur.read();
+    if (done) break;
+    if (value) morceaux.push(value);
+  }
+  const total = morceaux.reduce((s, m) => s + m.length, 0);
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for (const m of morceaux) {
+    out.set(m, pos);
+    pos += m.length;
+  }
+  return out;
+}
+
+/** Compresse le texte (gzip) quand l'appareil le permet, sinon le laisse tel quel. */
+export async function compresser(texte: string): Promise<string> {
+  const Compression = (globalThis as { CompressionStream?: typeof CompressionStream })
+    .CompressionStream;
+  if (!Compression) return texte;
+  try {
+    const flux = new Blob([texte]).stream().pipeThrough(new Compression("gzip"));
+    const octets = await viderFlux(flux as ReadableStream<Uint8Array>);
+    return `${MARQUE_GZIP}${versBase64(octets)}`;
+  } catch {
+    return texte;
+  }
+}
+
+/** Décompresse un contenu marqué, ou renvoie le texte inchangé. */
+export async function decompresser(contenu: string): Promise<string> {
+  if (!contenu.startsWith(MARQUE_GZIP)) return contenu;
+  const Decompression = (globalThis as { DecompressionStream?: typeof DecompressionStream })
+    .DecompressionStream;
+  if (!Decompression) {
+    throw new Error("Cet appareil ne peut pas décompresser cette sauvegarde.");
+  }
+  const octets = depuisBase64(contenu.slice(MARQUE_GZIP.length));
+  const flux = new Blob([octets as unknown as BlobPart])
+    .stream()
+    .pipeThrough(new Decompression("gzip"));
+  return decodeur.decode(await viderFlux(flux as ReadableStream<Uint8Array>));
+}
+
 /** Chiffre cinq fois de suite un contenu texte. */
 export async function chiffrerCinqFois(texte: string, phrase: string): Promise<string> {
   const cles = await cinqCles(phrase);
