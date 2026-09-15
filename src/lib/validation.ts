@@ -19,6 +19,7 @@ import type {
   Enveloppe,
   Objectif,
   Remboursement,
+  RegleTransfert,
   Remplissage,
   Transaction,
   Transfert,
@@ -421,4 +422,28 @@ export function assainirListe<T>(v: unknown, f: (x: unknown) => T | null): T[] {
     if (propre) out.push(propre);
   }
   return out;
+}
+
+/**
+ * Règle de transfert automatique : à chaque revenu enregistré, une part
+ * (en pourcentage) part du compte crédité vers un autre compte.
+ */
+export function assainirRegleTransfert(v: unknown): RegleTransfert | null {
+  if (!estObjet(v) || !idValide(v["id"])) return null;
+  const source = texteSur(v["source"], 60);
+  const destination = texteSur(v["destination"], 60);
+  if (!source || !destination || source === destination) return null;
+  const pourcentage = nombreSur(v["pourcentage"]);
+  if (!(pourcentage > 0) || pourcentage > 100) return null;
+  const sourceRevenu = texteSur(v["sourceRevenu"], 60) || "*";
+  return {
+    id: v["id"],
+    nom: texteSur(v["nom"], 60) || `${pourcentage} % vers ${destination}`,
+    source,
+    destination,
+    pourcentage,
+    sourceRevenu,
+    actif: v["actif"] !== false,
+    creeLe: dateSure(v["creeLe"]) ?? new Date().toISOString().slice(0, 10),
+  };
 }
