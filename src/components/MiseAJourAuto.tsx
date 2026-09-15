@@ -12,6 +12,7 @@ import {
 import { protegerAvantMiseAJour } from "@/lib/sauvegarde-avant-maj";
 import { instantaneEtat } from "@/lib/instantane";
 import { useSuperApp } from "@/lib/store";
+import { attendreEcrituresSecurisees } from "@/lib/coffre-local";
 
 /**
  * Boîte de dialogue de mise à jour, partagée par la vérification automatique
@@ -118,7 +119,10 @@ export function DialogueMiseAJour({
                 etape: "telechargement",
                 message: "Mise à l'abri de vos données avant la mise à jour...",
               });
-              const abri = await protegerAvantMiseAJour(instantaneEtat(app));
+              // Figer le dernier état seulement après la fin des écritures en
+              // attente : la toute dernière saisie fait ainsi partie de la copie.
+              await attendreEcrituresSecurisees();
+              const abri = await protegerAvantMiseAJour(instantaneEtat(app.etatComplet()));
               setProtection(
                 [
                   abri.email === "envoye"

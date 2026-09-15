@@ -16,6 +16,7 @@ import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
+import { dotationDe } from "./enveloppe-etat";
 import { demanderMotDePasse } from "./mot-de-passe-actions";
 import {
   assainirBudget,
@@ -1310,11 +1311,31 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => {
       const maintenant = Date.now();
       const nouvelles: Transaction[] = [];
+      const moisCourant = new Date().toISOString().slice(0, 7);
+      const depensesParEnveloppe = new Map<string, number>();
+      for (const t of e.transactions) {
+        if (t.type !== "depense" || t.date.slice(0, 7) !== moisCourant) continue;
+        depensesParEnveloppe.set(
+          t.categorie,
+          (depensesParEnveloppe.get(t.categorie) ?? 0) + t.montant + (t.frais ?? 0),
+        );
+      }
       const budgets = e.budgets.map((b) => {
         if (!b.actif) return b;
         let date = b.prochaine;
         let garde = 0;
         while (new Date(date).getTime() <= maintenant && garde < 240) {
+          const enveloppe = e.enveloppes.find((v) => v.id === b.enveloppeId);
+          const plafond = enveloppe ? dotationDe(enveloppe) : 0;
+          const deja = depensesParEnveloppe.get(b.enveloppeId) ?? 0;
+          if (plafond > 0 && deja + b.montant > plafond) {
+            journaliser(
+              "avertissement",
+              "application",
+              `Échéance « ${b.libelle} » non créée : l’enveloppe « ${enveloppe?.nom ?? "inconnue"} » serait dépassée.`,
+            );
+            break;
+          }
           nouvelles.push({
             id: crypto.randomUUID(),
             type: "depense",
@@ -1325,6 +1346,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             date,
             budgetId: b.id,
           });
+          depensesParEnveloppe.set(b.enveloppeId, deja + b.montant);
           date = avancerDate(date, b.periode, b.intervalle);
           garde += 1;
         }

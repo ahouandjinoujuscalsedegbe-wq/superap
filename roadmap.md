@@ -5,4 +5,4 @@
 - [x] Examiner la sécurité, le stockage local et les sauvegardes
 - [x] Examiner les parcours métier et les tests
 - [x] Corriger les défauts vérifiés
-- [ ] Valider les corrections
+- [x] Valider les corrections
