@@ -116,15 +116,33 @@ export function construireRapport(
 ): RapportMensuel {
   // Aujourd'hui : borne au-delà de laquelle une opération n'est pas encore effectuée.
   const aujourdHui = new Date().toISOString().slice(0, 10);
-  const effectuees = donnees.transactions.filter((t) => t.date.slice(0, 10) <= aujourdHui);
-  const duMois = effectuees.filter((t) => t.date.slice(0, 7) === mois);
+  // Les opérations sont rangées par mois une seule fois, même avec plusieurs
+  // années d'historique : ouvrir un rapport ne relit plus toute la liste.
+  const index = indexerParMois(donnees.transactions);
+  const duMois = index.get(mois) ?? [];
   const precedent = moisPrecedent(mois);
-  const duPrecedent = effectuees.filter((t) => t.date.slice(0, 7) === precedent);
+  const duPrecedent = index.get(precedent) ?? [];
 
   // Dépenses planifiées dont l'échéance est passée et qui n'ont pas d'opération
   // correspondante déjà enregistrée dans l'enveloppe concernée.
-  const enRetard: DepenseEnRetard[] = (donnees.budgets ?? [])
-    .filter((b) => b.actif && b.prochaine.slice(0, 10) < aujourdHui)
+  const retards = (donnees.budgets ?? []).filter(
+    (b) => b.actif && b.prochaine.slice(0, 10) < aujourdHui,
+  );
+  // Seules les opérations postérieures à la plus ancienne échéance en retard
+  // peuvent correspondre à un paiement déjà fait : on limite la recherche.
+  const depuis = retards.reduce(
+    (min, b) => (b.prochaine.slice(0, 10) < min ? b.prochaine.slice(0, 10) : min),
+    aujourdHui,
+  );
+  const candidates =
+    retards.length === 0
+      ? []
+      : [...index.keys()]
+          .filter((m) => m >= depuis.slice(0, 7))
+          .flatMap((m) => index.get(m) ?? [])
+          .filter((t) => t.type === "depense" && t.date.slice(0, 10) >= depuis);
+
+  const enRetard: DepenseEnRetard[] = retards
     .map((b) => {
       const env = donnees.enveloppes.find((e) => e.id === b.enveloppeId);
       const jours = Math.max(
