@@ -11,6 +11,7 @@ import {
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
 import { ajouterVersion, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
+import { classerSaisie } from "@/lib/classement-coffre";
 import {
   confierColisArrierePlan,
   oublierColisArrierePlan,
