@@ -3,7 +3,12 @@ import { Check, HandCoins, X } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
-import { idConseiller, notifierAlarme, programmerRappelsConseiller } from "@/lib/alarme-appareil";
+import {
+  declencherAlarmeAppareil,
+  idConseiller,
+  programmerRappelsConseiller,
+} from "@/lib/alarme-appareil";
+import { lireReglagesAlarme, sonAutorise } from "@/lib/alarme";
 import {
   avancerEcheance,
   echeancesDettesDues,
@@ -41,12 +46,22 @@ export function RappelsDettes() {
   useEffect(() => {
     if (!courante || notifiees.current.has(courante.cle)) return;
     notifiees.current.add(courante.cle);
-    void notifierAlarme(
-      courante.dette.sens === "dette"
-        ? `Paiement à faire : ${courante.dette.personne}`
-        : `Versement attendu de ${courante.dette.personne}`,
-      `Échéance du ${courante.date} — ${formatFCFA(courante.montant)}. Avez-vous effectué ce versement ?`,
-    );
+    // L'échéance sonne réellement à l'heure choisie : bip, vibration et
+    // notification, en respectant les heures calmes réglées par l'utilisateur.
+    const reglages = lireReglagesAlarme();
+    const peutSonner = sonAutorise(reglages, true);
+    void declencherAlarmeAppareil({
+      volume: reglages.volume,
+      urgent: true,
+      son: reglages.son && peutSonner,
+      vibration: reglages.vibration && peutSonner,
+      notification: reglages.notification,
+      titre:
+        courante.dette.sens === "dette"
+          ? `Paiement à faire : ${courante.dette.personne}`
+          : `Versement attendu de ${courante.dette.personne}`,
+      texte: `Échéance du ${courante.date} — ${formatFCFA(courante.montant)}. Avez-vous effectué ce versement ?`,
+    });
   }, [courante]);
 
   useEffect(() => {

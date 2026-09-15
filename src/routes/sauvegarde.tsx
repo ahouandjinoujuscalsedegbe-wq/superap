@@ -15,6 +15,7 @@ import {
 import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
+import { ModeMultiAppareil } from "@/components/ModeMultiAppareil";
 import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
@@ -393,6 +394,8 @@ function PageSauvegarde() {
           <Download className="h-4 w-4" aria-hidden /> Télécharger la sauvegarde chiffrée
         </button>
       </section>
+
+      <ModeMultiAppareil />
 
       <RecuperationNouveauTelephone />
 
