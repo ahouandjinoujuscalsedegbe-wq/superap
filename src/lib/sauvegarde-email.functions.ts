@@ -2,11 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 
 export type ResultatEnvoi = {
   envoye: boolean;
-  raison?: "adresse_invalide" | "expediteur_absent" | "erreur_envoi";
+  raison?: "adresse_invalide" | "expediteur_absent" | "erreur_envoi" | "adresse_bloquee";
   message?: string;
 };
 
 type Entree = { email: string; appareil: string; colis: string; creeLe: string };
+
+/** Sous-domaine d'expédition vérifié pour ce projet. */
+const SENDER_DOMAIN = "notify.jsc.com";
+const FROM_DOMAIN = "jsc.com";
 
 /**
  * Envoie le colis chiffré vers l'adresse de sauvegarde de l'utilisateur.
@@ -18,10 +22,7 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) {
       return { envoye: false, raison: "adresse_invalide" };
     }
-
-    const domaine = process.env["SENDER_DOMAIN"] || "notify.jsc.com";
-    const cle = process.env["LOVABLE_API_KEY"];
-    if (!domaine || !cle) {
+    if (!process.env["LOVABLE_API_KEY"]) {
       return {
         envoye: false,
         raison: "expediteur_absent",
@@ -29,22 +30,39 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
       };
     }
 
+    const texte = `Sauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
+
     try {
-      const reponse = await fetch("https://api.lovable.dev/email/v1/send", {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${cle}` },
-        body: JSON.stringify({
-          from: `SUPER APP <sauvegarde@${domaine}>`,
+      const { sendLovableEmail, EmailAPIError } = await import("@lovable.dev/email-js");
+      const resultat = await sendLovableEmail(
+        {
           to: data.email,
+          from: `SUPER APP <sauvegarde@${FROM_DOMAIN}>`,
+          sender_domain: SENDER_DOMAIN,
           subject: `SUPER APP — sauvegarde chiffrée (${data.appareil})`,
-          text: `Sauvegarde chiffrée créée le ${data.creeLe}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`,
-        }),
-      });
-      if (!reponse.ok) {
-        return { envoye: false, raison: "erreur_envoi", message: `HTTP ${reponse.status}` };
+          text: texte,
+          html: `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`,
+          purpose: "transactional",
+          label: "sauvegarde-chiffree",
+          idempotency_key: crypto.randomUUID(),
+        },
+        { apiKey: process.env["LOVABLE_API_KEY"]! },
+      );
+      if (resultat && (resultat as { suppressed?: boolean }).suppressed) {
+        return {
+          envoye: false,
+          raison: "adresse_bloquee",
+          message: "Cette adresse a été bloquée pour les envois : utilisez une autre adresse.",
+        };
       }
       return { envoye: true };
     } catch (e) {
-      return { envoye: false, raison: "erreur_envoi", message: (e as Error).message };
+      const erreur = e as { code?: string; status?: number; message?: string };
+      return {
+        envoye: false,
+        raison: "erreur_envoi",
+        message: erreur.code ? `${erreur.code}` : (erreur.message ?? "envoi impossible"),
+      };
     }
   });
+
