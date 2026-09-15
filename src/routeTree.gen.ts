@@ -69,6 +69,7 @@ import { Route as BudgetSuiviParAxeRouteImport } from './routes/budget.suivi-par
 import { Route as ComptesCategorieNomRouteImport } from './routes/comptes.categorie.$nom'
 import { Route as ComptesModifierCompteRouteImport } from './routes/comptes.modifier.$compte'
 import { Route as ComptesTransfertsIndexRouteImport } from './routes/comptes.transferts.index'
+import { Route as ComptesTransfertsAutomatiquesRouteImport } from './routes/comptes.transferts.automatiques'
 import { Route as ComptesTransfertsNouveauRouteImport } from './routes/comptes.transferts.nouveau'
 import { Route as EnveloppesCategorieNomRouteImport } from './routes/enveloppes.categorie.$nom'
 import { Route as EnveloppesModifierIndexRouteImport } from './routes/enveloppes.modifier.index'
@@ -383,6 +384,12 @@ const ComptesTransfertsIndexRoute = ComptesTransfertsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ComptesTransfertsRoute,
 } as any)
+const ComptesTransfertsAutomatiquesRoute =
+  ComptesTransfertsAutomatiquesRouteImport.update({
+    id: '/automatiques',
+    path: '/automatiques',
+    getParentRoute: () => ComptesTransfertsRoute,
+  } as any)
 const ComptesTransfertsNouveauRoute =
   ComptesTransfertsNouveauRouteImport.update({
     id: '/nouveau',
@@ -506,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/budget/suivi-par/$axe': typeof BudgetSuiviParAxeRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/modifier/$compte': typeof ComptesModifierCompteRoute
+  '/comptes/transferts/automatiques': typeof ComptesTransfertsAutomatiquesRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
@@ -574,6 +582,7 @@ export interface FileRoutesByTo {
   '/budget/suivi-par/$axe': typeof BudgetSuiviParAxeRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/modifier/$compte': typeof ComptesModifierCompteRoute
+  '/comptes/transferts/automatiques': typeof ComptesTransfertsAutomatiquesRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
@@ -649,6 +658,7 @@ export interface FileRoutesById {
   '/budget/suivi-par/$axe': typeof BudgetSuiviParAxeRoute
   '/comptes/categorie/$nom': typeof ComptesCategorieNomRoute
   '/comptes/modifier/$compte': typeof ComptesModifierCompteRoute
+  '/comptes/transferts/automatiques': typeof ComptesTransfertsAutomatiquesRoute
   '/comptes/transferts/nouveau': typeof ComptesTransfertsNouveauRoute
   '/enveloppes/categorie/$nom': typeof EnveloppesCategorieNomRoute
   '/enveloppes/modifier/$id': typeof EnveloppesModifierIdRoute
@@ -725,6 +735,7 @@ export interface FileRouteTypes {
     | '/budget/suivi-par/$axe'
     | '/comptes/categorie/$nom'
     | '/comptes/modifier/$compte'
+    | '/comptes/transferts/automatiques'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
@@ -793,6 +804,7 @@ export interface FileRouteTypes {
     | '/budget/suivi-par/$axe'
     | '/comptes/categorie/$nom'
     | '/comptes/modifier/$compte'
+    | '/comptes/transferts/automatiques'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
@@ -867,6 +879,7 @@ export interface FileRouteTypes {
     | '/budget/suivi-par/$axe'
     | '/comptes/categorie/$nom'
     | '/comptes/modifier/$compte'
+    | '/comptes/transferts/automatiques'
     | '/comptes/transferts/nouveau'
     | '/enveloppes/categorie/$nom'
     | '/enveloppes/modifier/$id'
@@ -1335,6 +1348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComptesTransfertsIndexRouteImport
       parentRoute: typeof ComptesTransfertsRoute
     }
+    '/comptes/transferts/automatiques': {
+      id: '/comptes/transferts/automatiques'
+      path: '/automatiques'
+      fullPath: '/comptes/transferts/automatiques'
+      preLoaderRoute: typeof ComptesTransfertsAutomatiquesRouteImport
+      parentRoute: typeof ComptesTransfertsRoute
+    }
     '/comptes/transferts/nouveau': {
       id: '/comptes/transferts/nouveau'
       path: '/nouveau'
@@ -1454,11 +1474,13 @@ const BudgetRouteWithChildren =
   BudgetRoute._addFileChildren(BudgetRouteChildren)
 
 interface ComptesTransfertsRouteChildren {
+  ComptesTransfertsAutomatiquesRoute: typeof ComptesTransfertsAutomatiquesRoute
   ComptesTransfertsNouveauRoute: typeof ComptesTransfertsNouveauRoute
   ComptesTransfertsIndexRoute: typeof ComptesTransfertsIndexRoute
 }
 
 const ComptesTransfertsRouteChildren: ComptesTransfertsRouteChildren = {
+  ComptesTransfertsAutomatiquesRoute: ComptesTransfertsAutomatiquesRoute,
   ComptesTransfertsNouveauRoute: ComptesTransfertsNouveauRoute,
   ComptesTransfertsIndexRoute: ComptesTransfertsIndexRoute,
 }
