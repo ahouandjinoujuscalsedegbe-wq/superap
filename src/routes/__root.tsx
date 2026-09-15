@@ -172,6 +172,10 @@ function RootComponent() {
   // Capture des erreurs non gérées dans le journal de diagnostic.
   useEffect(() => installerCaptureGlobale(), []);
 
+  // Chaque lettre tapée est mémorisée avant validation : rien de ce que
+  // l'utilisateur écrit ne peut être perdu avant la copie chiffrée.
+  useEffect(() => suivreSaisies(), []);
+
   // Une navigation doit toujours repartir avec une surface propre : aucun
   // clavier ou panneau de la page précédente ne doit rester au-dessus.
   useEffect(() => {
