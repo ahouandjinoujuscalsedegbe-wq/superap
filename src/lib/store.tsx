@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react";
 import { avancerDate } from "./periodes";
+import { appliquerReglages } from "./reglages-complets";
+import { CLE_BROUILLONS } from "./brouillons";
 import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
