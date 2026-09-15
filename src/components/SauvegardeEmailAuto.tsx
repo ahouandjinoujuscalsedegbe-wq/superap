@@ -67,7 +67,7 @@ export function SauvegardeEmailAuto() {
           date: new Date().toISOString(),
           etat: "echec",
           taille: colis.taille,
-          detail: resultat.message ?? resultat.raison,
+          detail: resultat.message ?? resultat.raison ?? "envoi refusé",
         });
         ecrireReglagesMail({ ...reglages, dernierEchec: new Date().toISOString() });
       }
