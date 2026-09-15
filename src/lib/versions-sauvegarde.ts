@@ -71,13 +71,19 @@ export function ajouterVersion(
   colis: ColisEnAttente,
   appareil: string,
   envoyee: boolean,
+  classement?: string,
 ): VersionSauvegarde[] {
   const existantes = lireVersions();
   const deja = existantes.find((v) => v.empreinte === colis.empreinte);
   const suivant = deja
     ? existantes.map((v) =>
         v.empreinte === colis.empreinte
-          ? { ...v, creeLe: colis.creeLe, envoyee: v.envoyee || envoyee }
+          ? {
+              ...v,
+              creeLe: colis.creeLe,
+              envoyee: v.envoyee || envoyee,
+              ...(classement ? { classement } : {}),
+            }
           : v,
       )
     : [
@@ -89,6 +95,7 @@ export function ajouterVersion(
           taille: colis.taille,
           appareil,
           envoyee,
+          ...(classement ? { classement } : {}),
         },
         ...existantes,
       ];
