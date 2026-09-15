@@ -262,8 +262,10 @@ export async function dechiffrerCinqFois(colis: string, phrase: string): Promise
         donnees,
       )) as unknown as BufferSource;
     }
-    return decodeur.decode(donnees as ArrayBuffer);
-  } catch {
+    const texte = decodeur.decode(donnees as ArrayBuffer);
+    return await decompresser(texte);
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("Cet appareil")) throw e;
     throw new Error("Phrase de récupération incorrecte ou colis endommagé.");
   }
 }
@@ -302,7 +304,9 @@ export function ecrireFile(colis: ColisEnAttente | null) {
 export async function preparerColis(etat: unknown, phrase: string): Promise<ColisEnAttente> {
   const brut = JSON.stringify(etat);
   const marque = await empreinte(brut);
-  const contenu = await chiffrerCinqFois(brut, phrase);
+  // Compression avant chiffrement : les copies restent légères même après
+  // plusieurs années d'historique (souvent 8 à 12 fois plus petites).
+  const contenu = await chiffrerCinqFois(await compresser(brut), phrase);
   return {
     id: crypto.randomUUID(),
     creeLe: new Date().toISOString(),
