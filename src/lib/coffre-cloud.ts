@@ -14,14 +14,18 @@ const ITERATIONS_CLE = 200_000;
 
 const encodeur = new TextEncoder();
 
-/** Dans l'APK, la page est servie localement : il faut viser le serveur. */
+/**
+ * Dans l'application installée (Android), la page est servie depuis le
+ * téléphone : il faut viser le serveur public. Dans un navigateur, on reste
+ * sur la même adresse que la page.
+ */
 function adresseCoffre(): string {
-  const base =
-    typeof window !== "undefined" && window.location.protocol.startsWith("http")
-      ? window.location.origin
-      : RELAIS_MAJ;
-  const local = /^https?:\/\/(localhost|127\.0\.0\.1)/.test(base);
-  return `${local ? RELAIS_MAJ : base}/api/public/coffre`;
+  if (typeof window === "undefined") return `${RELAIS_MAJ}/api/public/coffre`;
+  const pont = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  const embarquee =
+    !window.location.protocol.startsWith("http") || pont?.isNativePlatform?.() === true;
+  const base = embarquee ? RELAIS_MAJ : window.location.origin;
+  return `${base}/api/public/coffre`;
 }
 
 function hex(buffer: ArrayBuffer): string {
@@ -112,4 +116,28 @@ export async function lireDepuisCloud(email: string, phrase: string): Promise<Co
   const reponse = await appeler({ action: "lire", cle });
   const copies = reponse?.["copies"];
   return Array.isArray(copies) ? (copies as CopieCloud[]) : [];
+}
+
+/**
+ * Anciennes versions de l'application mettaient tous les champs en
+ * majuscules, y compris la phrase de récupération. On essaie donc la phrase
+ * telle qu'elle est saisie, puis ses variantes, pour que personne ne perde
+ * l'accès à ses copies.
+ */
+export function variantesPhrase(phrase: string): string[] {
+  const propre = phrase.trim();
+  const liste = [propre, propre.toLocaleUpperCase("fr-FR"), propre.toLocaleLowerCase("fr-FR")];
+  return liste.filter((v, i) => v.length > 0 && liste.indexOf(v) === i);
+}
+
+/** Cherche les copies du compte en acceptant les variantes de la phrase. */
+export async function chercherCopiesDuCompte(
+  email: string,
+  phrase: string,
+): Promise<{ copies: CopieCloud[]; phrase: string }> {
+  for (const essai of variantesPhrase(phrase)) {
+    const copies = await lireDepuisCloud(email, essai);
+    if (copies.length > 0) return { copies, phrase: essai };
+  }
+  return { copies: [], phrase: phrase.trim() };
 }

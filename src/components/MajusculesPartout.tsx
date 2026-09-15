@@ -5,7 +5,10 @@ import { useEffect } from "react";
  * quel que soit le champ (input texte ou zone de texte).
  */
 
-const TYPES_TEXTE = ["text", "search", "tel", "url", "email", "password"];
+// Les champs secrets (mot de passe, code, phrase de récupération) ne sont
+// JAMAIS transformés : la casse choisie par l'utilisateur doit être respectée,
+// sinon sa phrase ne rouvre plus ses sauvegardes.
+const TYPES_TEXTE = ["text", "search", "tel", "url", "email"];
 
 type Champ = HTMLInputElement | HTMLTextAreaElement;
 

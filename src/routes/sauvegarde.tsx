@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Archive,
@@ -76,19 +76,24 @@ function PageSauvegarde() {
   const [nomFichier, setNomFichier] = useState("");
   const [erreur, setErreur] = useState("");
   const [info, setInfo] = useState("");
-  const [points, setPoints] = useState<SauvegardeAuto[]>(() =>
-    typeof window === "undefined" ? [] : lireSauvegardes(),
-  );
+  const [points, setPoints] = useState<SauvegardeAuto[]>([]);
   const [attente, setAttente] = useState<ActionEnAttente | null>(null);
-  const [reglagesMail, setReglagesMail] = useState<ReglagesMail>(() =>
-    typeof window === "undefined"
-      ? { email: "", appareil: "", configure: false, actif: false }
-      : lireReglagesMail(),
-  );
-  const [colisEnAttente, setColisEnAttente] = useState(() =>
-    typeof window === "undefined" ? null : lireFile(),
-  );
+  // Lecture après l'affichage : le premier rendu doit être identique côté
+  // serveur et côté téléphone (sinon l'écran clignote ou reste blanc).
+  const [reglagesMail, setReglagesMail] = useState<ReglagesMail>({
+    email: "",
+    appareil: "",
+    configure: false,
+    actif: false,
+  });
+  const [colisEnAttente, setColisEnAttente] = useState<ReturnType<typeof lireFile>>(null);
   const [reconfigurer, setReconfigurer] = useState(false);
+
+  useEffect(() => {
+    setPoints(lireSauvegardes());
+    setReglagesMail(lireReglagesMail());
+    setColisEnAttente(lireFile());
+  }, []);
 
   const rafraichirEtatMail = () => {
     setReglagesMail(lireReglagesMail());
@@ -338,13 +343,18 @@ function PageSauvegarde() {
         </div>
       </section>
 
-      <ConfigurationSauvegarde
-        forceOpen={reconfigurer}
-        onFermer={() => {
-          setReconfigurer(false);
-          rafraichirEtatMail();
-        }}
-      />
+      {/* Une seule fenêtre à la fois : la fenêtre du premier lancement est déjà
+          affichée par l'application. On n'ouvre celle-ci que si l'utilisateur
+          demande lui-même de modifier son adresse. */}
+      {reconfigurer ? (
+        <ConfigurationSauvegarde
+          forceOpen
+          onFermer={() => {
+            setReconfigurer(false);
+            rafraichirEtatMail();
+          }}
+        />
+      ) : null}
 
       <section className="carte p-4">
         <h2 className="font-semibold">Contenu à sauvegarder</h2>
