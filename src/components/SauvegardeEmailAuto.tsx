@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSuperApp } from "@/lib/store";
 import {
   ecrireFile,
@@ -12,6 +12,8 @@ import {
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
 import { ajouterVersion, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
 import { classerSaisie } from "@/lib/classement-coffre";
+import { instantaneEtat } from "@/lib/instantane";
+import { EVENEMENT_BROUILLON } from "@/lib/brouillons";
 import {
   confierColisArrierePlan,
   oublierColisArrierePlan,
@@ -19,7 +21,7 @@ import {
 } from "@/lib/sauvegarde-arriere-plan";
 
 /** Délai avant chiffrement d'une saisie (évite un colis à chaque frappe). */
-const DELAI_CHIFFREMENT = 4_000;
+const DELAI_CHIFFREMENT = 1_500;
 /** Nouvelle fiche nommée : la copie classée part presque immédiatement. */
 const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
@@ -35,6 +37,13 @@ export function SauvegardeEmailAuto() {
   const etat = useSuperApp();
   const { chargement } = etat;
   const enCours = useRef(false);
+  // Chaque frappe mémorisée relance la préparation de la copie chiffrée.
+  const [frappes, setFrappes] = useState(0);
+  useEffect(() => {
+    const surFrappe = () => setFrappes((n) => n + 1);
+    window.addEventListener(EVENEMENT_BROUILLON, surFrappe);
+    return () => window.removeEventListener(EVENEMENT_BROUILLON, surFrappe);
+  }, []);
 
   const envoyer = useCallback(async () => {
     if (enCours.current) return;
@@ -96,24 +105,7 @@ export function SauvegardeEmailAuto() {
       void (async () => {
         const phrase = await lirePhrase();
         if (!phrase) return;
-        const instantane = {
-          transactions: etat.transactions,
-          enveloppes: etat.enveloppes,
-          categories: etat.categories,
-          comptes: etat.comptes,
-          comptesExclus: etat.comptesExclus,
-          ordreComptes: etat.ordreComptes,
-          iconesComptes: etat.iconesComptes,
-          transferts: etat.transferts,
-          remplissages: etat.remplissages,
-          budgets: etat.budgets,
-          dettes: etat.dettes,
-          objectifs: etat.objectifs,
-          corbeille: etat.corbeille,
-          membres: etat.membres,
-          transparence: etat.transparence,
-          nomUtilisateur: etat.nomUtilisateur,
-        };
+        const instantane = instantaneEtat(etat);
         const brut = await preparerColis(instantane, phrase);
         // Le classement est mémorisé maintenant : la même fiche ne sera plus
         // comptée comme nouvelle au prochain enregistrement.
@@ -142,7 +134,7 @@ export function SauvegardeEmailAuto() {
       })();
     }, rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT);
     return () => window.clearTimeout(minuterie);
-  }, [chargement, etat, envoyer]);
+  }, [chargement, etat, frappes, envoyer]);
 
   // 2. Reprise automatique : retour du réseau, retour dans l'application,
   //    et nouvelle tentative régulière tant qu'un colis attend.
@@ -157,6 +149,8 @@ export function SauvegardeEmailAuto() {
     };
     navigator.serviceWorker?.addEventListener("message", depuisRelais);
     window.addEventListener("online", reprendre);
+    // Application fermée ou mise en veille : dernier envoi immédiat.
+    window.addEventListener("pagehide", reprendre);
     const auRetour = () => {
       if (document.visibilityState === "visible") reprendre();
     };
@@ -166,6 +160,7 @@ export function SauvegardeEmailAuto() {
     return () => {
       navigator.serviceWorker?.removeEventListener("message", depuisRelais);
       window.removeEventListener("online", reprendre);
+      window.removeEventListener("pagehide", reprendre);
       document.removeEventListener("visibilitychange", auRetour);
       window.clearInterval(minuterie);
     };
