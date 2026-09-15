@@ -25,6 +25,7 @@ import { BarreHaute } from "../components/BarreHaute";
 import { ClavierInterne } from "../components/ClavierInterne";
 import { MajusculesPartout } from "../components/MajusculesPartout";
 import { installerCaptureGlobale } from "@/lib/journal";
+import { suivreSaisies } from "@/lib/brouillons";
 
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
