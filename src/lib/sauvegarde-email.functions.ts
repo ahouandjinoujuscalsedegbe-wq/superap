@@ -67,7 +67,7 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
           text: texte,
           html,
           purpose: "transactional",
-          label: "sauvegarde-chiffree",
+          label: data.rubrique ? `coffre-${data.rubrique}` : "sauvegarde-chiffree",
           idempotency_key: crypto.randomUUID(),
         },
         { apiKey: cle },
