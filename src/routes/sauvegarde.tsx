@@ -76,9 +76,7 @@ function PageSauvegarde() {
   const [nomFichier, setNomFichier] = useState("");
   const [erreur, setErreur] = useState("");
   const [info, setInfo] = useState("");
-  const [points, setPoints] = useState<SauvegardeAuto[]>(() =>
-    [] as ReturnType<typeof lireSauvegardes>,
-  );
+  const [points, setPoints] = useState<SauvegardeAuto[]>([]);
   const [attente, setAttente] = useState<ActionEnAttente | null>(null);
   // Lecture après l'affichage : le premier rendu doit être identique côté
   // serveur et côté téléphone (sinon l'écran clignote ou reste blanc).
@@ -92,7 +90,7 @@ function PageSauvegarde() {
   const [reconfigurer, setReconfigurer] = useState(false);
 
   useEffect(() => {
-    setSauvegardes(lireSauvegardes());
+    setPoints(lireSauvegardes());
     setReglagesMail(lireReglagesMail());
     setColisEnAttente(lireFile());
   }, []);
