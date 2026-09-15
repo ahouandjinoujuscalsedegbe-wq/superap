@@ -76,6 +76,7 @@ import { Route as EnveloppesModifierIdRouteImport } from './routes/enveloppes.mo
 import { Route as ObjectifsActionIndexRouteImport } from './routes/objectifs.action.index'
 import { Route as ObjectifsActionCreerRouteImport } from './routes/objectifs.action.creer'
 import { Route as ObjectifsActionGererRouteImport } from './routes/objectifs.action.gerer'
+import { Route as ApiPublicCoffreIndexRouteImport } from './routes/api/public/coffre/index'
 import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 import { Route as ApiPublicSauvegardeEnvoiRouteImport } from './routes/api/public/sauvegarde/envoi'
@@ -418,6 +419,11 @@ const ObjectifsActionGererRoute = ObjectifsActionGererRouteImport.update({
   path: '/action/gerer',
   getParentRoute: () => ObjectifsRoute,
 } as any)
+const ApiPublicCoffreIndexRoute = ApiPublicCoffreIndexRouteImport.update({
+  id: '/api/public/coffre/',
+  path: '/api/public/coffre/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
   id: '/api/public/maj/apk',
   path: '/api/public/maj/apk',
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/coffre/': typeof ApiPublicCoffreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -580,6 +587,7 @@ export interface FileRoutesByTo {
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/coffre': typeof ApiPublicCoffreIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -654,6 +662,7 @@ export interface FileRoutesById {
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/coffre/': typeof ApiPublicCoffreIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -729,6 +738,7 @@ export interface FileRouteTypes {
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
     | '/lovable/email/transactional/preview'
+    | '/api/public/coffre/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -796,6 +806,7 @@ export interface FileRouteTypes {
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
     | '/lovable/email/transactional/preview'
+    | '/api/public/coffre'
   id:
     | '__root__'
     | '/'
@@ -869,6 +880,7 @@ export interface FileRouteTypes {
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
     | '/lovable/email/transactional/preview'
+    | '/api/public/coffre/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -898,6 +910,7 @@ export interface RootRouteChildren {
   ApiPublicMajVersionRoute: typeof ApiPublicMajVersionRoute
   ApiPublicSauvegardeEnvoiRoute: typeof ApiPublicSauvegardeEnvoiRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  ApiPublicCoffreIndexRoute: typeof ApiPublicCoffreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1371,6 +1384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObjectifsActionGererRouteImport
       parentRoute: typeof ObjectifsRoute
     }
+    '/api/public/coffre/': {
+      id: '/api/public/coffre/'
+      path: '/api/public/coffre'
+      fullPath: '/api/public/coffre/'
+      preLoaderRoute: typeof ApiPublicCoffreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/maj/apk': {
       id: '/api/public/maj/apk'
       path: '/api/public/maj/apk'
@@ -1576,6 +1596,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMajVersionRoute: ApiPublicMajVersionRoute,
   ApiPublicSauvegardeEnvoiRoute: ApiPublicSauvegardeEnvoiRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  ApiPublicCoffreIndexRoute: ApiPublicCoffreIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

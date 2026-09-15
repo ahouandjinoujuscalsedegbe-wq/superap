@@ -31,6 +31,14 @@ jobs:
       - name: Installer Bun
         uses: oven-sh/setup-bun@v2
 
+      # 2b. Installer Java AVANT toute lecture de la clé de signature :
+      # l'outil keytool en dépend et n'est plus garanti sur les serveurs GitHub.
+      - name: Installer Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
       # 3. Installer les dépendances du projet
       - name: Installer les dépendances
         run: bun install --frozen-lockfile || bun install
@@ -48,8 +56,16 @@ jobs:
             echo "::error::Signature Android absente : Play Protect peut bloquer les APK debug/test. Configurez ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS et ANDROID_KEY_PASSWORD."
             exit 1
           fi
+          KEYTOOL="$(command -v keytool || true)"
+          if [ -z "$KEYTOOL" ] && [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/keytool" ]; then
+            KEYTOOL="$JAVA_HOME/bin/keytool"
+          fi
+          if [ -z "$KEYTOOL" ]; then
+            echo "::error::Java (keytool) est absent du serveur de compilation : impossible de lire la clé de signature."
+            exit 1
+          fi
           printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > /tmp/signature.jks
-          EMPREINTE=$(keytool -list -v -keystore /tmp/signature.jks -storepass "$KEYSTORE_PASSWORD" \
+          EMPREINTE=$("$KEYTOOL" -list -v -keystore /tmp/signature.jks -storepass "$KEYSTORE_PASSWORD" \
             -alias "$KEY_ALIAS" | grep -m1 "SHA256:" | awk '{print $2}' | tr -d ':' | tr 'A-Z' 'a-z')
           if [ -z "$EMPREINTE" ]; then
             echo "::error::Impossible de lire l'empreinte du certificat de signature."
@@ -88,13 +104,6 @@ jobs:
             exit 1
           fi
           echo "Paquet mobile complet : $TAILLE_JS octets de JavaScript."
-
-      # 5. Installer Java (nécessaire pour compiler Android)
-      - name: Installer Java 21
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
 
       # 6. Installer les outils Android
       - name: Installer le SDK Android

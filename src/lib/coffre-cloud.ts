@@ -100,7 +100,7 @@ export async function deposerDansCloud(
       taille: colis.taille,
       ...(colis.classement ? { classement: colis.classement } : {}),
     });
-    return reponse?.ok === true;
+    return reponse?.["ok"] === true;
   } catch {
     return false;
   }
