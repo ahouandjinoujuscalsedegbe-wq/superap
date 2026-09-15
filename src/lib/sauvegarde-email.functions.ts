@@ -9,8 +9,8 @@ export type ResultatEnvoi = {
 type Entree = { email: string; appareil: string; colis: string; creeLe: string };
 
 /** Sous-domaine d'expédition vérifié pour ce projet. */
-const SENDER_DOMAIN = "notify.jsc.com";
-const FROM_DOMAIN = "jsc.com";
+const SENDER_DOMAIN = "notify.superappbudget.com";
+const FROM_DOMAIN = "superappbudget.com";
 
 /**
  * Envoie le colis chiffré vers l'adresse de sauvegarde de l'utilisateur.
