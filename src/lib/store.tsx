@@ -537,7 +537,13 @@ type Contexte = Etat & {
   supprimerTransaction: (id: string) => void;
   /** Change l'enveloppe d'une dépense déjà enregistrée (classement manuel). */
   reclasserTransaction: (id: string, enveloppeId: string) => void;
-  ajouterCompte: (nom: string, dansDisponible?: boolean, emoji?: string) => void;
+  ajouterCompte: (
+    nom: string,
+    dansDisponible?: boolean,
+    emoji?: string,
+    /** Compte réservé aux transferts automatiques, présenté à part. */
+    reserve?: boolean,
+  ) => void;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
