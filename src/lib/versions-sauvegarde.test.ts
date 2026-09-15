@@ -23,6 +23,19 @@ function colis(n: number): ColisEnAttente {
 }
 
 describe("coffre de versions", () => {
+  beforeAll(() => {
+    const memoire = new Map<string, string>();
+    const stockage = {
+      getItem: (c: string) => memoire.get(c) ?? null,
+      setItem: (c: string, v: string) => void memoire.set(c, v),
+      removeItem: (c: string) => void memoire.delete(c),
+      clear: () => memoire.clear(),
+      key: () => null,
+      length: 0,
+    };
+    (globalThis as { window?: unknown }).window = { localStorage: stockage };
+  });
+
   beforeEach(() => {
     viderVersions();
   });
