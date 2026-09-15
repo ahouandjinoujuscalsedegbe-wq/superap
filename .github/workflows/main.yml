@@ -130,9 +130,24 @@ jobs:
           fi
           echo "Paquet mobile complet : $TAILLE_JS octets de JavaScript."
 
-      # 6. Installer les outils Android
-      - name: Installer le SDK Android
-        uses: android-actions/setup-android@v3
+      # 6. GitHub fournit déjà le SDK Android sur ubuntu-latest. L'ancienne
+      # action setup-android échoue désormais avant Gradle sur certains
+      # serveurs GitHub (migration interne de Node), alors qu'elle ne faisait
+      # que redéclarer un SDK déjà installé.
+      - name: Vérifier le SDK Android préinstallé
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$SDK_ROOT" ] || [ ! -d "$SDK_ROOT" ]; then
+            echo "::error::Le serveur GitHub ne fournit aucun SDK Android exploitable."
+            exit 1
+          fi
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDK Android disponible : $SDK_ROOT"
+          test -x "$SDK_ROOT/platform-tools/adb" || {
+            echo "::error::Le SDK Android préinstallé est incomplet (adb absent)."
+            exit 1
+          }
 
       # 7. Créer le projet Android natif et y copier l'application
       - name: Préparer la coque Android (Capacitor)
