@@ -338,13 +338,18 @@ function PageSauvegarde() {
         </div>
       </section>
 
-      <ConfigurationSauvegarde
-        forceOpen={reconfigurer}
-        onFermer={() => {
-          setReconfigurer(false);
-          rafraichirEtatMail();
-        }}
-      />
+      {/* Une seule fenêtre à la fois : la fenêtre du premier lancement est déjà
+          affichée par l'application. On n'ouvre celle-ci que si l'utilisateur
+          demande lui-même de modifier son adresse. */}
+      {reconfigurer ? (
+        <ConfigurationSauvegarde
+          forceOpen
+          onFermer={() => {
+            setReconfigurer(false);
+            rafraichirEtatMail();
+          }}
+        />
+      ) : null}
 
       <section className="carte p-4">
         <h2 className="font-semibold">Contenu à sauvegarder</h2>

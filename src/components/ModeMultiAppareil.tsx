@@ -13,7 +13,7 @@ import {
   lireReglagesMail,
   preparerColis,
 } from "@/lib/sauvegarde-email";
-import { deposerDansCloud, lireDepuisCloud } from "@/lib/coffre-cloud";
+import { chercherCopiesDuCompte, deposerDansCloud } from "@/lib/coffre-cloud";
 import {
   ecrireReglagesMulti,
   fusionnerDonneesCompte,
@@ -130,15 +130,15 @@ export function ModeMultiAppareil() {
     }
     setOccupe("reconnexion");
     try {
-      const copies = await lireDepuisCloud(email.trim(), secrete);
-      const derniere = copies[0];
+      const trouvees = await chercherCopiesDuCompte(email.trim(), secrete);
+      const derniere = trouvees.copies[0];
       if (!derniere) {
         setErreur(
           "Aucune copie trouvée pour ce compte : vérifiez l'adresse e-mail et la phrase de récupération.",
         );
         return;
       }
-      const ok = await appliquerCopie(derniere.contenu, secrete);
+      const ok = await appliquerCopie(derniere.contenu, trouvees.phrase);
       if (ok) setPhrase("");
     } catch {
       setErreur("Reconnexion impossible : vérifiez la phrase de récupération et la connexion.");
