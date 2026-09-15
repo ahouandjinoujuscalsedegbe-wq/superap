@@ -12,6 +12,7 @@ import {
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
 import { ajouterVersion, lireVersions, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
 import { classerSaisie } from "@/lib/classement-coffre";
+import { deposerDansCloud } from "@/lib/coffre-cloud";
 import { instantaneEtat } from "@/lib/instantane";
 import { EVENEMENT_BROUILLON } from "@/lib/brouillons";
 import {
@@ -169,6 +170,14 @@ export function SauvegardeEmailAuto() {
             ...actuel,
             derniereEmpreinte: colis.empreinte,
             derniereTaille: colis.taille,
+          });
+          // Dépôt silencieux dans l'espace de stockage rattaché à l'adresse
+          // e-mail : aucun message n'est envoyé, la copie est déjà chiffrée.
+          void deposerDansCloud(actuel.email, phrase, actuel.appareil, {
+            contenu: colis.contenu,
+            empreinte: colis.empreinte,
+            taille: colis.taille,
+            classement: classement.chemin,
           });
           return;
         }
