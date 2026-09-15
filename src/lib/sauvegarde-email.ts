@@ -26,6 +26,8 @@ const decodeur = new TextDecoder();
 export type ReglagesMail = {
   /** Adresse de destination des colis chiffrés. */
   email: string;
+  /** Deuxième adresse (autre fournisseur) : sécurité si la première est perdue. */
+  emailSecours?: string;
   /** Nom de l'appareil, pour reconnaître l'origine du colis. */
   appareil: string;
   /** Configuration terminée au premier lancement. */
@@ -35,6 +37,8 @@ export type ReglagesMail = {
   dernierEnvoi?: string;
   derniereEmpreinte?: string;
   dernierEchec?: string;
+  /** Taille du dernier colis envoyé (octets du texte chiffré). */
+  derniereTaille?: number;
 };
 
 export const REGLAGES_MAIL_INITIAUX: ReglagesMail = {
@@ -43,6 +47,36 @@ export const REGLAGES_MAIL_INITIAUX: ReglagesMail = {
   configure: false,
   actif: true,
 };
+
+/** Une ligne du journal d'envois, pour voir l'historique réel des sauvegardes. */
+export type LigneJournalMail = {
+  date: string;
+  etat: "envoye" | "echec" | "attente";
+  taille?: number;
+  detail?: string;
+};
+
+export const CLE_JOURNAL_MAIL = "superapp:sauvegarde-mail:journal:v1";
+const JOURNAL_MAX = 30;
+
+export function lireJournalMail(): LigneJournalMail[] {
+  try {
+    const brut = window.localStorage.getItem(CLE_JOURNAL_MAIL);
+    const lignes = brut ? (JSON.parse(brut) as LigneJournalMail[]) : [];
+    return Array.isArray(lignes) ? lignes : [];
+  } catch {
+    return [];
+  }
+}
+
+export function noterJournalMail(ligne: LigneJournalMail) {
+  try {
+    const suivant = [ligne, ...lireJournalMail()].slice(0, JOURNAL_MAX);
+    window.localStorage.setItem(CLE_JOURNAL_MAIL, JSON.stringify(suivant));
+  } catch {
+    /* stockage indisponible */
+  }
+}
 
 export type ColisEnAttente = {
   id: string;
