@@ -121,10 +121,9 @@ export function DialogueMiseAJour({
               const abri = await protegerAvantMiseAJour(instantaneEtat(app));
               setProtection(
                 [
-                  abri.fichier
-                    ? "Copie de secours enregistrée dans les Documents du téléphone."
+                  abri.email === "envoye"
+                    ? "Copie chiffrée envoyée à votre adresse e-mail (aucun fichier laissé sur le téléphone)."
                     : null,
-                  abri.email === "envoye" ? "Copie envoyée à votre adresse e-mail." : null,
                   ...abri.avertissements,
                 ]
                   .filter(Boolean)
