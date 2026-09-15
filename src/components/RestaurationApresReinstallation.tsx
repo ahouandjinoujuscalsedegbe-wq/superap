@@ -91,7 +91,10 @@ export function RestaurationApresReinstallation() {
           className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
         />
         {erreur && (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
             {erreur}
           </p>
         )}

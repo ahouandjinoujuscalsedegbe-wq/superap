@@ -126,7 +126,9 @@ export async function protegerAvantMiseAJour(instantane: unknown): Promise<Resul
           derniereEmpreinte: colis.empreinte,
         });
       } else {
-        avertissements.push("L'envoi par e-mail n'a pas abouti : la copie repartira dès que possible.");
+        avertissements.push(
+          "L'envoi par e-mail n'a pas abouti : la copie repartira dès que possible.",
+        );
       }
     } catch {
       avertissements.push("Envoi par e-mail impossible pour l'instant (pas de connexion).");
