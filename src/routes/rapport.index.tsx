@@ -28,24 +28,14 @@ export const Route = createFileRoute("/rapport/")({
 });
 
 function PageListeRapports() {
-  const { transactions, enveloppes, dettes, budgets } = useSuperApp();
-  const mois = useMemo(() => moisDisponibles(transactions), [transactions]);
+  const { transactions, enveloppes } = useSuperApp();
 
-  const resumes = useMemo(
-    () =>
-      mois.map((m) => {
-        const r = construireRapport(m, { transactions, enveloppes, dettes, budgets });
-        return {
-          mois: m,
-          revenus: r.revenus,
-          depenses: r.depenses,
-          net: r.net,
-          score: r.score,
-          nbOperations: r.nbOperations,
-        };
-      }),
-    [mois, transactions, enveloppes, dettes, budgets],
-  );
+  // Un seul passage sur l'historique complet, même sur plusieurs années.
+  const resumes = useMemo(() => resumesMensuels(transactions, enveloppes), [
+    transactions,
+    enveloppes,
+  ]);
+  const mois = useMemo(() => resumes.map((r) => r.mois), [resumes]);
 
   const annees = useMemo(
     () => Array.from(new Set(mois.map((m) => m.slice(0, 4)))).sort((a, b) => b.localeCompare(a)),
