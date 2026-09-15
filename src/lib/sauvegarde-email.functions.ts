@@ -15,7 +15,14 @@ type Entree = {
   emailSecours?: string;
   /** Mention ajoutée à l'objet (ex. TEST). */
   mention?: string;
+  /** Rangement de la copie : « SUPER APP / 2026-09 / DÉPENSES / « Marché » ». */
+  classement?: string;
+  /** Rubrique technique, pour un filtre automatique dans la boîte. */
+  rubrique?: string;
 };
+
+/** Marqueur présent dans chaque objet : sert à filtrer et archiver d'un coup. */
+const MARQUEUR = "[SUPERAPP-COFFRE]";
 
 /** Sous-domaine d'expédition vérifié pour ce projet. */
 const SENDER_DOMAIN = "notify.superappbudget.com";
@@ -39,11 +46,13 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
       };
     }
 
-    const texte = `Sauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
+    const rangement = data.classement ?? "SUPER APP / GÉNÉRAL";
+    const texte = `${rangement}\nSauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
     const html = `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`;
-    // La date figure dans l'objet : la boîte e-mail devient un coffre-fort
-    // classé par date, où chaque copie se retrouve d'un coup d'œil.
-    const sujet = `SUPER APP — sauvegarde chiffrée du ${data.creeLe}${data.mention ? ` (${data.mention})` : ""} — ${data.appareil}`;
+    // Objet classé : marqueur de filtre, puis rangement (année-mois, rubrique,
+    // nom saisi), puis date. La boîte e-mail devient un espace de stockage
+    // rangé, filtrable et archivable automatiquement hors boîte de réception.
+    const sujet = `${MARQUEUR} ${rangement} — ${data.creeLe}${data.mention ? ` (${data.mention})` : ""} — ${data.appareil}`;
 
     const { sendLovableEmail } = await import("@lovable.dev/email-js");
     const cle = process.env["LOVABLE_API_KEY"]!;
@@ -58,7 +67,7 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
           text: texte,
           html,
           purpose: "transactional",
-          label: "sauvegarde-chiffree",
+          label: data.rubrique ? `coffre-${data.rubrique}` : "sauvegarde-chiffree",
           idempotency_key: crypto.randomUUID(),
         },
         { apiKey: cle },

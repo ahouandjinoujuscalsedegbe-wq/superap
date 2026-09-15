@@ -136,6 +136,9 @@ export function HistoriqueVersions({
             >
               <div className="min-w-0">
                 <p className="truncate text-xs font-medium">{dateLisible(v.creeLe)}</p>
+                {v.classement ? (
+                  <p className="truncate text-[11px] text-primary">{v.classement}</p>
+                ) : null}
                 <p className="truncate text-[11px] text-muted-foreground">
                   {v.appareil} · {poids(v.taille)} ·{" "}
                   {v.envoyee ? "envoyée par e-mail" : "en attente d'envoi"}

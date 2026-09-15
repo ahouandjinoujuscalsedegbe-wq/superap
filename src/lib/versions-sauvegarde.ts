@@ -27,6 +27,8 @@ export type VersionSauvegarde = {
   appareil: string;
   /** Vrai lorsque la copie est bien partie vers l'e-mail. */
   envoyee: boolean;
+  /** Rangement de la copie : « SUPER APP / 2026-09 / DÉPENSES / « Marché » ». */
+  classement?: string;
 };
 
 export function lireVersions(): VersionSauvegarde[] {
@@ -69,13 +71,19 @@ export function ajouterVersion(
   colis: ColisEnAttente,
   appareil: string,
   envoyee: boolean,
+  classement?: string,
 ): VersionSauvegarde[] {
   const existantes = lireVersions();
   const deja = existantes.find((v) => v.empreinte === colis.empreinte);
   const suivant = deja
     ? existantes.map((v) =>
         v.empreinte === colis.empreinte
-          ? { ...v, creeLe: colis.creeLe, envoyee: v.envoyee || envoyee }
+          ? {
+              ...v,
+              creeLe: colis.creeLe,
+              envoyee: v.envoyee || envoyee,
+              ...(classement ? { classement } : {}),
+            }
           : v,
       )
     : [
@@ -87,6 +95,7 @@ export function ajouterVersion(
           taille: colis.taille,
           appareil,
           envoyee,
+          ...(classement ? { classement } : {}),
         },
         ...existantes,
       ];

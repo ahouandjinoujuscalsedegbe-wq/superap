@@ -11,6 +11,7 @@ import {
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
 import { ajouterVersion, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
+import { classerSaisie } from "@/lib/classement-coffre";
 import {
   confierColisArrierePlan,
   oublierColisArrierePlan,
@@ -19,6 +20,8 @@ import {
 
 /** Délai avant chiffrement d'une saisie (évite un colis à chaque frappe). */
 const DELAI_CHIFFREMENT = 4_000;
+/** Nouvelle fiche nommée : la copie classée part presque immédiatement. */
+const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
 const DELAI_REESSAI = 60_000;
 
@@ -48,6 +51,8 @@ export function SauvegardeEmailAuto() {
           appareil: reglages.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
+          ...(colis.classement ? { classement: colis.classement } : {}),
+          ...(colis.rubrique ? { rubrique: colis.rubrique } : {}),
         },
       });
       if (resultat.envoye) {
@@ -80,11 +85,13 @@ export function SauvegardeEmailAuto() {
     }
   }, []);
 
-  // 1. Chiffrement du nouvel état, peu après la dernière saisie.
+  // 1. Chiffrement du nouvel état, peu après la dernière saisie. Une nouvelle
+  //    fiche nommée (dépense, compte, dette, objectif…) part tout de suite.
   useEffect(() => {
     if (chargement) return;
     const reglages = lireReglagesMail();
     if (!reglages.actif || !reglages.email) return;
+    const rangement = classerSaisie(etat, false);
     const minuterie = window.setTimeout(() => {
       void (async () => {
         const phrase = await lirePhrase();
@@ -107,14 +114,22 @@ export function SauvegardeEmailAuto() {
           transparence: etat.transparence,
           nomUtilisateur: etat.nomUtilisateur,
         };
-        const colis = await preparerColis(instantane, phrase);
+        const brut = await preparerColis(instantane, phrase);
+        // Le classement est mémorisé maintenant : la même fiche ne sera plus
+        // comptée comme nouvelle au prochain enregistrement.
+        const classement = classerSaisie(etat, true);
+        const colis = {
+          ...brut,
+          classement: classement.chemin,
+          rubrique: classement.rubrique,
+        };
         const actuel = lireReglagesMail();
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
         ecrireFile(colis);
-        // Coffre de versions : la copie datée s'ajoute sans écraser les
-        // précédentes, pour pouvoir revenir à un jour précis.
-        ajouterVersion(colis, actuel.appareil, false);
+        // Coffre de versions : la copie datée et classée s'ajoute sans écraser
+        // les précédentes, pour pouvoir revenir à un jour précis.
+        ajouterVersion(colis, actuel.appareil, false, classement.chemin);
         // Copie confiée au relais système : l'envoi se poursuit même une fois
         // l'application fermée.
         await confierColisArrierePlan({
@@ -125,7 +140,7 @@ export function SauvegardeEmailAuto() {
         });
         await envoyer();
       })();
-    }, DELAI_CHIFFREMENT);
+    }, rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT);
     return () => window.clearTimeout(minuterie);
   }, [chargement, etat, envoyer]);
 
