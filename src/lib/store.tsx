@@ -191,6 +191,26 @@ export type Transfert = {
   detteId?: string | undefined;
 };
 
+/**
+ * Règle de transfert automatique : à chaque revenu enregistré, un pourcentage
+ * du montant part aussitôt du compte crédité vers un autre compte.
+ */
+export type RegleTransfert = {
+  id: string;
+  nom: string;
+  /** Compte crédité qui déclenche la règle ; « * » = n'importe quel compte. */
+  source: string;
+  /** Compte qui reçoit la part automatique. */
+  destination: string;
+  /** Part de chaque revenu transférée, en pourcentage (1 à 100). */
+  pourcentage: number;
+  /** Source de revenu concernée (Salaire, Prime…) ; « * » = toutes. */
+  sourceRevenu: string;
+  actif: boolean;
+  creeLe: string;
+};
+
+
 export type Periode = "jour" | "semaine" | "mois" | "trimestre" | "semestre" | "annee";
 
 export const PERIODES: { id: Periode; label: string; parAn: number }[] = [
