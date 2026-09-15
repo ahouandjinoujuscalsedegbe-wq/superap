@@ -36,6 +36,8 @@ export type ReglagesMail = {
   actif: boolean;
   dernierEnvoi?: string;
   derniereEmpreinte?: string;
+  /** Dernière copie confirmée dans le coffre distant chiffré. */
+  dernierDepotCloud?: string;
   dernierEchec?: string;
   /** Taille du dernier colis envoyé (octets du texte chiffré). */
   derniereTaille?: number;
@@ -103,11 +105,12 @@ export function lireReglagesMail(): ReglagesMail {
   }
 }
 
-export function ecrireReglagesMail(r: ReglagesMail) {
+export function ecrireReglagesMail(r: ReglagesMail): boolean {
   try {
     window.localStorage.setItem(CLE_REGLAGES_MAIL, JSON.stringify(r));
+    return true;
   } catch {
-    /* stockage indisponible */
+    return false;
   }
 }
 
@@ -295,12 +298,13 @@ export function lireFile(): ColisEnAttente | null {
   }
 }
 
-export function ecrireFile(colis: ColisEnAttente | null) {
+export function ecrireFile(colis: ColisEnAttente | null): boolean {
   try {
     if (!colis) window.localStorage.removeItem(CLE_FILE_MAIL);
     else window.localStorage.setItem(CLE_FILE_MAIL, JSON.stringify(colis));
+    return true;
   } catch {
-    /* stockage indisponible */
+    return false;
   }
 }
 

@@ -79,4 +79,4 @@ jobs:
             cle-signature.jks
             cle-signature.base64.txt
             INSTRUCTIONS.txt
-          retention-days: 7
+          retention-days: 1

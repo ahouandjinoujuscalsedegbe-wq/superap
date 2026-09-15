@@ -359,8 +359,10 @@ export function ecrireSecurise(cle: string, valeur: string): Promise<void> {
     .then(async () => {
       try {
         window.localStorage.setItem(cle, await chiffrerLocal(valeur));
-      } catch {
-        /* stockage indisponible ou saturé */
+      } catch (erreur) {
+        throw erreur instanceof Error
+          ? erreur
+          : new Error("Le stockage chiffré est indisponible ou saturé.");
       }
     })
     .finally(() => {

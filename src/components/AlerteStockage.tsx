@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useSuperApp } from "@/lib/store";
 
 /**
@@ -19,11 +20,18 @@ export function AlerteStockage() {
       className="mx-4 mt-3 flex items-start gap-2 rounded-2xl border border-destructive/50 bg-destructive/10 px-3 py-2.5 text-xs text-foreground"
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
-      <span>
+      <span className="space-y-2">
         <strong className="font-semibold">Données locales illisibles.</strong> Vos anciennes données
         sont toujours sur le téléphone mais ne peuvent pas être ouvertes. Par sécurité,
         l'application n'enregistre rien pour ne pas les effacer. Restaurez une sauvegarde depuis la
         page Sauvegarde, ou contactez l'assistance avant de saisir quoi que ce soit.
+        <Link
+          to="/sauvegarde"
+          hash="recuperation"
+          className="block font-semibold text-primary underline underline-offset-2"
+        >
+          Récupérer mes données maintenant
+        </Link>
       </span>
     </div>
   );

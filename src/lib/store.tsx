@@ -717,8 +717,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Chiffrement AES-GCM avant toute écriture sur le téléphone.
     // En mode camouflage, rien n'est jamais écrit : les vraies données restent intactes.
-    if (pret.current && !illisible && !camouflageEnCours())
-      void ecrireSecurise(CLE, JSON.stringify(etat));
+    if (pret.current && !illisible && !camouflageEnCours()) {
+      void ecrireSecurise(CLE, JSON.stringify(etat)).catch(() => {
+        journaliser(
+          "erreur",
+          "stockage",
+          "Écriture chiffrée impossible : espace insuffisant ou stockage indisponible.",
+        );
+      });
+    }
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
 

@@ -17,6 +17,7 @@ import {
   refermerCoffreSensible,
   retirerCoffreSensible,
 } from "@/lib/coffre-sensible";
+import { lireReglagesMail } from "@/lib/sauvegarde-email";
 
 type Bascule = {
   cle: keyof OptionsSecurite;
@@ -129,18 +130,28 @@ export function SectionSecuriteAvancee() {
         <select
           id="effacement"
           value={options.effacementApresEchecs}
-          onChange={(e) =>
-            setOptions(ecrireOptions({ effacementApresEchecs: Number(e.target.value) }))
-          }
+          onChange={(e) => {
+            const valeur = Number(e.target.value);
+            const sauvegarde = lireReglagesMail();
+            if (valeur > 0 && (!sauvegarde.configure || !sauvegarde.dernierDepotCloud)) {
+              setMessage(
+                "Activez d’abord la sauvegarde et attendez la confirmation d’une copie distante.",
+              );
+              setOptions(ecrireOptions({ effacementApresEchecs: 0 }));
+              return;
+            }
+            setMessage("");
+            setOptions(ecrireOptions({ effacementApresEchecs: valeur }));
+          }}
           className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
         >
-          <option value={3}>Après 3 codes faux (recommandé)</option>
+          <option value={3}>Après 3 codes faux</option>
           <option value={5}>Après 5 codes faux</option>
           <option value={10}>Après 10 codes faux</option>
           <option value={0}>Jamais</option>
         </select>
         <p className="text-xs text-muted-foreground">
-          Attention : l'effacement est définitif. Gardez une sauvegarde par e-mail à jour.
+          L’effacement reste désactivé tant qu’aucune copie distante chiffrée n’a été confirmée.
         </p>
       </div>
 
