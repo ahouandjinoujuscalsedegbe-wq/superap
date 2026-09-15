@@ -123,7 +123,7 @@ describe("cycle mise à jour : sauvegarde e-mail puis retour des données", () =
 
     // Le remboursement de 20 000 reste rattaché à la dette, au franc près.
     const dette = (fusion.etat.dettes as unknown as { id: string; remboursements: unknown[] }[])[0];
-    expect(dette.remboursements).toHaveLength(1);
+    expect(dette?.remboursements).toHaveLength(1);
     expect(await empreinte(brut)).toBe(colis.empreinte);
   });
 
