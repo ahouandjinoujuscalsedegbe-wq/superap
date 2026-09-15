@@ -97,10 +97,15 @@ export function noterAppareil(
 
 type AvecId = { id: string };
 
-function fusionnerListe<T extends AvecId>(actuel: T[], entrant: unknown): { liste: T[]; neufs: number } {
+function fusionnerListe<T extends AvecId>(
+  actuel: T[],
+  entrant: unknown,
+): { liste: T[]; neufs: number } {
   if (!Array.isArray(entrant)) return { liste: actuel, neufs: 0 };
   const connus = new Set(actuel.map((x) => x.id));
-  const nouveaux = (entrant as T[]).filter((x) => x && typeof x.id === "string" && !connus.has(x.id));
+  const nouveaux = (entrant as T[]).filter(
+    (x) => x && typeof x.id === "string" && !connus.has(x.id),
+  );
   return { liste: [...nouveaux, ...actuel], neufs: nouveaux.length };
 }
 

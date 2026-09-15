@@ -31,10 +31,10 @@ function PageListeRapports() {
   const { transactions, enveloppes } = useSuperApp();
 
   // Un seul passage sur l'historique complet, même sur plusieurs années.
-  const resumes = useMemo(() => resumesMensuels(transactions, enveloppes), [
-    transactions,
-    enveloppes,
-  ]);
+  const resumes = useMemo(
+    () => resumesMensuels(transactions, enveloppes),
+    [transactions, enveloppes],
+  );
   const mois = useMemo(() => resumes.map((r) => r.mois), [resumes]);
 
   const annees = useMemo(
