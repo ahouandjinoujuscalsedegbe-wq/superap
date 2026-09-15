@@ -16,6 +16,7 @@ import { Confirmation } from "@/components/Confirmation";
 import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
 import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
 import { ModeMultiAppareil } from "@/components/ModeMultiAppareil";
+import { HistoriqueVersions } from "@/components/HistoriqueVersions";
 import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
@@ -396,6 +397,10 @@ function PageSauvegarde() {
       </section>
 
       <ModeMultiAppareil />
+
+      <HistoriqueVersions
+        onRestaurer={(donnees, source) => setAttente({ genre: "restaurer", etat: donnees, source })}
+      />
 
       <RecuperationNouveauTelephone />
 

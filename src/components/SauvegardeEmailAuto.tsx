@@ -10,6 +10,7 @@ import {
   preparerColis,
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
+import { ajouterVersion, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
 import {
   confierColisArrierePlan,
   oublierColisArrierePlan,
@@ -43,6 +44,7 @@ export function SauvegardeEmailAuto() {
       const resultat = await envoyerColisSauvegarde({
         data: {
           email: reglages.email,
+          ...(reglages.emailSecours ? { emailSecours: reglages.emailSecours } : {}),
           appareil: reglages.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
@@ -51,17 +53,27 @@ export function SauvegardeEmailAuto() {
       if (resultat.envoye) {
         ecrireFile(null);
         await oublierColisArrierePlan();
+        marquerVersionEnvoyee(colis.empreinte);
+        noterJournalMail({ date: new Date().toISOString(), etat: "envoye", taille: colis.taille });
         const { dernierEchec: _echec, ...reste } = reglages;
         void _echec;
         ecrireReglagesMail({
           ...reste,
           dernierEnvoi: new Date().toISOString(),
           derniereEmpreinte: colis.empreinte,
+          derniereTaille: colis.taille,
         });
       } else {
+        noterJournalMail({
+          date: new Date().toISOString(),
+          etat: "echec",
+          taille: colis.taille,
+          detail: resultat.message ?? resultat.raison ?? "envoi refusé",
+        });
         ecrireReglagesMail({ ...reglages, dernierEchec: new Date().toISOString() });
       }
     } catch {
+      noterJournalMail({ date: new Date().toISOString(), etat: "echec", detail: "envoi impossible" });
       ecrireReglagesMail({ ...lireReglagesMail(), dernierEchec: new Date().toISOString() });
     } finally {
       enCours.current = false;
@@ -100,6 +112,9 @@ export function SauvegardeEmailAuto() {
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
         ecrireFile(colis);
+        // Coffre de versions : la copie datée s'ajoute sans écraser les
+        // précédentes, pour pouvoir revenir à un jour précis.
+        ajouterVersion(colis, actuel.appareil, false);
         // Copie confiée au relais système : l'envoi se poursuit même une fois
         // l'application fermée.
         await confierColisArrierePlan({
