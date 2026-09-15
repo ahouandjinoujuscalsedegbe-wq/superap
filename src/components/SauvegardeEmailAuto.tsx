@@ -149,6 +149,8 @@ export function SauvegardeEmailAuto() {
     };
     navigator.serviceWorker?.addEventListener("message", depuisRelais);
     window.addEventListener("online", reprendre);
+    // Application fermée ou mise en veille : dernier envoi immédiat.
+    window.addEventListener("pagehide", reprendre);
     const auRetour = () => {
       if (document.visibilityState === "visible") reprendre();
     };
@@ -158,6 +160,7 @@ export function SauvegardeEmailAuto() {
     return () => {
       navigator.serviceWorker?.removeEventListener("message", depuisRelais);
       window.removeEventListener("online", reprendre);
+      window.removeEventListener("pagehide", reprendre);
       document.removeEventListener("visibilitychange", auRetour);
       window.clearInterval(minuterie);
     };
