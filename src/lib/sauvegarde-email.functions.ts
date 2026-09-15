@@ -15,7 +15,14 @@ type Entree = {
   emailSecours?: string;
   /** Mention ajoutée à l'objet (ex. TEST). */
   mention?: string;
+  /** Rangement de la copie : « SUPER APP / 2026-09 / DÉPENSES / « Marché » ». */
+  classement?: string;
+  /** Rubrique technique, pour un filtre automatique dans la boîte. */
+  rubrique?: string;
 };
+
+/** Marqueur présent dans chaque objet : sert à filtrer et archiver d'un coup. */
+const MARQUEUR = "[SUPERAPP-COFFRE]";
 
 /** Sous-domaine d'expédition vérifié pour ce projet. */
 const SENDER_DOMAIN = "notify.superappbudget.com";
