@@ -108,6 +108,8 @@ export type Transaction = {
    * un revenu ne rapporte réellement que `montant - frais`.
    */
   frais?: number | undefined;
+  /** Nature technique d'une écriture qui ne doit pas être comptée comme un revenu du mois. */
+  origine?: "solde_initial" | undefined;
 };
 
 /** Opération supprimée, conservée 30 jours dans la corbeille. */
@@ -609,9 +611,29 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
     dettes: [...charge.dettes, ...ajouts(actuel.dettes, charge.dettes)],
     objectifs: [...charge.objectifs, ...ajouts(actuel.objectifs, charge.objectifs)],
     corbeille: [...ajouts(actuel.corbeille, charge.corbeille), ...charge.corbeille],
-    // Enveloppes, catégories et comptes ne sont PAS fusionnés : l'état
-    // initial en contient déjà par défaut, les réintroduire ressusciterait
-    // des éléments que l'utilisateur avait supprimés.
+    // Les valeurs fournies par défaut ne sont pas des saisies utilisateur.
+    // En revanche, toute création réellement effectuée pendant le déchiffrement
+    // doit survivre au chargement de l'état enregistré.
+    enveloppes: [
+      ...ajouts(
+        actuel.enveloppes.filter((x) => !ENVELOPPES_PAR_DEFAUT.some((d) => d.id === x.id)),
+        charge.enveloppes,
+      ),
+      ...charge.enveloppes,
+    ],
+    categories: [
+      ...ajouts(
+        actuel.categories.filter((x) => !CATEGORIES_PAR_DEFAUT.some((d) => d.id === x.id)),
+        charge.categories,
+      ),
+      ...charge.categories,
+    ],
+    comptes: [
+      ...charge.comptes,
+      ...actuel.comptes.filter(
+        (c) => !ETAT_INITIAL.comptes.includes(c) && !charge.comptes.includes(c),
+      ),
+    ],
   };
 }
 
@@ -902,23 +924,45 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
-    setEtat((e) => ({
-      ...e,
-      comptes: e.comptes.map((c) => (c === ancien ? nouveau : c)),
-      comptesExclus: e.comptesExclus.map((c) => (c === ancien ? nouveau : c)),
-      ordreComptes: e.ordreComptes.map((c) => (c === ancien ? nouveau : c)),
-      iconesComptes: Object.fromEntries(
-        Object.entries(e.iconesComptes).map(([c, i]) => [c === ancien ? nouveau : c, i]),
-      ),
-      transactions: e.transactions.map((t) =>
-        t.compte === ancien ? { ...t, compte: nouveau } : t,
-      ),
-      transferts: e.transferts.map((t) => ({
-        ...t,
-        source: t.source === ancien ? nouveau : t.source,
-        destination: t.destination === ancien ? nouveau : t.destination,
-      })),
-    }));
+    const propre = texteSur(nouveau, 60);
+    if (!propre || ancien === propre) return;
+    setEtat((e) => {
+      if (!e.comptes.includes(ancien) || e.comptes.some((c) => c === propre && c !== ancien)) return e;
+      return {
+        ...e,
+        comptes: e.comptes.map((c) => (c === ancien ? propre : c)),
+        comptesExclus: e.comptesExclus.map((c) => (c === ancien ? propre : c)),
+        ordreComptes: e.ordreComptes.map((c) => (c === ancien ? propre : c)),
+        iconesComptes: Object.fromEntries(
+          Object.entries(e.iconesComptes).map(([c, i]) => [c === ancien ? propre : c, i]),
+        ),
+        transactions: e.transactions.map((t) =>
+          t.compte === ancien ? { ...t, compte: propre } : t,
+        ),
+        transferts: e.transferts.map((t) => ({
+          ...t,
+          source: t.source === ancien ? propre : t.source,
+          destination: t.destination === ancien ? propre : t.destination,
+        })),
+        enveloppes: e.enveloppes.map((v) =>
+          v.compteSource === ancien ? { ...v, compteSource: propre } : v,
+        ),
+        objectifs: e.objectifs.map((o) => ({
+          ...o,
+          compteSource: o.compteSource === ancien ? propre : o.compteSource,
+          compteEpargne: o.compteEpargne === ancien ? propre : o.compteEpargne,
+        })),
+        budgets: e.budgets.map((b) => (b.compte === ancien ? { ...b, compte: propre } : b)),
+        remplissages: e.remplissages.map((r) =>
+          r.compte === ancien ? { ...r, compte: propre } : r,
+        ),
+        dettes: e.dettes.map((d) =>
+          d.echeancier?.compte === ancien
+            ? { ...d, echeancier: { ...d.echeancier, compte: propre } }
+            : d,
+        ),
+      };
+    });
   }, []);
 
   const supprimerCompte = useCallback((nom: string) => {
@@ -934,7 +978,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         e.enveloppes.some((v) => v.compteSource === nom) ||
         // Idem pour l'épargne automatique des objectifs.
         e.objectifs.some((o) => o.compteSource === nom || o.compteEpargne === nom) ||
-        e.remplissages.some((r) => r.compte === nom);
+        e.remplissages.some((r) => r.compte === nom) ||
+        e.dettes.some((d) => d.echeancier?.compte === nom);
       if (utilise) {
         journaliser(
           "avertissement",
@@ -1391,10 +1436,41 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const modifierDette = useCallback(
     (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => {
       if (d.montantInitial !== undefined && !montantValide(d.montantInitial)) return;
-      setEtat((e) => ({
-        ...e,
-        dettes: e.dettes.map((x) => (x.id === id ? { ...x, ...d } : x)),
-      }));
+      setEtat((e) => {
+        const ancienne = e.dettes.find((x) => x.id === id);
+        if (!ancienne) return e;
+        // Le sens structure les mouvements et remboursements associés. Il ne
+        // peut pas être inversé après création sans transformer leur histoire.
+        const propre = assainirDette({ ...ancienne, ...d, sens: ancienne.sens });
+        if (!propre) return e;
+        const dedie = compteDedie(ancienne.sens);
+        return {
+          ...e,
+          dettes: e.dettes.map((x) => (x.id === id ? propre : x)),
+          transactions: e.transactions.map((t) => {
+            if (t.detteId !== id) return t;
+            const miroir = t.compte === dedie;
+            return {
+              ...t,
+              montant: propre.montantInitial,
+              type: miroir
+                ? propre.sens === "dette"
+                  ? "depense"
+                  : "revenu"
+                : propre.sens === "dette"
+                  ? "revenu"
+                  : "depense",
+              libelle: miroir
+                ? propre.sens === "dette"
+                  ? `Dette envers ${propre.personne}`
+                  : `Créance sur ${propre.personne}`
+                : propre.sens === "dette"
+                  ? `Emprunt auprès de ${propre.personne}`
+                  : `Prêt accordé à ${propre.personne}`,
+            };
+          }),
+        };
+      });
     },
     [],
   );
@@ -1664,7 +1740,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       const frais = Math.max(0, t.frais ?? 0);
       if (t.type === "revenu") {
         // Un revenu ne rapporte réellement que ce qui reste après les frais.
-        if (duMois) {
+        if (duMois && t.origine !== "solde_initial") {
           totalRevenus += t.montant - frais;
           totalFrais += frais;
         }

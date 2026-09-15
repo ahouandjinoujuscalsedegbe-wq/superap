@@ -42,6 +42,7 @@ function CreerCompte() {
         categorie: "Autre",
         compte: demande.nom,
         date: new Date().toISOString().slice(0, 10),
+        origine: "solde_initial",
       });
     }
     enregistrerActionCompte({

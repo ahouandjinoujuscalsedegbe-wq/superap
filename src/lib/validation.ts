@@ -113,6 +113,7 @@ export function assainirTransaction(v: unknown): Transaction | null {
   if (membre) t.membre = membre;
   const frais = nombreSur(v["frais"]);
   if (montantPositifOuNul(frais) && frais > 0) t.frais = frais;
+  if (v["origine"] === "solde_initial") t.origine = "solde_initial";
   return t;
 }
 

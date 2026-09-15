@@ -421,6 +421,12 @@ export function fusionnerAvecChoix<T extends AvecId>(
   entrant: T[],
   choix: Record<string, ChoixConflit>,
 ): { liste: T[]; ajoutes: number; remplaces: number } {
+  const sansChoix = detecterConflits(type, actuel, entrant).filter((c) => !choix[c.cle]);
+  if (sansChoix.length > 0) {
+    throw new Error(
+      `${sansChoix.length} conflit${sansChoix.length > 1 ? "s" : ""} sans choix explicite.`,
+    );
+  }
   const connus = new Map(actuel.map((x) => [x.id, x]));
   let remplaces = 0;
   const nouveaux: T[] = [];
