@@ -154,7 +154,7 @@ export function SauvegardeEmailAuto() {
         // classé, sans aucun e-mail tant que tout se passe bien.
         let reussie = true;
         try {
-          ecrireFile(colis);
+          if (!ecrireFile(colis)) throw new Error("file_locale_indisponible");
           ajouterVersion(colis, actuel.appareil, false, classement.chemin);
           const relu = lireFile();
           const versions = lireVersions();
@@ -178,6 +178,10 @@ export function SauvegardeEmailAuto() {
             empreinte: colis.empreinte,
             taille: colis.taille,
             classement: classement.chemin,
+          }).then((deposee) => {
+            if (!deposee) return;
+            const aJour = lireReglagesMail();
+            ecrireReglagesMail({ ...aJour, dernierDepotCloud: new Date().toISOString() });
           });
           return;
         }

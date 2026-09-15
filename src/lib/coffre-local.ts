@@ -44,6 +44,7 @@ function depuisBase64(txt: string): Uint8Array {
 }
 
 let secretMemo: string | null = null;
+let secretPromesse: Promise<string> | null = null;
 
 /** Erreur levée tant que le coffre protégé par PIN n'a pas été ouvert. */
 export class CoffreVerrouille extends Error {
@@ -100,7 +101,7 @@ async function cleDepuisPin(
  * clair. Sans le PIN, même une copie complète du téléphone est illisible.
  */
 export async function protegerCoffreParPin(pin: string): Promise<void> {
-  const secret = secretAppareil();
+  const secret = await secretAppareil();
   const sel = new Uint8Array(16);
   const iv = new Uint8Array(12);
   crypto.getRandomValues(sel);
@@ -170,21 +171,32 @@ export async function retirerProtectionPin(pin: string): Promise<boolean> {
 }
 
 /** Secret aléatoire propre à cette installation (créé une seule fois). */
-function secretAppareil(): string {
+async function secretAppareil(): Promise<string> {
   if (secretMemo) return secretMemo;
   if (estCoffreProtege()) throw new CoffreVerrouille();
-  let secret = window.localStorage.getItem(CLE_SECRET_APPAREIL);
-  if (!secret) {
-    const alea = new Uint8Array(32);
-    crypto.getRandomValues(alea);
-    secret = versBase64(alea);
-    window.localStorage.setItem(CLE_SECRET_APPAREIL, secret);
-    // Relecture : si un autre contexte a écrit le sien entre-temps, c'est
-    // le secret réellement stocké qui fait foi, jamais celui en mémoire.
-    secret = window.localStorage.getItem(CLE_SECRET_APPAREIL) ?? secret;
+  if (!secretPromesse) {
+    secretPromesse = (async () => {
+      const creerOuLire = () => {
+        let secret = window.localStorage.getItem(CLE_SECRET_APPAREIL);
+        if (!secret) {
+          const alea = new Uint8Array(32);
+          crypto.getRandomValues(alea);
+          secret = versBase64(alea);
+          window.localStorage.setItem(CLE_SECRET_APPAREIL, secret);
+        }
+        secretMemo = window.localStorage.getItem(CLE_SECRET_APPAREIL) ?? secret;
+        return secretMemo;
+      };
+      const verrous = navigator.locks;
+      return verrous
+        ? verrous.request("superapp-secret-appareil", { mode: "exclusive" }, creerOuLire)
+        : creerOuLire();
+    })();
+    secretPromesse.catch(() => {
+      secretPromesse = null;
+    });
   }
-  secretMemo = secret;
-  return secret;
+  return secretPromesse;
 }
 
 /** Dérive une clé du secret d'appareil, avec un sel et un algorithme donnés. */
@@ -195,7 +207,7 @@ async function deriver(
 ): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey(
     "raw",
-    encodeur.encode(secretAppareil()),
+    encodeur.encode(await secretAppareil()),
     "PBKDF2",
     false,
     ["deriveKey"],
@@ -359,8 +371,10 @@ export function ecrireSecurise(cle: string, valeur: string): Promise<void> {
     .then(async () => {
       try {
         window.localStorage.setItem(cle, await chiffrerLocal(valeur));
-      } catch {
-        /* stockage indisponible ou saturé */
+      } catch (erreur) {
+        throw erreur instanceof Error
+          ? erreur
+          : new Error("Le stockage chiffré est indisponible ou saturé.");
       }
     })
     .finally(() => {

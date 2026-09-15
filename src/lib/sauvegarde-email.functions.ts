@@ -33,7 +33,7 @@ const FROM_DOMAIN = "superappbudget.com";
  * Le contenu arrive déjà chiffré cinq fois : le serveur ne peut rien lire.
  */
 export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
-  .inputValidator((d: Entree) => d)
+  .validator((d: Entree) => d)
   .handler(async ({ data }): Promise<ResultatEnvoi> => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) {
       return { envoye: false, raison: "adresse_invalide" };

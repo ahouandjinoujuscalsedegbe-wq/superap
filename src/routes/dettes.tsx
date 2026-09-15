@@ -574,10 +574,11 @@ function PageDettes() {
                   <button
                     key={o.v}
                     type="button"
+                    disabled={dialogue.type === "modifier"}
                     onClick={() => setForm((f) => ({ ...f, sens: o.v }))}
                     className={`rounded-xl border px-3 py-2.5 text-sm font-semibold ${
                       form.sens === o.v ? "border-primary text-primary" : "border-border"
-                    }`}
+                    } disabled:opacity-50`}
                   >
                     {o.label}
                   </button>

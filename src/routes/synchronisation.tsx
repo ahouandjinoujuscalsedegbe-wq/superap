@@ -251,7 +251,13 @@ function PageSynchronisation() {
       const apercu: { label: string; apres: string }[] = [];
       const compte = (type: TypeDonnees, actuel: { id: string }[], entrant: unknown[]) =>
         selection[type]
-          ? fusionnerAvecChoix(type, actuel as never[], (entrant ?? []) as never[], {}).ajoutes
+          ? (entrant ?? []).filter(
+              (x) =>
+                x &&
+                typeof x === "object" &&
+                "id" in x &&
+                !actuel.some((a) => a.id === String((x as { id: unknown }).id)),
+            ).length
           : 0;
       apercu.push({
         label: "Opérations nouvelles",

@@ -172,7 +172,9 @@ export function construireRapport(
     .sort((a, b) => b.joursRetard - a.joursRetard);
 
   const somme = (liste: Transaction[], type: Transaction["type"]) =>
-    liste.filter((t) => t.type === type).reduce((s, t) => s + t.montant, 0);
+    liste
+      .filter((t) => t.type === type && !(type === "revenu" && t.origine === "solde_initial"))
+      .reduce((s, t) => s + t.montant, 0);
 
   const revenus = somme(duMois, "revenu");
   const depenses = somme(duMois, "depense");

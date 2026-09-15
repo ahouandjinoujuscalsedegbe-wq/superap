@@ -86,6 +86,7 @@ import {
   protegerCoffreParPin,
   retirerProtectionPin,
 } from "@/lib/coffre-local";
+import { lireReglagesMail } from "@/lib/sauvegarde-email";
 
 type Contexte = {
   config: ConfigSecurite;
@@ -289,9 +290,19 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
           return false;
         }
         if (seuil > 0 && suivant >= seuil) {
-          // Effacement de sécurité : les données locales deviennent inutilisables.
-          effacerToutesLesDonnees();
-          window.location.reload();
+          // L'effacement n'est autorisé que si une copie distante chiffrée a
+          // réellement été confirmée. Une simple configuration ne suffit pas.
+          const sauvegarde = lireReglagesMail();
+          if (sauvegarde.configure && sauvegarde.dernierDepotCloud) {
+            effacerToutesLesDonnees();
+            window.location.reload();
+            return false;
+          }
+          journaliserAcces(
+            "echec",
+            "Effacement annulé : aucune copie distante confirmée.",
+          );
+          setBlocageJusqua(Date.now() + 5 * 60_000);
           return false;
         }
         // Délai exponentiel : 30 s, 1 min, 2 min, 4 min… par série de 5 échecs.
