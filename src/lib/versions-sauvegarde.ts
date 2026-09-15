@@ -27,6 +27,8 @@ export type VersionSauvegarde = {
   appareil: string;
   /** Vrai lorsque la copie est bien partie vers l'e-mail. */
   envoyee: boolean;
+  /** Rangement de la copie : « SUPER APP / 2026-09 / DÉPENSES / « Marché » ». */
+  classement?: string;
 };
 
 export function lireVersions(): VersionSauvegarde[] {
