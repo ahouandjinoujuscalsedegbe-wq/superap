@@ -43,7 +43,7 @@ export function SauvegardeEmailAuto() {
       const resultat = await envoyerColisSauvegarde({
         data: {
           email: reglages.email,
-          emailSecours: reglages.emailSecours,
+          ...(reglages.emailSecours ? { emailSecours: reglages.emailSecours } : {}),
           appareil: reglages.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
