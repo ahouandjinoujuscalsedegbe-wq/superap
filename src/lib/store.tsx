@@ -28,6 +28,7 @@ import {
   assainirListe,
   assainirMembres,
   assainirObjectif,
+  assainirRegleTransfert,
   assainirRemplissage,
   assainirTransaction,
   assainirTransfert,
@@ -190,6 +191,26 @@ export type Transfert = {
   /** Fiche de dette ou de créance à l'origine de ce transfert. */
   detteId?: string | undefined;
 };
+
+/**
+ * Règle de transfert automatique : à chaque revenu enregistré, un pourcentage
+ * du montant part aussitôt du compte crédité vers un autre compte.
+ */
+export type RegleTransfert = {
+  id: string;
+  nom: string;
+  /** Compte crédité qui déclenche la règle ; « * » = n'importe quel compte. */
+  source: string;
+  /** Compte qui reçoit la part automatique. */
+  destination: string;
+  /** Part de chaque revenu transférée, en pourcentage (1 à 100). */
+  pourcentage: number;
+  /** Source de revenu concernée (Salaire, Prime…) ; « * » = toutes. */
+  sourceRevenu: string;
+  actif: boolean;
+  creeLe: string;
+};
+
 
 export type Periode = "jour" | "semaine" | "mois" | "trimestre" | "semestre" | "annee";
 
@@ -394,6 +415,13 @@ export type Etat = {
   /** Icône (emoji) associée à chaque compte, pour un repérage visuel rapide. */
   iconesComptes: Record<string, string>;
   transferts: Transfert[];
+  /** Règles de transfert automatique déclenchées par chaque revenu. */
+  reglesTransfert: RegleTransfert[];
+  /**
+   * Comptes repérés à leur création comme réservés aux transferts automatiques :
+   * ils sont présentés à part pour ne pas être mélangés aux autres comptes.
+   */
+  comptesReserves: string[];
   /** Approvisionnements des enveloppes depuis les comptes. */
   remplissages: Remplissage[];
   budgets: Budget[];
@@ -463,6 +491,12 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
     transferts: assainirListe(brut.transferts, assainirTransfert),
+    reglesTransfert: assainirListe(brut.reglesTransfert, assainirRegleTransfert).filter(
+      (r) => r.destination !== r.source,
+    ),
+    comptesReserves: brut.comptesReserves
+      ? assainirComptes(brut.comptesReserves).filter((c) => comptes.includes(c))
+      : [],
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
@@ -485,6 +519,8 @@ const ETAT_INITIAL: Etat = {
   ordreComptes: [],
   iconesComptes: {},
   transferts: [],
+  reglesTransfert: [],
+  comptesReserves: [],
   remplissages: [],
   budgets: [],
   dettes: [],
@@ -501,7 +537,13 @@ type Contexte = Etat & {
   supprimerTransaction: (id: string) => void;
   /** Change l'enveloppe d'une dépense déjà enregistrée (classement manuel). */
   reclasserTransaction: (id: string, enveloppeId: string) => void;
-  ajouterCompte: (nom: string, dansDisponible?: boolean, emoji?: string) => void;
+  ajouterCompte: (
+    nom: string,
+    dansDisponible?: boolean,
+    emoji?: string,
+    /** Compte réservé aux transferts automatiques, présenté à part. */
+    reserve?: boolean,
+  ) => void;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
@@ -513,6 +555,12 @@ type Contexte = Etat & {
   reinitialiserOrdreComptes: () => void;
   ajouterTransfert: (t: Omit<Transfert, "id">) => void;
   supprimerTransfert: (id: string) => void;
+  /** Crée une règle de transfert automatique et renvoie son identifiant. */
+  ajouterRegleTransfert: (r: Omit<RegleTransfert, "id" | "creeLe">) => string | null;
+  modifierRegleTransfert: (id: string, r: Partial<Omit<RegleTransfert, "id" | "creeLe">>) => void;
+  supprimerRegleTransfert: (id: string) => void;
+  /** Marque un compte comme réservé aux transferts automatiques (ou non). */
+  definirCompteReserve: (nom: string, reserve: boolean) => void;
   /** Crée l'enveloppe et renvoie son identifiant (null si refusée). */
   ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => string | null;
   /** Verse un montant d'un compte vers une enveloppe (dotation + débit compte). */
@@ -629,6 +677,11 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
       ),
       ...charge.categories,
     ],
+    reglesTransfert: [
+      ...charge.reglesTransfert,
+      ...ajouts(actuel.reglesTransfert, charge.reglesTransfert),
+    ],
+    comptesReserves: Array.from(new Set([...charge.comptesReserves, ...actuel.comptesReserves])),
     comptes: [
       ...charge.comptes,
       ...actuel.comptes.filter(
@@ -803,8 +856,37 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         });
         return { ...env, dotation: (env.dotation ?? env.plafond) + part };
       });
-      if (nouveaux.length === 0) return suivant;
-      return { ...suivant, enveloppes, remplissages: [...nouveaux, ...suivant.remplissages] };
+      // Transferts automatiques : un pourcentage du revenu part aussitôt
+      // du compte crédité vers le compte d'affectation choisi par l'utilisateur.
+      const automatiques: Transfert[] = [];
+      if (propre.origine !== "solde_initial") {
+        for (const regle of suivant.reglesTransfert) {
+          if (!regle.actif) continue;
+          if (regle.source !== "*" && regle.source !== propre.compte) continue;
+          if (regle.sourceRevenu !== "*" && regle.sourceRevenu !== propre.categorie) continue;
+          if (regle.destination === propre.compte) continue;
+          if (!suivant.comptes.includes(regle.destination)) continue;
+          const part = Math.round((propre.montant * regle.pourcentage) / 100);
+          if (part <= 0) continue;
+          const transfert = assainirTransfert({
+            id: crypto.randomUUID(),
+            source: propre.compte,
+            destination: regle.destination,
+            montant: part,
+            note: `Transfert automatique ${regle.pourcentage} % · ${regle.nom}`,
+            date: propre.date.slice(0, 10),
+          });
+          if (transfert) automatiques.push(transfert);
+        }
+      }
+
+      if (nouveaux.length === 0 && automatiques.length === 0) return suivant;
+      return {
+        ...suivant,
+        enveloppes,
+        remplissages: [...nouveaux, ...suivant.remplissages],
+        transferts: [...automatiques, ...suivant.transferts],
+      };
     });
   }, []);
 
@@ -891,20 +973,38 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     setEtat((e) => ({ ...e, membres: assainirMembres(noms) }));
   }, []);
 
-  const ajouterCompte = useCallback((nom: string, dansDisponible = true, emoji?: string) => {
-    const propre = texteSur(nom, 60);
-    if (!propre) return;
-    const icone = texteSur(emoji, 8);
+  const ajouterCompte = useCallback(
+    (nom: string, dansDisponible = true, emoji?: string, reserve = false) => {
+      const propre = texteSur(nom, 60);
+      if (!propre) return;
+      const icone = texteSur(emoji, 8);
+      setEtat((e) => {
+        if (e.comptes.includes(propre)) return e;
+        const exclus = dansDisponible
+          ? e.comptesExclus.filter((c) => c !== propre)
+          : [...e.comptesExclus, propre];
+        return {
+          ...e,
+          comptes: [...e.comptes, propre],
+          comptesExclus: exclus,
+          comptesReserves: reserve ? [...e.comptesReserves, propre] : e.comptesReserves,
+          iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
+        };
+      });
+    },
+    [],
+  );
+
+  const definirCompteReserve = useCallback((nom: string, reserve: boolean) => {
     setEtat((e) => {
-      if (e.comptes.includes(propre)) return e;
-      const exclus = dansDisponible
-        ? e.comptesExclus.filter((c) => c !== propre)
-        : [...e.comptesExclus, propre];
+      if (!e.comptes.includes(nom)) return e;
       return {
         ...e,
-        comptes: [...e.comptes, propre],
-        comptesExclus: exclus,
-        iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
+        comptesReserves: reserve
+          ? e.comptesReserves.includes(nom)
+            ? e.comptesReserves
+            : [...e.comptesReserves, nom]
+          : e.comptesReserves.filter((c) => c !== nom),
       };
     });
   }, []);
@@ -940,6 +1040,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         ...e,
         comptes: e.comptes.map((c) => (c === ancien ? propre : c)),
         comptesExclus: e.comptesExclus.map((c) => (c === ancien ? propre : c)),
+        comptesReserves: e.comptesReserves.map((c) => (c === ancien ? propre : c)),
+        reglesTransfert: e.reglesTransfert.map((r) => ({
+          ...r,
+          source: r.source === ancien ? propre : r.source,
+          destination: r.destination === ancien ? propre : r.destination,
+        })),
         ordreComptes: e.ordreComptes.map((c) => (c === ancien ? propre : c)),
         iconesComptes: Object.fromEntries(
           Object.entries(e.iconesComptes).map(([c, i]) => [c === ancien ? propre : c, i]),
@@ -987,7 +1093,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         // Idem pour l'épargne automatique des objectifs.
         e.objectifs.some((o) => o.compteSource === nom || o.compteEpargne === nom) ||
         e.remplissages.some((r) => r.compte === nom) ||
-        e.dettes.some((d) => d.echeancier?.compte === nom);
+        e.dettes.some((d) => d.echeancier?.compte === nom) ||
+        // Une règle de transfert automatique pointerait vers un compte disparu.
+        e.reglesTransfert.some((r) => r.source === nom || r.destination === nom);
       if (utilise) {
         journaliser(
           "avertissement",
@@ -1000,6 +1108,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         ...e,
         comptes: e.comptes.filter((c) => c !== nom),
         comptesExclus: e.comptesExclus.filter((c) => c !== nom),
+        comptesReserves: e.comptesReserves.filter((c) => c !== nom),
         iconesComptes: Object.fromEntries(
           Object.entries(e.iconesComptes).filter(([c]) => c !== nom),
         ),
@@ -1033,6 +1142,43 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
 
   const supprimerTransfert = useCallback((id: string) => {
     setEtat((e) => ({ ...e, transferts: e.transferts.filter((t) => t.id !== id) }));
+  }, []);
+
+  const ajouterRegleTransfert = useCallback(
+    (r: Omit<RegleTransfert, "id" | "creeLe">): string | null => {
+      const propre = assainirRegleTransfert({
+        ...r,
+        id: crypto.randomUUID(),
+        creeLe: new Date().toISOString().slice(0, 10),
+      });
+      if (!propre) {
+        journaliser(
+          "avertissement",
+          "application",
+          "Règle de transfert refusée : comptes ou pourcentage invalides.",
+        );
+        return null;
+      }
+      setEtat((e) => ({ ...e, reglesTransfert: [...e.reglesTransfert, propre] }));
+      return propre.id;
+    },
+    [],
+  );
+
+  const modifierRegleTransfert = useCallback(
+    (id: string, r: Partial<Omit<RegleTransfert, "id" | "creeLe">>) => {
+      setEtat((e) => ({
+        ...e,
+        reglesTransfert: e.reglesTransfert.map((x) =>
+          x.id === id ? (assainirRegleTransfert({ ...x, ...r }) ?? x) : x,
+        ),
+      }));
+    },
+    [],
+  );
+
+  const supprimerRegleTransfert = useCallback((id: string) => {
+    setEtat((e) => ({ ...e, reglesTransfert: e.reglesTransfert.filter((r) => r.id !== id) }));
   }, []);
 
   const ajouterEnveloppe = useCallback((env: Omit<Enveloppe, "id">): string | null => {
@@ -1641,6 +1787,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       reinitialiserOrdreComptes,
       ajouterTransfert,
       supprimerTransfert: proteger(supprimerTransfert, "Confirmez la suppression."),
+      ajouterRegleTransfert,
+      modifierRegleTransfert: proteger(modifierRegleTransfert, "Confirmez la modification."),
+      supprimerRegleTransfert: proteger(supprimerRegleTransfert, "Confirmez la suppression."),
+      definirCompteReserve: proteger(definirCompteReserve, "Confirmez la modification."),
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
@@ -1700,6 +1850,10 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       reinitialiserOrdreComptes,
       ajouterTransfert,
       supprimerTransfert,
+      ajouterRegleTransfert,
+      modifierRegleTransfert,
+      supprimerRegleTransfert,
+      definirCompteReserve,
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,

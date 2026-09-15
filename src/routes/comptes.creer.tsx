@@ -33,7 +33,7 @@ function CreerCompte() {
 
   function confirmer() {
     if (!demande || demande.type !== "creation") return;
-    ajouterCompte(demande.nom, demande.disponible, demande.emoji);
+    ajouterCompte(demande.nom, demande.disponible, demande.emoji, demande.reserve);
     if (demande.solde > 0) {
       ajouterTransaction({
         type: "revenu",
@@ -78,6 +78,10 @@ function CreerCompte() {
                 { label: "Nom", apres: demande.nom },
                 { label: "Solde initial", apres: formatFCFA(demande.solde) },
                 { label: "Solde disponible", apres: demande.disponible ? "Compté" : "Exclu" },
+                {
+                  label: "Transferts automatiques",
+                  apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
+                },
               ]
             : []
         }

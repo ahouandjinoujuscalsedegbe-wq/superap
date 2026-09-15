@@ -9,7 +9,15 @@ import { ChoixIcone } from "@/components/ChoixIcone";
 import { suggererIcone } from "@/lib/icone-auto";
 
 export type DemandeCompte =
-  | { type: "creation"; nom: string; solde: number; disponible: boolean; emoji: string }
+  | {
+      type: "creation";
+      nom: string;
+      solde: number;
+      disponible: boolean;
+      emoji: string;
+      /** Compte réservé aux transferts automatiques (affiché à part). */
+      reserve: boolean;
+    }
   | {
       type: "renommage";
       ancien: string;
@@ -46,6 +54,7 @@ export function FormulaireCompte({
     compte !== undefined ? (iconesComptes[compte] ?? suggererIcone(compte, "compte")) : "👛",
   );
   const [emojiManuel, setEmojiManuel] = useState(compte !== undefined);
+  const [reserve, setReserve] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<{
     nom?: string;
@@ -95,6 +104,7 @@ export function FormulaireCompte({
         solde: soldeSaisi,
         disponible: disponible === true,
         emoji: emoji.trim() || suggererIcone(valeur, "compte"),
+        reserve,
       });
       return;
     }
@@ -236,6 +246,26 @@ export function FormulaireCompte({
             </p>
           )}
         </fieldset>
+
+        {creation && (
+          <fieldset className="rounded-xl border border-input bg-background/60 p-3">
+            <legend className="px-1 text-sm font-medium">Transferts automatiques</legend>
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={reserve}
+                onChange={(ev) => setReserve(ev.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="min-w-0 text-sm">
+                Compte réservé aux transferts automatiques
+                <span className="block text-xs text-muted-foreground">
+                  Il sera repéré et présenté à part, sans être mélangé aux autres comptes.
+                </span>
+              </span>
+            </label>
+          </fieldset>
+        )}
 
         <div className="flex gap-2">
           <button
