@@ -6,6 +6,7 @@ import {
   lireFile,
   lirePhrase,
   lireReglagesMail,
+  noterJournalMail,
   preparerColis,
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
