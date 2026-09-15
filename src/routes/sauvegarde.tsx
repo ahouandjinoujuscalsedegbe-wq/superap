@@ -397,6 +397,10 @@ function PageSauvegarde() {
 
       <ModeMultiAppareil />
 
+      <HistoriqueVersions
+        onRestaurer={(donnees, source) => setAttente({ genre: "restaurer", etat: donnees, source })}
+      />
+
       <RecuperationNouveauTelephone />
 
       <ChangerPhraseRecuperation />
