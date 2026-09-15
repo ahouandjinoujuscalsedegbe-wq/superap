@@ -22,6 +22,7 @@ import {
   preparerColis,
 } from "./sauvegarde-email";
 import { envoyerColisSauvegarde } from "./sauvegarde-email.functions";
+import { ajouterVersion, lireVersions } from "./versions-sauvegarde";
 
 const DOSSIER = "SUPER-APP-SAUVEGARDES";
 export const CLE_DERNIERE_PROTECTION = "superapp:sauvegarde-avant-maj:v1";
@@ -82,8 +83,21 @@ export async function protegerAvantMiseAJour(instantane: unknown): Promise<Resul
   const colis = await preparerColis(instantane, phrase);
   const reglages = lireReglagesMail();
   let email: ResultatProtection["email"] = "non-configure";
-  if (reglages.email) {
+  // Sauvegarde silencieuse dans le coffre de versions de l'appareil : aucun
+  // e-mail n'est envoyé quand tout se passe bien.
+  let locale = true;
+  try {
     ecrireFile(colis);
+    ajouterVersion(colis, reglages.appareil, false);
+    locale = lireVersions().some((v) => v.empreinte === colis.empreinte);
+  } catch {
+    locale = false;
+  }
+  if (locale) {
+    ecrireReglagesMail({ ...reglages, derniereEmpreinte: colis.empreinte });
+  } else if (reglages.email) {
+    // Filet de sécurité : la copie ne tient pas sur l'appareil, elle part donc
+    // par e-mail et l'utilisateur en est averti.
     email = "en-attente";
     try {
       const resultat = await envoyerColisSauvegarde({
@@ -104,15 +118,17 @@ export async function protegerAvantMiseAJour(instantane: unknown): Promise<Resul
         });
       } else {
         avertissements.push(
-          "L'envoi par e-mail n'a pas abouti : la copie repartira dès que possible.",
+          "La copie n'a pas pu être gardée sur l'appareil et l'envoi par e-mail n'a pas abouti : elle repartira dès que possible.",
         );
       }
     } catch {
-      avertissements.push("Envoi par e-mail impossible pour l'instant (pas de connexion).");
+      avertissements.push(
+        "La copie n'a pas pu être gardée sur l'appareil et l'envoi par e-mail est impossible pour l'instant (pas de connexion).",
+      );
     }
   } else {
     avertissements.push(
-      "Aucune adresse e-mail de sauvegarde enregistrée : la copie n'a pas été envoyée.",
+      "La copie n'a pas pu être gardée sur l'appareil et aucune adresse e-mail de secours n'est enregistrée.",
     );
   }
 
