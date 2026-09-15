@@ -65,4 +65,3 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
       };
     }
   });
-
