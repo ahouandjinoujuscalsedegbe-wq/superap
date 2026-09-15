@@ -13,6 +13,7 @@
  */
 
 import { lireSecurise, ecrireSecurise } from "./coffre-local";
+import { gzipSync, gunzipSync, strFromU8, strToU8 } from "fflate";
 
 export const CLE_REGLAGES_MAIL = "superapp:sauvegarde-mail:v1";
 export const CLE_PHRASE_MAIL = "superapp:sauvegarde-mail:phrase:v1";
@@ -211,7 +212,7 @@ async function viderFlux(flux: ReadableStream<Uint8Array>): Promise<Uint8Array> 
 export async function compresser(texte: string): Promise<string> {
   const Compression = (globalThis as { CompressionStream?: typeof CompressionStream })
     .CompressionStream;
-  if (!Compression) return texte;
+  if (!Compression) return `${MARQUE_GZIP}${versBase64(gzipSync(strToU8(texte)))}`;
   try {
     const flux = new Blob([texte]).stream().pipeThrough(new Compression("gzip"));
     const octets = await viderFlux(flux as ReadableStream<Uint8Array>);
@@ -227,7 +228,11 @@ export async function decompresser(contenu: string): Promise<string> {
   const Decompression = (globalThis as { DecompressionStream?: typeof DecompressionStream })
     .DecompressionStream;
   if (!Decompression) {
-    throw new Error("Cet appareil ne peut pas décompresser cette sauvegarde.");
+    try {
+      return strFromU8(gunzipSync(depuisBase64(contenu.slice(MARQUE_GZIP.length))));
+    } catch {
+      throw new Error("Cette sauvegarde compressée est endommagée.");
+    }
   }
   const octets = depuisBase64(contenu.slice(MARQUE_GZIP.length));
   const flux = new Blob([octets as unknown as BlobPart])
