@@ -10,7 +10,7 @@ import {
   preparerColis,
 } from "@/lib/sauvegarde-email";
 import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
-import { ajouterVersion, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
+import { ajouterVersion, lireVersions, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
 import { classerSaisie } from "@/lib/classement-coffre";
 import { instantaneEtat } from "@/lib/instantane";
 import { EVENEMENT_BROUILLON } from "@/lib/brouillons";
@@ -26,6 +26,33 @@ const DELAI_CHIFFREMENT = 1_500;
 const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
 const DELAI_REESSAI = 60_000;
+
+/** Marque posée uniquement lorsqu'une sauvegarde locale a échoué. */
+const CLE_ALERTE = "superapp:sauvegarde:alerte:v1";
+
+function alerteActive(): boolean {
+  try {
+    return window.localStorage.getItem(CLE_ALERTE) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function poserAlerte(motif: string): void {
+  try {
+    window.localStorage.setItem(CLE_ALERTE, motif);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
+function leverAlerte(): void {
+  try {
+    window.localStorage.removeItem(CLE_ALERTE);
+  } catch {
+    /* stockage indisponible */
+  }
+}
 
 /**
  * Sauvegarde automatique : chaque modification est chiffrée cinq fois puis
@@ -50,6 +77,9 @@ export function SauvegardeEmailAuto() {
     const reglages = lireReglagesMail();
     const colis = lireFile();
     if (!reglages.actif || !reglages.email || !colis) return;
+    // Aucun e-mail pour une sauvegarde réussie : le message ne part que si la
+    // sauvegarde sur l'appareil a échoué.
+    if (!alerteActive()) return;
     if (typeof navigator !== "undefined" && navigator.onLine === false) return;
     enCours.current = true;
     try {
@@ -68,6 +98,7 @@ export function SauvegardeEmailAuto() {
         ecrireFile(null);
         await oublierColisArrierePlan();
         marquerVersionEnvoyee(colis.empreinte);
+        leverAlerte();
         noterJournalMail({ date: new Date().toISOString(), etat: "envoye", taille: colis.taille });
         const { dernierEchec: _echec, ...reste } = reglages;
         void _echec;
@@ -118,12 +149,38 @@ export function SauvegardeEmailAuto() {
         const actuel = lireReglagesMail();
         const attente = lireFile();
         if (colis.empreinte === actuel.derniereEmpreinte && !attente) return;
-        ecrireFile(colis);
-        // Coffre de versions : la copie datée et classée s'ajoute sans écraser
-        // les précédentes, pour pouvoir revenir à un jour précis.
-        ajouterVersion(colis, actuel.appareil, false, classement.chemin);
-        // Copie confiée au relais système : l'envoi se poursuit même une fois
-        // l'application fermée.
+        // Sauvegarde silencieuse sur l'appareil : coffre de versions daté et
+        // classé, sans aucun e-mail tant que tout se passe bien.
+        let reussie = true;
+        try {
+          ecrireFile(colis);
+          ajouterVersion(colis, actuel.appareil, false, classement.chemin);
+          const relu = lireFile();
+          const versions = lireVersions();
+          reussie =
+            relu?.empreinte === colis.empreinte &&
+            versions.some((v) => v.empreinte === colis.empreinte);
+        } catch {
+          reussie = false;
+        }
+        if (reussie) {
+          leverAlerte();
+          ecrireReglagesMail({
+            ...actuel,
+            derniereEmpreinte: colis.empreinte,
+            derniereTaille: colis.taille,
+          });
+          return;
+        }
+        // Échec de la sauvegarde locale : l'utilisateur doit être averti et la
+        // copie chiffrée part alors par e-mail comme filet de sécurité.
+        poserAlerte("sauvegarde locale impossible");
+        noterJournalMail({
+          date: new Date().toISOString(),
+          etat: "echec",
+          taille: colis.taille,
+          detail: "sauvegarde sur l'appareil impossible",
+        });
         await confierColisArrierePlan({
           email: actuel.email,
           appareil: actuel.appareil,
