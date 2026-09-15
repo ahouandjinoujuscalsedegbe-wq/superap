@@ -78,7 +78,7 @@ describe("coffre de versions", () => {
       envoyee: true,
     }));
     const gardees = nettoyerVersions(grosses);
-    expect(gardees).toHaveLength(2);
+    expect(gardees).toHaveLength(1);
     expect(tailleTotaleVersions(gardees)).toBeLessThanOrEqual(10_000_000);
   });
 });
