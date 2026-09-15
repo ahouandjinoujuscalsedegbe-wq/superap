@@ -46,11 +46,13 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
       };
     }
 
-    const texte = `Sauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
+    const rangement = data.classement ?? "SUPER APP / GÉNÉRAL";
+    const texte = `${rangement}\nSauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
     const html = `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`;
-    // La date figure dans l'objet : la boîte e-mail devient un coffre-fort
-    // classé par date, où chaque copie se retrouve d'un coup d'œil.
-    const sujet = `SUPER APP — sauvegarde chiffrée du ${data.creeLe}${data.mention ? ` (${data.mention})` : ""} — ${data.appareil}`;
+    // Objet classé : marqueur de filtre, puis rangement (année-mois, rubrique,
+    // nom saisi), puis date. La boîte e-mail devient un espace de stockage
+    // rangé, filtrable et archivable automatiquement hors boîte de réception.
+    const sujet = `${MARQUEUR} ${rangement} — ${data.creeLe}${data.mention ? ` (${data.mention})` : ""} — ${data.appareil}`;
 
     const { sendLovableEmail } = await import("@lovable.dev/email-js");
     const cle = process.env["LOVABLE_API_KEY"]!;
