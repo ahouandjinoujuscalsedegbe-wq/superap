@@ -40,29 +40,44 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
     }
 
     const texte = `Sauvegarde chiffrée créée le ${data.creeLe} depuis ${data.appareil}.\nConservez ce message : il permet de récupérer vos données sur un autre téléphone avec votre phrase de récupération.\n\n${data.colis}\n`;
+    const html = `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`;
+    const sujet = `SUPER APP — sauvegarde chiffrée${data.mention ? ` (${data.mention})` : ""} (${data.appareil})`;
 
-    try {
-      const { sendLovableEmail, EmailAPIError } = await import("@lovable.dev/email-js");
-      const resultat = await sendLovableEmail(
+    const { sendLovableEmail } = await import("@lovable.dev/email-js");
+    const cle = process.env["LOVABLE_API_KEY"]!;
+
+    const envoyerA = async (destinataire: string) =>
+      sendLovableEmail(
         {
-          to: data.email,
+          to: destinataire,
           from: `SUPER APP <sauvegarde@${FROM_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
-          subject: `SUPER APP — sauvegarde chiffrée (${data.appareil})`,
+          subject: sujet,
           text: texte,
-          html: `<pre style="white-space:pre-wrap;font-family:monospace">${texte.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string)}</pre>`,
+          html,
           purpose: "transactional",
           label: "sauvegarde-chiffree",
           idempotency_key: crypto.randomUUID(),
         },
-        { apiKey: process.env["LOVABLE_API_KEY"]! },
+        { apiKey: cle },
       );
+
+    try {
+      const resultat = await envoyerA(data.email);
       if (resultat && (resultat as { suppressed?: boolean }).suppressed) {
         return {
           envoye: false,
           raison: "adresse_bloquee",
           message: "Cette adresse a été bloquée pour les envois : utilisez une autre adresse.",
         };
+      }
+      // Adresse de secours : un échec ici ne remet pas en cause la sauvegarde.
+      if (data.emailSecours && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.emailSecours)) {
+        try {
+          await envoyerA(data.emailSecours);
+        } catch {
+          /* la copie principale est déjà partie */
+        }
       }
       return { envoye: true };
     } catch (e) {
