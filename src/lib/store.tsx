@@ -16,6 +16,7 @@ import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
 import { journaliser } from "./journal";
+import { dotationDe } from "./enveloppe-etat";
 import { demanderMotDePasse } from "./mot-de-passe-actions";
 import {
   assainirBudget,
