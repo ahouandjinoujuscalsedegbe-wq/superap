@@ -43,6 +43,7 @@ export function SauvegardeEmailAuto() {
       const resultat = await envoyerColisSauvegarde({
         data: {
           email: reglages.email,
+          emailSecours: reglages.emailSecours,
           appareil: reglages.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
@@ -51,17 +52,27 @@ export function SauvegardeEmailAuto() {
       if (resultat.envoye) {
         ecrireFile(null);
         await oublierColisArrierePlan();
+        marquerVersionEnvoyee(colis.empreinte);
+        noterJournalMail({ date: new Date().toISOString(), etat: "envoye", taille: colis.taille });
         const { dernierEchec: _echec, ...reste } = reglages;
         void _echec;
         ecrireReglagesMail({
           ...reste,
           dernierEnvoi: new Date().toISOString(),
           derniereEmpreinte: colis.empreinte,
+          derniereTaille: colis.taille,
         });
       } else {
+        noterJournalMail({
+          date: new Date().toISOString(),
+          etat: "echec",
+          taille: colis.taille,
+          detail: resultat.message ?? resultat.raison,
+        });
         ecrireReglagesMail({ ...reglages, dernierEchec: new Date().toISOString() });
       }
     } catch {
+      noterJournalMail({ date: new Date().toISOString(), etat: "echec", detail: "envoi impossible" });
       ecrireReglagesMail({ ...lireReglagesMail(), dernierEchec: new Date().toISOString() });
     } finally {
       enCours.current = false;
