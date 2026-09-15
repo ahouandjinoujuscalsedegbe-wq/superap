@@ -48,6 +48,8 @@ export function SauvegardeEmailAuto() {
           appareil: reglages.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
+          ...(colis.classement ? { classement: colis.classement } : {}),
+          ...(colis.rubrique ? { rubrique: colis.rubrique } : {}),
         },
       });
       if (resultat.envoye) {
