@@ -6,7 +6,16 @@ export type ResultatEnvoi = {
   message?: string;
 };
 
-type Entree = { email: string; appareil: string; colis: string; creeLe: string };
+type Entree = {
+  email: string;
+  appareil: string;
+  colis: string;
+  creeLe: string;
+  /** Deuxième adresse facultative : la copie y part aussi. */
+  emailSecours?: string;
+  /** Mention ajoutée à l'objet (ex. TEST). */
+  mention?: string;
+};
 
 /** Sous-domaine d'expédition vérifié pour ce projet. */
 const SENDER_DOMAIN = "notify.superappbudget.com";
