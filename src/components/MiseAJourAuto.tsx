@@ -80,6 +80,12 @@ export function DialogueMiseAJour({
           opérations et sauvegardes locales sont conservées.
         </p>
 
+        {protection && (
+          <p className="rounded-xl bg-secondary px-3 py-2 text-xs text-muted-foreground">
+            {protection}
+          </p>
+        )}
+
         {etape && (
           <div
             className={`rounded-xl px-3 py-2 text-sm ${
