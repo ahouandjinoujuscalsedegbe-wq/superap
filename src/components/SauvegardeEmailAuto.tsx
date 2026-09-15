@@ -19,6 +19,8 @@ import {
 
 /** Délai avant chiffrement d'une saisie (évite un colis à chaque frappe). */
 const DELAI_CHIFFREMENT = 4_000;
+/** Nouvelle fiche nommée : la copie classée part presque immédiatement. */
+const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
 const DELAI_REESSAI = 60_000;
 
