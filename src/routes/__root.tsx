@@ -48,6 +48,7 @@ import { SauvegardeEmailAuto } from "@/components/SauvegardeEmailAuto";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 import { ChampsVisiblesClavier } from "@/components/ChampsVisiblesClavier";
 import { LimiteErreur } from "@/components/LimiteErreur";
+import { CreationDossierCoffre } from "@/components/CreationDossierCoffre";
 
 function NotFoundComponent() {
   return (
@@ -226,6 +227,7 @@ function RootComponent() {
           <RappelFinBudget />
           <LimiteErreur nom="analyse"><BouleAnalyse /></LimiteErreur>
           <GardeIntegrite />
+          <CreationDossierCoffre />
           <ConfigurationSauvegarde />
           <SauvegardeEmailAuto />
         </SuperAppProvider>
