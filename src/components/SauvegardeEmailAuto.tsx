@@ -13,6 +13,7 @@ import { envoyerColisSauvegarde } from "@/lib/sauvegarde-email.functions";
 import { ajouterVersion, lireVersions, marquerVersionEnvoyee } from "@/lib/versions-sauvegarde";
 import { classerSaisie } from "@/lib/classement-coffre";
 import { deposerDansCloud } from "@/lib/coffre-cloud";
+import { deposerDansDossier } from "@/lib/coffre-dossier";
 import { instantaneEtat } from "@/lib/instantane";
 import { EVENEMENT_BROUILLON } from "@/lib/brouillons";
 import {
