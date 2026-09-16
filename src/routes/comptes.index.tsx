@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ChevronRight, Wallet, PiggyBank, History } from "lucide-react";
+import { ChevronRight, Wallet, PiggyBank, History, Repeat } from "lucide-react";
 import { ordreEffectifComptes, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -28,6 +28,7 @@ function ComptesAccueil() {
     comptes,
     ordreComptes,
     comptesExclus,
+    comptesReserves,
     iconesComptes,
     transactions,
     transferts,
