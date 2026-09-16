@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ChevronRight, Wallet, PiggyBank, History } from "lucide-react";
+import { ChevronRight, Wallet, PiggyBank, History, Repeat } from "lucide-react";
 import { ordreEffectifComptes, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 
@@ -28,6 +28,7 @@ function ComptesAccueil() {
     comptes,
     ordreComptes,
     comptesExclus,
+    comptesReserves,
     iconesComptes,
     transactions,
     transferts,
@@ -135,6 +136,24 @@ function ComptesAccueil() {
             <span className="block text-sm font-semibold">Historique des comptes</span>
             <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">
               Toutes les opérations, transferts et actions effectués avec les comptes
+            </span>
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        </Link>
+
+        <Link
+          to="/comptes/transferts/automatiques"
+          className="flex items-center gap-3 rounded-xl border border-border/70 bg-secondary/40 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary active:scale-[0.99]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Repeat className="h-5 w-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Transferts automatiques</span>
+            <span className="mt-0.5 block text-[11px] leading-tight text-muted-foreground">
+              {comptesReserves.length > 0
+                ? `Comptes réservés : ${comptesReserves.join(" · ")}`
+                : "Envoyer une part de chaque revenu vers un compte choisi"}
             </span>
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
