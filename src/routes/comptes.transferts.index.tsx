@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, formatDateFr } from "@/lib/format";
@@ -51,6 +51,21 @@ function Transferts() {
           <span className="block font-semibold">Nouveau transfert</span>
           <span className="block text-sm text-muted-foreground">
             L'argent quitte un compte et arrive immédiatement sur l'autre.
+          </span>
+        </span>
+      </Link>
+
+      <Link
+        to="/comptes/transferts/automatiques"
+        className="carte flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99]"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Repeat className="h-5 w-5" aria-hidden />
+        </span>
+        <span>
+          <span className="block font-semibold">Transferts automatiques</span>
+          <span className="block text-sm text-muted-foreground">
+            Une part de chaque revenu part aussitôt vers le compte choisi.
           </span>
         </span>
       </Link>

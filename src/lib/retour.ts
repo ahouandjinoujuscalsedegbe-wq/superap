@@ -18,6 +18,7 @@ const PARENTS_EXACTS: Readonly<Record<string, string>> = {
   "/comptes/historique": "/comptes",
   "/comptes/transferts": "/comptes",
   "/comptes/transferts/nouveau": "/comptes/transferts",
+  "/comptes/transferts/automatiques": "/comptes/transferts",
 
   // Enveloppes
   "/enveloppes": "/",
