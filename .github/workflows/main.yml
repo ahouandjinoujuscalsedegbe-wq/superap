@@ -90,8 +90,13 @@ jobs:
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > /tmp/signature.jks
+          # L'affichage de keytool varie selon les versions de Java (SHA256:,
+          # "SHA-256:", avec ou sans deux-points) : on extrait l'empreinte de
+          # manière tolérante puis on la normalise.
           EMPREINTE=$("$KEYTOOL" -list -v -keystore /tmp/signature.jks -storepass "$KEYSTORE_PASSWORD" \
-            -alias "$KEY_ALIAS" | grep -m1 "SHA256:" | awk '{print $2}' | tr -d ':' | tr 'A-Z' 'a-z')
+            -alias "$KEY_ALIAS" \
+            | grep -oiE 'SHA-?256:[[:space:]]*[0-9a-fA-F:]{60,}' \
+            | head -n 1 | sed -E 's/^SHA-?256:[[:space:]]*//I' | tr -d ': \t\r' | tr 'A-Z' 'a-z')
           if [ -z "$EMPREINTE" ]; then
             echo "::error::Impossible de lire l'empreinte du certificat de signature."
             exit 1
