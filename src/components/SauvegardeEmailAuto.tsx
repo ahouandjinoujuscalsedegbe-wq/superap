@@ -172,6 +172,14 @@ export function SauvegardeEmailAuto() {
             derniereEmpreinte: colis.empreinte,
             derniereTaille: colis.taille,
           });
+          // Copie immédiate dans le coffre nommé par l'utilisateur, déjà
+          // chiffrée (colis SAM5) et rangée dans l'espace privé de l'app.
+          void deposerDansDossier({
+            contenu: colis.contenu,
+            empreinte: colis.empreinte,
+            taille: colis.taille,
+            classement: classement.chemin,
+          });
           // Dépôt silencieux dans l'espace de stockage rattaché à l'adresse
           // e-mail : aucun message n'est envoyé, la copie est déjà chiffrée.
           void deposerDansCloud(actuel.email, phrase, actuel.appareil, {
