@@ -90,8 +90,13 @@ jobs:
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > /tmp/signature.jks
+          # L'affichage de keytool varie selon les versions de Java (SHA256:,
+          # "SHA-256:", avec ou sans deux-points) : on extrait l'empreinte de
+          # manière tolérante puis on la normalise.
           EMPREINTE=$("$KEYTOOL" -list -v -keystore /tmp/signature.jks -storepass "$KEYSTORE_PASSWORD" \
-            -alias "$KEY_ALIAS" | grep -m1 "SHA256:" | awk '{print $2}' | tr -d ':' | tr 'A-Z' 'a-z')
+            -alias "$KEY_ALIAS" \
+            | grep -oiE 'SHA-?256:[[:space:]]*[0-9a-fA-F:]{60,}' \
+            | head -n 1 | sed -E 's/^SHA-?256:[[:space:]]*//I' | tr -d ': \t\r' | tr 'A-Z' 'a-z')
           if [ -z "$EMPREINTE" ]; then
             echo "::error::Impossible de lire l'empreinte du certificat de signature."
             exit 1
@@ -389,9 +394,36 @@ jobs:
           APK=android/app/build/outputs/apk/release/app-release.apk
           APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)
           test -n "$APKSIGNER" || { echo "::error::apksigner est absent du SDK Android."; exit 1; }
-          "$APKSIGNER" verify --verbose --print-certs "$APK"
-          CERT=$($APKSIGNER verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1)
-          test "$CERT" = "$SIGNATURE_ATTENDUE" || { echo "::error::L'APK n'est pas signé avec la clé attendue."; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee /tmp/apksigner.txt
+
+          # Normalisation : selon la version des outils Android, l'empreinte est
+          # affichée avec ou sans deux-points, en majuscules ou minuscules, et le
+          # libellé peut contenir un préfixe (minSdkVersion=...). On extrait donc
+          # toutes les empreintes SHA-256 de certificat, puis on compare des
+          # valeurs strictement normalisées.
+          normaliser() { tr -d ': \t\r' | tr 'A-Z' 'a-z'; }
+          ATTENDUE=$(printf '%s' "$SIGNATURE_ATTENDUE" | normaliser)
+          if [ -z "$ATTENDUE" ]; then
+            echo "::error::L'empreinte attendue n'a pas été calculée : la clé de signature n'a pas pu être lue."
+            exit 1
+          fi
+
+          CERTS=$(grep -oiE 'certificate SHA-?256 digest:[[:space:]]*[0-9a-fA-F:]+' /tmp/apksigner.txt \
+            | sed -E 's/.*digest:[[:space:]]*//' | normaliser | sort -u)
+          if [ -z "$CERTS" ]; then
+            echo "::error::Impossible de lire l'empreinte du certificat de l'APK compilé."
+            exit 1
+          fi
+
+          echo "Empreinte attendue : $ATTENDUE"
+          echo "Empreintes de l'APK :"
+          echo "$CERTS"
+
+          if ! printf '%s\n' "$CERTS" | grep -qx "$ATTENDUE"; then
+            echo "::error::L'APK n'est pas signé avec la clé attendue (secrets ANDROID_KEYSTORE_* incohérents avec la clé utilisée par Gradle)."
+            exit 1
+          fi
+          echo "Signature de l'APK conforme à la clé attendue."
 
       - name: Retirer les clés temporaires
         if: always()
