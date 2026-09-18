@@ -414,7 +414,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
   // c'est là que se reflète tout ce que je dois et tout ce qu'on me doit.
   const comptes = [
     ...comptesLus,
-    ...[COMPTE_DETTES, COMPTE_CREANCES].filter((c) => !comptesLus.includes(c)),
+    ...COMPTES_SYSTEME.filter((c) => !comptesLus.includes(c)),
   ];
   const exclusLus = brut.comptesExclus
     ? assainirComptes(brut.comptesExclus)
@@ -426,7 +426,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes,
     // Ces comptes de suivi ne gonflent jamais le solde disponible.
-    comptesExclus: Array.from(new Set([...exclusLus, COMPTE_DETTES, COMPTE_CREANCES])),
+    comptesExclus: Array.from(new Set([...exclusLus, ...COMPTES_SYSTEME])),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
     iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
@@ -454,8 +454,8 @@ const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
   categories: CATEGORIES_PAR_DEFAUT,
-  comptes: [COMPTE_DETTES, COMPTE_CREANCES],
-  comptesExclus: [COMPTE_DETTES, COMPTE_CREANCES],
+  comptes: [...COMPTES_SYSTEME],
+  comptesExclus: [...COMPTES_SYSTEME],
   ordreComptes: [],
   iconesComptes: {},
   transferts: [],
