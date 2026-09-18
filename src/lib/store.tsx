@@ -1773,6 +1773,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie: proteger(renommerSousCategorie, "Confirmez la modification."),
       supprimerSousCategorie: proteger(supprimerSousCategorie, "Confirmez la suppression."),
+      deplacerSousCategorie: proteger(deplacerSousCategorie, "Confirmez le déplacement."),
       reordonnerCategories,
       reordonnerSousCategories,
       restaurerCategories,
