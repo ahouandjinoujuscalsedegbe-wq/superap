@@ -514,6 +514,8 @@ type Contexte = Etat & {
   ajouterSousCategorie: (id: string, nom: string) => void;
   renommerSousCategorie: (id: string, ancien: string, nom: string) => void;
   supprimerSousCategorie: (id: string, nom: string) => void;
+  /** Déplace une sous-catégorie (et ses enveloppes) vers une autre catégorie. */
+  deplacerSousCategorie: (idSource: string, nom: string, idCible: string) => void;
   reordonnerCategories: (depuis: number, vers: number) => void;
   reordonnerSousCategories: (id: string, depuis: number, vers: number) => void;
   restaurerCategories: (liste: CategorieEnveloppe[]) => void;
@@ -1123,7 +1125,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       journaliser("avertissement", "application", "Enveloppe refusée : nom ou montant invalide.");
       return null;
     }
-    setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
+    // La nouvelle enveloppe apparaît en tête de liste ; les autres gardent leur ordre.
+    setEtat((e) => ({ ...e, enveloppes: [propre, ...e.enveloppes] }));
     return propre.id;
   }, []);
 
@@ -1218,14 +1221,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         ? e
         : {
             ...e,
+            // La nouvelle catégorie s'affiche en haut de la liste.
             categories: [
-              ...e.categories,
               {
                 id: crypto.randomUUID(),
                 nom,
                 sousCategories: [],
                 ...(icone ? { emoji: icone } : {}),
               },
+              ...e.categories,
             ],
           },
     );
