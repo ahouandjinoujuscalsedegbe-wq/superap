@@ -82,6 +82,7 @@ function PageDettes() {
     ajouterRemboursement,
     supprimerRemboursement,
     comptes,
+    enveloppes,
   } = useSuperApp();
 
   const [ouvertId, setOuvertId] = useState<string | null>(null);
@@ -92,6 +93,8 @@ function PageDettes() {
   const [dateRemb, setDateRemb] = useState(new Date().toISOString().slice(0, 10));
   /** Compte impacté par le mouvement d'argent ; vide = aucun mouvement de trésorerie. */
   const [compteMouvement, setCompteMouvement] = useState("");
+  /** Enveloppe qui finance l'opération ; vide = aucune enveloppe ponctionnée. */
+  const [enveloppeSource, setEnveloppeSource] = useState("");
   const [compteRemb, setCompteRemb] = useState("");
   const [confirmation, setConfirmation] = useState<{
     titre: string;
@@ -110,6 +113,7 @@ function PageDettes() {
   const ouvrirCreation = () => {
     setForm(FORM_VIDE);
     setCompteMouvement("");
+    setEnveloppeSource("");
     setDialogue({ type: "creer" });
   };
 
@@ -184,6 +188,7 @@ function PageDettes() {
       return;
     }
     const label = form.sens === "dette" ? "Dette envers" : "Créance sur";
+    const enveloppeChoisie = enveloppes.find((v) => v.id === enveloppeSource);
     setConfirmation({
       titre: dialogue?.type === "modifier" ? "Modifier la fiche" : "Créer la fiche",
       message:
@@ -225,6 +230,12 @@ function PageDettes() {
         ...(dialogue?.type === "creer"
           ? [
               {
+                label: "Enveloppe ponctionnée",
+                apres: enveloppeChoisie
+                  ? `${enveloppeChoisie.nom} — ${formatFCFA(Math.min(montant, Math.round(enveloppeChoisie.dotation ?? enveloppeChoisie.plafond)))} retirés, reflétés sur « ${form.sens === "dette" ? "Je dois à quelqu'un" : "Quelqu'un me doit"} »`
+                  : "Aucune enveloppe",
+              },
+              {
                 label: "Mouvement d'argent",
                 apres: compteMouvement
                   ? `${form.sens === "dette" ? "Entrée" : "Sortie"} de ${formatFCFA(montant)} sur « ${compteMouvement} »`
@@ -250,7 +261,7 @@ function PageDettes() {
           echeancier: echeancierDuFormulaire(),
         };
         if (dialogue?.type === "modifier") modifierDette(dialogue.dette.id, base);
-        else ajouterDette(base, compteMouvement || undefined);
+        else ajouterDette(base, compteMouvement || undefined, enveloppeSource || undefined);
         setDialogue(null);
       },
     });
@@ -790,6 +801,28 @@ function PageDettes() {
                 </select>
                 <p className="text-xs text-muted-foreground">
                   Si un compte est choisi, le solde de ce compte est mis à jour automatiquement.
+                </p>
+                <label htmlFor="enveloppe-dette" className="mt-2 block text-sm font-semibold">
+                  Enveloppe qui finance cette opération
+                </label>
+                <select
+                  id="enveloppe-dette"
+                  data-clavier="off"
+                  value={enveloppeSource}
+                  onChange={(e) => setEnveloppeSource(e.target.value)}
+                  className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
+                >
+                  <option value="">Aucune enveloppe</option>
+                  {enveloppes.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.nom} — {formatFCFA(Math.round(v.dotation ?? v.plafond))} disponibles
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  L'enveloppe choisie s'épuise du montant prêté, et ce montant apparaît aussitôt sur
+                  le compte « {form.sens === "dette" ? "Je dois à quelqu'un" : "Quelqu'un me doit"} ».
+                  Si aucun compte n'est choisi ci-dessus, celui qui alimente l'enveloppe est utilisé.
                 </p>
               </div>
             )}
