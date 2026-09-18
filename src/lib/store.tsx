@@ -303,14 +303,13 @@ export function compteDedie(sens: "dette" | "creance"): string {
   return sens === "dette" ? COMPTE_DETTES : COMPTE_CREANCES;
 }
 
-export const COMPTES = [
-  "Espèces",
-  "Banque",
-  "MTN MoMo",
-  "Moov Money",
-  "Wave",
-  "Carte virtuelle",
-] as const;
+/**
+ * Aucun compte n'est proposé par défaut : l'utilisateur crée lui-même ses
+ * comptes. Seuls les deux comptes dédiés aux dettes et aux créances existent
+ * automatiquement.
+ */
+export const COMPTES: readonly string[] = [];
+
 
 /**
  * Comptes de mise de côté (épargne, caisse, compte diamant) : par défaut leur
