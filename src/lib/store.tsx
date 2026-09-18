@@ -981,6 +981,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
     const propre = texteSur(nouveau, 60);
     if (!propre || ancien === propre) return;
+    // Les comptes créés automatiquement gardent toujours leur nom.
+    if (COMPTES_SYSTEME.includes(ancien)) {
+      journaliser(
+        "avertissement",
+        "application",
+        `Renommage refusé : « ${ancien} » est un compte créé automatiquement.`,
+      );
+      return;
+    }
     setEtat((e) => {
       if (!e.comptes.includes(ancien) || e.comptes.some((c) => c === propre && c !== ancien)) return e;
       return {
@@ -1027,6 +1036,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const supprimerCompte = useCallback((nom: string) => {
+    // Dettes, créances et tontines sont des comptes permanents de l'application.
+    if (COMPTES_SYSTEME.includes(nom)) {
+      journaliser(
+        "avertissement",
+        "application",
+        `Suppression refusée : « ${nom} » est un compte permanent de l'application.`,
+      );
+      return;
+    }
     setEtat((e) => {
       // Garde-fou métier : un compte encore référencé ne peut pas disparaître,
       // sinon ses opérations deviendraient orphelines et fausseraient les soldes.
