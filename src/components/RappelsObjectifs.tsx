@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, HandCoins, X } from "lucide-react";
 import { toast } from "sonner";
-import { useSuperApp } from "@/lib/store";
+import { COMPTE_TONTINES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { idConseiller, notifierAlarme, programmerRappelsConseiller } from "@/lib/alarme-appareil";
 import {
@@ -78,7 +78,7 @@ export function RappelsObjectifs() {
             ? enveloppes.find((v) => v.id === objectif.enveloppeId)
             : undefined;
         const contenu = enveloppe ? Math.round(enveloppe.dotation ?? enveloppe.plafond) : 0;
-        if (enveloppe && contenu > 0) {
+        if (enveloppe && contenu > 0 && (enveloppe.compteSource ?? "") !== COMPTE_TONTINES) {
           verserEnveloppeVersTontines(
             enveloppe.id,
             echeance.date,
