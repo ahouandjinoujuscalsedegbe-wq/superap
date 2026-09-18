@@ -1190,6 +1190,46 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  /**
+   * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
+   * contenu vers le compte « Tontines ». Le mouvement est un vrai transfert
+   * depuis le compte qui alimentait l'enveloppe, et l'enveloppe repart à zéro.
+   */
+  const verserEnveloppeVersTontines = useCallback(
+    (enveloppeId: string, date = new Date().toISOString().slice(0, 10), note = ""): number => {
+      let verse = 0;
+      setEtat((e) => {
+        const env = e.enveloppes.find((x) => x.id === enveloppeId);
+        if (!env) return e;
+        const contenu = Math.round(env.dotation ?? env.plafond);
+        const source = env.compteSource ?? "";
+        if (!(contenu > 0) || !source || source === COMPTE_TONTINES) return e;
+        const transfert = assainirTransfert({
+          id: crypto.randomUUID(),
+          source,
+          destination: COMPTE_TONTINES,
+          montant: contenu,
+          note: note || `Tontine : enveloppe ${env.nom}`,
+          date,
+        });
+        if (!transfert) return e;
+        verse = contenu;
+        journaliser(
+          "info",
+          "application",
+          `Tontine : ${contenu} FCFA de l'enveloppe ${env.nom} versés au compte Tontines.`,
+        );
+        return {
+          ...e,
+          transferts: [transfert, ...e.transferts],
+          enveloppes: e.enveloppes.map((x) => (x.id === enveloppeId ? { ...x, dotation: 0 } : x)),
+        };
+      });
+      return verse;
+    },
+    [],
+  );
+
   const modifierEnveloppe = useCallback((id: string, env: Partial<Omit<Enveloppe, "id">>) => {
     if (env.plafond !== undefined && !montantPositifOuNul(env.plafond)) return;
     if (env.dotation !== undefined && !montantPositifOuNul(env.dotation)) return;
