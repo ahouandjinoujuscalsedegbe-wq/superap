@@ -320,79 +320,11 @@ export function estCompteNonDisponible(nom: string): boolean {
   return /(épargne|epargne|caisse|diamant|tontine)/i.test(nom);
 }
 
-export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [
-  {
-    id: "vitaux",
-    nom: "Besoins vitaux",
-    emoji: "🍚",
-    plafond: 150000,
-    dotation: 180000,
-    categorie: "Alimentation",
-    sousCategorie: "Marché",
-  },
-  {
-    id: "transport",
-    nom: "Transport",
-    emoji: "🛵",
-    plafond: 40000,
-    dotation: 50000,
-    categorie: "Transport",
-    sousCategorie: "Carburant",
-  },
-  {
-    id: "maison",
-    nom: "Maison & Factures",
-    emoji: "🏠",
-    plafond: 60000,
-    dotation: 70000,
-    categorie: "Factures",
-    sousCategorie: "Facture SBEE",
-  },
-  {
-    id: "epargne",
-    nom: "Épargne",
-    emoji: "🐖",
-    plafond: 50000,
-    dotation: 55000,
-    categorie: "Épargne",
-    sousCategorie: "Tontine",
-  },
-  {
-    id: "envies",
-    nom: "Projets & Envies",
-    emoji: "✨",
-    plafond: 30000,
-    dotation: 35000,
-    categorie: "Famille",
-    sousCategorie: "Cadeaux",
-  },
-  {
-    id: "imprevus",
-    nom: "Imprévus",
-    emoji: "🚨",
-    plafond: 20000,
-    dotation: 25000,
-    categorie: "Santé",
-    sousCategorie: "Pharmacie",
-  },
-];
+/** Aucune enveloppe n'est proposée par défaut : l'utilisateur crée les siennes. */
+export const ENVELOPPES_PAR_DEFAUT: Enveloppe[] = [];
 
-export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [
-  {
-    id: "cat-transport",
-    nom: "Transport",
-    sousCategories: ["Carburant", "Vidange voiture", "Taxi / Zémidjan"],
-  },
-  {
-    id: "cat-factures",
-    nom: "Factures",
-    sousCategories: ["Facture SBEE", "Facture SONEB", "Internet"],
-  },
-  { id: "cat-alimentation", nom: "Alimentation", sousCategories: ["Marché", "Boutique"] },
-  { id: "cat-sante", nom: "Santé", sousCategories: ["Pharmacie", "Consultation"] },
-  { id: "cat-epargne", nom: "Épargne", sousCategories: ["Tontine", "Épargne banque"] },
-  { id: "cat-famille", nom: "Famille", sousCategories: ["Cadeaux", "Cérémonies"] },
-];
+/** Aucun groupe ni sous-groupe par défaut : l'utilisateur crée les siens. */
+export const CATEGORIES_PAR_DEFAUT: CategorieEnveloppe[] = [];
 
 const SOURCES_REVENU = ["Salaire", "Activité", "Aide famille", "Prime", "Autre"];
 
@@ -472,7 +404,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
   // Les deux comptes dédiés aux dettes et aux créances existent toujours :
   // c'est là que se reflète tout ce que je dois et tout ce qu'on me doit.
   const comptes = [
-    ...(comptesLus.length > 0 ? comptesLus : [...COMPTES]),
+    ...comptesLus,
     ...[COMPTE_DETTES, COMPTE_CREANCES].filter((c) => !comptesLus.includes(c)),
   ];
   const exclusLus = brut.comptesExclus
@@ -481,7 +413,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
   const limite = Date.now() - JOURS_CORBEILLE * 86400000;
   return {
     transactions: assainirListe(brut.transactions, assainirTransaction),
-    enveloppes: enveloppes.length > 0 ? enveloppes : ENVELOPPES_PAR_DEFAUT,
+    enveloppes,
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes,
     // Ces comptes de suivi ne gonflent jamais le solde disponible.
@@ -513,7 +445,7 @@ const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
   categories: CATEGORIES_PAR_DEFAUT,
-  comptes: [...COMPTES, COMPTE_DETTES, COMPTE_CREANCES],
+  comptes: [COMPTE_DETTES, COMPTE_CREANCES],
   comptesExclus: [COMPTE_DETTES, COMPTE_CREANCES],
   ordreComptes: [],
   iconesComptes: {},
