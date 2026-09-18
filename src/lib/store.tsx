@@ -1837,6 +1837,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie,
       supprimerSousCategorie,
+      deplacerSousCategorie,
       reordonnerCategories,
       reordonnerSousCategories,
       restaurerCategories,
