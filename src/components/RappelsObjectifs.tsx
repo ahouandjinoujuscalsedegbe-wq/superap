@@ -24,7 +24,8 @@ const PAS_MS = 120_000;
  * renseignés) ou le refuse.
  */
 export function RappelsObjectifs() {
-  const { objectifs, ajouterTransfert, chargement } = useSuperApp();
+  const { objectifs, enveloppes, ajouterTransfert, verserEnveloppeVersTontines, chargement } =
+    useSuperApp();
   const [tic, setTic] = useState(0);
   const notifiees = useRef<Set<string>>(new Set());
 
