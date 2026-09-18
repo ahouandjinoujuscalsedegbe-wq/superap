@@ -59,7 +59,9 @@ export type ReglagesClavier = {
 };
 
 export const REGLAGES_PAR_DEFAUT: ReglagesClavier = {
-  actif: true,
+  // Le clavier interne est désactivé par défaut : le téléphone utilise son
+  // clavier natif. L'utilisateur peut l'activer dans Paramètres > Clavier.
+  actif: false,
   vibration: true,
   intensiteVibration: "moyenne",
   son: false,
