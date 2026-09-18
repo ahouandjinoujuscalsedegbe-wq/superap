@@ -511,6 +511,11 @@ type Contexte = Etat & {
     origine?: Remplissage["origine"],
     date?: string,
   ) => void;
+  /**
+   * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
+   * contenu vers le compte « Tontines ».
+   */
+  verserEnveloppeVersTontines: (enveloppeId: string, date?: string, note?: string) => void;
   /** Déplace une dotation d'une enveloppe vers une autre (plan de secours). */
   transfererEntreEnveloppes: (sourceId: string, cibleId: string, montant: number) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
@@ -1827,6 +1832,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
+      verserEnveloppeVersTontines,
       modifierEnveloppe: proteger(modifierEnveloppe, "Confirmez la modification."),
       supprimerEnveloppe: proteger(supprimerEnveloppe, "Confirmez la suppression."),
       deplacerEnveloppe,
@@ -1891,6 +1897,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
+      verserEnveloppeVersTontines,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
