@@ -917,6 +917,11 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         return {
           ...e,
           comptes: [...e.comptes, propre],
+          // Le nouveau compte arrive en tête de liste ; les comptes déjà
+          // présents conservent exactement leur ordre d'affichage actuel.
+          ordreComptes: e.ordreComptes.includes(propre)
+            ? e.ordreComptes
+            : [propre, ...ordreEffectifComptes(e.comptes, e.ordreComptes)],
           comptesExclus: exclus,
           comptesReserves: reserve ? [...e.comptesReserves, propre] : e.comptesReserves,
           iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
