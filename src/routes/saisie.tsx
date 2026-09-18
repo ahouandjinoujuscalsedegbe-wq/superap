@@ -18,7 +18,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from "lucide-react";
-import { COMPTES, useSuperApp } from "@/lib/store";
+import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
