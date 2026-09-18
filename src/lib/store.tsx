@@ -514,6 +514,8 @@ type Contexte = Etat & {
   ajouterSousCategorie: (id: string, nom: string) => void;
   renommerSousCategorie: (id: string, ancien: string, nom: string) => void;
   supprimerSousCategorie: (id: string, nom: string) => void;
+  /** Déplace une sous-catégorie (et ses enveloppes) vers une autre catégorie. */
+  deplacerSousCategorie: (idSource: string, nom: string, idCible: string) => void;
   reordonnerCategories: (depuis: number, vers: number) => void;
   reordonnerSousCategories: (id: string, depuis: number, vers: number) => void;
   restaurerCategories: (liste: CategorieEnveloppe[]) => void;
@@ -1123,7 +1125,8 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       journaliser("avertissement", "application", "Enveloppe refusée : nom ou montant invalide.");
       return null;
     }
-    setEtat((e) => ({ ...e, enveloppes: [...e.enveloppes, propre] }));
+    // La nouvelle enveloppe apparaît en tête de liste ; les autres gardent leur ordre.
+    setEtat((e) => ({ ...e, enveloppes: [propre, ...e.enveloppes] }));
     return propre.id;
   }, []);
 
@@ -1218,14 +1221,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         ? e
         : {
             ...e,
+            // La nouvelle catégorie s'affiche en haut de la liste.
             categories: [
-              ...e.categories,
               {
                 id: crypto.randomUUID(),
                 nom,
                 sousCategories: [],
                 ...(icone ? { emoji: icone } : {}),
               },
+              ...e.categories,
             ],
           },
     );
@@ -1276,10 +1280,39 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ...e,
       categories: e.categories.map((c) =>
         c.id === id && !c.sousCategories.includes(nom)
-          ? { ...c, sousCategories: [...c.sousCategories, nom] }
+          ? // La nouvelle sous-catégorie s'affiche en haut de la liste.
+            { ...c, sousCategories: [nom, ...c.sousCategories] }
           : c,
       ),
     }));
+  }, []);
+
+  /**
+   * Déplace une sous-catégorie entière vers une autre catégorie : les
+   * enveloppes qu'elle contient suivent automatiquement.
+   */
+  const deplacerSousCategorie = useCallback((idSource: string, nom: string, idCible: string) => {
+    setEtat((e) => {
+      if (idSource === idCible) return e;
+      const source = e.categories.find((c) => c.id === idSource);
+      const cible = e.categories.find((c) => c.id === idCible);
+      if (!source || !cible || !source.sousCategories.includes(nom)) return e;
+      if (cible.sousCategories.includes(nom)) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) => {
+          if (c.id === idSource)
+            return { ...c, sousCategories: c.sousCategories.filter((s) => s !== nom) };
+          if (c.id === idCible) return { ...c, sousCategories: [nom, ...c.sousCategories] };
+          return c;
+        }),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === source.nom && (x.sousCategorie ?? "") === nom
+            ? { ...x, categorie: cible.nom, sousCategorie: nom }
+            : x,
+        ),
+      };
+    });
   }, []);
 
   const renommerSousCategorie = useCallback((id: string, ancien: string, nom: string) => {
@@ -1740,6 +1773,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie: proteger(renommerSousCategorie, "Confirmez la modification."),
       supprimerSousCategorie: proteger(supprimerSousCategorie, "Confirmez la suppression."),
+      deplacerSousCategorie: proteger(deplacerSousCategorie, "Confirmez le déplacement."),
       reordonnerCategories,
       reordonnerSousCategories,
       restaurerCategories,
@@ -1803,6 +1837,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterSousCategorie,
       renommerSousCategorie,
       supprimerSousCategorie,
+      deplacerSousCategorie,
       reordonnerCategories,
       reordonnerSousCategories,
       restaurerCategories,
