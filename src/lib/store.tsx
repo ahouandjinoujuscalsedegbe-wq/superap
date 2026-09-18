@@ -1196,8 +1196,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
    * depuis le compte qui alimentait l'enveloppe, et l'enveloppe repart à zéro.
    */
   const verserEnveloppeVersTontines = useCallback(
-    (enveloppeId: string, date = new Date().toISOString().slice(0, 10), note = ""): number => {
-      let verse = 0;
+    (enveloppeId: string, date = new Date().toISOString().slice(0, 10), note = "") => {
       setEtat((e) => {
         const env = e.enveloppes.find((x) => x.id === enveloppeId);
         if (!env) return e;
@@ -1213,7 +1212,6 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           date,
         });
         if (!transfert) return e;
-        verse = contenu;
         journaliser(
           "info",
           "application",
@@ -1225,7 +1223,6 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           enveloppes: e.enveloppes.map((x) => (x.id === enveloppeId ? { ...x, dotation: 0 } : x)),
         };
       });
-      return verse;
     },
     [],
   );
