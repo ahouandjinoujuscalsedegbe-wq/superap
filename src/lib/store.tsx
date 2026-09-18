@@ -1280,10 +1280,39 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ...e,
       categories: e.categories.map((c) =>
         c.id === id && !c.sousCategories.includes(nom)
-          ? { ...c, sousCategories: [...c.sousCategories, nom] }
+          ? // La nouvelle sous-catégorie s'affiche en haut de la liste.
+            { ...c, sousCategories: [nom, ...c.sousCategories] }
           : c,
       ),
     }));
+  }, []);
+
+  /**
+   * Déplace une sous-catégorie entière vers une autre catégorie : les
+   * enveloppes qu'elle contient suivent automatiquement.
+   */
+  const deplacerSousCategorie = useCallback((idSource: string, nom: string, idCible: string) => {
+    setEtat((e) => {
+      if (idSource === idCible) return e;
+      const source = e.categories.find((c) => c.id === idSource);
+      const cible = e.categories.find((c) => c.id === idCible);
+      if (!source || !cible || !source.sousCategories.includes(nom)) return e;
+      if (cible.sousCategories.includes(nom)) return e;
+      return {
+        ...e,
+        categories: e.categories.map((c) => {
+          if (c.id === idSource)
+            return { ...c, sousCategories: c.sousCategories.filter((s) => s !== nom) };
+          if (c.id === idCible) return { ...c, sousCategories: [nom, ...c.sousCategories] };
+          return c;
+        }),
+        enveloppes: e.enveloppes.map((x) =>
+          (x.categorie ?? "") === source.nom && (x.sousCategorie ?? "") === nom
+            ? { ...x, categorie: cible.nom, sousCategorie: nom }
+            : x,
+        ),
+      };
+    });
   }, []);
 
   const renommerSousCategorie = useCallback((id: string, ancien: string, nom: string) => {
