@@ -1,22 +1,8 @@
 import type { CategorieEnveloppe, Enveloppe } from "./store";
 
-/** Catégories et sous-catégories proposées par défaut au foyer. */
-export const CATEGORIES_SUGGEREES: Record<string, string[]> = {
-  Transport: [
-    "Carburant",
-    "Vidange voiture",
-    "Entretien moto",
-    "Taxi / Zémidjan",
-    "Assurance véhicule",
-  ],
-  Factures: ["Facture SBEE", "Facture SONEB", "Internet", "Crédit téléphonique", "Abonnement TV"],
-  Alimentation: ["Marché", "Boutique", "Restaurant", "Eau potable"],
-  Logement: ["Loyer", "Réparations", "Meubles", "Gardiennage"],
-  Santé: ["Pharmacie", "Consultation", "Analyses", "Mutuelle"],
-  Éducation: ["Scolarité", "Fournitures", "Cours du soir", "Transport scolaire"],
-  Épargne: ["Tontine", "Épargne banque", "Projet immobilier"],
-  Famille: ["Cérémonies", "Aide aux proches", "Cadeaux"],
-};
+/** Aucune catégorie ni sous-catégorie proposée par défaut : le foyer crée les siennes. */
+export const CATEGORIES_SUGGEREES: Record<string, string[]> = {};
+
 
 export const CATEGORIE_LIBRE = "Sans catégorie";
 
