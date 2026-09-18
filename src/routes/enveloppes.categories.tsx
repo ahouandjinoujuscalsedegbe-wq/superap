@@ -459,6 +459,39 @@ function PageCategories() {
                           <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold">
                             {compter(c.nom, s)}
                           </span>
+                          <select
+                            aria-label={`Déplacer ${s} vers une autre catégorie`}
+                            value=""
+                            onChange={(ev) => {
+                              const cible = categories.find((x) => x.id === ev.target.value);
+                              if (!cible) return;
+                              if (cible.sousCategories.includes(s)) {
+                                setErreurPopup(
+                                  `« ${s} » existe déjà dans ${cible.nom}. Reprenez votre action.`,
+                                );
+                                return;
+                              }
+                              setDemande({
+                                type: "deplacement-sous",
+                                id: c.id,
+                                categorie: c.nom,
+                                nom: s,
+                                idCible: cible.id,
+                                cible: cible.nom,
+                                nbEnveloppes: compter(c.nom, s),
+                              });
+                            }}
+                            className="max-w-[9rem] rounded-xl border border-input bg-background/60 px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
+                          >
+                            <option value="">Déplacer vers…</option>
+                            {categories
+                              .filter((x) => x.id !== c.id)
+                              .map((x) => (
+                                <option key={x.id} value={x.id}>
+                                  {x.nom}
+                                </option>
+                              ))}
+                          </select>
                           <button
                             type="button"
                             aria-label={`Renommer ${s}`}
