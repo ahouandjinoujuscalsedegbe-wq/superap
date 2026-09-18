@@ -17,6 +17,8 @@ export type DemandeCompte =
       emoji: string;
       /** Compte réservé aux transferts automatiques (affiché à part). */
       reserve: boolean;
+      /** Part de chaque revenu transférée automatiquement vers ce compte (0 = aucune). */
+      pourcentage: number;
     }
   | {
       type: "renommage";
@@ -25,6 +27,8 @@ export type DemandeCompte =
       ajustement: number;
       disponible: boolean;
       emoji: string;
+      reserve: boolean;
+      pourcentage: number;
     };
 
 const champ =
@@ -40,8 +44,23 @@ export function FormulaireCompte({
   onDemande: (demande: DemandeCompte) => void;
   onAnnuler?: () => void;
 }) {
-  const { comptes, comptesExclus, iconesComptes, soldesParCompte } = useSuperApp();
+  const {
+    comptes,
+    comptesExclus,
+    comptesReserves,
+    iconesComptes,
+    soldesParCompte,
+    reglesTransfert,
+  } = useSuperApp();
   const creation = compte === undefined;
+
+  /** Règle automatique « tous les revenus » qui alimente déjà ce compte. */
+  const regleExistante =
+    compte === undefined
+      ? undefined
+      : reglesTransfert.find(
+          (r) => r.destination === compte && r.source === "*" && r.sourceRevenu === "*",
+        );
 
   const [nom, setNom] = useState(compte ?? "");
   const [solde, setSolde] = useState(
@@ -54,13 +73,22 @@ export function FormulaireCompte({
     compte !== undefined ? (iconesComptes[compte] ?? suggererIcone(compte, "compte")) : "👛",
   );
   const [emojiManuel, setEmojiManuel] = useState(compte !== undefined);
-  const [reserve, setReserve] = useState(false);
+  const [reserve, setReserve] = useState(
+    compte !== undefined ? comptesReserves.includes(compte) : false,
+  );
+  const [pourcentage, setPourcentage] = useState(
+    regleExistante ? String(regleExistante.pourcentage) : "",
+  );
   const [erreur, setErreur] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<{
     nom?: string;
     solde?: string;
     disponible?: string;
+    pourcentage?: string;
   }>({});
+
+  const reserveActuelle = compte !== undefined ? comptesReserves.includes(compte) : false;
+  const pourcentageActuel = regleExistante?.pourcentage ?? 0;
 
   function auTexteDicte(texte: string) {
     const lu = analyserCompteDicte(texte);
@@ -77,7 +105,14 @@ export function FormulaireCompte({
     ev.preventDefault();
     const valeur = nom.trim();
     const soldeSaisi = solde.trim() === "" ? 0 : Number(solde.replace(/[^\d-]/g, ""));
-    const prochaines: { nom?: string; solde?: string; disponible?: string } = {};
+    const partSaisie = pourcentage.trim() === "" ? 0 : Number(pourcentage.replace(/[^\d]/g, ""));
+    const part = reserve ? partSaisie : 0;
+    const prochaines: {
+      nom?: string;
+      solde?: string;
+      disponible?: string;
+      pourcentage?: string;
+    } = {};
 
     if (!valeur) prochaines.nom = "Donnez un nom au compte avant de valider.";
     else if (valeur.length > 30) prochaines.nom = "Nom trop long : 30 caractères maximum.";
@@ -94,6 +129,9 @@ export function FormulaireCompte({
     if (disponible === null)
       prochaines.disponible = "Indiquez si ce compte est compté dans le solde disponible.";
 
+    if (reserve && (!Number.isFinite(part) || part < 0 || part > 100))
+      prochaines.pourcentage = "Le pourcentage doit être compris entre 0 et 100.";
+
     setErreurs(prochaines);
     if (Object.keys(prochaines).length > 0) return;
 
@@ -105,6 +143,7 @@ export function FormulaireCompte({
         disponible: disponible === true,
         emoji: emoji.trim() || suggererIcone(valeur, "compte"),
         reserve,
+        pourcentage: part,
       });
       return;
     }
@@ -116,10 +155,12 @@ export function FormulaireCompte({
       valeur === ancien &&
       ajustement === 0 &&
       disponible === disponibleActuel &&
-      emoji.trim() === iconeActuelle
+      emoji.trim() === iconeActuelle &&
+      reserve === reserveActuelle &&
+      part === pourcentageActuel
     ) {
       setErreur(
-        "Rien n'a changé : modifiez le nom, le solde, le logo ou le disponible, ou annulez.",
+        "Rien n'a changé : modifiez le nom, le solde, le logo, le disponible ou la part automatique, ou annulez.",
       );
       return;
     }
@@ -130,6 +171,8 @@ export function FormulaireCompte({
       ajustement,
       disponible: disponible === true,
       emoji: emoji.trim(),
+      reserve,
+      pourcentage: part,
     });
   }
 
@@ -247,25 +290,51 @@ export function FormulaireCompte({
           )}
         </fieldset>
 
-        {creation && (
-          <fieldset className="rounded-xl border border-input bg-background/60 p-3">
-            <legend className="px-1 text-sm font-medium">Transferts automatiques</legend>
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={reserve}
-                onChange={(ev) => setReserve(ev.target.checked)}
-                className="mt-0.5 h-4 w-4"
-              />
-              <span className="min-w-0 text-sm">
-                Compte réservé aux transferts automatiques
-                <span className="block text-xs text-muted-foreground">
-                  Il sera repéré et présenté à part, sans être mélangé aux autres comptes.
-                </span>
+        <fieldset className="rounded-xl border border-input bg-background/60 p-3">
+          <legend className="px-1 text-sm font-medium">Transferts automatiques</legend>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={reserve}
+              onChange={(ev) => setReserve(ev.target.checked)}
+              className="mt-0.5 h-4 w-4"
+            />
+            <span className="min-w-0 text-sm">
+              Compte réservé aux transferts automatiques
+              <span className="block text-xs text-muted-foreground">
+                Il sera repéré et présenté à part, sans être mélangé aux autres comptes.
               </span>
-            </label>
-          </fieldset>
-        )}
+            </span>
+          </label>
+
+          {reserve && (
+            <div className="mt-3">
+              <label htmlFor="c-part" className="text-sm font-medium">
+                Part de chaque revenu envoyée vers ce compte (%)
+              </label>
+              <input
+                id="c-part"
+                inputMode="numeric"
+                value={pourcentage}
+                onChange={(ev) =>
+                  setPourcentage(ev.target.value.replace(/[^\d]/g, "").slice(0, 3))
+                }
+                placeholder="10"
+                className={champ}
+              />
+              {erreurs.pourcentage ? (
+                <p role="alert" className="mt-1 text-xs font-medium text-destructive">
+                  {erreurs.pourcentage}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  À chaque revenu enregistré, cette part quitte aussitôt le compte crédité et
+                  arrive ici. Laissez vide pour aucun transfert automatique.
+                </p>
+              )}
+            </div>
+          )}
+        </fieldset>
 
         <div className="flex gap-2">
           <button
