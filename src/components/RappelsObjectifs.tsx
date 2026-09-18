@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, HandCoins, X } from "lucide-react";
 import { toast } from "sonner";
-import { useSuperApp } from "@/lib/store";
+import { COMPTE_TONTINES, useSuperApp } from "@/lib/store";
 import { formatFCFA } from "@/lib/format";
 import { idConseiller, notifierAlarme, programmerRappelsConseiller } from "@/lib/alarme-appareil";
 import {
@@ -24,7 +24,8 @@ const PAS_MS = 120_000;
  * renseignés) ou le refuse.
  */
 export function RappelsObjectifs() {
-  const { objectifs, ajouterTransfert, chargement } = useSuperApp();
+  const { objectifs, enveloppes, ajouterTransfert, verserEnveloppeVersTontines, chargement } =
+    useSuperApp();
   const [tic, setTic] = useState(0);
   const notifiees = useRef<Set<string>>(new Set());
 
@@ -70,7 +71,23 @@ export function RappelsObjectifs() {
       enregistrerReponse(echeance.cle, fait ? "confirme" : "refuse");
       if (fait) {
         const objectif = objectifs.find((o) => o.id === echeance.objectifId);
-        if (objectif?.compteSource && objectif.compteEpargne) {
+        // Tontine confirmée : l'enveloppe associée renvoie tout son contenu
+        // vers le compte « Tontines », puis repart à zéro pour le tour suivant.
+        const enveloppe =
+          objectif?.type === "tontine" && objectif.enveloppeId
+            ? enveloppes.find((v) => v.id === objectif.enveloppeId)
+            : undefined;
+        const contenu = enveloppe ? Math.round(enveloppe.dotation ?? enveloppe.plafond) : 0;
+        if (enveloppe && contenu > 0 && (enveloppe.compteSource ?? "") !== COMPTE_TONTINES) {
+          verserEnveloppeVersTontines(
+            enveloppe.id,
+            echeance.date,
+            `Tontine ${objectif?.libelle ?? ""} — cotisation du ${echeance.date}`,
+          );
+          toast.success(
+            `Versement confirmé : ${formatFCFA(contenu)} de l'enveloppe ${enveloppe.nom} sont allés au compte Tontines.`,
+          );
+        } else if (objectif?.compteSource && objectif.compteEpargne) {
           ajouterTransfert({
             source: objectif.compteSource,
             destination: objectif.compteEpargne,
@@ -87,7 +104,7 @@ export function RappelsObjectifs() {
       }
       setTic((n) => n + 1);
     },
-    [objectifs, ajouterTransfert],
+    [objectifs, enveloppes, ajouterTransfert, verserEnveloppeVersTontines],
   );
 
   if (!courante) return null;

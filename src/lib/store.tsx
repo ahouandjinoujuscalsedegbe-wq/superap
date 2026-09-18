@@ -297,6 +297,15 @@ export function resteDu(d: Dette): number {
 export const COMPTE_DETTES = "Je dois à quelqu'un 🤔";
 /** Compte dédié à tout ce que quelqu'un me doit. */
 export const COMPTE_CREANCES = "Quelqu'un me doit 🤔";
+/** Compte dédié aux tontines : il reçoit le contenu des enveloppes de tontine. */
+export const COMPTE_TONTINES = "Tontines 🤝";
+
+/** Comptes créés automatiquement : ni renommables, ni supprimables. */
+export const COMPTES_SYSTEME: readonly string[] = [
+  COMPTE_DETTES,
+  COMPTE_CREANCES,
+  COMPTE_TONTINES,
+];
 
 /** Compte dédié correspondant au sens d'une fiche. */
 export function compteDedie(sens: "dette" | "creance"): string {
@@ -405,7 +414,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
   // c'est là que se reflète tout ce que je dois et tout ce qu'on me doit.
   const comptes = [
     ...comptesLus,
-    ...[COMPTE_DETTES, COMPTE_CREANCES].filter((c) => !comptesLus.includes(c)),
+    ...COMPTES_SYSTEME.filter((c) => !comptesLus.includes(c)),
   ];
   const exclusLus = brut.comptesExclus
     ? assainirComptes(brut.comptesExclus)
@@ -417,7 +426,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     categories: assainirListe(brut.categories, assainirCategorie),
     comptes,
     // Ces comptes de suivi ne gonflent jamais le solde disponible.
-    comptesExclus: Array.from(new Set([...exclusLus, COMPTE_DETTES, COMPTE_CREANCES])),
+    comptesExclus: Array.from(new Set([...exclusLus, ...COMPTES_SYSTEME])),
     ordreComptes: brut.ordreComptes ? assainirComptes(brut.ordreComptes) : [],
     iconesComptes: assainirIconesComptes(brut.iconesComptes),
 
@@ -445,8 +454,8 @@ const ETAT_INITIAL: Etat = {
   transactions: [],
   enveloppes: ENVELOPPES_PAR_DEFAUT,
   categories: CATEGORIES_PAR_DEFAUT,
-  comptes: [COMPTE_DETTES, COMPTE_CREANCES],
-  comptesExclus: [COMPTE_DETTES, COMPTE_CREANCES],
+  comptes: [...COMPTES_SYSTEME],
+  comptesExclus: [...COMPTES_SYSTEME],
   ordreComptes: [],
   iconesComptes: {},
   transferts: [],
@@ -502,6 +511,11 @@ type Contexte = Etat & {
     origine?: Remplissage["origine"],
     date?: string,
   ) => void;
+  /**
+   * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
+   * contenu vers le compte « Tontines ».
+   */
+  verserEnveloppeVersTontines: (enveloppeId: string, date?: string, note?: string) => void;
   /** Déplace une dotation d'une enveloppe vers une autre (plan de secours). */
   transfererEntreEnveloppes: (sourceId: string, cibleId: string, montant: number) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
@@ -972,6 +986,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   const renommerCompte = useCallback((ancien: string, nouveau: string) => {
     const propre = texteSur(nouveau, 60);
     if (!propre || ancien === propre) return;
+    // Les comptes créés automatiquement gardent toujours leur nom.
+    if (COMPTES_SYSTEME.includes(ancien)) {
+      journaliser(
+        "avertissement",
+        "application",
+        `Renommage refusé : « ${ancien} » est un compte créé automatiquement.`,
+      );
+      return;
+    }
     setEtat((e) => {
       if (!e.comptes.includes(ancien) || e.comptes.some((c) => c === propre && c !== ancien)) return e;
       return {
@@ -1018,6 +1041,15 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const supprimerCompte = useCallback((nom: string) => {
+    // Dettes, créances et tontines sont des comptes permanents de l'application.
+    if (COMPTES_SYSTEME.includes(nom)) {
+      journaliser(
+        "avertissement",
+        "application",
+        `Suppression refusée : « ${nom} » est un compte permanent de l'application.`,
+      );
+      return;
+    }
     setEtat((e) => {
       // Garde-fou métier : un compte encore référencé ne peut pas disparaître,
       // sinon ses opérations deviendraient orphelines et fausseraient les soldes.
@@ -1157,6 +1189,43 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
             if (x.id === cibleId) return { ...x, dotation: (x.dotation ?? x.plafond) + somme };
             return x;
           }),
+        };
+      });
+    },
+    [],
+  );
+
+  /**
+   * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
+   * contenu vers le compte « Tontines ». Le mouvement est un vrai transfert
+   * depuis le compte qui alimentait l'enveloppe, et l'enveloppe repart à zéro.
+   */
+  const verserEnveloppeVersTontines = useCallback(
+    (enveloppeId: string, date = new Date().toISOString().slice(0, 10), note = "") => {
+      setEtat((e) => {
+        const env = e.enveloppes.find((x) => x.id === enveloppeId);
+        if (!env) return e;
+        const contenu = Math.round(env.dotation ?? env.plafond);
+        const source = env.compteSource ?? "";
+        if (!(contenu > 0) || !source || source === COMPTE_TONTINES) return e;
+        const transfert = assainirTransfert({
+          id: crypto.randomUUID(),
+          source,
+          destination: COMPTE_TONTINES,
+          montant: contenu,
+          note: note || `Tontine : enveloppe ${env.nom}`,
+          date,
+        });
+        if (!transfert) return e;
+        journaliser(
+          "info",
+          "application",
+          `Tontine : ${contenu} FCFA de l'enveloppe ${env.nom} versés au compte Tontines.`,
+        );
+        return {
+          ...e,
+          transferts: [transfert, ...e.transferts],
+          enveloppes: e.enveloppes.map((x) => (x.id === enveloppeId ? { ...x, dotation: 0 } : x)),
         };
       });
     },
@@ -1763,6 +1832,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
+      verserEnveloppeVersTontines,
       modifierEnveloppe: proteger(modifierEnveloppe, "Confirmez la modification."),
       supprimerEnveloppe: proteger(supprimerEnveloppe, "Confirmez la suppression."),
       deplacerEnveloppe,
@@ -1827,6 +1897,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
+      verserEnveloppeVersTontines,
       modifierEnveloppe,
       supprimerEnveloppe,
       deplacerEnveloppe,
