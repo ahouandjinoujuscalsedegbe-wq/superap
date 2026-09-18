@@ -544,7 +544,12 @@ type Contexte = Etat & {
   reporterBudget: (id: string, joursReport?: number) => void;
   modifierBudget: (id: string, b: Partial<Omit<Budget, "id">>) => void;
   supprimerBudget: (id: string) => void;
-  ajouterDette: (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => void;
+  ajouterDette: (
+    d: Omit<Dette, "id" | "creeLe" | "remboursements">,
+    compte?: string,
+    /** Enveloppe qui finance le prêt : son contenu part vers le compte dédié. */
+    enveloppeId?: string,
+  ) => void;
   modifierDette: (id: string, d: Partial<Omit<Dette, "id" | "remboursements">>) => void;
   supprimerDette: (id: string) => void;
   ajouterRemboursement: (detteId: string, r: Omit<Remboursement, "id">, compte?: string) => void;
@@ -1595,7 +1600,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterDette = useCallback(
-    (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string) => {
+    (d: Omit<Dette, "id" | "creeLe" | "remboursements">, compte?: string, enveloppeId?: string) => {
       if (!montantValide(d.montantInitial) || !texteSur(d.personne)) {
         journaliser(
           "avertissement",
@@ -1622,12 +1627,35 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           date: new Date(creeLe).toISOString(),
           detteId: id,
         };
-        const etatSuivant: Etat = {
+        // Enveloppe qui finance l'opération : son contenu s'épuise d'autant et
+        // le mouvement d'argent part du compte qui alimentait cette enveloppe,
+        // pour que l'enveloppe, le compte et le compte dédié restent d'accord.
+        const enveloppe = enveloppeId ? e.enveloppes.find((v) => v.id === enveloppeId) : undefined;
+        const ponction = enveloppe
+          ? Math.min(Math.round(d.montantInitial), Math.round(enveloppe.dotation ?? enveloppe.plafond))
+          : 0;
+        const compteEffectif = compte || (enveloppe?.compteSource ?? "");
+        let etatSuivant: Etat = {
           ...e,
           dettes: [fiche, ...e.dettes],
           transactions: [miroir, ...e.transactions],
         };
-        if (!compte) return etatSuivant;
+        if (enveloppe && ponction > 0) {
+          journaliser(
+            "info",
+            "application",
+            `${d.sens === "creance" ? "Prêt" : "Dette"} : ${ponction} FCFA retirés de l'enveloppe ${enveloppe.nom} et reflétés sur « ${dedie} ».`,
+          );
+          etatSuivant = {
+            ...etatSuivant,
+            enveloppes: etatSuivant.enveloppes.map((v) =>
+              v.id === enveloppe.id
+                ? { ...v, dotation: Math.max(0, (v.dotation ?? v.plafond) - ponction) }
+                : v,
+            ),
+          };
+        }
+        if (!compteEffectif) return etatSuivant;
         // Une dette contractée fait entrer de l'argent ; une créance accordée en fait sortir.
         const mouvement: Transaction = {
           id: crypto.randomUUID(),
@@ -1636,7 +1664,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           libelle:
             d.sens === "dette" ? `Emprunt auprès de ${d.personne}` : `Prêt accordé à ${d.personne}`,
           categorie: "dettes",
-          compte,
+          compte: compteEffectif,
           date: new Date(creeLe).toISOString(),
           detteId: id,
         };
