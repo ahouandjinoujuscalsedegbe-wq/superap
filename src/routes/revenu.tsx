@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { COMPTES, useSuperApp } from "@/lib/store";
+import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { operationsFrequentes } from "@/lib/favoris";
 
@@ -33,7 +33,7 @@ function AjouterRevenu() {
   const [frais, setFrais] = useState("");
   const [libelle, setLibelle] = useState("");
   const [source, setSource] = useState<string>(sourcesRevenu[0] ?? "Autre");
-  const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
+  const [compte, setCompte] = useState<string>(comptes[0] ?? "");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
 

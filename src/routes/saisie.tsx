@@ -18,7 +18,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from "lucide-react";
-import { COMPTES, useSuperApp } from "@/lib/store";
+import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { analyserTexte, type OperationExtraite } from "@/lib/extraction";
 import {
@@ -200,7 +200,7 @@ function SaisieIntelligente() {
         date: resultat.date,
         enveloppe: enveloppeChoisie,
         source: sourcesRevenu[0] ?? "Salaire",
-        compte: comptes[0] ?? COMPTES[0] ?? "",
+        compte: comptes[0] ?? "",
         ...(verdict ? { verdict } : {}),
         ...(resultat.explicationMontant ? { explication: resultat.explicationMontant } : {}),
         ...(ajustements.length > 0 || indicesLocaux.length > 0

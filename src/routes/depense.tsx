@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { COMPTES, useSuperApp } from "@/lib/store";
+import { useSuperApp } from "@/lib/store";
 import { apprendreIcone } from "@/lib/icone-auto";
 import { formatFCFA, grouperMontant } from "@/lib/format";
 import { etatEnveloppe } from "@/lib/enveloppe-etat";
@@ -62,7 +62,7 @@ function AjouterDepense() {
   const compte =
     enveloppeChoisie?.compteSource && comptes.includes(enveloppeChoisie.compteSource)
       ? enveloppeChoisie.compteSource
-      : (comptes[0] ?? COMPTES[0]);
+      : (comptes[0] ?? "");
 
   // Arborescence catégorie → sous-catégorie → enveloppes, filtrée par la recherche.
   const arbre = useMemo(() => {
