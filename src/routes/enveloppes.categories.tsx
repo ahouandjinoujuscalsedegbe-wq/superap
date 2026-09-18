@@ -46,6 +46,15 @@ type Demande =
   | { type: "creation-sous"; id: string; categorie: string; nom: string }
   | { type: "renommage-sous"; id: string; categorie: string; ancien: string; nom: string }
   | { type: "suppression-sous"; id: string; categorie: string; nom: string; nbEnveloppes: number }
+  | {
+      type: "deplacement-sous";
+      id: string;
+      categorie: string;
+      nom: string;
+      idCible: string;
+      cible: string;
+      nbEnveloppes: number;
+    }
   | null;
 
 function PageCategories() {
