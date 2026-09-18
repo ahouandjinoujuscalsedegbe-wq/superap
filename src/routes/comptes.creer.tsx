@@ -93,6 +93,15 @@ function CreerCompte() {
                   label: "Transferts automatiques",
                   apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
                 },
+                ...(demande.reserve
+                  ? [
+                      {
+                        label: "Part de chaque revenu",
+                        apres:
+                          demande.pourcentage > 0 ? `${demande.pourcentage} %` : "Aucune part",
+                      },
+                    ]
+                  : []),
               ]
             : []
         }
