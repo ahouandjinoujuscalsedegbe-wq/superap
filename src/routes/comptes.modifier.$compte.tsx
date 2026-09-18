@@ -33,13 +33,19 @@ function PageModifierCompte() {
   const {
     comptes,
     comptesExclus,
+    comptesReserves,
     iconesComptes,
     definirIconeCompte,
     definirCompteDisponible,
+    definirCompteReserve,
     nomUtilisateur,
     soldesParCompte,
     ajouterTransaction,
     renommerCompte,
+    reglesTransfert,
+    ajouterRegleTransfert,
+    modifierRegleTransfert,
+    supprimerRegleTransfert,
   } = useSuperApp();
 
   const nomCompte = decodeURIComponent(compte);
