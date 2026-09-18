@@ -188,6 +188,25 @@ function PageModifierCompte() {
                   avant: comptesExclus.includes(demande.ancien) ? "Exclu" : "Compté",
                   apres: demande.disponible ? "Compté" : "Exclu",
                 },
+                {
+                  label: "Transferts automatiques",
+                  avant: comptesReserves.includes(demande.ancien)
+                    ? "Compte réservé"
+                    : "Compte ordinaire",
+                  apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
+                },
+                {
+                  label: "Part de chaque revenu",
+                  avant: `${
+                    reglesTransfert.find(
+                      (r) =>
+                        r.destination === demande.ancien &&
+                        r.source === "*" &&
+                        r.sourceRevenu === "*",
+                    )?.pourcentage ?? 0
+                  } %`,
+                  apres: `${demande.reserve ? demande.pourcentage : 0} %`,
+                },
               ]
             : []
         }
