@@ -33,7 +33,7 @@ function AjouterRevenu() {
   const [frais, setFrais] = useState("");
   const [libelle, setLibelle] = useState("");
   const [source, setSource] = useState<string>(sourcesRevenu[0] ?? "Autre");
-  const [compte, setCompte] = useState<string>(comptes[0] ?? COMPTES[0]);
+  const [compte, setCompte] = useState<string>(comptes[0] ?? "");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [membre, setMembre] = useState("");
 

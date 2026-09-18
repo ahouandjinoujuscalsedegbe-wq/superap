@@ -62,7 +62,7 @@ function AjouterDepense() {
   const compte =
     enveloppeChoisie?.compteSource && comptes.includes(enveloppeChoisie.compteSource)
       ? enveloppeChoisie.compteSource
-      : (comptes[0] ?? COMPTES[0]);
+      : (comptes[0] ?? "");
 
   // Arborescence catégorie → sous-catégorie → enveloppes, filtrée par la recherche.
   const arbre = useMemo(() => {
