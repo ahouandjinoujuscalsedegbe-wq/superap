@@ -71,7 +71,23 @@ export function RappelsObjectifs() {
       enregistrerReponse(echeance.cle, fait ? "confirme" : "refuse");
       if (fait) {
         const objectif = objectifs.find((o) => o.id === echeance.objectifId);
-        if (objectif?.compteSource && objectif.compteEpargne) {
+        // Tontine confirmée : l'enveloppe associée renvoie tout son contenu
+        // vers le compte « Tontines », puis repart à zéro pour le tour suivant.
+        const enveloppe =
+          objectif?.type === "tontine" && objectif.enveloppeId
+            ? enveloppes.find((v) => v.id === objectif.enveloppeId)
+            : undefined;
+        const contenu = enveloppe ? Math.round(enveloppe.dotation ?? enveloppe.plafond) : 0;
+        if (enveloppe && contenu > 0) {
+          verserEnveloppeVersTontines(
+            enveloppe.id,
+            echeance.date,
+            `Tontine ${objectif?.libelle ?? ""} — cotisation du ${echeance.date}`,
+          );
+          toast.success(
+            `Versement confirmé : ${formatFCFA(contenu)} de l'enveloppe ${enveloppe.nom} sont allés au compte Tontines.`,
+          );
+        } else if (objectif?.compteSource && objectif.compteEpargne) {
           ajouterTransfert({
             source: objectif.compteSource,
             destination: objectif.compteEpargne,
@@ -88,7 +104,7 @@ export function RappelsObjectifs() {
       }
       setTic((n) => n + 1);
     },
-    [objectifs, ajouterTransfert],
+    [objectifs, enveloppes, ajouterTransfert, verserEnveloppeVersTontines],
   );
 
   if (!courante) return null;
