@@ -297,6 +297,15 @@ export function resteDu(d: Dette): number {
 export const COMPTE_DETTES = "Je dois à quelqu'un 🤔";
 /** Compte dédié à tout ce que quelqu'un me doit. */
 export const COMPTE_CREANCES = "Quelqu'un me doit 🤔";
+/** Compte dédié aux tontines : il reçoit le contenu des enveloppes de tontine. */
+export const COMPTE_TONTINES = "Tontines 🤝";
+
+/** Comptes créés automatiquement : ni renommables, ni supprimables. */
+export const COMPTES_SYSTEME: readonly string[] = [
+  COMPTE_DETTES,
+  COMPTE_CREANCES,
+  COMPTE_TONTINES,
+];
 
 /** Compte dédié correspondant au sens d'une fiche. */
 export function compteDedie(sens: "dette" | "creance"): string {
