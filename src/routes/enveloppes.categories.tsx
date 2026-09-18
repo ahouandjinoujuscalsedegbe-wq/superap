@@ -68,6 +68,7 @@ function PageCategories() {
     ajouterSousCategorie,
     renommerSousCategorie,
     supprimerSousCategorie,
+    deplacerSousCategorie,
     reordonnerCategories,
     reordonnerSousCategories,
     restaurerCategories,
@@ -201,6 +202,10 @@ function PageCategories() {
         supprimerSousCategorie(demande.id, demande.nom);
         toast.success("Sous-catégorie supprimée.");
         break;
+      case "deplacement-sous":
+        deplacerSousCategorie(demande.id, demande.nom, demande.idCible);
+        toast.success("Sous-catégorie déplacée.");
+        break;
     }
     setDemande(null);
   }
@@ -212,6 +217,7 @@ function PageCategories() {
     "creation-sous": "Créer cette sous-catégorie ?",
     "renommage-sous": "Renommer cette sous-catégorie ?",
     "suppression-sous": "Supprimer cette sous-catégorie ?",
+    "deplacement-sous": "Déplacer cette sous-catégorie ?",
   };
 
   function details(): { label: string; avant?: string; apres: string }[] {
@@ -241,6 +247,12 @@ function PageCategories() {
           { label: "Catégorie", apres: demande.categorie },
           { label: "Sous-catégorie", apres: demande.nom },
           { label: "Enveloppes déclassées", apres: String(demande.nbEnveloppes) },
+        ];
+      case "deplacement-sous":
+        return [
+          { label: "Sous-catégorie", apres: demande.nom },
+          { label: "Catégorie", avant: demande.categorie, apres: demande.cible },
+          { label: "Enveloppes déplacées", apres: String(demande.nbEnveloppes) },
         ];
     }
   }
