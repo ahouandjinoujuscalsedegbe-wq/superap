@@ -33,13 +33,19 @@ function PageModifierCompte() {
   const {
     comptes,
     comptesExclus,
+    comptesReserves,
     iconesComptes,
     definirIconeCompte,
     definirCompteDisponible,
+    definirCompteReserve,
     nomUtilisateur,
     soldesParCompte,
     ajouterTransaction,
     renommerCompte,
+    reglesTransfert,
+    ajouterRegleTransfert,
+    modifierRegleTransfert,
+    supprimerRegleTransfert,
   } = useSuperApp();
 
   const nomCompte = decodeURIComponent(compte);
@@ -87,8 +93,41 @@ function PageModifierCompte() {
         date: new Date().toISOString().slice(0, 10),
       });
     }
+    // Compte réservé et part automatique de chaque revenu.
+    if (demande.reserve !== comptesReserves.includes(demande.ancien)) {
+      definirCompteReserve(demande.nom, demande.reserve);
+    }
+    const regle = reglesTransfert.find(
+      (r) => r.destination === demande.ancien && r.source === "*" && r.sourceRevenu === "*",
+    );
+    if (!demande.reserve || demande.pourcentage <= 0) {
+      if (regle) supprimerRegleTransfert(regle.id);
+    } else if (regle) {
+      modifierRegleTransfert(regle.id, {
+        pourcentage: demande.pourcentage,
+        nom: `${demande.pourcentage} % vers ${demande.nom}`,
+        destination: demande.nom,
+        actif: true,
+      });
+    } else {
+      ajouterRegleTransfert({
+        nom: `${demande.pourcentage} % vers ${demande.nom}`,
+        source: "*",
+        destination: demande.nom,
+        pourcentage: demande.pourcentage,
+        sourceRevenu: "*",
+        actif: true,
+      });
+    }
+    const partActuelle = regle?.pourcentage ?? 0;
     const changements = [
       demande.nom !== demande.ancien ? `nom : « ${demande.ancien} » → « ${demande.nom} »` : null,
+      demande.reserve !== comptesReserves.includes(demande.ancien)
+        ? `compte ${demande.reserve ? "réservé aux" : "retiré des"} transferts automatiques`
+        : null,
+      demande.pourcentage !== partActuelle
+        ? `part de chaque revenu : ${partActuelle} % → ${demande.reserve ? demande.pourcentage : 0} %`
+        : null,
       demande.ajustement !== 0 ? `solde ajusté de ${formatFCFA(Math.abs(demande.ajustement))}` : null,
       demande.disponible === comptesExclus.includes(demande.ancien)
         ? `solde disponible : ${demande.disponible ? "compté" : "exclu"}`
@@ -148,6 +187,25 @@ function PageModifierCompte() {
                   label: "Solde disponible",
                   avant: comptesExclus.includes(demande.ancien) ? "Exclu" : "Compté",
                   apres: demande.disponible ? "Compté" : "Exclu",
+                },
+                {
+                  label: "Transferts automatiques",
+                  avant: comptesReserves.includes(demande.ancien)
+                    ? "Compte réservé"
+                    : "Compte ordinaire",
+                  apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
+                },
+                {
+                  label: "Part de chaque revenu",
+                  avant: `${
+                    reglesTransfert.find(
+                      (r) =>
+                        r.destination === demande.ancien &&
+                        r.source === "*" &&
+                        r.sourceRevenu === "*",
+                    )?.pourcentage ?? 0
+                  } %`,
+                  apres: `${demande.reserve ? demande.pourcentage : 0} %`,
                 },
               ]
             : []

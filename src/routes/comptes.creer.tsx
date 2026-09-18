@@ -28,12 +28,23 @@ export const Route = createFileRoute("/comptes/creer")({
 
 function CreerCompte() {
   const navigate = useNavigate();
-  const { ajouterCompte, ajouterTransaction, nomUtilisateur } = useSuperApp();
+  const { ajouterCompte, ajouterTransaction, ajouterRegleTransfert, nomUtilisateur } =
+    useSuperApp();
   const [demande, setDemande] = useState<DemandeCompte | null>(null);
 
   function confirmer() {
     if (!demande || demande.type !== "creation") return;
     ajouterCompte(demande.nom, demande.disponible, demande.emoji, demande.reserve);
+    if (demande.reserve && demande.pourcentage > 0) {
+      ajouterRegleTransfert({
+        nom: `${demande.pourcentage} % vers ${demande.nom}`,
+        source: "*",
+        destination: demande.nom,
+        pourcentage: demande.pourcentage,
+        sourceRevenu: "*",
+        actif: true,
+      });
+    }
     if (demande.solde > 0) {
       ajouterTransaction({
         type: "revenu",
@@ -82,6 +93,15 @@ function CreerCompte() {
                   label: "Transferts automatiques",
                   apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
                 },
+                ...(demande.reserve
+                  ? [
+                      {
+                        label: "Part de chaque revenu",
+                        apres:
+                          demande.pourcentage > 0 ? `${demande.pourcentage} %` : "Aucune part",
+                      },
+                    ]
+                  : []),
               ]
             : []
         }
