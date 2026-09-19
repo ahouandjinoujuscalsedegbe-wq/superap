@@ -33,8 +33,10 @@ import {
 } from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    changement: s["changement"] === "1" ? ("1" as const) : undefined,
+  validateSearch: (
+    s: Record<string, unknown>,
+  ): { changement?: "1"; email?: string; jeton?: string } => ({
+    changement: s["changement"] === "1" ? "1" : undefined,
     email: typeof s["email"] === "string" ? (s["email"] as string) : undefined,
     jeton: typeof s["jeton"] === "string" ? (s["jeton"] as string) : undefined,
   }),
