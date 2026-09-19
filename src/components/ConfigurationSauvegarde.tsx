@@ -23,9 +23,7 @@ export function ConfigurationSauvegarde({
   const [email, setEmail] = useState("");
   const [appareil, setAppareil] = useState("MON TÉLÉPHONE");
   const [phrase, setPhrase] = useState("");
-  const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState("");
-  const [phraseNotee, setPhraseNotee] = useState(false);
 
   useEffect(() => {
     const r = lireReglagesMail();
@@ -68,7 +66,7 @@ export function ConfigurationSauvegarde({
       <div className="carte w-full max-w-md space-y-4 p-5">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold">Protéger mes données</h2>
+          <h2 className="text-lg font-bold">Connexion</h2>
         </div>
         <p className="text-sm text-muted-foreground">
           Entrez votre adresse e-mail et un mot de passe. Vos données restent sur ce téléphone, et
