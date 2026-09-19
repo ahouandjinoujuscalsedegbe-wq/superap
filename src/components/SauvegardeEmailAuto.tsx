@@ -170,11 +170,13 @@ export function SauvegardeEmailAuto() {
           reussie =
             relu?.empreinte === colis.empreinte &&
             versions.some((v) => v.empreinte === colis.empreinte);
-        } catch {
+        } catch (e) {
           reussie = false;
+          noterIncident("coffre-local", String((e as { message?: string })?.message ?? "écriture refusée"));
         }
         if (reussie) {
           leverAlerte();
+          noterReussite("coffre-local");
           ecrireReglagesMail({
             ...actuel,
             derniereEmpreinte: colis.empreinte,
@@ -187,7 +189,14 @@ export function SauvegardeEmailAuto() {
             empreinte: colis.empreinte,
             taille: colis.taille,
             classement: classement.chemin,
-          });
+          }).then(
+            (ok) => {
+              // Un échec muet ici laisserait croire à une copie en place.
+              if (ok === false) noterIncident("coffre-nomme", "dossier indisponible");
+              else noterReussite("coffre-nomme");
+            },
+            () => noterIncident("coffre-nomme", "dossier indisponible"),
+          );
           // Dépôt silencieux dans l'espace de stockage rattaché à l'adresse
           // e-mail : aucun message n'est envoyé, la copie est déjà chiffrée.
           void deposerDansCloud(actuel.email, phrase, actuel.appareil, {
@@ -195,11 +204,18 @@ export function SauvegardeEmailAuto() {
             empreinte: colis.empreinte,
             taille: colis.taille,
             classement: classement.chemin,
-          }).then((deposee) => {
-            if (!deposee) return;
-            const aJour = lireReglagesMail();
-            ecrireReglagesMail({ ...aJour, dernierDepotCloud: new Date().toISOString() });
-          });
+          }).then(
+            (deposee) => {
+              if (!deposee) {
+                noterIncident("coffre-cloud", "dépôt distant refusé");
+                return;
+              }
+              noterReussite("coffre-cloud");
+              const aJour = lireReglagesMail();
+              ecrireReglagesMail({ ...aJour, dernierDepotCloud: new Date().toISOString() });
+            },
+            () => noterIncident("coffre-cloud", "dépôt distant injoignable"),
+          );
           return;
         }
         // Échec de la sauvegarde locale : l'utilisateur doit être averti et la
