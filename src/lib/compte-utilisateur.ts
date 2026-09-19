@@ -42,6 +42,21 @@ export async function memoriserCompte(email: string, motDePasse: string) {
   });
 }
 
+/**
+ * Déconnexion : ce téléphone oublie l'adresse e-mail et le mot de passe du
+ * compte. Les données déjà présentes ne sont pas touchées ; les copies
+ * chiffrées restent dans l'espace du compte.
+ */
+export async function deconnecterCompte() {
+  await enregistrerPhrase("");
+  ecrireReglagesMail({
+    ...lireReglagesMail(),
+    email: "",
+    configure: false,
+    actif: false,
+  });
+}
+
 export function motDePasseValide(mdp: string): boolean {
   return mdp.trim().length >= 8;
 }

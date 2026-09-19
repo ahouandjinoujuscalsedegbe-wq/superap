@@ -59,6 +59,7 @@ const PARENTS_EXACTS: Readonly<Record<string, string>> = {
   // Paramètres et outils associés
   "/parametres": "/",
   "/parametres/alarmes": "/parametres",
+  "/parametres/compte": "/parametres",
   "/parametres/clavier": "/parametres",
   "/parametres/donnees": "/parametres",
   "/parametres/mises-a-jour": "/parametres",

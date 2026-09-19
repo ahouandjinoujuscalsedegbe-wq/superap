@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Archive,
   Download,
@@ -13,11 +13,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Confirmation } from "@/components/Confirmation";
-import { ChangerPhraseRecuperation } from "@/components/ChangerPhraseRecuperation";
-import { RecuperationNouveauTelephone } from "@/components/RecuperationNouveauTelephone";
-import { ModeMultiAppareil } from "@/components/ModeMultiAppareil";
 import { HistoriqueVersions } from "@/components/HistoriqueVersions";
-import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { ErreurPopup } from "@/components/ErreurPopup";
 import { useSuperApp, type Etat } from "@/lib/store";
 import {
@@ -87,7 +83,6 @@ function PageSauvegarde() {
     actif: false,
   });
   const [colisEnAttente, setColisEnAttente] = useState<ReturnType<typeof lireFile>>(null);
-  const [reconfigurer, setReconfigurer] = useState(false);
 
   useEffect(() => {
     setPoints(lireSauvegardes());
@@ -331,30 +326,17 @@ function PageSauvegarde() {
               {reglagesMail.actif ? "Mettre en pause" : "Réactiver"}
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={() => setReconfigurer(true)}
-            className={`rounded-xl border border-input px-3 py-2 text-sm font-semibold ${
+          <Link
+            to="/parametres/compte"
+            className={`rounded-xl border border-input px-3 py-2 text-center text-sm font-semibold ${
               reglagesMail.configure ? "" : "col-span-2"
             }`}
           >
-            {reglagesMail.configure ? "Modifier l'adresse" : "Configurer maintenant"}
-          </button>
+            Gérer mon compte
+          </Link>
         </div>
       </section>
 
-      {/* Une seule fenêtre à la fois : la fenêtre du premier lancement est déjà
-          affichée par l'application. On n'ouvre celle-ci que si l'utilisateur
-          demande lui-même de modifier son adresse. */}
-      {reconfigurer ? (
-        <ConfigurationSauvegarde
-          forceOpen
-          onFermer={() => {
-            setReconfigurer(false);
-            rafraichirEtatMail();
-          }}
-        />
-      ) : null}
 
       <section className="carte p-4">
         <h2 className="font-semibold">Contenu à sauvegarder</h2>
@@ -406,15 +388,10 @@ function PageSauvegarde() {
         </button>
       </section>
 
-      <ModeMultiAppareil />
-
       <HistoriqueVersions
         onRestaurer={(donnees, source) => setAttente({ genre: "restaurer", etat: donnees, source })}
       />
 
-      <RecuperationNouveauTelephone />
-
-      <ChangerPhraseRecuperation />
 
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronRight,
   User,
+  UserCircle2,
   ShieldCheck,
   RefreshCw,
   Database,
@@ -30,13 +31,25 @@ export const Route = createFileRoute("/parametres/")({
 
 const GROUPES = [
   {
+    titre: "Mon compte",
+    entrees: [
+      {
+        to: "/parametres/compte",
+        icone: UserCircle2,
+        titre: "Mon compte e-mail",
+        detail:
+          "Adresse e-mail du compte, enregistrement automatique chiffré, récupération des données, mot de passe et déconnexion.",
+      },
+    ],
+  },
+  {
     titre: "Personnalisation",
     entrees: [
       {
         to: "/parametres/profil",
         icone: User,
         titre: "Profil et apparence",
-        detail: "Nom affiché, opacité des surfaces roses, devise et langue.",
+        detail: "Nom affiché et opacité des surfaces roses.",
       },
     ],
   },

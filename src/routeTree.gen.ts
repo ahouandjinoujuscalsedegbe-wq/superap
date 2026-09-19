@@ -62,6 +62,7 @@ import { Route as ObjectifsSuiviRouteImport } from './routes/objectifs.suivi'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
+import { Route as ParametresCompteRouteImport } from './routes/parametres.compte'
 import { Route as ParametresDonneesRouteImport } from './routes/parametres.donnees'
 import { Route as ParametresMisesAJourRouteImport } from './routes/parametres.mises-a-jour'
 import { Route as ParametresProfilRouteImport } from './routes/parametres.profil'
@@ -356,6 +357,11 @@ const ParametresClavierRoute = ParametresClavierRouteImport.update({
   path: '/clavier',
   getParentRoute: () => ParametresRoute,
 } as any)
+const ParametresCompteRoute = ParametresCompteRouteImport.update({
+  id: '/compte',
+  path: '/compte',
+  getParentRoute: () => ParametresRoute,
+} as any)
 const ParametresDonneesRoute = ParametresDonneesRouteImport.update({
   id: '/donnees',
   path: '/donnees',
@@ -545,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/compte': typeof ParametresCompteRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
@@ -621,6 +628,7 @@ export interface FileRoutesByTo {
   '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/compte': typeof ParametresCompteRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
@@ -704,6 +712,7 @@ export interface FileRoutesById {
   '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
+  '/parametres/compte': typeof ParametresCompteRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
   '/parametres/mises-a-jour': typeof ParametresMisesAJourRoute
   '/parametres/profil': typeof ParametresProfilRoute
@@ -788,6 +797,7 @@ export interface FileRouteTypes {
     | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
+    | '/parametres/compte'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
@@ -864,6 +874,7 @@ export interface FileRouteTypes {
     | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
+    | '/parametres/compte'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
@@ -946,6 +957,7 @@ export interface FileRouteTypes {
     | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
+    | '/parametres/compte'
     | '/parametres/donnees'
     | '/parametres/mises-a-jour'
     | '/parametres/profil'
@@ -1389,6 +1401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresClavierRouteImport
       parentRoute: typeof ParametresRoute
     }
+    '/parametres/compte': {
+      id: '/parametres/compte'
+      path: '/compte'
+      fullPath: '/parametres/compte'
+      preLoaderRoute: typeof ParametresCompteRouteImport
+      parentRoute: typeof ParametresRoute
+    }
     '/parametres/donnees': {
       id: '/parametres/donnees'
       path: '/donnees'
@@ -1711,6 +1730,7 @@ const ObjectifsRouteWithChildren = ObjectifsRoute._addFileChildren(
 interface ParametresRouteChildren {
   ParametresAlarmesRoute: typeof ParametresAlarmesRoute
   ParametresClavierRoute: typeof ParametresClavierRoute
+  ParametresCompteRoute: typeof ParametresCompteRoute
   ParametresDonneesRoute: typeof ParametresDonneesRoute
   ParametresMisesAJourRoute: typeof ParametresMisesAJourRoute
   ParametresProfilRoute: typeof ParametresProfilRoute
@@ -1721,6 +1741,7 @@ interface ParametresRouteChildren {
 const ParametresRouteChildren: ParametresRouteChildren = {
   ParametresAlarmesRoute: ParametresAlarmesRoute,
   ParametresClavierRoute: ParametresClavierRoute,
+  ParametresCompteRoute: ParametresCompteRoute,
   ParametresDonneesRoute: ParametresDonneesRoute,
   ParametresMisesAJourRoute: ParametresMisesAJourRoute,
   ParametresProfilRoute: ParametresProfilRoute,
