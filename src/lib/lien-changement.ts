@@ -74,6 +74,24 @@ export async function demanderLien(email: string): Promise<ResultatLien> {
   }
 }
 
+/** Vérifie le code à six chiffres recopié depuis l'e-mail. */
+export async function verifierCode(
+  email: string,
+  code: string,
+): Promise<{ valide: boolean; message?: string | undefined }> {
+  if (estEmbarquee()) {
+    const r = await appelerHttp({ action: "code", email, code });
+    if (r === null) return { valide: false, message: "Connexion impossible : vérifiez votre réseau." };
+    return { valide: r.ok, message: r.message };
+  }
+  try {
+    const r = await verifierCodeChangement({ data: { email, code } });
+    return { valide: r.valide, message: r.message };
+  } catch {
+    return { valide: false, message: "Connexion impossible : vérifiez votre réseau." };
+  }
+}
+
 /** Vérifie le jeton porté par le lien reçu par e-mail. */
 export async function verifierLien(email: string, jeton: string): Promise<{ valide: boolean; message?: string | undefined }> {
   if (estEmbarquee()) {
