@@ -465,6 +465,7 @@ export function assainirEtat(brut: Partial<Etat>): Etat {
     comptesReserves: brut.comptesReserves
       ? assainirComptes(brut.comptesReserves).filter((c) => comptes.includes(c))
       : [],
+    comptesRelais: assainirComptesRelais(brut.comptesRelais, comptes),
     remplissages: assainirListe(brut.remplissages, assainirRemplissage),
     budgets: assainirListe(brut.budgets, assainirBudget),
     dettes: assainirListe(brut.dettes, assainirDette),
