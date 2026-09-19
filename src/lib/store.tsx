@@ -866,18 +866,25 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       // Transferts automatiques : un pourcentage du revenu part aussitôt
       // du compte crédité vers le compte d'affectation choisi par l'utilisateur.
       const automatiques: Transfert[] = [];
+      // Le compte crédité peut désigner un autre compte comme compte à
+      // débiter : les espèces ne sont alors jamais entamées par ces transferts.
+      const relaisChoisi = suivant.comptesRelais[propre.compte] ?? "";
+      const compteDebite =
+        relaisChoisi && relaisChoisi !== propre.compte && suivant.comptes.includes(relaisChoisi)
+          ? relaisChoisi
+          : propre.compte;
       if (propre.origine !== "solde_initial") {
         for (const regle of suivant.reglesTransfert) {
           if (!regle.actif) continue;
           if (regle.source !== "*" && regle.source !== propre.compte) continue;
           if (regle.sourceRevenu !== "*" && regle.sourceRevenu !== propre.categorie) continue;
-          if (regle.destination === propre.compte) continue;
+          if (regle.destination === compteDebite) continue;
           if (!suivant.comptes.includes(regle.destination)) continue;
           const part = Math.round((propre.montant * regle.pourcentage) / 100);
           if (part <= 0) continue;
           const transfert = assainirTransfert({
             id: crypto.randomUUID(),
-            source: propre.compte,
+            source: compteDebite,
             destination: regle.destination,
             montant: part,
             note: `Transfert automatique ${regle.pourcentage} % · ${regle.nom}`,
