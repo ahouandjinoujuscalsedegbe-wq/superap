@@ -33,7 +33,7 @@ import { ProtectionsEcran } from "../components/ProtectionsEcran";
 import { GardeActionSensible } from "../components/GardeActionSensible";
 import { DemandeMotDePasseAction } from "../components/DemandeMotDePasseAction";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
-import { AlerteStockage } from "../components/AlerteStockage";
+import { AlerteEffacement, AlerteStockage } from "../components/AlerteStockage";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
 import { AlertesVersConseiller } from "@/components/AlertesVersConseiller";
@@ -215,6 +215,7 @@ function RootComponent() {
           <GardeActionSensible />
           <DemandeMotDePasseAction />
           <MiseAJourAuto />
+          <AlerteEffacement />
           <AlerteStockage />
           <AlarmeIntelligente />
           <AlertesVersConseiller />
