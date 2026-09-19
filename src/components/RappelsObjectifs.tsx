@@ -95,6 +95,7 @@ export function RappelsObjectifs() {
             montant: echeance.montant,
             note: `Objectif:${objectif.id} cotisation ${echeance.date}`,
             date: echeance.date,
+            objectifId: objectif.id,
           });
           toast.success("Versement confirmé et enregistré entre vos comptes.");
         } else {
