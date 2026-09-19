@@ -4,7 +4,7 @@
  * Regroupe les réglages avancés : PIN obligatoire, code du jour, effacement
  * après échecs, masquage en arrière-plan, verrou des actions sensibles,
  * journal d'accès, blocage des captures, mode camouflage, dérivation forte
- * (Argon2id) et double coffre.
+ * (Argon2id).
  */
 
 export type OptionsSecurite = {
@@ -28,8 +28,6 @@ export type OptionsSecurite = {
   selCamouflage: string | null;
   /** Dérivation Argon2id au lieu de PBKDF2 pour les clés issues d'un secret. */
   derivationForte: boolean;
-  /** Deuxième coffre : les pages sensibles exigent une phrase distincte. */
-  doubleCoffre: boolean;
 };
 
 export const OPTIONS_INITIALES: OptionsSecurite = {
@@ -46,7 +44,6 @@ export const OPTIONS_INITIALES: OptionsSecurite = {
   empreinteCamouflage: null,
   selCamouflage: null,
   derivationForte: false,
-  doubleCoffre: false,
 };
 
 const CLE_OPTIONS = "superapp:securite:avancee:v1";
