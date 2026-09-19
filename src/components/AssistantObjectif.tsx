@@ -208,15 +208,19 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
       rappelActif: rappelActif ? undefined : false,
-      rappelUnite: rappelActif ? rappelUnite : undefined,
-      rappelIntervalle: rappelActif
-        ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1))
-        : undefined,
-      rappelDebut: rappelActif
-        ? type === "tontine"
-          ? tDebut
-          : rappelDebut || undefined
-        : undefined,
+      rappelDateUnique:
+        rappelActif && modeRappel === "date" && rappelDateUnique ? rappelDateUnique : undefined,
+      rappelUnite: rappelActif && modeRappel === "rythme" ? rappelUnite : undefined,
+      rappelIntervalle:
+        rappelActif && modeRappel === "rythme"
+          ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1))
+          : undefined,
+      rappelDebut:
+        rappelActif && modeRappel === "rythme"
+          ? type === "tontine"
+            ? tDebut
+            : rappelDebut || undefined
+          : undefined,
       ...infosTontine,
     });
     toast.success("Objectif créé.");
