@@ -935,9 +935,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterCompte = useCallback(
-    (nom: string, dansDisponible = true, emoji?: string, reserve = false) => {
+    (nom: string, dansDisponible = true, emoji?: string, reserve = false): boolean => {
       const propre = texteSur(nom, 60);
-      if (!propre) return;
+      if (!propre) {
+        journaliser("avertissement", "application", "Compte refusé : nom invalide.");
+        return false;
+      }
       const icone = texteSur(emoji, 8);
       setEtat((e) => {
         if (e.comptes.includes(propre)) return e;
