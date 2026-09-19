@@ -159,11 +159,32 @@ export function fusionnerDonneesCompte(local: Etat, recu: Partial<Etat>): Result
     }
   }
 
-  const comptes = fusionnerTextes(local.comptes ?? [], recu.comptes);
-  if (comptes.neufs > 0) {
-    etat["comptes"] = comptes.liste;
-    ajouts.push({ rubrique: "Comptes", nombre: comptes.neufs });
-    total += comptes.neufs;
+  const textes: { cle: keyof Etat; rubrique: string }[] = [
+    { cle: "comptes", rubrique: "Comptes" },
+    { cle: "comptesExclus", rubrique: "Comptes hors disponible" },
+    { cle: "comptesReserves", rubrique: "Comptes réservés" },
+  ];
+
+  for (const { cle, rubrique } of textes) {
+    const actuel = local[cle];
+    const r = fusionnerTextes(Array.isArray(actuel) ? (actuel as string[]) : [], recu[cle]);
+    if (r.neufs > 0) {
+      etat[cle] = r.liste;
+      ajouts.push({ rubrique, nombre: r.neufs });
+      total += r.neufs;
+    }
+  }
+
+  // Détails d'affichage : rien n'est écrasé, seuls les manquants sont repris.
+  const iconesRecues = recu.iconesComptes;
+  if (iconesRecues && typeof iconesRecues === "object") {
+    const fusion = { ...(iconesRecues as Record<string, string>), ...(local.iconesComptes ?? {}) };
+    if (Object.keys(fusion).length > Object.keys(local.iconesComptes ?? {}).length) {
+      etat["iconesComptes"] = fusion;
+    }
+  }
+  if (!local.nomUtilisateur && typeof recu.nomUtilisateur === "string" && recu.nomUtilisateur) {
+    etat["nomUtilisateur"] = recu.nomUtilisateur;
   }
 
   return { etat: etat as Partial<Etat>, ajouts, total };
