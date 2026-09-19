@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
   Repeat,
   ChevronRight,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
@@ -482,7 +483,17 @@ function SaisieIntelligente() {
           Photographiez plusieurs tickets ou dictez vos opérations : montant, date, libellé et
           enveloppe sont extraits, les doublons signalés et vos habitudes mémorisées.
         </p>
+        <Link
+          to="/decrire"
+          className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" /> Décrire une opération en une phrase
+          </span>
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Link>
       </header>
+
 
       <section className="carte space-y-3 p-4">
         <p className="text-sm font-semibold">1. Capturer l'information</p>

@@ -14,6 +14,7 @@ import { Route as AideRouteImport } from './routes/aide'
 import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as CoffreRouteImport } from './routes/coffre'
 import { Route as ComptesRouteImport } from './routes/comptes'
+import { Route as DecrireRouteImport } from './routes/decrire'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
@@ -79,6 +80,7 @@ import { Route as ObjectifsActionIndexRouteImport } from './routes/objectifs.act
 import { Route as ObjectifsActionCreerRouteImport } from './routes/objectifs.action.creer'
 import { Route as ObjectifsActionGererRouteImport } from './routes/objectifs.action.gerer'
 import { Route as ApiPublicCoffreIndexRouteImport } from './routes/api/public/coffre/index'
+import { Route as ApiPublicIaOperationRouteImport } from './routes/api/public/ia/operation'
 import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 import { Route as ApiPublicSauvegardeEnvoiRouteImport } from './routes/api/public/sauvegarde/envoi'
@@ -107,6 +109,11 @@ const CoffreRoute = CoffreRouteImport.update({
 const ComptesRoute = ComptesRouteImport.update({
   id: '/comptes',
   path: '/comptes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecrireRoute = DecrireRouteImport.update({
+  id: '/decrire',
+  path: '/decrire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DepenseRoute = DepenseRouteImport.update({
@@ -437,6 +444,11 @@ const ApiPublicCoffreIndexRoute = ApiPublicCoffreIndexRouteImport.update({
   path: '/api/public/coffre/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIaOperationRoute = ApiPublicIaOperationRouteImport.update({
+  id: '/api/public/ia/operation',
+  path: '/api/public/ia/operation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
   id: '/api/public/maj/apk',
   path: '/api/public/maj/apk',
@@ -466,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/budget': typeof BudgetRouteWithChildren
   '/coffre': typeof CoffreRoute
   '/comptes': typeof ComptesRouteWithChildren
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -530,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
   '/objectifs/action/': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -540,6 +554,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/coffre': typeof CoffreRoute
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
@@ -600,6 +615,7 @@ export interface FileRoutesByTo {
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
   '/objectifs/action': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -613,6 +629,7 @@ export interface FileRoutesById {
   '/budget': typeof BudgetRouteWithChildren
   '/coffre': typeof CoffreRoute
   '/comptes': typeof ComptesRouteWithChildren
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -677,6 +694,7 @@ export interface FileRoutesById {
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
   '/objectifs/action/': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -691,6 +709,7 @@ export interface FileRouteTypes {
     | '/budget'
     | '/coffre'
     | '/comptes'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -755,6 +774,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
     | '/objectifs/action/'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -765,6 +785,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/coffre'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/journal'
@@ -825,6 +846,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts'
     | '/enveloppes/modifier'
     | '/objectifs/action'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -837,6 +859,7 @@ export interface FileRouteTypes {
     | '/budget'
     | '/coffre'
     | '/comptes'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -901,6 +924,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
     | '/objectifs/action/'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -914,6 +938,7 @@ export interface RootRouteChildren {
   BudgetRoute: typeof BudgetRouteWithChildren
   CoffreRoute: typeof CoffreRoute
   ComptesRoute: typeof ComptesRouteWithChildren
+  DecrireRoute: typeof DecrireRoute
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
@@ -932,6 +957,7 @@ export interface RootRouteChildren {
   HistoriqueRevenusRoute: typeof HistoriqueRevenusRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
+  ApiPublicIaOperationRoute: typeof ApiPublicIaOperationRoute
   ApiPublicMajApkRoute: typeof ApiPublicMajApkRoute
   ApiPublicMajVersionRoute: typeof ApiPublicMajVersionRoute
   ApiPublicSauvegardeEnvoiRoute: typeof ApiPublicSauvegardeEnvoiRoute
@@ -974,6 +1000,13 @@ declare module '@tanstack/react-router' {
       path: '/comptes'
       fullPath: '/comptes'
       preLoaderRoute: typeof ComptesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decrire': {
+      id: '/decrire'
+      path: '/decrire'
+      fullPath: '/decrire'
+      preLoaderRoute: typeof DecrireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/depense': {
@@ -1431,6 +1464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCoffreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ia/operation': {
+      id: '/api/public/ia/operation'
+      path: '/api/public/ia/operation'
+      fullPath: '/api/public/ia/operation'
+      preLoaderRoute: typeof ApiPublicIaOperationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/maj/apk': {
       id: '/api/public/maj/apk'
       path: '/api/public/maj/apk'
@@ -1617,6 +1657,7 @@ const rootRouteChildren: RootRouteChildren = {
   BudgetRoute: BudgetRouteWithChildren,
   CoffreRoute: CoffreRoute,
   ComptesRoute: ComptesRouteWithChildren,
+  DecrireRoute: DecrireRoute,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
   EnveloppesRoute: EnveloppesRouteWithChildren,
@@ -1635,6 +1676,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoriqueRevenusRoute: HistoriqueRevenusRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
+  ApiPublicIaOperationRoute: ApiPublicIaOperationRoute,
   ApiPublicMajApkRoute: ApiPublicMajApkRoute,
   ApiPublicMajVersionRoute: ApiPublicMajVersionRoute,
   ApiPublicSauvegardeEnvoiRoute: ApiPublicSauvegardeEnvoiRoute,

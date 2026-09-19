@@ -68,6 +68,7 @@ const PARENTS_EXACTS: Readonly<Record<string, string>> = {
   "/synchronisation": "/parametres",
 
   // Entrées principales indépendantes
+  "/decrire": "/saisie",
   "/depense": "/",
   "/dettes": "/",
   "/historique/depenses": "/depense",
