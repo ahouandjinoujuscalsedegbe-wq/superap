@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
 export interface ConfirmationProps {
@@ -27,14 +27,27 @@ export function Confirmation({
   onConfirmer,
   onAnnuler,
 }: ConfirmationProps) {
+  const [enCours, setEnCours] = useState(false);
+  const ouvertRef = useRef(ouvert);
+
   useEffect(() => {
     if (!ouvert) return;
+    // Le verrou se réarme à chaque ouverture : un nouvel appui est alors possible.
+    ouvertRef.current = ouvert;
+    setEnCours(false);
     function surTouche(ev: KeyboardEvent) {
       if (ev.key === "Escape") onAnnuler();
     }
     window.addEventListener("keydown", surTouche);
     return () => window.removeEventListener("keydown", surTouche);
   }, [ouvert, onAnnuler]);
+
+  function confirmerUneSeuleFois() {
+    // Double appui (ou double touche rapide) : on n'enregistre qu'une seule fois.
+    if (enCours) return;
+    setEnCours(true);
+    onConfirmer();
+  }
 
   if (!ouvert) return null;
 
@@ -93,14 +106,17 @@ export function Confirmation({
           </button>
           <button
             type="button"
-            onClick={onConfirmer}
+            onClick={confirmerUneSeuleFois}
+            disabled={enCours}
             className={`flex-1 rounded-xl py-3 font-semibold ${
+              enCours ? "cursor-not-allowed opacity-50" : ""
+            } ${
               danger
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-primary text-primary-foreground"
             }`}
           >
-            {confirmerLabel}
+            {enCours ? "Enregistrement…" : confirmerLabel}
           </button>
         </div>
       </div>
