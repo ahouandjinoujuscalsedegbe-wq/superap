@@ -110,8 +110,13 @@ function TransfertsAutomatiques() {
           Transferts automatiques
         </h1>
         <p className="text-sm text-muted-foreground">
-          À chaque revenu enregistré, la part choisie quitte aussitôt le compte crédité et arrive
-          sur le compte d'affectation. Aucune saisie de transfert à faire.
+          À chaque revenu enregistré, la part choisie part aussitôt vers le compte d'affectation.
+          Aucune saisie de transfert à faire.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Le compte débité est celui indiqué dans les réglages du compte crédité (rubrique « Compte
+          à débiter »). Ainsi, un revenu reçu en espèces peut être prélevé sur un autre compte, et
+          les espèces ne sont pas entamées.
         </p>
         {comptesReserves.length > 0 && (
           <p className="text-xs text-muted-foreground">
