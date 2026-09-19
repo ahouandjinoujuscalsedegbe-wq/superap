@@ -69,12 +69,6 @@ const GROUPES = [
         titre: "Sauvegarde et chiffrement local",
         detail: "Export chiffré par phrase secrète et points de restauration.",
       },
-      {
-        to: "/synchronisation",
-        icone: Mail,
-        titre: "Synchronisation chiffrée",
-        detail: "Fusionnez vos données entre deux appareils, sans fuite.",
-      },
     ],
   },
   {
