@@ -3,12 +3,9 @@ import {
   ChevronRight,
   User,
   ShieldCheck,
-  Keyboard,
   RefreshCw,
   Database,
   CloudUpload,
-  Mail,
-  FileText,
   AlarmClock,
 } from "lucide-react";
 
