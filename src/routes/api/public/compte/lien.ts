@@ -12,7 +12,12 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { adresseValide, envoyerLienChangement, verifierJetonLien } from "@/lib/code-confirmation.server";
+import {
+  adresseValide,
+  envoyerLienChangement,
+  verifierCodeConfirmation,
+  verifierJetonLien,
+} from "@/lib/code-confirmation.server";
 
 const FENETRE_MS = 60_000;
 const REQUETES_PAR_FENETRE = 10;
