@@ -8,6 +8,7 @@
 import { RELAIS_MAJ } from "@/lib/version";
 import {
   demanderLienChangement,
+  verifierCodeChangement,
   verifierLienChangement,
 } from "@/lib/code-confirmation.functions";
 
@@ -70,6 +71,24 @@ export async function demanderLien(email: string): Promise<ResultatLien> {
     return { envoye: r.envoye, message: r.message };
   } catch {
     return { envoye: false, message: "Connexion impossible : vérifiez votre réseau." };
+  }
+}
+
+/** Vérifie le code à six chiffres recopié depuis l'e-mail. */
+export async function verifierCode(
+  email: string,
+  code: string,
+): Promise<{ valide: boolean; message?: string | undefined }> {
+  if (estEmbarquee()) {
+    const r = await appelerHttp({ action: "code", email, code });
+    if (r === null) return { valide: false, message: "Connexion impossible : vérifiez votre réseau." };
+    return { valide: r.ok, message: r.message };
+  }
+  try {
+    const r = await verifierCodeChangement({ data: { email, code } });
+    return { valide: r.valide, message: r.message };
+  } catch {
+    return { valide: false, message: "Connexion impossible : vérifiez votre réseau." };
   }
 }
 

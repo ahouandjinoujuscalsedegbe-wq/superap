@@ -27,7 +27,7 @@ import {
   memoriserCompte,
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
-import { demanderLien, verifierLien } from "@/lib/lien-changement";
+import { demanderLien, verifierCode, verifierLien } from "@/lib/lien-changement";
 import {
   EVENEMENT_LIEN_APPLICATION,
   prendreLienApplication,
@@ -65,6 +65,7 @@ function PageCompte() {
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [lienEnvoye, setLienEnvoye] = useState(false);
+  const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
@@ -207,10 +208,34 @@ function PageCompte() {
       return;
     }
     setLienEnvoye(true);
+    setCode("");
     toast.success("E-mail envoyé.", {
-      description: `Ouvrez la boîte de ${email.trim()} sur ce téléphone et touchez le lien reçu : SUPER APP s'ouvrira directement.`,
+      description: `Recopiez le code à 6 chiffres reçu sur ${email.trim()} : le nouveau mot de passe se choisit ici, dans l'application.`,
     });
   }
+
+  /** Étape 1 bis : le code recopié depuis l'e-mail ouvre l'écran du nouveau mot de passe. */
+  async function validerCode() {
+    setErreur(null);
+    const chiffres = code.replace(/\D/g, "");
+    if (chiffres.length !== 6) {
+      setErreur("Entrez les 6 chiffres reçus par e-mail.");
+      return;
+    }
+    setEnCours(true);
+    const verif = await verifierCode(email.trim(), chiffres);
+    setEnCours(false);
+    if (!verif.valide) {
+      setErreur(verif.message ?? "Code incorrect : demandez un nouvel e-mail.");
+      return;
+    }
+    setLien({ email: email.trim(), jeton: `code.${chiffres}` });
+    setMode("connexion");
+    setLienEnvoye(false);
+    setMotDePasse("");
+    setConfirmation("");
+  }
+
 
   /** Étape 2 (lien cliqué) : vérifie le jeton puis applique le nouveau mot de passe. */
   async function appliquerNouveauMotDePasse() {
@@ -230,7 +255,10 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
-    const verif = await verifierLien(email.trim(), lien?.jeton ?? "");
+    const jeton = lien?.jeton ?? "";
+    const verif = jeton.startsWith("code.")
+      ? await verifierCode(email.trim(), jeton.slice(5))
+      : await verifierLien(email.trim(), jeton);
     if (!verif.valide) {
       setEnCours(false);
       setErreur(verif?.message ?? "Vérification du lien impossible. Réessayez.");
@@ -309,10 +337,41 @@ function PageCompte() {
         {oubli && lienEnvoye ? (
           <div className="space-y-3">
             <p className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
-              L'e-mail est parti vers <strong>{email.trim()}</strong>. Ouvrez-le sur ce téléphone et
-              touchez « Changer mon mot de passe » : SUPER APP s'ouvrira directement sur l'écran du
-              nouveau mot de passe. Le lien est valable 15 minutes.
+              L'e-mail est parti vers <strong>{email.trim()}</strong>. Il contient un code à 6
+              chiffres : recopiez-le ici pour choisir votre nouveau mot de passe dans l'application.
+              Le code est valable 15 minutes.
             </p>
+            <form
+              className="space-y-3"
+              onSubmit={(ev) => {
+                ev.preventDefault();
+                void validerCode();
+              }}
+            >
+              <div>
+                <label htmlFor="code-recu" className="text-sm font-semibold">
+                  Code reçu par e-mail
+                </label>
+                <input
+                  id="code-recu"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  data-clavier="off"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-center text-2xl font-bold tracking-[0.4em] outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
+              <button
+                type="submit"
+                disabled={enCours}
+                className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {enCours ? "Vérification…" : "Valider le code"}
+              </button>
+            </form>
             <button
               type="button"
               disabled={enCours}

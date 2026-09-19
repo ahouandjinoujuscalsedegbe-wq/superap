@@ -12,7 +12,12 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { adresseValide, envoyerLienChangement, verifierJetonLien } from "@/lib/code-confirmation.server";
+import {
+  adresseValide,
+  envoyerLienChangement,
+  verifierCodeConfirmation,
+  verifierJetonLien,
+} from "@/lib/code-confirmation.server";
 
 const FENETRE_MS = 60_000;
 const REQUETES_PAR_FENETRE = 10;
@@ -48,9 +53,10 @@ function reponse(corps: unknown, status = 200): Response {
 }
 
 type Corps = {
-  action?: "demander" | "verifier";
+  action?: "demander" | "verifier" | "code";
   email?: string;
   jeton?: string;
+  code?: string;
 };
 
 export const Route = createFileRoute("/api/public/compte/lien")({
@@ -71,6 +77,11 @@ export const Route = createFileRoute("/api/public/compte/lien")({
         const email = (corps.email || "").trim();
         if (!adresseValide(email)) {
           return reponse({ ok: false, message: "Adresse e-mail invalide." }, 400);
+        }
+
+        if (corps.action === "code") {
+          const resultat = await verifierCodeConfirmation(email, corps.code || "");
+          return reponse({ ok: resultat.valide, message: resultat.message }, resultat.valide ? 200 : 403);
         }
 
         if (corps.action === "verifier") {
