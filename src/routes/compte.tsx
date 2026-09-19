@@ -236,6 +236,7 @@ function PageCompte() {
 
   const creation = mode === "creation";
   const oubli = mode === "oubli";
+  const attenteCode = oubli && jeton !== "";
 
   return (
     <section className="min-h-[70vh] pb-[calc(var(--app-keyboard-height,0px)+2rem)] pt-4">
