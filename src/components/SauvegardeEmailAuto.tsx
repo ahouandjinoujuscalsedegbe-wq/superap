@@ -260,7 +260,12 @@ export function SauvegardeEmailAuto() {
         }
         await envoyer();
       })();
-    }, rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT);
+      },
+      delaiSelonVolume(
+        rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT,
+        volumeHistorique(etat),
+      ),
+    );
     return () => window.clearTimeout(minuterie);
   }, [chargement, etat, frappes, envoyer]);
 
