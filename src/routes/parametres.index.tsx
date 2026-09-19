@@ -41,12 +41,6 @@ const GROUPES = [
         titre: "Profil et apparence",
         detail: "Nom affiché, opacité des surfaces roses, devise et langue.",
       },
-      {
-        to: "/parametres/clavier",
-        icone: Keyboard,
-        titre: "Clavier de l'application",
-        detail: "Disposition, taille des touches, vibration et son.",
-      },
     ],
   },
   {
