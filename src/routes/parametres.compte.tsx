@@ -140,7 +140,7 @@ function PageCompteParametres() {
       return;
     }
     toast.success("E-mail envoyé.", {
-      description: `Ouvrez la boîte de ${email} sur ce téléphone et touchez le lien reçu : SUPER APP s'ouvrira directement.`,
+      description: `Ouvrez l’e-mail envoyé à ${email}, puis recopiez le code à 6 chiffres dans SUPER APP.`,
     });
   };
 
@@ -276,9 +276,9 @@ function PageCompteParametres() {
           <KeyRound className="h-4 w-4 text-primary" aria-hidden /> Mot de passe du compte
         </h2>
         <p className="text-xs text-muted-foreground">
-          Un e-mail contenant un lien part vers {email}. Touchez ce lien sur ce téléphone : SUPER
-          APP s'ouvrira directement pour créer le nouveau mot de passe. Le changement n'est possible
-          que depuis un téléphone qui contient encore vos données.
+          Un code à 6 chiffres sera envoyé à {email}. Recopiez-le dans SUPER APP pour créer le
+          nouveau mot de passe. Le changement n'est possible que depuis un téléphone qui contient
+          encore vos données.
         </p>
         <button
           type="button"

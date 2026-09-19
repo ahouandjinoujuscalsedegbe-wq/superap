@@ -12,3 +12,4 @@
 - [x] Page dédiée aux débiteurs : solde dû, prochaine échéance, suivi des remboursements (comme les tontines)
 - [x] Page de connexion simple : e-mail + mot de passe, en français, sans étape de récupération
 - [x] Ouvrir le lien de changement de mot de passe directement dans l'application Android
+- [x] Corriger le changement après confirmation quand le compte n'est pas encore mémorisé sur le téléphone
