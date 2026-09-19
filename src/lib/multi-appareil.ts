@@ -144,6 +144,8 @@ export function fusionnerDonneesCompte(local: Etat, recu: Partial<Etat>): Result
     { cle: "objectifs", rubrique: "Objectifs" },
     { cle: "remplissages", rubrique: "Remplissages" },
     { cle: "membres", rubrique: "Membres" },
+    { cle: "corbeille", rubrique: "Corbeille" },
+    { cle: "reglesTransfert", rubrique: "Règles de transfert" },
   ];
 
   for (const { cle, rubrique } of listes) {
