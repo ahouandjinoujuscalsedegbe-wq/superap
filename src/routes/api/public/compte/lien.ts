@@ -53,9 +53,10 @@ function reponse(corps: unknown, status = 200): Response {
 }
 
 type Corps = {
-  action?: "demander" | "verifier";
+  action?: "demander" | "verifier" | "code";
   email?: string;
   jeton?: string;
+  code?: string;
 };
 
 export const Route = createFileRoute("/api/public/compte/lien")({
