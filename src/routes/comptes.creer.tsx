@@ -28,8 +28,14 @@ export const Route = createFileRoute("/comptes/creer")({
 
 function CreerCompte() {
   const navigate = useNavigate();
-  const { ajouterCompte, ajouterTransaction, ajouterRegleTransfert, nomUtilisateur, comptes } =
-    useSuperApp();
+  const {
+    ajouterCompte,
+    ajouterTransaction,
+    ajouterRegleTransfert,
+    definirCompteRelais,
+    nomUtilisateur,
+    comptes,
+  } = useSuperApp();
   const [demande, setDemande] = useState<DemandeCompte | null>(null);
 
   function confirmer() {
@@ -55,6 +61,7 @@ function CreerCompte() {
         actif: true,
       });
     }
+    if (demande.relais) definirCompteRelais(demande.nom, demande.relais);
     if (demande.solde > 0) {
       ajouterTransaction({
         type: "revenu",
@@ -102,6 +109,10 @@ function CreerCompte() {
                 {
                   label: "Transferts automatiques",
                   apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
+                },
+                {
+                  label: "Compte à débiter",
+                  apres: demande.relais || "Ce compte lui-même",
                 },
                 ...(demande.reserve
                   ? [
