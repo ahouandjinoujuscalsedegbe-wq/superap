@@ -37,7 +37,7 @@ export const Route = createFileRoute("/compte")({
     s: Record<string, unknown>,
   ): { changement?: "1"; email?: string; jeton?: string } => {
     const sortie: { changement?: "1"; email?: string; jeton?: string } = {};
-    if (s["changement"] === "1") sortie.changement = "1";
+    if (s["changement"] === "1" || s["changement"] === 1) sortie.changement = "1";
     if (typeof s["email"] === "string") sortie.email = s["email"];
     if (typeof s["jeton"] === "string") sortie.jeton = s["jeton"];
     return sortie;
@@ -65,7 +65,6 @@ export const Route = createFileRoute("/compte")({
 function PageCompte() {
   const navigate = useNavigate();
   const recherche = Route.useSearch();
-  console.log("DEBUG recherche", JSON.stringify(recherche));
   const depuisLien = recherche.changement === "1" && !!recherche.jeton && !!recherche.email;
   const app = useSuperApp();
   const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
