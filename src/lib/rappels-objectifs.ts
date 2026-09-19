@@ -133,7 +133,6 @@ export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
   const debut = debutObjectif(o);
   if (!debut) return [];
 
-  const fin = jusqua.toISOString().slice(0, 10);
   const limite = o.type === "tontine" ? (o.tontineParticipants ?? 12) : Infinity;
   const dateFin = o.type === "tontine" ? undefined : o.dateCible;
   const pasJours = joursRythme(rythme);
