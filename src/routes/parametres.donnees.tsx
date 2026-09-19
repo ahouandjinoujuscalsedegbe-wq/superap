@@ -36,6 +36,7 @@ function PageDonnees() {
         </p>
       </section>
 
+      <SectionRestauration />
       <SectionCorbeille />
     </div>
   );
