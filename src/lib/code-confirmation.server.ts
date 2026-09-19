@@ -90,25 +90,31 @@ export async function envoyerLienChangement(emailBrut: string): Promise<Resultat
 
 Vous avez demandé à changer le mot de passe de votre compte.
 
-Pour choisir votre nouveau mot de passe, ouvrez ce lien sur le téléphone
-Android où SUPER APP est installée et qui contient vos données :
+Votre code de confirmation : ${code}
 
+Ouvrez SUPER APP sur le téléphone qui contient vos données, puis recopiez ce
+code dans l'écran « Mot de passe oublié » : vous choisirez ensuite votre
+nouveau mot de passe dans l'application.
+
+Vous pouvez aussi toucher ce lien, qui ouvre directement l'application :
 ${lien}
 
-Ce lien est valable 15 minutes.
+Le code et le lien sont valables 15 minutes.
 
 Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.
 `;
   const html = `<div style="font-family:system-ui,sans-serif;line-height:1.6;color:#1f2937">
 <h2 style="margin:0 0 12px">Changement de mot de passe</h2>
 <p>Vous avez demandé à changer le mot de passe de votre compte SUPER APP.</p>
-<p>Pour choisir votre nouveau mot de passe, touchez ce bouton sur le téléphone Android où <strong>SUPER APP est installée et contient vos données</strong>. L'application s'ouvrira directement :</p>
-<p style="margin:20px 0">
+<p>Recopiez ce code dans l'application, sur l'écran « Mot de passe oublié » :</p>
+<p style="margin:18px 0;font-size:32px;font-weight:800;letter-spacing:6px;color:#0f766e">${code}</p>
+<p>Vous choisirez ensuite votre nouveau mot de passe directement dans SUPER APP, sur le téléphone qui contient vos données.</p>
+<p style="margin:18px 0">
   <a href="${lien}" style="background:#0f766e;color:#ffffff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:700">
-    Changer mon mot de passe
+    Ouvrir l'application
   </a>
 </p>
-<p style="font-size:13px;color:#6b7280">Ce lien est valable 15 minutes.</p>
+<p style="font-size:13px;color:#6b7280">Le code et le lien sont valables 15 minutes.</p>
 <p style="font-size:13px;color:#6b7280">Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.</p>
 </div>`;
 
