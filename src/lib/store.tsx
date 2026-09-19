@@ -960,6 +960,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
         };
       });
+      return true;
     },
     [],
   );
