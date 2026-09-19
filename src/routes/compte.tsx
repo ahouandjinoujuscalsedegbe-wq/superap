@@ -27,7 +27,7 @@ import {
   memoriserCompte,
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
-import { demanderLien, verifierLien } from "@/lib/lien-changement";
+import { demanderLien, verifierCode, verifierLien } from "@/lib/lien-changement";
 import {
   EVENEMENT_LIEN_APPLICATION,
   prendreLienApplication,
