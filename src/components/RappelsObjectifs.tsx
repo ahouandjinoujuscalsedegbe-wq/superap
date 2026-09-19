@@ -83,6 +83,7 @@ export function RappelsObjectifs() {
             enveloppe.id,
             echeance.date,
             `Tontine ${objectif?.libelle ?? ""} — cotisation du ${echeance.date}`,
+            objectif?.id,
           );
           toast.success(
             `Versement confirmé : ${formatFCFA(contenu)} de l'enveloppe ${enveloppe.nom} sont allés au compte Tontines.`,
