@@ -43,7 +43,6 @@ import { BouleAnalyse } from "@/components/BouleAnalyse";
 import { MemoireHabitudes } from "@/components/MemoireHabitudes";
 
 import { GardeIntegrite } from "@/components/GardeIntegrite";
-import { ConfigurationSauvegarde } from "@/components/ConfigurationSauvegarde";
 import { SauvegardeEmailAuto } from "@/components/SauvegardeEmailAuto";
 import { useCapacitorBackButton } from "../hooks/use-capacitor-back-button";
 import { ChampsVisiblesClavier } from "@/components/ChampsVisiblesClavier";
@@ -230,7 +229,6 @@ function RootComponent() {
           <LimiteErreur nom="analyse"><BouleAnalyse /></LimiteErreur>
           <GardeIntegrite />
           <CreationDossierCoffre />
-          <ConfigurationSauvegarde />
           <SauvegardeEmailAuto />
         </SuperAppProvider>
       </SecuriteProvider>

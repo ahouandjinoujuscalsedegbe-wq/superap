@@ -83,7 +83,6 @@ function PageSauvegarde() {
     actif: false,
   });
   const [colisEnAttente, setColisEnAttente] = useState<ReturnType<typeof lireFile>>(null);
-  const [reconfigurer, setReconfigurer] = useState(false);
 
   useEffect(() => {
     setPoints(lireSauvegardes());
