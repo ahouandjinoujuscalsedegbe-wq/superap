@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuperApp } from "@/lib/store";
 import { SectionRestauration } from "@/components/SectionRestauration";
-import { JournalDonnees } from "@/components/JournalDonnees";
-import { SectionPurge } from "@/components/SectionPurge";
 import { SectionCorbeille } from "@/components/SectionCorbeille";
 
 export const Route = createFileRoute("/parametres/donnees")({
@@ -25,7 +22,7 @@ export const Route = createFileRoute("/parametres/donnees")({
 });
 
 function PageDonnees() {
-  const { reinitialiser } = useSuperApp();
+
 
   return (
     <div className="space-y-4">
