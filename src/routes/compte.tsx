@@ -7,14 +7,16 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { LogIn, UserPlus } from "lucide-react";
+import { KeyRound, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSuperApp, type Etat } from "@/lib/store";
 import { instantaneEtat } from "@/lib/instantane";
 import { fusionnerDonneesCompte, lireReglagesMulti } from "@/lib/multi-appareil";
 import {
+  changerMotDePasse,
   chercherDonneesCompte,
+  compteConnecte,
   deposerPremiereCopie,
   emailDuCompte,
   estEmailValide,
@@ -46,9 +48,10 @@ export const Route = createFileRoute("/compte")({
 function PageCompte() {
   const navigate = useNavigate();
   const app = useSuperApp();
-  const [mode, setMode] = useState<"connexion" | "creation">("connexion");
+  const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
@@ -134,7 +137,51 @@ function PageCompte() {
     terminer();
   }
 
+  async function reinitialiserMotDePasse() {
+    setErreur(null);
+    if (!estEmailValide(email)) {
+      setErreur("Entrez l'adresse e-mail de votre compte.");
+      return;
+    }
+    if (!motDePasseValide(motDePasse)) {
+      setErreur("Choisissez un nouveau mot de passe de 8 caractères minimum.");
+      return;
+    }
+    if (motDePasse !== confirmation) {
+      setErreur("Les deux mots de passe ne sont pas identiques.");
+      return;
+    }
+    const aDesDonnees =
+      compteConnecte() ||
+      (app.transactions?.length ?? 0) > 0 ||
+      (app.comptes?.length ?? 0) > 0;
+    if (!aDesDonnees) {
+      setErreur(
+        "Impossible ici : ce téléphone ne contient aucune de vos données et tout est chiffré avec l'ancien mot de passe. Sans lui, personne ne peut les lire. Retrouvez le mot de passe, ou utilisez le téléphone qui contient encore vos données.",
+      );
+      return;
+    }
+    setEnCours(true);
+    const resultat = await changerMotDePasse(
+      instantaneEtat(app as unknown as Etat),
+      motDePasse,
+      lireReglagesMulti().cetAppareil,
+    );
+    setEnCours(false);
+    if (!resultat.ok) {
+      setErreur("Le changement n'a pas abouti. Réessayez.");
+      return;
+    }
+    toast.success("Mot de passe changé.", {
+      description: resultat.copieDeposee
+        ? "Une copie complète de vos données a été enregistrée, chiffrée avec le nouveau mot de passe."
+        : "Le nouveau mot de passe est actif ; la copie sera renvoyée dès que le réseau le permet.",
+    });
+    terminer();
+  }
+
   const creation = mode === "creation";
+  const oubli = mode === "oubli";
 
   return (
     <section className="min-h-[70vh] pb-[calc(var(--app-keyboard-height,0px)+2rem)] pt-4">
@@ -142,17 +189,20 @@ function PageCompte() {
         <h1 className="flex items-center gap-2 text-lg font-semibold">
           {creation ? (
             <UserPlus className="h-5 w-5 text-primary" aria-hidden />
+          ) : oubli ? (
+            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
           ) : (
             <LogIn className="h-5 w-5 text-primary" aria-hidden />
           )}
-          {creation ? "Créer mon compte" : "Me connecter"}
+          {creation ? "Créer mon compte" : oubli ? "Mot de passe oublié" : "Me connecter"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées,
-          automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse
-          et le même mot de passe ramènent tout.
+          {oubli
+            ? "Choisissez un nouveau mot de passe. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
+            : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
         </p>
 
+        {!oubli && (
         <div className="flex gap-2 rounded-xl border border-border p-1">
           {(["connexion", "creation"] as const).map((m) => (
             <button
@@ -170,12 +220,13 @@ function PageCompte() {
             </button>
           ))}
         </div>
+        )}
 
         <form
           className="space-y-3"
           onSubmit={(ev) => {
             ev.preventDefault();
-            void (creation ? creerCompte() : seConnecter());
+            void (creation ? creerCompte() : oubli ? reinitialiserMotDePasse() : seConnecter());
           }}
         >
           <div>
@@ -201,7 +252,7 @@ function PageCompte() {
 
           <div>
             <label htmlFor="mdp-compte" className="text-sm font-medium">
-              Mot de passe
+              {oubli ? "Nouveau mot de passe" : "Mot de passe"}
             </label>
             <input
               id="mdp-compte"
@@ -215,13 +266,33 @@ function PageCompte() {
               placeholder="8 caractères minimum"
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             />
-            {creation ? (
+            {creation || oubli ? (
               <p className="mt-1 text-xs text-muted-foreground">
                 Ce mot de passe est la seule clé de vos données chiffrées : notez-le en lieu sûr, il
                 ne peut pas être retrouvé.
               </p>
             ) : null}
           </div>
+
+          {oubli && (
+            <div>
+              <label htmlFor="mdp-confirmation" className="text-sm font-medium">
+                Confirmez le nouveau mot de passe
+              </label>
+              <input
+                id="mdp-confirmation"
+                type="password"
+                autoComplete="new-password"
+                value={confirmation}
+                onChange={(ev) => {
+                  setConfirmation(ev.target.value);
+                  setErreur(null);
+                }}
+                placeholder="Retapez le même mot de passe"
+                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
 
           {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
 
@@ -233,11 +304,41 @@ function PageCompte() {
             {enCours
               ? creation
                 ? "Création…"
-                : "Connexion…"
+                : oubli
+                  ? "Changement…"
+                  : "Connexion…"
               : creation
                 ? "Créer mon compte"
-                : "Se connecter"}
+                : oubli
+                  ? "Changer mon mot de passe"
+                  : "Se connecter"}
           </button>
+
+          {oubli ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("connexion");
+                setErreur(null);
+                setConfirmation("");
+              }}
+              className="w-full py-2 text-sm font-semibold text-muted-foreground"
+            >
+              Retour à la connexion
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("oubli");
+                setErreur(null);
+                setConfirmation("");
+              }}
+              className="w-full py-2 text-sm font-semibold text-primary"
+            >
+              Mot de passe oublié ?
+            </button>
+          )}
         </form>
       </div>
     </section>
