@@ -56,7 +56,7 @@ const GROUPES = [
         icone: Keyboard,
         titre: "Clavier de saisie",
         detail:
-          "Clavier du téléphone ou clavier интегré de l'application, mots appris et corrections.",
+          "Clavier du téléphone ou clavier intégré de l'application, mots appris et corrections.",
       },
     ],
   },
