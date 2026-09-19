@@ -143,17 +143,51 @@ function DetailsActuels() {
   );
 }
 
+type Ton = "neutre" | "positif" | "alerte" | "danger";
+
+const classeTon: Record<Ton, string> = {
+  neutre: "text-foreground",
+  positif: "text-success",
+  alerte: "text-amber-600",
+  danger: "text-destructive",
+};
+
+function Stat({
+  libelle,
+  aide,
+  valeur,
+  ton = "neutre",
+}: {
+  libelle: string;
+  aide?: string;
+  valeur: string;
+  ton?: Ton;
+}) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-background/50 px-3 py-2">
+      <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        {libelle}
+      </dt>
+      <dd className={`mt-0.5 text-sm font-bold tabular-nums ${classeTon[ton]}`}>{valeur}</dd>
+      {aide && <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{aide}</p>}
+    </div>
+  );
+}
+
 export function CarteEnveloppe({
   e,
   estOuverte,
   onToggle,
   sansBoutonDetails = false,
+  sansEntete = false,
 }: {
   e: Enveloppe;
   estOuverte: boolean;
   onToggle: () => void;
   /** Masque le bouton « Détails » : le contenu détaillé suit directement la carte. */
   sansBoutonDetails?: boolean;
+  /** Masque titre et badge : la ligne rabattable au-dessus les affiche déjà. */
+  sansEntete?: boolean;
 }) {
   const { depensesParEnveloppe, budgets, transactions } = useSuperApp();
   const utilise = depensesParEnveloppe[e.id] ?? 0;
@@ -163,7 +197,6 @@ export function CarteEnveloppe({
   const planifie = budgets.filter((b) => b.enveloppeId === e.id);
   const prevuMensuel = planifie.reduce((s, b) => s + equivalentMensuel(b), 0);
   const operations = transactions.filter((t) => t.categorie === e.id);
-  const nbOperations = operations.length;
 
   const couleurBarre = depasse
     ? "bg-destructive"
@@ -173,38 +206,42 @@ export function CarteEnveloppe({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 font-semibold">
-          <span aria-hidden className="text-xl">
-            {e.emoji}
-          </span>
-          {e.nom}
-        </span>
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-            depasse
-              ? "bg-destructive/15 text-destructive"
-              : pourcentage >= 80
-                ? "bg-amber-500/15 text-amber-600"
-                : "bg-success/15 text-success"
-          }`}
-        >
-          {Math.round(pourcentage)} % du plafond
-        </span>
-      </div>
-      <div
-        className="mt-3 h-2.5 w-full overflow-hidden rounded-full border border-border/40 bg-secondary"
-        role="progressbar"
-        aria-valuenow={Math.round(pourcentage)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={`Consommation du plafond de l'enveloppe ${e.nom} : ${Math.round(pourcentage)} %`}
-      >
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${couleurBarre}`}
-          style={{ width: `${pourcentage}%` }}
-        />
-      </div>
+      {!sansEntete && (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 font-semibold">
+              <span aria-hidden className="text-xl">
+                {e.emoji}
+              </span>
+              {e.nom}
+            </span>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+                depasse
+                  ? "bg-destructive/15 text-destructive"
+                  : pourcentage >= 80
+                    ? "bg-amber-500/15 text-amber-600"
+                    : "bg-success/15 text-success"
+              }`}
+            >
+              {Math.round(pourcentage)} % du plafond
+            </span>
+          </div>
+          <div
+            className="mt-3 h-2.5 w-full overflow-hidden rounded-full border border-border/40 bg-secondary"
+            role="progressbar"
+            aria-valuenow={Math.round(pourcentage)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Consommation du plafond de l'enveloppe ${e.nom} : ${Math.round(pourcentage)} %`}
+          >
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${couleurBarre}`}
+              style={{ width: `${pourcentage}%` }}
+            />
+          </div>
+        </>
+      )}
 
       {depasse && (
         <p
@@ -221,39 +258,40 @@ export function CarteEnveloppe({
         </p>
       )}
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <div>
-          <dt className="inline">Somme attribuée : </dt>
-          <dd className="inline font-medium text-foreground">{formatFCFA(etat.dotation)}</dd>
-        </div>
-        <div>
-          <dt className="inline">Plafond : </dt>
-          <dd className="inline font-medium text-foreground">{formatFCFA(e.plafond)}</dd>
-        </div>
-        <div>
-          <dt className="inline">Dépensé : </dt>
-          <dd className="inline font-medium text-foreground">{formatFCFA(utilise)}</dd>
-        </div>
-        <div>
-          <dt className="inline">Avant plafond : </dt>
-          <dd className="inline font-medium text-foreground">{formatFCFA(etat.avantPlafond)}</dd>
-        </div>
-        <div>
-          <dt className="inline">Réserve : </dt>
-          <dd className="inline font-medium text-foreground">
-            {formatFCFA(etat.reserveDisponible)}
-          </dd>
-        </div>
-        <div>
-          <dt className="inline">Dépenses planifiées : </dt>
-          <dd className="inline font-medium text-foreground">
-            {planifie.length} · {formatFCFA(prevuMensuel)}/mois
-          </dd>
-        </div>
-        <div>
-          <dt className="inline">Opérations réelles : </dt>
-          <dd className="inline font-medium text-foreground">{nbOperations}</dd>
-        </div>
+      <dl className="mt-3 grid grid-cols-2 gap-2">
+        <Stat
+          libelle="Somme attribuée"
+          aide="argent mis dans l'enveloppe"
+          valeur={formatFCFA(etat.dotation)}
+        />
+        <Stat libelle="Plafond" aide="maximum avant alerte" valeur={formatFCFA(e.plafond)} />
+        <Stat
+          libelle="Dépensé"
+          aide="déjà utilisé"
+          valeur={formatFCFA(utilise)}
+          ton={depasse ? "danger" : pourcentage >= 80 ? "alerte" : "neutre"}
+        />
+        <Stat
+          libelle="Reste avant plafond"
+          aide="plafond − dépensé"
+          valeur={formatFCFA(etat.avantPlafond)}
+          ton={etat.avantPlafond > 0 ? "positif" : "danger"}
+        />
+        <Stat
+          libelle="Réserve"
+          aide="marge au-delà du plafond"
+          valeur={formatFCFA(etat.reserveDisponible)}
+        />
+        <Stat
+          libelle="Planifié par mois"
+          aide={`${planifie.length} dépense${planifie.length > 1 ? "s" : ""} planifiée${planifie.length > 1 ? "s" : ""}`}
+          valeur={formatFCFA(prevuMensuel)}
+        />
+        <Stat
+          libelle="Opérations réelles"
+          aide="mouvements enregistrés"
+          valeur={String(nbOperations)}
+        />
       </dl>
 
       {!sansBoutonDetails && (
@@ -274,62 +312,86 @@ export function CarteEnveloppe({
       )}
 
       {estOuverte && (
-        <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="mt-3 space-y-4">
+          <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs leading-relaxed text-foreground">
+            Lecture : sur <span className="font-semibold">{formatFCFA(etat.dotation)}</span>{" "}
+            contenus dans l'enveloppe, <span className="font-semibold">{formatFCFA(utilise)}</span>{" "}
+            sont dépensés. Il reste{" "}
+            <span className="font-semibold">{formatFCFA(etat.avantPlafond)}</span> avant le plafond,
+            puis <span className="font-semibold">{formatFCFA(etat.reserveDisponible)}</span> de
+            réserve en plus.
+          </p>
+
+          <section className="rounded-lg border border-border/60 bg-background/50 p-3">
+            <h3 className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Opérations réelles
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-foreground">
+                {nbOperations}
+              </span>
             </h3>
             {operations.length === 0 ? (
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Aucune opération réelle pour cette enveloppe.
               </p>
             ) : (
-              <ul className="mt-1 space-y-1.5">
-                {operations.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="truncate">
-                      {formatDateFr(t.date)} · {t.libelle}
-                      <span className="text-muted-foreground"> · {t.compte}</span>
-                    </span>
-                    <span
-                      className={`shrink-0 font-medium ${
-                        t.type === "revenu" ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {t.type === "revenu" ? "+" : "−"}
-                      {formatFCFA(t.montant)}
-                    </span>
+              <ul className="mt-2 space-y-1.5">
+                {operations.slice(0, 20).map((t) => (
+                  <li key={t.id} className="rounded-lg border border-border/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-xs font-medium">{t.libelle}</span>
+                      <span
+                        className={`shrink-0 text-xs font-bold tabular-nums ${
+                          t.type === "revenu" ? "text-success" : "text-foreground"
+                        }`}
+                      >
+                        {t.type === "revenu" ? "+" : "−"}
+                        {formatFCFA(t.montant)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {formatDateFr(t.date)} · compte {t.compte}
+                    </p>
                   </li>
                 ))}
+                {operations.length > 20 && (
+                  <li className="px-1 text-[11px] text-muted-foreground">
+                    Et {operations.length - 20} opération{operations.length - 20 > 1 ? "s" : ""} plus
+                    ancienne{operations.length - 20 > 1 ? "s" : ""}…
+                  </li>
+                )}
               </ul>
             )}
-          </div>
+          </section>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section className="rounded-lg border border-border/60 bg-background/50 p-3">
+            <h3 className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Dépenses planifiées
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-foreground">
+                {planifie.length}
+              </span>
             </h3>
             {planifie.length === 0 ? (
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Aucune dépense planifiée dans Budgétisation.
               </p>
             ) : (
-              <ul className="mt-1 space-y-1.5">
+              <ul className="mt-2 space-y-1.5">
                 {planifie.map((b) => (
-                  <li key={b.id} className="flex items-center justify-between gap-2 text-xs">
-                    <span className="truncate">
-                      {b.libelle}
-                      <span className="text-muted-foreground">
-                        {" "}
-                        · {libellePeriode(b.periode)} · prochaine : {formatDateFr(b.prochaine)}
+                  <li key={b.id} className="rounded-lg border border-border/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-xs font-medium">{b.libelle}</span>
+                      <span className="shrink-0 text-xs font-bold tabular-nums">
+                        {formatFCFA(b.montant)}
                       </span>
-                    </span>
-                    <span className="shrink-0 font-medium">{formatFCFA(b.montant)}</span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {libellePeriode(b.periode)} · prochaine : {formatDateFr(b.prochaine)}
+                    </p>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </section>
         </div>
       )}
     </>
