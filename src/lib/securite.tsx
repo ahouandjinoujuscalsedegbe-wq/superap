@@ -294,7 +294,7 @@ export function SecuriteProvider({ children }: { children: ReactNode }) {
           // réellement été confirmée. Une simple configuration ne suffit pas.
           const sauvegarde = lireReglagesMail();
           if (sauvegarde.configure && sauvegarde.dernierDepotCloud) {
-            effacerToutesLesDonnees();
+            effacerToutesLesDonnees(sauvegarde.dernierDepotCloud);
             window.location.reload();
             return false;
           }
