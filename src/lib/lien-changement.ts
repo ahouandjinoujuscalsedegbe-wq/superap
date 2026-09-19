@@ -8,6 +8,7 @@
 import { RELAIS_MAJ } from "@/lib/version";
 import {
   demanderLienChangement,
+  verifierCodeChangement,
   verifierLienChangement,
 } from "@/lib/code-confirmation.functions";
 
