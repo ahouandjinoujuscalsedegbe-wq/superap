@@ -26,7 +26,7 @@ import {
   deposerPremiereCopie,
   emailDuCompte,
 } from "@/lib/compte-utilisateur";
-import { demanderLienChangement } from "@/lib/code-confirmation.functions";
+import { demanderLien } from "@/lib/lien-changement";
 
 export const Route = createFileRoute("/parametres/compte")({
   head: () => ({
@@ -131,14 +131,9 @@ function PageCompteParametres() {
     );
   };
 
-  const demanderLien = async () => {
+  const demanderLienDepuisCompte = async () => {
     setEnCours("lien");
-    let reponse: Awaited<ReturnType<typeof demanderLienChangement>> | null = null;
-    try {
-      reponse = await demanderLienChangement({ data: { email, appareil } });
-    } catch {
-      reponse = null;
-    }
+    const reponse = await demanderLien(email);
     setEnCours(null);
     if (!reponse?.envoye) {
       toast.error("L'e-mail n'a pas pu être envoyé. Vérifiez votre réseau et réessayez.");

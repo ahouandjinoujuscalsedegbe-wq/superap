@@ -27,10 +27,7 @@ import {
   memoriserCompte,
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
-import {
-  demanderLienChangement,
-  verifierLienChangement,
-} from "@/lib/code-confirmation.functions";
+import { demanderLien, verifierLien } from "@/lib/lien-changement";
 
 export const Route = createFileRoute("/compte")({
   head: () => ({
@@ -176,14 +173,7 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
-    let reponse: Awaited<ReturnType<typeof demanderLienChangement>> | null = null;
-    try {
-      reponse = await demanderLienChangement({
-        data: { email: email.trim(), appareil: lireReglagesMulti().cetAppareil },
-      });
-    } catch {
-      reponse = null;
-    }
+    const reponse = await demanderLien(email.trim());
     setEnCours(false);
     if (!reponse?.envoye) {
       setErreur(
@@ -217,15 +207,8 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
-    let verif: { valide: boolean; message?: string } | null = null;
-    try {
-      verif = await verifierLienChangement({
-        data: { email: email.trim(), jeton: lien?.jeton ?? "" },
-      });
-    } catch {
-      verif = null;
-    }
-    if (!verif?.valide) {
+    const verif = await verifierLien(email.trim(), lien?.jeton ?? "");
+    if (!verif.valide) {
       setEnCours(false);
       setErreur(verif?.message ?? "Vérification du lien impossible. Réessayez.");
       return;
