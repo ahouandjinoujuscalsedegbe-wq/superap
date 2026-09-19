@@ -325,10 +325,18 @@ export function CarteEnveloppe({
           <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs leading-relaxed text-foreground">
             Lecture : sur <span className="font-semibold">{formatFCFA(etat.dotation)}</span>{" "}
             contenus dans l'enveloppe, <span className="font-semibold">{formatFCFA(utilise)}</span>{" "}
-            sont dépensés. Il reste{" "}
-            <span className="font-semibold">{formatFCFA(etat.avantPlafond)}</span> avant le plafond,
-            puis <span className="font-semibold">{formatFCFA(etat.reserveDisponible)}</span> de
-            réserve en plus.
+            sont dépensés.{" "}
+            {e.plafond > 0 ? (
+              <>
+                Il reste{" "}
+                <span className="font-semibold">{formatFCFA(etat.avantPlafond)}</span> avant le
+                plafond, puis{" "}
+                <span className="font-semibold">{formatFCFA(etat.reserveDisponible)}</span> de
+                réserve en plus.
+              </>
+            ) : (
+              <>Cette enveloppe est sans limite : aucune alerte de dépassement ne s'affichera.</>
+            )}
           </p>
 
           <section className="rounded-lg border border-border/60 bg-background/50 p-3">
