@@ -1,10 +1,11 @@
 /**
  * Confirmation par e-mail d'un changement de mot de passe.
  *
- * Un code à 6 chiffres est créé sur le serveur et envoyé à l'adresse du compte.
- * Le code ne revient jamais au téléphone : seul un jeton signé est renvoyé, et
- * la vérification recalcule la signature côté serveur. Aucune donnée
- * budgétaire ne circule ici.
+ * Le serveur signe un jeton (adresse + expiration, HMAC) et envoie à
+ * l'adresse du compte un e-mail contenant un lien unique vers l'application.
+ * C'est depuis ce lien — et seulement depuis ce lien — que l'utilisateur peut
+ * choisir son nouveau mot de passe. Le jeton ne contient aucune donnée
+ * budgétaire et aucun mot de passe.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -12,6 +13,9 @@ import { createServerFn } from "@tanstack/react-start";
 const SENDER_DOMAIN = "notify.superappbudget.com";
 const FROM_DOMAIN = "superappbudget.com";
 const DUREE_MS = 15 * 60 * 1000;
+const BASE_URL =
+  process.env["APP_PUBLIC_URL"] ??
+  "https://id-preview--b91e98b0-46c7-4862-bedb-54f46fe01199.lovable.app";
 
 const adresseValide = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 
@@ -28,16 +32,15 @@ async function signer(charge: string): Promise<string> {
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export type ResultatDemandeCode = {
+export type ResultatDemandeLien = {
   envoye: boolean;
-  jeton?: string;
   message?: string;
 };
 
-/** Crée un code à 6 chiffres et l'envoie à l'adresse du compte. */
-export const demanderCodeConfirmation = createServerFn({ method: "POST" })
+/** Envoie à l'adresse du compte un e-mail contenant le lien de changement. */
+export const demanderLienChangement = createServerFn({ method: "POST" })
   .validator((d: { email: string; appareil?: string }) => d)
-  .handler(async ({ data }): Promise<ResultatDemandeCode> => {
+  .handler(async ({ data }): Promise<ResultatDemandeLien> => {
     const email = (data.email || "").trim();
     if (!adresseValide(email)) {
       return { envoye: false, message: "Adresse e-mail invalide." };
@@ -46,27 +49,39 @@ export const demanderCodeConfirmation = createServerFn({ method: "POST" })
       return { envoye: false, message: "L'envoi d'e-mails n'est pas encore configuré." };
     }
 
-    const tirage = crypto.getRandomValues(new Uint32Array(1))[0] ?? Date.now();
-    const code = String(tirage % 1000000).padStart(6, "0");
     const expire = Date.now() + DUREE_MS;
-    const signature = await signer(`${email}|${expire}|${code}`);
+    const signature = await signer(`${email}|${expire}`);
     const jeton = `${expire}.${signature}`;
+    const lien =
+      `${BASE_URL}/compte?changement=1` +
+      `&email=${encodeURIComponent(email)}` +
+      `&jeton=${encodeURIComponent(jeton)}`;
 
-    const texte = `SUPER APP — confirmation du changement de mot de passe
+    const texte = `SUPER APP — changement de mot de passe
 
-Votre code de confirmation est : ${code}
+Vous avez demandé à changer le mot de passe de votre compte.
 
-Entrez ce code dans l'application pour valider votre nouveau mot de passe.
-Il est valable 15 minutes et ne fonctionne qu'une seule fois.
+Pour choisir votre nouveau mot de passe, ouvrez ce lien depuis le téléphone
+qui contient vos données :
+
+${lien}
+
+Ce lien est valable 15 minutes et ne fonctionne qu'une seule fois.
 
 Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.
 `;
-    const html = `<div style="font-family:system-ui,sans-serif;line-height:1.5">
-<h2>Confirmation du changement de mot de passe</h2>
-<p>Votre code de confirmation :</p>
-<p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p>
-<p>Il est valable 15 minutes et ne fonctionne qu'une seule fois.</p>
-<p>Si vous n'avez pas demandé ce changement, ignorez ce message.</p>
+    const html = `<div style="font-family:system-ui,sans-serif;line-height:1.6;color:#1f2937">
+<h2 style="margin:0 0 12px">Changement de mot de passe</h2>
+<p>Vous avez demandé à changer le mot de passe de votre compte SUPER APP.</p>
+<p>Pour choisir votre nouveau mot de passe, ouvrez ce lien <strong>depuis le téléphone qui contient vos données</strong> :</p>
+<p style="margin:20px 0">
+  <a href="${lien}" style="background:#0f766e;color:#ffffff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:700">
+    Changer mon mot de passe
+  </a>
+</p>
+<p style="word-break:break-all;font-size:12px;color:#6b7280">${lien}</p>
+<p style="font-size:13px;color:#6b7280">Ce lien est valable 15 minutes et ne fonctionne qu'une seule fois.</p>
+<p style="font-size:13px;color:#6b7280">Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.</p>
 </div>`;
 
     try {
@@ -76,11 +91,11 @@ Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.
           to: email,
           from: `SUPER APP <securite@${FROM_DOMAIN}>`,
           sender_domain: SENDER_DOMAIN,
-          subject: `Code de confirmation : ${code}`,
+          subject: "Changement de mot de passe — lien de confirmation",
           text: texte,
           html,
           purpose: "transactional",
-          label: "code-mot-de-passe",
+          label: "lien-mot-de-passe",
           idempotency_key: crypto.randomUUID(),
         },
         { apiKey: process.env["LOVABLE_API_KEY"]! },
@@ -91,34 +106,36 @@ Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.
           message: "Cette adresse est bloquée pour les envois : utilisez une autre adresse.",
         };
       }
-      return { envoye: true, jeton };
+      return { envoye: true };
     } catch (e) {
       const err = e as { code?: string; message?: string };
       return { envoye: false, message: err.code ?? err.message ?? "Envoi impossible." };
     }
   });
 
-/** Vérifie le code saisi face au jeton signé. */
-export const verifierCodeConfirmation = createServerFn({ method: "POST" })
-  .validator((d: { email: string; code: string; jeton: string }) => d)
+/** Vérifie le jeton porté par le lien reçu par e-mail. */
+export const verifierLienChangement = createServerFn({ method: "POST" })
+  .validator((d: { email: string; jeton: string }) => d)
   .handler(async ({ data }): Promise<{ valide: boolean; message?: string }> => {
     const email = (data.email || "").trim();
-    const code = (data.code || "").trim();
     const [expireBrut, signature] = (data.jeton || "").split(".");
     const expire = Number(expireBrut);
-    if (!expire || !signature || !/^\d{6}$/.test(code)) {
-      return { valide: false, message: "Code invalide." };
+    if (!expire || !signature) {
+      return { valide: false, message: "Lien invalide." };
     }
     if (Date.now() > expire) {
-      return { valide: false, message: "Ce code a expiré : demandez-en un nouveau." };
+      return {
+        valide: false,
+        message: "Ce lien a expiré : recommencez la demande pour recevoir un nouveau lien.",
+      };
     }
-    const attendue = await signer(`${email}|${expire}|${code}`);
+    const attendue = await signer(`${email}|${expire}`);
     if (attendue.length !== signature.length) {
-      return { valide: false, message: "Code incorrect." };
+      return { valide: false, message: "Lien invalide." };
     }
     let ecart = 0;
     for (let i = 0; i < attendue.length; i += 1) {
       ecart |= attendue.charCodeAt(i) ^ signature.charCodeAt(i);
     }
-    return ecart === 0 ? { valide: true } : { valide: false, message: "Code incorrect." };
+    return ecart === 0 ? { valide: true } : { valide: false, message: "Lien invalide." };
   });
