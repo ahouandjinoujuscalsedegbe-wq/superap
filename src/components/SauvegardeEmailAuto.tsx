@@ -30,6 +30,46 @@ const DELAI_CHIFFREMENT = 1_500;
 const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
 const DELAI_REESSAI = 60_000;
+/** Attente maximale sur un très gros historique (plusieurs années). */
+const DELAI_MAXIMUM = 8_000;
+
+/**
+ * Sur un long historique, chiffrer cinq fois coûte cher : on espace un peu la
+ * copie au lieu de la relancer à chaque frappe.
+ */
+function delaiSelonVolume(base: number, volume: number): number {
+  const supplement = Math.floor(volume / 500) * 400;
+  return Math.min(DELAI_MAXIMUM, base + supplement);
+}
+
+/**
+ * Empreinte très rapide de l'état : évite tout chiffrement quand rien n'a
+ * réellement changé (affichage, navigation, rafraîchissements).
+ */
+function signatureRapide(etat: {
+  transactions?: unknown[];
+  transferts?: unknown[];
+  comptes?: unknown[];
+  enveloppes?: unknown[];
+  dettes?: unknown[];
+  objectifs?: unknown[];
+}): string {
+  const dernier = (l?: unknown[]) => {
+    const e = l?.[l.length - 1] as { id?: string; nom?: string } | undefined;
+    return e?.id ?? e?.nom ?? "";
+  };
+  return [
+    etat.transactions?.length ?? 0,
+    etat.transferts?.length ?? 0,
+    etat.comptes?.length ?? 0,
+    etat.enveloppes?.length ?? 0,
+    etat.dettes?.length ?? 0,
+    etat.objectifs?.length ?? 0,
+    dernier(etat.transactions),
+    dernier(etat.transferts),
+    dernier(etat.dettes),
+  ].join("|");
+}
 
 /** Marque posée uniquement lorsqu'une sauvegarde locale a échoué. */
 const CLE_ALERTE = "superapp:sauvegarde:alerte:v1";
