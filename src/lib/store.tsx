@@ -487,7 +487,8 @@ type Contexte = Etat & {
     emoji?: string,
     /** Compte réservé aux transferts automatiques, présenté à part. */
     reserve?: boolean,
-  ) => void;
+    /** Vrai lorsque le compte a bien été retenu. */
+  ) => boolean;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
