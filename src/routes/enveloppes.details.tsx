@@ -197,6 +197,7 @@ export function CarteEnveloppe({
   const planifie = budgets.filter((b) => b.enveloppeId === e.id);
   const prevuMensuel = planifie.reduce((s, b) => s + equivalentMensuel(b), 0);
   const operations = transactions.filter((t) => t.categorie === e.id);
+  const nbOperations = operations.length;
 
   const couleurBarre = depasse
     ? "bg-destructive"
