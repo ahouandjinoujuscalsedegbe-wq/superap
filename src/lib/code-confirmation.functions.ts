@@ -30,3 +30,8 @@ export const demanderLienChangement = createServerFn({ method: "POST" })
 export const verifierLienChangement = createServerFn({ method: "POST" })
   .validator((d: { email: string; jeton: string }) => d)
   .handler(async ({ data }) => verifierJetonLien(data.email, data.jeton));
+
+/** Vérifie le code à six chiffres recopié depuis l'e-mail. */
+export const verifierCodeChangement = createServerFn({ method: "POST" })
+  .validator((d: { email: string; code: string }) => d)
+  .handler(async ({ data }) => verifierCodeConfirmation(data.email, data.code));
