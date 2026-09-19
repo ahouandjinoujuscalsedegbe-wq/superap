@@ -406,15 +406,10 @@ function PageSauvegarde() {
         </button>
       </section>
 
-      <ModeMultiAppareil />
-
       <HistoriqueVersions
         onRestaurer={(donnees, source) => setAttente({ genre: "restaurer", etat: donnees, source })}
       />
 
-      <RecuperationNouveauTelephone />
-
-      <ChangerPhraseRecuperation />
 
       <section className="carte space-y-3 p-4">
         <h2 className="flex items-center gap-2 font-semibold">
