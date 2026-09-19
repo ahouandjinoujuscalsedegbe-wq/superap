@@ -68,7 +68,7 @@ const SCHEMA = {
   },
 } as const;
 
-export const Route = createFileRoute("/api/public/ia/operation/")({
+export const Route = createFileRoute("/api/public/ia/operation")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: ENTETES }),

@@ -79,6 +79,7 @@ import { Route as ObjectifsActionIndexRouteImport } from './routes/objectifs.act
 import { Route as ObjectifsActionCreerRouteImport } from './routes/objectifs.action.creer'
 import { Route as ObjectifsActionGererRouteImport } from './routes/objectifs.action.gerer'
 import { Route as ApiPublicCoffreIndexRouteImport } from './routes/api/public/coffre/index'
+import { Route as ApiPublicIaOperationRouteImport } from './routes/api/public/ia/operation'
 import { Route as ApiPublicMajApkRouteImport } from './routes/api/public/maj/apk'
 import { Route as ApiPublicMajVersionRouteImport } from './routes/api/public/maj/version'
 import { Route as ApiPublicSauvegardeEnvoiRouteImport } from './routes/api/public/sauvegarde/envoi'
@@ -437,6 +438,11 @@ const ApiPublicCoffreIndexRoute = ApiPublicCoffreIndexRouteImport.update({
   path: '/api/public/coffre/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicIaOperationRoute = ApiPublicIaOperationRouteImport.update({
+  id: '/api/public/ia/operation',
+  path: '/api/public/ia/operation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMajApkRoute = ApiPublicMajApkRouteImport.update({
   id: '/api/public/maj/apk',
   path: '/api/public/maj/apk',
@@ -530,6 +536,7 @@ export interface FileRoutesByFullPath {
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
   '/objectifs/action/': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -600,6 +607,7 @@ export interface FileRoutesByTo {
   '/comptes/transferts': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier': typeof EnveloppesModifierIndexRoute
   '/objectifs/action': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -677,6 +685,7 @@ export interface FileRoutesById {
   '/comptes/transferts/': typeof ComptesTransfertsIndexRoute
   '/enveloppes/modifier/': typeof EnveloppesModifierIndexRoute
   '/objectifs/action/': typeof ObjectifsActionIndexRoute
+  '/api/public/ia/operation': typeof ApiPublicIaOperationRoute
   '/api/public/maj/apk': typeof ApiPublicMajApkRoute
   '/api/public/maj/version': typeof ApiPublicMajVersionRoute
   '/api/public/sauvegarde/envoi': typeof ApiPublicSauvegardeEnvoiRoute
@@ -755,6 +764,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
     | '/objectifs/action/'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -825,6 +835,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts'
     | '/enveloppes/modifier'
     | '/objectifs/action'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -901,6 +912,7 @@ export interface FileRouteTypes {
     | '/comptes/transferts/'
     | '/enveloppes/modifier/'
     | '/objectifs/action/'
+    | '/api/public/ia/operation'
     | '/api/public/maj/apk'
     | '/api/public/maj/version'
     | '/api/public/sauvegarde/envoi'
@@ -932,6 +944,7 @@ export interface RootRouteChildren {
   HistoriqueRevenusRoute: typeof HistoriqueRevenusRoute
   RapportMoisRoute: typeof RapportMoisRoute
   RapportIndexRoute: typeof RapportIndexRoute
+  ApiPublicIaOperationRoute: typeof ApiPublicIaOperationRoute
   ApiPublicMajApkRoute: typeof ApiPublicMajApkRoute
   ApiPublicMajVersionRoute: typeof ApiPublicMajVersionRoute
   ApiPublicSauvegardeEnvoiRoute: typeof ApiPublicSauvegardeEnvoiRoute
@@ -1431,6 +1444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCoffreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ia/operation': {
+      id: '/api/public/ia/operation'
+      path: '/api/public/ia/operation'
+      fullPath: '/api/public/ia/operation'
+      preLoaderRoute: typeof ApiPublicIaOperationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/maj/apk': {
       id: '/api/public/maj/apk'
       path: '/api/public/maj/apk'
@@ -1635,6 +1655,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoriqueRevenusRoute: HistoriqueRevenusRoute,
   RapportMoisRoute: RapportMoisRoute,
   RapportIndexRoute: RapportIndexRoute,
+  ApiPublicIaOperationRoute: ApiPublicIaOperationRoute,
   ApiPublicMajApkRoute: ApiPublicMajApkRoute,
   ApiPublicMajVersionRoute: ApiPublicMajVersionRoute,
   ApiPublicSauvegardeEnvoiRoute: ApiPublicSauvegardeEnvoiRoute,
