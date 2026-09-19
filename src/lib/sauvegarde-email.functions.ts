@@ -4,6 +4,10 @@ export type ResultatEnvoi = {
   envoye: boolean;
   raison?: "adresse_invalide" | "expediteur_absent" | "erreur_envoi" | "adresse_bloquee";
   message?: string;
+  /** true quand la copie vers l'adresse de secours n'a pas abouti. */
+  secoursEnEchec?: boolean;
+  /** Détail de l'échec vers l'adresse de secours. */
+  messageSecours?: string;
 };
 
 type Entree = {
@@ -82,12 +86,30 @@ export const envoyerColisSauvegarde = createServerFn({ method: "POST" })
           message: "Cette adresse a été bloquée pour les envois : utilisez une autre adresse.",
         };
       }
-      // Adresse de secours : un échec ici ne remet pas en cause la sauvegarde.
+      // Adresse de secours : la copie principale est déjà partie, mais un échec
+      // ici doit être signalé à l'utilisateur au lieu d'être avalé.
       if (data.emailSecours && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.emailSecours)) {
-        try {
-          await envoyerA(data.emailSecours);
-        } catch {
-          /* la copie principale est déjà partie */
+        for (let essai = 0; essai < 2; essai += 1) {
+          try {
+            const secours = await envoyerA(data.emailSecours);
+            if (secours && (secours as { suppressed?: boolean }).suppressed) {
+              return {
+                envoye: true,
+                secoursEnEchec: true,
+                messageSecours: "adresse de secours bloquée pour les envois",
+              };
+            }
+            return { envoye: true };
+          } catch (e) {
+            if (essai === 1) {
+              const err = e as { code?: string; message?: string };
+              return {
+                envoye: true,
+                secoursEnEchec: true,
+                messageSecours: err.code ?? err.message ?? "envoi impossible",
+              };
+            }
+          }
         }
       }
       return { envoye: true };

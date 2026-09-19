@@ -96,6 +96,13 @@ export function SauvegardeEmailAuto() {
           ...(colis.rubrique ? { rubrique: colis.rubrique } : {}),
         },
       });
+      if (resultat.envoye && resultat.secoursEnEchec) {
+        // L'utilisateur croyait ses deux copies parties : on le prévient.
+        toast.warning("La copie vers votre adresse de secours n'est pas partie.", {
+          description: `Copie principale envoyée. Vérifiez la seconde adresse (${resultat.messageSecours ?? "envoi impossible"}).`,
+          id: "secours-sauvegarde",
+        });
+      }
       if (resultat.envoye) {
         ecrireFile(null);
         await oublierColisArrierePlan();
