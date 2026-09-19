@@ -255,7 +255,10 @@ export function assainirEnveloppe(v: unknown): Enveloppe | null {
   if (!estObjet(v) || !idValide(v["id"])) return null;
   const nom = texteSur(v["nom"], 80);
   if (!nom) return null;
-  const plafond = nombreSur(v["plafond"]);
+  // Règle claire : un plafond à 0 signifie « aucune limite » — l'enveloppe
+  // n'aura jamais d'alerte de dépassement. Un plafond positif est le maximum
+  // de dépenses avant l'alerte. Les valeurs négatives sont ramenées à 0.
+  const plafond = Math.max(0, nombreSur(v["plafond"]));
   const dotation = typeof v["dotation"] === "number" ? nombreSur(v["dotation"]) : plafond;
   return {
     id: v["id"],
