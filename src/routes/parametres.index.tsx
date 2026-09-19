@@ -3,12 +3,9 @@ import {
   ChevronRight,
   User,
   ShieldCheck,
-  Keyboard,
   RefreshCw,
   Database,
   CloudUpload,
-  Mail,
-  FileText,
   AlarmClock,
 } from "lucide-react";
 
@@ -41,12 +38,6 @@ const GROUPES = [
         titre: "Profil et apparence",
         detail: "Nom affiché, opacité des surfaces roses, devise et langue.",
       },
-      {
-        to: "/parametres/clavier",
-        icone: Keyboard,
-        titre: "Clavier de l'application",
-        detail: "Disposition, taille des touches, vibration et son.",
-      },
     ],
   },
   {
@@ -75,12 +66,6 @@ const GROUPES = [
         titre: "Sauvegarde et chiffrement local",
         detail: "Export chiffré par phrase secrète et points de restauration.",
       },
-      {
-        to: "/synchronisation",
-        icone: Mail,
-        titre: "Synchronisation chiffrée",
-        detail: "Fusionnez vos données entre deux appareils, sans fuite.",
-      },
     ],
   },
   {
@@ -97,12 +82,6 @@ const GROUPES = [
         icone: AlarmClock,
         titre: "Alarmes intelligentes",
         detail: "Rappels sonores des dépenses planifiées et alertes de prévision.",
-      },
-      {
-        to: "/journal",
-        icone: FileText,
-        titre: "Journal de diagnostic",
-        detail: "Erreurs OCR, dictée et prétraitement, export JSON ou CSV.",
       },
     ],
   },
