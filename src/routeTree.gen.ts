@@ -14,6 +14,7 @@ import { Route as AideRouteImport } from './routes/aide'
 import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as CoffreRouteImport } from './routes/coffre'
 import { Route as ComptesRouteImport } from './routes/comptes'
+import { Route as DecrireRouteImport } from './routes/decrire'
 import { Route as DepenseRouteImport } from './routes/depense'
 import { Route as DettesRouteImport } from './routes/dettes'
 import { Route as EnveloppesRouteImport } from './routes/enveloppes'
@@ -108,6 +109,11 @@ const CoffreRoute = CoffreRouteImport.update({
 const ComptesRoute = ComptesRouteImport.update({
   id: '/comptes',
   path: '/comptes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecrireRoute = DecrireRouteImport.update({
+  id: '/decrire',
+  path: '/decrire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DepenseRoute = DepenseRouteImport.update({
@@ -472,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/budget': typeof BudgetRouteWithChildren
   '/coffre': typeof CoffreRoute
   '/comptes': typeof ComptesRouteWithChildren
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -547,6 +554,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aide': typeof AideRoute
   '/coffre': typeof CoffreRoute
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/journal': typeof JournalRoute
@@ -621,6 +629,7 @@ export interface FileRoutesById {
   '/budget': typeof BudgetRouteWithChildren
   '/coffre': typeof CoffreRoute
   '/comptes': typeof ComptesRouteWithChildren
+  '/decrire': typeof DecrireRoute
   '/depense': typeof DepenseRoute
   '/dettes': typeof DettesRoute
   '/enveloppes': typeof EnveloppesRouteWithChildren
@@ -700,6 +709,7 @@ export interface FileRouteTypes {
     | '/budget'
     | '/coffre'
     | '/comptes'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -775,6 +785,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aide'
     | '/coffre'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/journal'
@@ -848,6 +859,7 @@ export interface FileRouteTypes {
     | '/budget'
     | '/coffre'
     | '/comptes'
+    | '/decrire'
     | '/depense'
     | '/dettes'
     | '/enveloppes'
@@ -926,6 +938,7 @@ export interface RootRouteChildren {
   BudgetRoute: typeof BudgetRouteWithChildren
   CoffreRoute: typeof CoffreRoute
   ComptesRoute: typeof ComptesRouteWithChildren
+  DecrireRoute: typeof DecrireRoute
   DepenseRoute: typeof DepenseRoute
   DettesRoute: typeof DettesRoute
   EnveloppesRoute: typeof EnveloppesRouteWithChildren
@@ -987,6 +1000,13 @@ declare module '@tanstack/react-router' {
       path: '/comptes'
       fullPath: '/comptes'
       preLoaderRoute: typeof ComptesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decrire': {
+      id: '/decrire'
+      path: '/decrire'
+      fullPath: '/decrire'
+      preLoaderRoute: typeof DecrireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/depense': {
@@ -1637,6 +1657,7 @@ const rootRouteChildren: RootRouteChildren = {
   BudgetRoute: BudgetRouteWithChildren,
   CoffreRoute: CoffreRoute,
   ComptesRoute: ComptesRouteWithChildren,
+  DecrireRoute: DecrireRoute,
   DepenseRoute: DepenseRoute,
   DettesRoute: DettesRoute,
   EnveloppesRoute: EnveloppesRouteWithChildren,
