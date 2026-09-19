@@ -117,6 +117,7 @@ function PageCategorie() {
                               estOuverte
                               onToggle={() => {}}
                               sansBoutonDetails
+                              sansEntete
                             />
                           </div>
                         )}
