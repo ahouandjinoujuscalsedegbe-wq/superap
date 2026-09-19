@@ -51,6 +51,13 @@ const GROUPES = [
         titre: "Profil et apparence",
         detail: "Nom affiché et opacité des surfaces roses.",
       },
+      {
+        to: "/parametres/clavier",
+        icone: Keyboard,
+        titre: "Clavier de saisie",
+        detail:
+          "Clavier du téléphone ou clavier интегré de l'application, mots appris et corrections.",
+      },
     ],
   },
   {
