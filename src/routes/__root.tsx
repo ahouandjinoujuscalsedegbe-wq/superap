@@ -34,6 +34,7 @@ import { GardeActionSensible } from "../components/GardeActionSensible";
 import { DemandeMotDePasseAction } from "../components/DemandeMotDePasseAction";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
 import { AlerteEffacement, AlerteStockage } from "../components/AlerteStockage";
+import { AlerteCopies } from "../components/AlerteCopies";
 import { Toaster } from "sonner";
 import { AlarmeIntelligente } from "../components/AlarmeIntelligente";
 import { AlertesVersConseiller } from "@/components/AlertesVersConseiller";
