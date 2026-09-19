@@ -31,7 +31,9 @@ export function ConfigurationSauvegarde({
     const r = lireReglagesMail();
     setEmail(r.email || "");
     setAppareil(r.appareil || "MON TÉLÉPHONE");
-    if (!r.configure || forceOpen) setVisible(true);
+    // Jamais imposée à l'ouverture : l'écran s'affiche seulement depuis la
+    // page Sauvegarde, pour ne bloquer personne au démarrage.
+    if (forceOpen) setVisible(true);
   }, [forceOpen]);
 
   if (!visible) return null;
