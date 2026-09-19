@@ -33,15 +33,6 @@ import {
 } from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
-  validateSearch: (
-    s: Record<string, unknown>,
-  ): { changement?: "1"; email?: string; jeton?: string } => {
-    const sortie: { changement?: "1"; email?: string; jeton?: string } = {};
-    if (s["changement"] === "1" || s["changement"] === 1) sortie.changement = "1";
-    if (typeof s["email"] === "string") sortie.email = s["email"];
-    if (typeof s["jeton"] === "string") sortie.jeton = s["jeton"];
-    return sortie;
-  },
   head: () => ({
     meta: [
       { title: "Mon compte — SUPER APP" },
@@ -64,8 +55,11 @@ export const Route = createFileRoute("/compte")({
 
 function PageCompte() {
   const navigate = useNavigate();
-  const recherche = Route.useSearch();
-  const depuisLien = recherche.changement === "1" && !!recherche.jeton && !!recherche.email;
+  // Le lien reçu par e-mail (/compte?changement=1&email=…&jeton=…) est lu
+  // directement depuis l'URL : le validateur de recherche du routeur
+  // n'est pas appliqué de façon fiable sur cette page indépendante.
+  const [lien, setLien] = useState<{ email: string; jeton: string } | null>(null);
+  const depuisLien = !!lien;
   const app = useSuperApp();
   const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
   const [email, setEmail] = useState("");
