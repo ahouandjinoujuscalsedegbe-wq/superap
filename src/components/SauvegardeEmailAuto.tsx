@@ -30,6 +30,22 @@ const DELAI_CHIFFREMENT = 1_500;
 const DELAI_SAISIE_NOMMEE = 1_200;
 /** Nouvelle tentative d'envoi périodique tant que le colis attend. */
 const DELAI_REESSAI = 60_000;
+/** Attente maximale sur un très gros historique (plusieurs années). */
+const DELAI_MAXIMUM = 8_000;
+
+/**
+ * Sur un long historique, chiffrer cinq fois coûte cher : on espace un peu la
+ * copie au lieu de la relancer à chaque frappe.
+ */
+function delaiSelonVolume(base: number, volume: number): number {
+  const supplement = Math.floor(volume / 500) * 400;
+  return Math.min(DELAI_MAXIMUM, base + supplement);
+}
+
+/** Nombre d'écritures conservées : sert à mesurer le volume de l'historique. */
+function volumeHistorique(etat: { transactions?: unknown[]; transferts?: unknown[] }): number {
+  return (etat.transactions?.length ?? 0) + (etat.transferts?.length ?? 0);
+}
 
 /** Marque posée uniquement lorsqu'une sauvegarde locale a échoué. */
 const CLE_ALERTE = "superapp:sauvegarde:alerte:v1";
@@ -244,7 +260,12 @@ export function SauvegardeEmailAuto() {
         }
         await envoyer();
       })();
-    }, rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT);
+      },
+      delaiSelonVolume(
+        rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT,
+        volumeHistorique(etat),
+      ),
+    );
     return () => window.clearTimeout(minuterie);
   }, [chargement, etat, frappes, envoyer]);
 
