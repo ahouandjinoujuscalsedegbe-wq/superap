@@ -79,6 +79,11 @@ export const Route = createFileRoute("/api/public/compte/lien")({
           return reponse({ ok: false, message: "Adresse e-mail invalide." }, 400);
         }
 
+        if (corps.action === "code") {
+          const resultat = await verifierCodeConfirmation(email, corps.code || "");
+          return reponse({ ok: resultat.valide, message: resultat.message }, resultat.valide ? 200 : 403);
+        }
+
         if (corps.action === "verifier") {
           const resultat = await verifierJetonLien(email, corps.jeton || "");
           return reponse({ ok: resultat.valide, message: resultat.message }, resultat.valide ? 200 : 403);
