@@ -15,6 +15,7 @@ import { ajouterVersion, lireVersions, marquerVersionEnvoyee } from "@/lib/versi
 import { classerSaisie } from "@/lib/classement-coffre";
 import { deposerDansCloud } from "@/lib/coffre-cloud";
 import { deposerDansDossier } from "@/lib/coffre-dossier";
+import { noterIncident, noterReussite } from "@/lib/incidents";
 import { instantaneEtat } from "@/lib/instantane";
 import { EVENEMENT_BROUILLON } from "@/lib/brouillons";
 import {
