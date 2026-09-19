@@ -78,9 +78,11 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
   const [tDebut, setTDebut] = useState("");
   const [tOrganisateur, setTOrganisateur] = useState("");
   const [rappelActif, setRappelActif] = useState(true);
+  const [modeRappel, setModeRappel] = useState<"rythme" | "date">("rythme");
   const [rappelIntervalle, setRappelIntervalle] = useState("1");
   const [rappelUnite, setRappelUnite] = useState<UniteRappel>("mois");
   const [rappelDebut, setRappelDebut] = useState("");
+  const [rappelDateUnique, setRappelDateUnique] = useState("");
 
   const apercuTontine = useMemo(() => {
     const montant = Number(deGrouperMontant(tMontant));
@@ -206,15 +208,19 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
       compteEpargne: prelevementAuto ? compteEpargne : undefined,
       prelevementAuto,
       rappelActif: rappelActif ? undefined : false,
-      rappelUnite: rappelActif ? rappelUnite : undefined,
-      rappelIntervalle: rappelActif
-        ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1))
-        : undefined,
-      rappelDebut: rappelActif
-        ? type === "tontine"
-          ? tDebut
-          : rappelDebut || undefined
-        : undefined,
+      rappelDateUnique:
+        rappelActif && modeRappel === "date" && rappelDateUnique ? rappelDateUnique : undefined,
+      rappelUnite: rappelActif && modeRappel === "rythme" ? rappelUnite : undefined,
+      rappelIntervalle:
+        rappelActif && modeRappel === "rythme"
+          ? Math.min(31, Math.max(1, Number(rappelIntervalle) || 1))
+          : undefined,
+      rappelDebut:
+        rappelActif && modeRappel === "rythme"
+          ? type === "tontine"
+            ? tDebut
+            : rappelDebut || undefined
+          : undefined,
       ...infosTontine,
     });
     toast.success("Objectif créé.");
@@ -404,56 +410,103 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
             {rappelActif && (
               <>
                 <div className="grid grid-cols-2 gap-2">
-                  <label className="block text-xs font-medium text-muted-foreground">
-                    Répéter tous les
-                    <select
-                      value={rappelIntervalle}
-                      onChange={(e) => setRappelIntervalle(e.target.value)}
-                      className={champ}
-                    >
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={String(n)}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block text-xs font-medium text-muted-foreground">
-                    Unité
-                    <select
-                      value={rappelUnite}
-                      onChange={(e) => setRappelUnite(e.target.value as UniteRappel)}
-                      className={champ}
-                    >
-                      {(Object.keys(UNITES) as UniteRappel[]).map((u) => (
-                        <option key={u} value={u}>
-                          {(Number(rappelIntervalle) || 1) > 1 ? UNITES[u].plusieurs : UNITES[u].un}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setModeRappel("rythme")}
+                    className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
+                      modeRappel === "rythme"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-input text-muted-foreground"
+                    }`}
+                  >
+                    Rythme régulier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModeRappel("date")}
+                    className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
+                      modeRappel === "date"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-input text-muted-foreground"
+                    }`}
+                  >
+                    Une seule date
+                  </button>
                 </div>
-                {type !== "tontine" && (
-                  <label className="block text-xs font-medium text-muted-foreground">
-                    Premier rappel (facultatif)
-                    <input
-                      type="date"
-                      value={rappelDebut}
-                      onChange={(e) => setRappelDebut(e.target.value)}
-                      className={champ}
-                    />
-                  </label>
+                {modeRappel === "date" ? (
+                  <>
+                    <label className="block text-xs font-medium text-muted-foreground">
+                      Date choisie d'office
+                      <input
+                        type="date"
+                        value={rappelDateUnique}
+                        onChange={(e) => setRappelDateUnique(e.target.value)}
+                        className={champ}
+                      />
+                    </label>
+                    <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                      {rappelDateUnique
+                        ? `Un seul rappel, le ${rappelDateUnique}.`
+                        : "Choisissez la date du rappel unique."}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="block text-xs font-medium text-muted-foreground">
+                        Répéter tous les
+                        <select
+                          value={rappelIntervalle}
+                          onChange={(e) => setRappelIntervalle(e.target.value)}
+                          className={champ}
+                        >
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
+                            <option key={n} value={String(n)}>
+                              {n}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="block text-xs font-medium text-muted-foreground">
+                        Unité
+                        <select
+                          value={rappelUnite}
+                          onChange={(e) => setRappelUnite(e.target.value as UniteRappel)}
+                          className={champ}
+                        >
+                          {(Object.keys(UNITES) as UniteRappel[]).map((u) => (
+                            <option key={u} value={u}>
+                              {(Number(rappelIntervalle) || 1) > 1
+                                ? UNITES[u].plusieurs
+                                : UNITES[u].un}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    {type !== "tontine" && (
+                      <label className="block text-xs font-medium text-muted-foreground">
+                        Premier rappel (facultatif)
+                        <input
+                          type="date"
+                          value={rappelDebut}
+                          onChange={(e) => setRappelDebut(e.target.value)}
+                          className={champ}
+                        />
+                      </label>
+                    )}
+                    <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                      Rappel {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)}
+                      {type === "tontine"
+                        ? tDebut
+                          ? `, à partir du ${tDebut}.`
+                          : ", à partir de la première cotisation."
+                        : rappelDebut
+                          ? `, à partir du ${rappelDebut}.`
+                          : ", à partir d'aujourd'hui."}
+                    </p>
+                  </>
                 )}
-                <p className="rounded-lg bg-primary/10 p-2 text-xs text-primary">
-                  Rappel {libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)}
-                  {type === "tontine"
-                    ? tDebut
-                      ? `, à partir du ${tDebut}.`
-                      : ", à partir de la première cotisation."
-                    : rappelDebut
-                      ? `, à partir du ${rappelDebut}.`
-                      : ", à partir d'aujourd'hui."}
-                </p>
               </>
             )}
           </>
@@ -560,9 +613,13 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
               <Ligne
                 t="Rappels"
                 v={
-                  rappelActif
-                    ? libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)
-                    : "Désactivés"
+                  !rappelActif
+                    ? "Désactivés"
+                    : modeRappel === "date"
+                      ? rappelDateUnique
+                        ? `Une seule fois, le ${rappelDateUnique}`
+                        : "Une seule fois (date à choisir)"
+                      : libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)
                 }
               />
               <Ligne

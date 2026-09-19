@@ -91,8 +91,12 @@ function CarteObjectif({ s }: { s: SuiviObjectif }) {
             {s.objectif.tontineOrganisateur ? ` · ${s.objectif.tontineOrganisateur}` : ""}
           </p>
         )}
-        {r && (
-          <p className="text-xs text-primary">🔔 Rappel {libelleRythme(r.intervalle, r.unite)}</p>
+        {s.objectif.rappelDateUnique && s.objectif.rappelActif !== false ? (
+          <p className="text-xs text-primary">
+            🔔 Rappel unique le {s.objectif.rappelDateUnique}
+          </p>
+        ) : (
+          r && <p className="text-xs text-primary">🔔 Rappel {libelleRythme(r.intervalle, r.unite)}</p>
         )}
       </div>
 

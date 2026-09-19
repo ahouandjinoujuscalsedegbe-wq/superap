@@ -109,12 +109,30 @@ function debutObjectif(o: Objectif): string {
 
 /** Toutes les échéances d'un objectif jusqu'à la date donnée (incluse). */
 export function echeancesObjectif(o: Objectif, jusqua: Date): EcheanceRappel[] {
+  const fin = jusqua.toISOString().slice(0, 10);
+  // Date choisie d'office : un seul rappel, ce jour-là.
+  if (o.rappelDateUnique && o.rappelActif !== false) {
+    if (o.rappelDateUnique > fin) return [];
+    const typeU: EcheanceRappel["type"] =
+      o.type === "tontine" ? "tontine" : o.type === "achat" ? "achat" : "epargne";
+    return [
+      {
+        cle: `${o.id}:${o.rappelDateUnique}`,
+        objectifId: o.id,
+        libelle: o.libelle,
+        type: typeU,
+        date: o.rappelDateUnique,
+        montant: montantEcheance(o, 1),
+        numero: 1,
+        total: 1,
+      },
+    ];
+  }
   const rythme = rythmeObjectif(o);
   if (!rythme) return [];
   const debut = debutObjectif(o);
   if (!debut) return [];
 
-  const fin = jusqua.toISOString().slice(0, 10);
   const limite = o.type === "tontine" ? (o.tontineParticipants ?? 12) : Infinity;
   const dateFin = o.type === "tontine" ? undefined : o.dateCible;
   const pasJours = joursRythme(rythme);
