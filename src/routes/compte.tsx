@@ -189,17 +189,20 @@ function PageCompte() {
         <h1 className="flex items-center gap-2 text-lg font-semibold">
           {creation ? (
             <UserPlus className="h-5 w-5 text-primary" aria-hidden />
+          ) : oubli ? (
+            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
           ) : (
             <LogIn className="h-5 w-5 text-primary" aria-hidden />
           )}
-          {creation ? "Créer mon compte" : "Me connecter"}
+          {creation ? "Créer mon compte" : oubli ? "Mot de passe oublié" : "Me connecter"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées,
-          automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse
-          et le même mot de passe ramènent tout.
+          {oubli
+            ? "Choisissez un nouveau mot de passe. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
+            : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
         </p>
 
+        {!oubli && (
         <div className="flex gap-2 rounded-xl border border-border p-1">
           {(["connexion", "creation"] as const).map((m) => (
             <button
