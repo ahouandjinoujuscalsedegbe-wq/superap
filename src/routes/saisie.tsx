@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
   Repeat,
   ChevronRight,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { useSuperApp } from "@/lib/store";
 import { formatFCFA, grouperMontant } from "@/lib/format";
