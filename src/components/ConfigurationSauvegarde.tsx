@@ -79,9 +79,9 @@ export function ConfigurationSauvegarde({
           <h2 className="text-lg font-bold">Protéger mes données</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Vos données restent sur ce téléphone. Une copie chiffrée cinq fois est envoyée à votre
-          adresse e-mail : si vous changez de téléphone, vous récupérez tout avec votre phrase de
-          récupération.
+          Entrez votre adresse e-mail et un mot de passe. Vos données restent sur ce téléphone, et
+          une copie chiffrée est rangée dans l'espace de votre adresse e-mail : sur un autre
+          téléphone, les mêmes identifiants ramènent tout.
         </p>
 
         <label className="block space-y-1">
