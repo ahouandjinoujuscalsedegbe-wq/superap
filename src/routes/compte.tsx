@@ -34,9 +34,9 @@ import {
 
 export const Route = createFileRoute("/compte")({
   validateSearch: (s: Record<string, unknown>) => ({
-    changement: s.changement === "1" ? ("1" as const) : undefined,
-    email: typeof s.email === "string" ? s.email : undefined,
-    jeton: typeof s.jeton === "string" ? s.jeton : undefined,
+    changement: s["changement"] === "1" ? ("1" as const) : undefined,
+    email: typeof s["email"] === "string" ? (s["email"] as string) : undefined,
+    jeton: typeof s["jeton"] === "string" ? (s["jeton"] as string) : undefined,
   }),
   head: () => ({
     meta: [
