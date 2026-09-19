@@ -13,7 +13,11 @@
 
 import { createServerFn } from "@tanstack/react-start";
 
-import { envoyerLienChangement, verifierJetonLien } from "./code-confirmation.server";
+import {
+  envoyerLienChangement,
+  verifierCodeConfirmation,
+  verifierJetonLien,
+} from "./code-confirmation.server";
 
 export type { ResultatDemandeLien } from "./code-confirmation.server";
 
