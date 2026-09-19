@@ -78,9 +78,11 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
   const [tDebut, setTDebut] = useState("");
   const [tOrganisateur, setTOrganisateur] = useState("");
   const [rappelActif, setRappelActif] = useState(true);
+  const [modeRappel, setModeRappel] = useState<"rythme" | "date">("rythme");
   const [rappelIntervalle, setRappelIntervalle] = useState("1");
   const [rappelUnite, setRappelUnite] = useState<UniteRappel>("mois");
   const [rappelDebut, setRappelDebut] = useState("");
+  const [rappelDateUnique, setRappelDateUnique] = useState("");
 
   const apercuTontine = useMemo(() => {
     const montant = Number(deGrouperMontant(tMontant));

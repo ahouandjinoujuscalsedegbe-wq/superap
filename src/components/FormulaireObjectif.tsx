@@ -107,6 +107,10 @@ export function FormulaireObjectif({
   const [rappelDebut, setRappelDebut] = useState(
     objectif?.rappelDebut ?? objectif?.tontineDebut ?? "",
   );
+  const [modeRappel, setModeRappel] = useState<"rythme" | "date">(
+    objectif?.rappelDateUnique ? "date" : "rythme",
+  );
+  const [rappelDateUnique, setRappelDateUnique] = useState(objectif?.rappelDateUnique ?? "");
 
   /** Aperçu du pot et de la date de réception pendant la saisie d'une tontine. */
   const apercuTontine = useMemo(() => {
