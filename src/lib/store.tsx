@@ -1234,6 +1234,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           montant: contenu,
           note: note || `Tontine : enveloppe ${env.nom}`,
           date,
+          ...(objectifId ? { objectifId } : {}),
         });
         if (!transfert) return e;
         journaliser(
