@@ -217,6 +217,7 @@ function RootComponent() {
           <MiseAJourAuto />
           <AlerteEffacement />
           <AlerteStockage />
+          <AlerteCopies />
           <AlarmeIntelligente />
           <AlertesVersConseiller />
           <VeilleConseiller />
