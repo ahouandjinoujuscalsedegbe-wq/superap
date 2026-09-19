@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ChevronRight,
   User,
+  UserCircle2,
   ShieldCheck,
   RefreshCw,
   Database,
