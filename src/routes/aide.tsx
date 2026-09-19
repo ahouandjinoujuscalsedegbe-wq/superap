@@ -221,7 +221,6 @@ const GUIDES: Guide[] = [
     liens: [
       { to: "/saisie", libelle: "Saisie rapide" },
       { to: "/recherche", libelle: "Recherche globale" },
-      { to: "/parametres/clavier", libelle: "Réglages du clavier" },
     ],
     motsCles: "saisie rapide ticket photo ocr clavier recherche",
   },
