@@ -71,10 +71,17 @@ function PageCompte() {
   const champRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setEmail(depuisLien ? (recherche.email ?? "") : emailDuCompte());
+    const params = new URLSearchParams(window.location.search);
+    const courriel = params.get("email");
+    const jetonLu = params.get("jeton");
+    if (params.get("changement") === "1" && courriel && jetonLu) {
+      setLien({ email: courriel, jeton: jetonLu });
+      setEmail(courriel);
+    } else {
+      setEmail(emailDuCompte());
+    }
     const t = window.setTimeout(() => champRef.current?.focus(), 150);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function terminer() {
@@ -213,7 +220,7 @@ function PageCompte() {
     let verif: { valide: boolean; message?: string } | null = null;
     try {
       verif = await verifierLienChangement({
-        data: { email: email.trim(), jeton: recherche.jeton ?? "" },
+        data: { email: email.trim(), jeton: lien?.jeton ?? "" },
       });
     } catch {
       verif = null;
