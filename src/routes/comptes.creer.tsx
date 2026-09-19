@@ -28,13 +28,23 @@ export const Route = createFileRoute("/comptes/creer")({
 
 function CreerCompte() {
   const navigate = useNavigate();
-  const { ajouterCompte, ajouterTransaction, ajouterRegleTransfert, nomUtilisateur } =
+  const { ajouterCompte, ajouterTransaction, ajouterRegleTransfert, nomUtilisateur, comptes } =
     useSuperApp();
   const [demande, setDemande] = useState<DemandeCompte | null>(null);
 
   function confirmer() {
     if (!demande || demande.type !== "creation") return;
-    ajouterCompte(demande.nom, demande.disponible, demande.emoji, demande.reserve);
+    // Un compte du même nom existe déjà : on le dit, sans annoncer un succès.
+    if (comptes.includes(demande.nom)) {
+      setDemande(null);
+      toast.error(`Le compte « ${demande.nom} » existe déjà.`);
+      return;
+    }
+    if (!ajouterCompte(demande.nom, demande.disponible, demande.emoji, demande.reserve)) {
+      setDemande(null);
+      toast.error("Ce compte n'a pas pu être créé. Vérifiez son nom, puis réessayez.");
+      return;
+    }
     if (demande.reserve && demande.pourcentage > 0) {
       ajouterRegleTransfert({
         nom: `${demande.pourcentage} % vers ${demande.nom}`,

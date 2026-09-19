@@ -487,7 +487,8 @@ type Contexte = Etat & {
     emoji?: string,
     /** Compte réservé aux transferts automatiques, présenté à part. */
     reserve?: boolean,
-  ) => void;
+    /** Vrai lorsque le compte a bien été retenu. */
+  ) => boolean;
   definirIconeCompte: (nom: string, emoji: string) => void;
   /** Indique si un compte entre ou non dans le solde disponible. */
   definirCompteDisponible: (nom: string, dansDisponible: boolean) => void;
@@ -935,9 +936,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterCompte = useCallback(
-    (nom: string, dansDisponible = true, emoji?: string, reserve = false) => {
+    (nom: string, dansDisponible = true, emoji?: string, reserve = false): boolean => {
       const propre = texteSur(nom, 60);
-      if (!propre) return;
+      if (!propre) {
+        journaliser("avertissement", "application", "Compte refusé : nom invalide.");
+        return false;
+      }
       const icone = texteSur(emoji, 8);
       setEtat((e) => {
         if (e.comptes.includes(propre)) return e;
@@ -957,6 +961,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           iconesComptes: icone ? { ...e.iconesComptes, [propre]: icone } : e.iconesComptes,
         };
       });
+      return true;
     },
     [],
   );
