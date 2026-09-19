@@ -82,13 +82,36 @@ const GROUPES = [
     ],
   },
   {
-    titre: "Sauvegarde et partage",
+    titre: "Sauvegarde",
     entrees: [
       {
         to: "/sauvegarde",
         icone: CloudUpload,
-        titre: "Sauvegarde et chiffrement local",
-        detail: "Export chiffré par phrase secrète et points de restauration.",
+        titre: "État des copies chiffrées",
+        detail: "Santé de l'enregistrement automatique et historique des versions à restaurer.",
+      },
+    ],
+  },
+  {
+    titre: "Aide et repères",
+    entrees: [
+      {
+        to: "/aide",
+        icone: LifeBuoy,
+        titre: "Aide et guides",
+        detail: "Démarrage en cinq minutes, guides par onglet, questions fréquentes et dépannage.",
+      },
+      {
+        to: "/notifications",
+        icone: Bell,
+        titre: "Mes notifications",
+        detail: "Tous les rappels et alertes reçus, avec leur suite à donner.",
+      },
+      {
+        to: "/recherche",
+        icone: Search,
+        titre: "Rechercher dans mes données",
+        detail: "Retrouver une opération, un compte, une enveloppe, une dette ou un objectif.",
       },
     ],
   },
