@@ -23,15 +23,15 @@ export function ConfigurationSauvegarde({
   const [email, setEmail] = useState("");
   const [appareil, setAppareil] = useState("MON TÉLÉPHONE");
   const [phrase, setPhrase] = useState("");
-  const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState("");
-  const [phraseNotee, setPhraseNotee] = useState(false);
 
   useEffect(() => {
     const r = lireReglagesMail();
     setEmail(r.email || "");
     setAppareil(r.appareil || "MON TÉLÉPHONE");
-    if (!r.configure || forceOpen) setVisible(true);
+    // Jamais imposée à l'ouverture : l'écran s'affiche seulement depuis la
+    // page Sauvegarde, pour ne bloquer personne au démarrage.
+    if (forceOpen) setVisible(true);
   }, [forceOpen]);
 
   if (!visible) return null;
@@ -47,15 +47,7 @@ export function ConfigurationSauvegarde({
       return;
     }
     if (phrase.trim().length < 8) {
-      setErreur("La phrase de récupération doit contenir au moins 8 caractères.");
-      return;
-    }
-    if (phrase !== confirmation) {
-      setErreur("Les deux phrases saisies ne sont pas identiques.");
-      return;
-    }
-    if (!phraseNotee) {
-      setErreur("Confirmez d'abord que vous avez noté votre phrase de récupération.");
+      setErreur("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
     await enregistrerPhrase(phrase);
@@ -74,12 +66,12 @@ export function ConfigurationSauvegarde({
       <div className="carte w-full max-w-md space-y-4 p-5">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-bold">Protéger mes données</h2>
+          <h2 className="text-lg font-bold">Connexion</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Vos données restent sur ce téléphone. Une copie chiffrée cinq fois est envoyée à votre
-          adresse e-mail : si vous changez de téléphone, vous récupérez tout avec votre phrase de
-          récupération.
+          Entrez votre adresse e-mail et un mot de passe. Vos données restent sur ce téléphone, et
+          une copie chiffrée est rangée dans l'espace de votre adresse e-mail : sur un autre
+          téléphone, les mêmes identifiants ramènent tout.
         </p>
 
         <label className="block space-y-1">
@@ -95,16 +87,7 @@ export function ConfigurationSauvegarde({
         </label>
 
         <label className="block space-y-1">
-          <span className="text-sm font-semibold">Nom de ce téléphone</span>
-          <input
-            value={appareil}
-            onChange={(e) => setAppareil(e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm"
-          />
-        </label>
-
-        <label className="block space-y-1">
-          <span className="text-sm font-semibold">Phrase de récupération</span>
+          <span className="text-sm font-semibold">Mot de passe</span>
           <input
             type="password"
             value={phrase}
@@ -112,31 +95,6 @@ export function ConfigurationSauvegarde({
             placeholder="8 caractères minimum"
             className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm"
           />
-        </label>
-
-        <label className="block space-y-1">
-          <span className="text-sm font-semibold">Répéter la phrase</span>
-          <input
-            type="password"
-            value={confirmation}
-            onChange={(e) => setConfirmation(e.target.value)}
-            className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm"
-          />
-        </label>
-
-        <p className="rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
-          Notez cette phrase quelque part de sûr. Sans elle, personne — pas même nous — ne peut
-          rouvrir vos sauvegardes.
-        </p>
-
-        <label className="flex items-start gap-2 text-xs font-semibold">
-          <input
-            type="checkbox"
-            checked={phraseNotee}
-            onChange={(e) => setPhraseNotee(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
-          />
-          <span>J'ai noté ma phrase de récupération dans un endroit sûr.</span>
         </label>
 
         {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
@@ -147,18 +105,7 @@ export function ConfigurationSauvegarde({
             onClick={() => void valider()}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
           >
-            <Mail className="h-4 w-4" /> Activer la sauvegarde
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              ecrireReglagesMail({ ...lireReglagesMail(), configure: true, actif: true });
-              fermer();
-              window.location.assign("/sauvegarde#recuperation");
-            }}
-            className="w-full rounded-xl border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary"
-          >
-            J'ai changé de téléphone — récupérer mes données
+            <Mail className="h-4 w-4" /> Se connecter
           </button>
           <button
             type="button"

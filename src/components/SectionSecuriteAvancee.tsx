@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, History, KeyRound, ShieldAlert, Vault } from "lucide-react";
+import { Eye, History, KeyRound, ShieldAlert } from "lucide-react";
 import {
   abonnerOptions,
   definirCodeCamouflage,
@@ -11,12 +11,6 @@ import {
   type EvenementAcces,
   type OptionsSecurite,
 } from "@/lib/securite-avancee";
-import {
-  coffreSensibleConfigure,
-  definirPhraseSensible,
-  refermerCoffreSensible,
-  retirerCoffreSensible,
-} from "@/lib/coffre-sensible";
 import { lireReglagesMail } from "@/lib/sauvegarde-email";
 
 type Bascule = {
@@ -78,13 +72,10 @@ export function SectionSecuriteAvancee() {
   const [journal, setJournal] = useState<EvenementAcces[]>([]);
   const [voirJournal, setVoirJournal] = useState(false);
   const [codeCamouflage, setCodeCamouflage] = useState("");
-  const [phrase, setPhrase] = useState("");
   const [message, setMessage] = useState("");
-  const [coffreSensible, setCoffreSensible] = useState(false);
 
   useEffect(() => {
     setJournal(lireJournalAcces());
-    setCoffreSensible(coffreSensibleConfigure());
     return abonnerOptions(setOptions);
   }, []);
 
@@ -201,68 +192,6 @@ export function SectionSecuriteAvancee() {
               Enregistrer ce code
             </button>
           </div>
-        )}
-      </div>
-
-      {/* Double coffre */}
-      <div className="space-y-2 rounded-xl border border-border p-3">
-        <p className="flex items-center gap-2 text-sm font-semibold">
-          <Vault className="h-4 w-4 text-primary" aria-hidden />
-          Deuxième coffre
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Objectifs, dettes, sauvegarde et journal réclament une phrase distincte du code quotidien.
-        </p>
-        <input
-          type="password"
-          value={phrase}
-          onChange={(e) => setPhrase(e.target.value)}
-          placeholder={coffreSensible ? "Phrase actuelle" : "Nouvelle phrase (8 caractères min.)"}
-          className="surface w-full rounded-xl border border-border px-3 py-2.5 text-sm"
-        />
-        {coffreSensible ? (
-          <button
-            type="button"
-            onClick={() =>
-              void retirerCoffreSensible(phrase).then((ok) => {
-                setPhrase("");
-                setCoffreSensible(coffreSensibleConfigure());
-                setOptions(ecrireOptions({ doubleCoffre: !ok && options.doubleCoffre }));
-                setMessage(ok ? "Deuxième coffre supprimé." : "Phrase incorrecte.");
-              })
-            }
-            className="w-full rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive"
-          >
-            Supprimer le deuxième coffre
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled={phrase.length < 8}
-            onClick={() =>
-              void definirPhraseSensible(phrase).then(() => {
-                setPhrase("");
-                setCoffreSensible(true);
-                setOptions(ecrireOptions({ doubleCoffre: true }));
-                setMessage("Deuxième coffre activé.");
-              })
-            }
-            className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-          >
-            Activer le deuxième coffre
-          </button>
-        )}
-        {coffreSensible && (
-          <button
-            type="button"
-            onClick={() => {
-              refermerCoffreSensible();
-              setMessage("Deuxième coffre refermé.");
-            }}
-            className="w-full rounded-xl border border-border px-4 py-2 text-sm font-semibold"
-          >
-            Refermer maintenant
-          </button>
         )}
       </div>
 
