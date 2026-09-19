@@ -35,11 +35,13 @@ import {
 export const Route = createFileRoute("/compte")({
   validateSearch: (
     s: Record<string, unknown>,
-  ): { changement?: "1"; email?: string; jeton?: string } => ({
-    changement: s["changement"] === "1" ? "1" : undefined,
-    email: typeof s["email"] === "string" ? (s["email"] as string) : undefined,
-    jeton: typeof s["jeton"] === "string" ? (s["jeton"] as string) : undefined,
-  }),
+  ): { changement?: "1"; email?: string; jeton?: string } => {
+    const sortie: { changement?: "1"; email?: string; jeton?: string } = {};
+    if (s["changement"] === "1") sortie.changement = "1";
+    if (typeof s["email"] === "string") sortie.email = s["email"];
+    if (typeof s["jeton"] === "string") sortie.jeton = s["jeton"];
+    return sortie;
+  },
   head: () => ({
     meta: [
       { title: "Mon compte — SUPER APP" },
