@@ -3,11 +3,15 @@
  * l'utilisateur crée son compte (adresse e-mail + mot de passe) ou se connecte
  * à un compte existant. À la connexion, les données enregistrées dans l'espace
  * chiffré de l'adresse e-mail reviennent automatiquement.
+ *
+ * Mot de passe oublié : l'utilisateur reçoit un e-mail contenant un lien
+ * unique ; c'est en ouvrant ce lien (/?changement=1&email=…&jeton=…) qu'il
+ * peut réellement choisir son nouveau mot de passe.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { KeyRound, LogIn, UserPlus } from "lucide-react";
+import { KeyRound, LogIn, MailCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSuperApp, type Etat } from "@/lib/store";
@@ -24,11 +28,16 @@ import {
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
 import {
-  demanderCodeConfirmation,
-  verifierCodeConfirmation,
+  demanderLienChangement,
+  verifierLienChangement,
 } from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    changement: s.changement === "1" ? ("1" as const) : undefined,
+    email: typeof s.email === "string" ? s.email : undefined,
+    jeton: typeof s.jeton === "string" ? s.jeton : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Mon compte — SUPER APP" },
@@ -51,21 +60,23 @@ export const Route = createFileRoute("/compte")({
 
 function PageCompte() {
   const navigate = useNavigate();
+  const recherche = Route.useSearch();
+  const depuisLien = recherche.changement === "1" && !!recherche.jeton && !!recherche.email;
   const app = useSuperApp();
   const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
-  const [jeton, setJeton] = useState("");
-  const [code, setCode] = useState("");
+  const [lienEnvoye, setLienEnvoye] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setEmail(emailDuCompte());
+    setEmail(depuisLien ? (recherche.email ?? "") : emailDuCompte());
     const t = window.setTimeout(() => champRef.current?.focus(), 150);
     return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function terminer() {
@@ -143,13 +154,49 @@ function PageCompte() {
     terminer();
   }
 
-  /** Étape 1 : vérifie la demande puis envoie le code de confirmation par e-mail. */
-  async function envoyerCode() {
+  const donneesPresentes = () =>
+    compteConnecte() || (app.transactions?.length ?? 0) > 0 || (app.comptes?.length ?? 0) > 0;
+
+  /** Étape 1 (oubli) : envoie l'e-mail contenant le lien de changement. */
+  async function envoyerLien() {
     setErreur(null);
     if (!estEmailValide(email)) {
       setErreur("Entrez l'adresse e-mail de votre compte.");
       return;
     }
+    if (!donneesPresentes()) {
+      setErreur(
+        "Impossible ici : ce téléphone ne contient aucune de vos données et tout est chiffré avec l'ancien mot de passe. Sans lui, personne ne peut les lire. Retrouvez le mot de passe, ou utilisez le téléphone qui contient encore vos données.",
+      );
+      return;
+    }
+    setEnCours(true);
+    let reponse: Awaited<ReturnType<typeof demanderLienChangement>> | null = null;
+    try {
+      reponse = await demanderLienChangement({
+        data: { email: email.trim(), appareil: lireReglagesMulti().cetAppareil },
+      });
+    } catch {
+      reponse = null;
+    }
+    setEnCours(false);
+    if (!reponse?.envoye) {
+      setErreur(
+        reponse?.message
+          ? `L'e-mail n'a pas pu être envoyé : ${reponse.message}`
+          : "L'e-mail n'a pas pu être envoyé. Vérifiez votre réseau et réessayez.",
+      );
+      return;
+    }
+    setLienEnvoye(true);
+    toast.success("E-mail envoyé.", {
+      description: `Ouvrez la boîte de ${email.trim()} et cliquez le lien reçu : il est valable 15 minutes.`,
+    });
+  }
+
+  /** Étape 2 (lien cliqué) : vérifie le jeton puis applique le nouveau mot de passe. */
+  async function appliquerNouveauMotDePasse() {
+    setErreur(null);
     if (!motDePasseValide(motDePasse)) {
       setErreur("Choisissez un nouveau mot de passe de 8 caractères minimum.");
       return;
@@ -158,60 +205,24 @@ function PageCompte() {
       setErreur("Les deux mots de passe ne sont pas identiques.");
       return;
     }
-    const aDesDonnees =
-      compteConnecte() ||
-      (app.transactions?.length ?? 0) > 0 ||
-      (app.comptes?.length ?? 0) > 0;
-    if (!aDesDonnees) {
+    if (!donneesPresentes()) {
       setErreur(
-        "Impossible ici : ce téléphone ne contient aucune de vos données et tout est chiffré avec l'ancien mot de passe. Sans lui, personne ne peut les lire. Retrouvez le mot de passe, ou utilisez le téléphone qui contient encore vos données.",
+        "Ce téléphone ne contient pas vos données : ouvrez ce lien sur le téléphone qui les contient encore.",
       );
-      return;
-    }
-    setEnCours(true);
-    let reponse: Awaited<ReturnType<typeof demanderCodeConfirmation>> | null = null;
-    try {
-      reponse = await demanderCodeConfirmation({
-        data: { email: email.trim(), appareil: lireReglagesMulti().cetAppareil },
-      });
-    } catch {
-      reponse = null;
-    }
-    setEnCours(false);
-    if (!reponse?.envoye || !reponse.jeton) {
-      setErreur(
-        reponse?.message
-          ? `Le code n'a pas pu être envoyé : ${reponse.message}`
-          : "Le code n'a pas pu être envoyé. Vérifiez votre réseau et réessayez.",
-      );
-      return;
-    }
-    setJeton(reponse.jeton);
-    setCode("");
-    toast.success("Code envoyé par e-mail.", {
-      description: `Ouvrez la boîte de ${email.trim()} : le code à 6 chiffres est valable 15 minutes.`,
-    });
-  }
-
-  /** Étape 2 : confirme le code reçu par e-mail, puis change le mot de passe. */
-  async function confirmerCode() {
-    setErreur(null);
-    if (!/^\d{6}$/.test(code.trim())) {
-      setErreur("Entrez le code à 6 chiffres reçu par e-mail.");
       return;
     }
     setEnCours(true);
     let verif: { valide: boolean; message?: string } | null = null;
     try {
-      verif = await verifierCodeConfirmation({
-        data: { email: email.trim(), code: code.trim(), jeton },
+      verif = await verifierLienChangement({
+        data: { email: email.trim(), jeton: recherche.jeton ?? "" },
       });
     } catch {
       verif = null;
     }
     if (!verif?.valide) {
       setEnCours(false);
-      setErreur(verif?.message ?? "Vérification impossible. Réessayez.");
+      setErreur(verif?.message ?? "Vérification du lien impossible. Réessayez.");
       return;
     }
     const resultat = await changerMotDePasse(
@@ -224,8 +235,6 @@ function PageCompte() {
       setErreur("Le changement n'a pas abouti. Réessayez.");
       return;
     }
-    setJeton("");
-    setCode("");
     toast.success("Mot de passe changé.", {
       description: resultat.copieDeposee
         ? "Une copie complète de vos données a été enregistrée, chiffrée avec le nouveau mot de passe."
@@ -236,216 +245,226 @@ function PageCompte() {
 
   const creation = mode === "creation";
   const oubli = mode === "oubli";
-  const attenteCode = oubli && jeton !== "";
 
   return (
     <section className="min-h-[70vh] pb-[calc(var(--app-keyboard-height,0px)+2rem)] pt-4">
       <div className="carte w-full space-y-4 p-5">
         <h1 className="flex items-center gap-2 text-lg font-semibold">
-          {creation ? (
+          {depuisLien ? (
+            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
+          ) : creation ? (
             <UserPlus className="h-5 w-5 text-primary" aria-hidden />
           ) : oubli ? (
-            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
+            <MailCheck className="h-5 w-5 text-primary" aria-hidden />
           ) : (
             <LogIn className="h-5 w-5 text-primary" aria-hidden />
           )}
-          {creation ? "Créer mon compte" : oubli ? "Mot de passe oublié" : "Me connecter"}
+          {depuisLien
+            ? "Nouveau mot de passe"
+            : creation
+              ? "Créer mon compte"
+              : oubli
+                ? "Mot de passe oublié"
+                : "Me connecter"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {oubli
-            ? "Choisissez un nouveau mot de passe : nous envoyons un code de confirmation à votre adresse e-mail, et le changement n'est appliqué qu'après ce code. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
-            : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
+          {depuisLien
+            ? "Vous avez ouvert le lien reçu par e-mail : choisissez maintenant votre nouveau mot de passe. Une copie complète de vos données sera aussitôt enregistrée, chiffrée avec ce nouveau mot de passe."
+            : oubli
+              ? "Entrez l'adresse e-mail de votre compte : nous vous envoyons un e-mail contenant un lien. C'est en cliquant ce lien que vous pourrez réellement changer votre mot de passe. C'est possible uniquement parce que vos données sont encore sur ce téléphone."
+              : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
         </p>
 
-        {!oubli && (
-        <div className="flex gap-2 rounded-xl border border-border p-1">
-          {(["connexion", "creation"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => {
-                setMode(m);
-                setErreur(null);
-              }}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${
-                mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              {m === "connexion" ? "J'ai déjà un compte" : "Nouveau compte"}
-            </button>
-          ))}
-        </div>
+        {!oubli && !depuisLien && (
+          <div className="flex gap-2 rounded-xl border border-border p-1">
+            {(["connexion", "creation"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMode(m);
+                  setErreur(null);
+                }}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${
+                  mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {m === "connexion" ? "J'ai déjà un compte" : "Nouveau compte"}
+              </button>
+            ))}
+          </div>
         )}
 
-        <form
-          className="space-y-3"
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            void (creation
-              ? creerCompte()
-              : oubli
-                ? attenteCode
-                  ? confirmerCode()
-                  : envoyerCode()
-                : seConnecter());
-          }}
-        >
-          <div>
-            <label htmlFor="email-compte" className="text-sm font-medium">
-              Adresse e-mail
-            </label>
-            <input
-              id="email-compte"
-              ref={champRef}
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              data-majuscules="non"
-              value={email}
-              onChange={(ev) => {
-                setEmail(ev.target.value);
+        {oubli && lienEnvoye ? (
+          <div className="space-y-3">
+            <p className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
+              L'e-mail est parti vers <strong>{email.trim()}</strong>. Ouvrez-le et cliquez le lien
+              « Changer mon mot de passe » : vous reviendrez ici pour choisir le nouveau mot de
+              passe. Le lien est valable 15 minutes.
+            </p>
+            <button
+              type="button"
+              disabled={enCours}
+              onClick={() => void envoyerLien()}
+              className="w-full py-2 text-sm font-semibold text-primary disabled:opacity-60"
+            >
+              Renvoyer l'e-mail
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("connexion");
                 setErreur(null);
+                setLienEnvoye(false);
               }}
-              placeholder="exemple@mail.com"
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-            />
+              className="w-full py-2 text-sm font-semibold text-muted-foreground"
+            >
+              Retour à la connexion
+            </button>
           </div>
-
-          <div>
-            <label htmlFor="mdp-compte" className="text-sm font-medium">
-              {oubli ? "Nouveau mot de passe" : "Mot de passe"}
-            </label>
-            <input
-              id="mdp-compte"
-              type="password"
-              autoComplete={creation ? "new-password" : "current-password"}
-              value={motDePasse}
-              onChange={(ev) => {
-                setMotDePasse(ev.target.value);
-                setErreur(null);
-              }}
-              placeholder="8 caractères minimum"
-              className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-            />
-            {creation || oubli ? (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ce mot de passe est la seule clé de vos données chiffrées : notez-le en lieu sûr, il
-                ne peut pas être retrouvé.
-              </p>
-            ) : null}
-          </div>
-
-          {oubli && (
-            <div>
-              <label htmlFor="mdp-confirmation" className="text-sm font-medium">
-                Confirmez le nouveau mot de passe
-              </label>
-              <input
-                id="mdp-confirmation"
-                type="password"
-                autoComplete="new-password"
-                value={confirmation}
-                onChange={(ev) => {
-                  setConfirmation(ev.target.value);
-                  setErreur(null);
-                }}
-                placeholder="Retapez le même mot de passe"
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
-
-          {attenteCode && (
-            <div>
-              <label htmlFor="code-confirmation" className="text-sm font-medium">
-                Code reçu par e-mail
-              </label>
-              <input
-                id="code-confirmation"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                onChange={(ev) => {
-                  setCode(ev.target.value.replace(/\D/g, "").slice(0, 6));
-                  setErreur(null);
-                }}
-                placeholder="6 chiffres"
-                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-center text-lg tracking-[0.4em] outline-none focus:ring-2 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Nous avons envoyé un code à 6 chiffres à {email.trim()}. Il est valable 15 minutes.
-              </p>
-            </div>
-          )}
-
-          {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
-
-          <button
-            type="submit"
-            disabled={enCours}
-            className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99] disabled:opacity-60"
+        ) : (
+          <form
+            className="space-y-3"
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              void (depuisLien
+                ? appliquerNouveauMotDePasse()
+                : creation
+                  ? creerCompte()
+                  : oubli
+                    ? envoyerLien()
+                    : seConnecter());
+            }}
           >
-            {enCours
-              ? creation
-                ? "Création…"
-                : oubli
-                  ? attenteCode
-                    ? "Vérification…"
-                    : "Envoi du code…"
-                  : "Connexion…"
-              : creation
-                ? "Créer mon compte"
-                : oubli
-                  ? attenteCode
-                    ? "Confirmer et changer mon mot de passe"
-                    : "Recevoir le code par e-mail"
-                  : "Se connecter"}
-          </button>
+            {!depuisLien && (
+              <div>
+                <label htmlFor="email-compte" className="text-sm font-medium">
+                  Adresse e-mail
+                </label>
+                <input
+                  id="email-compte"
+                  ref={champRef}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  data-majuscules="non"
+                  value={email}
+                  onChange={(ev) => {
+                    setEmail(ev.target.value);
+                    setErreur(null);
+                  }}
+                  placeholder="exemple@mail.com"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            )}
 
-          {oubli ? (
-            <>
-              {attenteCode && (
-                <button
-                  type="button"
-                  disabled={enCours}
-                  onClick={() => void envoyerCode()}
-                  className="w-full py-2 text-sm font-semibold text-primary disabled:opacity-60"
-                >
-                  Renvoyer un nouveau code
-                </button>
-              )}
+            {depuisLien && (
+              <p className="rounded-xl border border-border bg-muted/40 p-3 text-sm">
+                Compte : <strong>{email}</strong>
+              </p>
+            )}
+
+            {!oubli && (
+              <div>
+                <label htmlFor="mdp-compte" className="text-sm font-medium">
+                  {depuisLien ? "Nouveau mot de passe" : "Mot de passe"}
+                </label>
+                <input
+                  id="mdp-compte"
+                  type="password"
+                  autoComplete={creation || depuisLien ? "new-password" : "current-password"}
+                  value={motDePasse}
+                  onChange={(ev) => {
+                    setMotDePasse(ev.target.value);
+                    setErreur(null);
+                  }}
+                  placeholder="8 caractères minimum"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                />
+                {creation || depuisLien ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Ce mot de passe est la seule clé de vos données chiffrées : notez-le en lieu
+                    sûr, il ne peut pas être retrouvé.
+                  </p>
+                ) : null}
+              </div>
+            )}
+
+            {depuisLien && (
+              <div>
+                <label htmlFor="mdp-confirmation" className="text-sm font-medium">
+                  Confirmez le nouveau mot de passe
+                </label>
+                <input
+                  id="mdp-confirmation"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmation}
+                  onChange={(ev) => {
+                    setConfirmation(ev.target.value);
+                    setErreur(null);
+                  }}
+                  placeholder="Retapez le même mot de passe"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            )}
+
+            {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
+
+            <button
+              type="submit"
+              disabled={enCours}
+              className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-transform active:scale-[0.99] disabled:opacity-60"
+            >
+              {enCours
+                ? depuisLien
+                  ? "Changement…"
+                  : creation
+                    ? "Création…"
+                    : oubli
+                      ? "Envoi de l'e-mail…"
+                      : "Connexion…"
+                : depuisLien
+                  ? "Changer mon mot de passe"
+                  : creation
+                    ? "Créer mon compte"
+                    : oubli
+                      ? "Recevoir le lien par e-mail"
+                      : "Se connecter"}
+            </button>
+
+            {oubli ? (
               <button
                 type="button"
                 onClick={() => {
                   setMode("connexion");
                   setErreur(null);
                   setConfirmation("");
-                  setJeton("");
-                  setCode("");
                 }}
                 className="w-full py-2 text-sm font-semibold text-muted-foreground"
               >
                 Retour à la connexion
               </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("oubli");
-                setErreur(null);
-                setConfirmation("");
-                setJeton("");
-                setCode("");
-              }}
-              className="w-full py-2 text-sm font-semibold text-primary"
-            >
-              Mot de passe oublié ?
-            </button>
-          )}
-        </form>
+            ) : (
+              !depuisLien && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("oubli");
+                    setErreur(null);
+                    setConfirmation("");
+                    setLienEnvoye(false);
+                  }}
+                  className="w-full py-2 text-sm font-semibold text-primary"
+                >
+                  Mot de passe oublié ?
+                </button>
+              )
+            )}
+          </form>
+        )}
       </div>
     </section>
   );
