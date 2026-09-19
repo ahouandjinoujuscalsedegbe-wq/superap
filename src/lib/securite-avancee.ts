@@ -56,7 +56,40 @@ const CLE_CAMOUFLAGE = "superapp:securite:camouflage";
 /** Session fictive permanente installée après un effacement de sécurité. */
 const CLE_FICTIF_PERMANENT = "superapp:securite:fictif";
 /** Réglages et code d'accès conservés lors d'un effacement de sécurité. */
-const CLES_CONSERVEES = ["superapp:securite:v1", CLE_OPTIONS, CLE_FICTIF_PERMANENT];
+/** Trace de l'effacement : conservée pour prévenir le propriétaire légitime. */
+const CLE_TRACE_EFFACEMENT = "superapp:securite:trace-effacement:v1";
+const CLES_CONSERVEES = [
+  "superapp:securite:v1",
+  CLE_OPTIONS,
+  CLE_FICTIF_PERMANENT,
+  CLE_TRACE_EFFACEMENT,
+];
+
+export type TraceEffacement = {
+  /** Date de l'effacement de sécurité. */
+  date: string;
+  /** Date de la dernière copie chiffrée déposée à distance, si connue. */
+  derniereCopie?: string;
+};
+
+/** Lit la trace du dernier effacement de sécurité (null si aucun). */
+export function lireTraceEffacement(): TraceEffacement | null {
+  try {
+    const brut = window.localStorage.getItem(CLE_TRACE_EFFACEMENT);
+    return brut ? (JSON.parse(brut) as TraceEffacement) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Retire la trace une fois que l'utilisateur l'a lue. */
+export function oublierTraceEffacement(): void {
+  try {
+    window.localStorage.removeItem(CLE_TRACE_EFFACEMENT);
+  } catch {
+    /* stockage indisponible */
+  }
+}
 
 const abonnes = new Set<(o: OptionsSecurite) => void>();
 
@@ -234,8 +267,14 @@ export function retirerCodeCamouflage(): void {
  * session fictive. Pour retrouver ses vraies données, l'utilisateur doit
  * réinstaller l'application puis restaurer sa sauvegarde.
  */
-export function effacerToutesLesDonnees(): void {
+export function effacerToutesLesDonnees(derniereCopie?: string): void {
   try {
+    // Trace minimale, conservée exprès : sans elle, le propriétaire légitime
+    // croirait à une panne et ne saurait pas qu'il doit restaurer sa copie.
+    const trace: TraceEffacement = {
+      date: new Date().toISOString(),
+      ...(derniereCopie ? { derniereCopie } : {}),
+    };
     const aSupprimer: string[] = [];
     for (let i = 0; i < window.localStorage.length; i += 1) {
       const cle = window.localStorage.key(i);
@@ -243,6 +282,8 @@ export function effacerToutesLesDonnees(): void {
         aSupprimer.push(cle);
     }
     for (const cle of aSupprimer) window.localStorage.removeItem(cle);
+    window.localStorage.setItem(CLE_TRACE_EFFACEMENT, JSON.stringify(trace));
+    journaliserAcces("effacement", "Effacement de sécurité après codes incorrects répétés.");
     // Aucun signal : à la prochaine ouverture, des données fictives s'affichent.
     window.localStorage.setItem(CLE_FICTIF_PERMANENT, "1");
   } catch {
