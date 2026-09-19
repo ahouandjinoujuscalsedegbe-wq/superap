@@ -1032,6 +1032,21 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /**
+   * Compte réellement débité pour les transferts automatiques déclenchés par
+   * un revenu arrivant sur ce compte. Chaîne vide = retour au compte crédité.
+   */
+  const definirCompteRelais = useCallback((nom: string, relais: string) => {
+    const choisi = texteSur(relais, 60);
+    setEtat((e) => {
+      if (!e.comptes.includes(nom)) return e;
+      const suite = { ...e.comptesRelais };
+      if (!choisi || choisi === nom || !e.comptes.includes(choisi)) delete suite[nom];
+      else suite[nom] = choisi;
+      return { ...e, comptesRelais: suite };
+    });
+  }, []);
+
   const definirIconeCompte = useCallback((nom: string, emoji: string) => {
     const icone = texteSur(emoji, 8);
     setEtat((e) => {
