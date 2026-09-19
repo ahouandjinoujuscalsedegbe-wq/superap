@@ -519,7 +519,12 @@ type Contexte = Etat & {
    * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
    * contenu vers le compte « Tontines ».
    */
-  verserEnveloppeVersTontines: (enveloppeId: string, date?: string, note?: string) => void;
+  verserEnveloppeVersTontines: (
+    enveloppeId: string,
+    date?: string,
+    note?: string,
+    objectifId?: string,
+  ) => void;
   /** Déplace une dotation d'une enveloppe vers une autre (plan de secours). */
   transfererEntreEnveloppes: (sourceId: string, cibleId: string, montant: number) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
