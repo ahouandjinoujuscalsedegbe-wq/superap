@@ -46,7 +46,8 @@ export const demanderCodeConfirmation = createServerFn({ method: "POST" })
       return { envoye: false, message: "L'envoi d'e-mails n'est pas encore configuré." };
     }
 
-    const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+    const tirage = crypto.getRandomValues(new Uint32Array(1))[0] ?? Date.now();
+    const code = String(tirage % 1000000).padStart(6, "0");
     const expire = Date.now() + DUREE_MS;
     const signature = await signer(`${email}|${expire}|${code}`);
     const jeton = `${expire}.${signature}`;
