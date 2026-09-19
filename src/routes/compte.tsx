@@ -81,7 +81,10 @@ function PageCompte() {
 
     const gererLienNatif = (event: Event) => {
       const detail = (event as CustomEvent<LienApplication>).detail;
-      if (detail) appliquerLien(detail);
+      if (detail) {
+        prendreLienApplication();
+        appliquerLien(detail);
+      }
     };
     window.addEventListener(EVENEMENT_LIEN_APPLICATION, gererLienNatif);
 
