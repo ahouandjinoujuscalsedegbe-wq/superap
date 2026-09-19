@@ -283,7 +283,7 @@ function PageCompteParametres() {
         <button
           type="button"
           disabled={enCours === "lien"}
-          onClick={() => void demanderLien()}
+          onClick={() => void demanderLienDepuisCompte()}
           className="w-full rounded-xl border border-input px-3 py-2.5 text-sm font-semibold disabled:opacity-60"
         >
           {enCours === "lien" ? "Envoi…" : "Changer mon mot de passe"}
