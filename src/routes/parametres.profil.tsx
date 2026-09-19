@@ -46,36 +46,7 @@ function PageProfil() {
         </div>
       </section>
 
-      <section className="carte p-4">
-        <div className="flex items-center justify-between">
-          <label htmlFor="transparence" className="font-semibold">
-            Opacité des surfaces roses
-          </label>
-          <span className="text-sm font-semibold text-primary">{transparence} %</span>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Faites glisser pour rendre les cartes plus ou moins transparentes.
-        </p>
-        <input
-          id="transparence"
-          type="range"
-          min={20}
-          max={100}
-          step={1}
-          value={transparence}
-          onChange={(e) => definirTransparence(Number(e.target.value))}
-          className="mt-4 w-full accent-[var(--primary)]"
-        />
-      </section>
-
       <SectionCouple />
-
-      <section className="carte space-y-2 p-4">
-        <h2 className="font-semibold">Devise et langue</h2>
-        <p className="text-sm text-muted-foreground">
-          Franc CFA (XOF / XAF) · Interface entièrement en français.
-        </p>
-      </section>
     </div>
   );
 }
