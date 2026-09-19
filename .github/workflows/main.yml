@@ -250,6 +250,19 @@ jobs:
           if "android.speech.RecognitionService" not in contenu:
               contenu = contenu.replace("<application", requetes + "\n    <application", 1)
 
+          # Le bouton reçu par e-mail ouvre SUPER APP directement, sans page web.
+          # Le filtre est limité au schéma privé et à l'écran du compte.
+          if 'android:scheme="superappbudget"' not in contenu:
+              filtre_lien = '''
+              <intent-filter>
+                  <action android:name="android.intent.action.VIEW" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
+                  <data android:scheme="superappbudget" android:host="compte" />
+              </intent-filter>
+          '''
+              contenu = contenu.replace("</activity>", filtre_lien + "\n        </activity>", 1)
+
           if "androidx.core.content.FileProvider" not in contenu:
               provider = '''
               <provider
