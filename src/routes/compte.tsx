@@ -33,15 +33,6 @@ import {
 } from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
-  validateSearch: (
-    s: Record<string, unknown>,
-  ): { changement?: "1"; email?: string; jeton?: string } => {
-    const sortie: { changement?: "1"; email?: string; jeton?: string } = {};
-    if (s["changement"] === "1") sortie.changement = "1";
-    if (typeof s["email"] === "string") sortie.email = s["email"];
-    if (typeof s["jeton"] === "string") sortie.jeton = s["jeton"];
-    return sortie;
-  },
   head: () => ({
     meta: [
       { title: "Mon compte — SUPER APP" },
@@ -64,8 +55,11 @@ export const Route = createFileRoute("/compte")({
 
 function PageCompte() {
   const navigate = useNavigate();
-  const recherche = Route.useSearch();
-  const depuisLien = recherche.changement === "1" && !!recherche.jeton && !!recherche.email;
+  // Le lien reçu par e-mail (/compte?changement=1&email=…&jeton=…) est lu
+  // directement depuis l'URL : le validateur de recherche du routeur
+  // n'est pas appliqué de façon fiable sur cette page indépendante.
+  const [lien, setLien] = useState<{ email: string; jeton: string } | null>(null);
+  const depuisLien = !!lien;
   const app = useSuperApp();
   const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
   const [email, setEmail] = useState("");
@@ -77,10 +71,17 @@ function PageCompte() {
   const champRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setEmail(depuisLien ? (recherche.email ?? "") : emailDuCompte());
+    const params = new URLSearchParams(window.location.search);
+    const courriel = params.get("email");
+    const jetonLu = params.get("jeton");
+    if (params.get("changement") === "1" && courriel && jetonLu) {
+      setLien({ email: courriel, jeton: jetonLu });
+      setEmail(courriel);
+    } else {
+      setEmail(emailDuCompte());
+    }
     const t = window.setTimeout(() => champRef.current?.focus(), 150);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function terminer() {
@@ -219,7 +220,7 @@ function PageCompte() {
     let verif: { valide: boolean; message?: string } | null = null;
     try {
       verif = await verifierLienChangement({
-        data: { email: email.trim(), jeton: recherche.jeton ?? "" },
+        data: { email: email.trim(), jeton: lien?.jeton ?? "" },
       });
     } catch {
       verif = null;
