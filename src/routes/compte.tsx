@@ -14,7 +14,9 @@ import { useSuperApp, type Etat } from "@/lib/store";
 import { instantaneEtat } from "@/lib/instantane";
 import { fusionnerDonneesCompte, lireReglagesMulti } from "@/lib/multi-appareil";
 import {
+  changerMotDePasse,
   chercherDonneesCompte,
+  compteConnecte,
   deposerPremiereCopie,
   emailDuCompte,
   estEmailValide,
@@ -46,9 +48,10 @@ export const Route = createFileRoute("/compte")({
 function PageCompte() {
   const navigate = useNavigate();
   const app = useSuperApp();
-  const [mode, setMode] = useState<"connexion" | "creation">("connexion");
+  const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
