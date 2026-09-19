@@ -65,6 +65,7 @@ export const Route = createFileRoute("/compte")({
 function PageCompte() {
   const navigate = useNavigate();
   const recherche = Route.useSearch();
+  console.log("DEBUG recherche", JSON.stringify(recherche));
   const depuisLien = recherche.changement === "1" && !!recherche.jeton && !!recherche.email;
   const app = useSuperApp();
   const [mode, setMode] = useState<"connexion" | "creation" | "oubli">("connexion");
