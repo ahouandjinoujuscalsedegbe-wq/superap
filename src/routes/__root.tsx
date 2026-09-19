@@ -30,7 +30,6 @@ import { suivreSaisies } from "@/lib/brouillons";
 import { SecuriteProvider } from "@/lib/securite";
 import { EcranVerrou } from "../components/EcranVerrou";
 import { ProtectionsEcran } from "../components/ProtectionsEcran";
-import { GardeCoffreSensible } from "../components/GardeCoffreSensible";
 import { GardeActionSensible } from "../components/GardeActionSensible";
 import { DemandeMotDePasseAction } from "../components/DemandeMotDePasseAction";
 import { MiseAJourAuto } from "../components/MiseAJourAuto";
@@ -213,7 +212,6 @@ function RootComponent() {
           <Toaster position="top-center" richColors />
           <EcranVerrou />
           <ProtectionsEcran />
-          <GardeCoffreSensible />
           <GardeActionSensible />
           <DemandeMotDePasseAction />
           <MiseAJourAuto />
