@@ -158,6 +158,8 @@ export type Objectif = {
   rappelIntervalle?: number | undefined;
   /** Date du premier rappel (YYYY-MM-DD). */
   rappelDebut?: string | undefined;
+  /** Date unique choisie d'office : un seul rappel, ce jour-là (remplace le rythme régulier). */
+  rappelDateUnique?: string | undefined;
   /** false pour désactiver les rappels de cotisation de cet objectif. */
   rappelActif?: boolean | undefined;
   /** Enveloppe d'épargne associée, si l'utilisateur en choisit une. */
