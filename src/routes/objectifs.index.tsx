@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { PiggyBank, Target } from "lucide-react";
+import { ChevronRight, HandCoins, PiggyBank, Target } from "lucide-react";
 import { HistoriqueRappels } from "@/components/HistoriqueRappels";
 
 import { useSuperApp, type TypeObjectif, type UniteRappel } from "@/lib/store";
