@@ -53,7 +53,7 @@ const GROUPES = [
         to: "/parametres/donnees",
         icone: Database,
         titre: "Données locales",
-        detail: "Réinitialisation, points de restauration, journal et purge.",
+        detail: "Points de restauration et corbeille.",
       },
     ],
   },
