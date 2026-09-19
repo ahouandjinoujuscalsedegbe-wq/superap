@@ -229,6 +229,7 @@ export function assainirTransfert(v: unknown): Transfert | null {
     t.fraisSur = v["fraisSur"] === "destination" ? "destination" : "source";
   }
   if (idValide(v["detteId"])) t.detteId = v["detteId"];
+  if (idValide(v["objectifId"])) t.objectifId = v["objectifId"];
   return t;
 }
 
