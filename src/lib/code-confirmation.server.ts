@@ -84,6 +84,8 @@ export async function envoyerLienChangement(emailBrut: string): Promise<Resultat
     `${LIEN_APPLICATION}?email=${encodeURIComponent(email)}` +
     `&jeton=${encodeURIComponent(jeton)}`;
 
+  const code = await codeActuel(email);
+
   const texte = `SUPER APP — changement de mot de passe
 
 Vous avez demandé à changer le mot de passe de votre compte.
