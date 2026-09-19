@@ -12,7 +12,7 @@
  */
 
 /** Version installée. À incrémenter à chaque nouvelle compilation d'APK. */
-export const VERSION_APPLICATION = "1.0.42";
+export const VERSION_APPLICATION = "1.0.43";
 
 /** Adresse par défaut du fichier `version.json` (modifiable dans Paramètres). */
 export const URL_MANIFESTE_DEFAUT =
@@ -27,7 +27,7 @@ export const DEPOT_GITHUB = "ahouandjinoujuscalsedegbe-wq/superap";
  * Le jeton GitHub reste sur ce serveur : il n'est plus intégré à l'APK, donc
  * personne ne peut l'extraire en décompilant l'application.
  */
-export const RELAIS_MAJ = "https://project--b91e98b0-46c7-4862-bedb-54f46fe01199.lovable.app";
+export const RELAIS_MAJ = "https://project--b91e98b0-46c7-4862-bedb-54f46fe01199-dev.lovable.app";
 
 /** Délai minimum entre deux vérifications automatiques (6 heures). */
 const DELAI_AUTO_MS = 6 * 60 * 60 * 1000;
