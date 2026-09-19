@@ -546,6 +546,19 @@ function PageDettes() {
         </div>
       </header>
 
+      <Link
+        to="/debiteurs"
+        className="carte flex items-center gap-3 p-4 text-left"
+      >
+        <Users className="h-5 w-5 text-primary" aria-hidden />
+        <span>
+          <span className="block text-sm font-semibold">Mes débiteurs</span>
+          <span className="block text-xs text-muted-foreground">
+            Solde dû, prochaine échéance et remboursements, personne par personne
+          </span>
+        </span>
+      </Link>
+
       <button
         type="button"
         onClick={ouvrirCreation}
