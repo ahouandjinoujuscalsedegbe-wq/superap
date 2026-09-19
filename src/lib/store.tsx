@@ -367,6 +367,12 @@ export type Etat = {
    * ils sont présentés à part pour ne pas être mélangés aux autres comptes.
    */
   comptesReserves: string[];
+  /**
+   * Compte réellement débité lorsqu'un revenu arrive sur un compte donné :
+   * « compte crédité → compte à débiter pour les transferts automatiques ».
+   * Absent = le compte crédité est débité lui-même.
+   */
+  comptesRelais: Record<string, string>;
   /** Approvisionnements des enveloppes depuis les comptes. */
   remplissages: Remplissage[];
   budgets: Budget[];
