@@ -14,6 +14,41 @@ const LIEN_APPLICATION = "superappbudget://compte";
 
 export const adresseValide = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 
+/**
+ * Code de secours à six chiffres.
+ *
+ * Certaines boîtes e-mail (Gmail en particulier) n'affichent pas le lien privé
+ * de l'application comme un bouton cliquable : rien ne s'ouvre alors au
+ * toucher. Le même e-mail porte donc un code que l'utilisateur recopie dans
+ * l'application. Le code est calculé (jamais stocké) à partir d'une tranche de
+ * cinq minutes : les trois dernières tranches sont acceptées, soit 15 minutes.
+ */
+const TRANCHE_MS = 5 * 60 * 1000;
+
+async function codePourTranche(email: string, tranche: number): Promise<string> {
+  const signature = await signerLien(`code|${email}|${tranche}`);
+  const valeur = parseInt(signature.slice(0, 8), 16) % 1_000_000;
+  return String(valeur).padStart(6, "0");
+}
+
+export async function codeActuel(email: string): Promise<string> {
+  return codePourTranche(email, Math.floor(Date.now() / TRANCHE_MS));
+}
+
+export async function verifierCodeConfirmation(
+  emailBrut: string,
+  codeBrut: string,
+): Promise<{ valide: boolean; message?: string }> {
+  const email = (emailBrut || "").trim();
+  const code = (codeBrut || "").replace(/\D/g, "");
+  if (code.length !== 6) return { valide: false, message: "Entrez les 6 chiffres reçus par e-mail." };
+  const tranche = Math.floor(Date.now() / TRANCHE_MS);
+  for (let recul = 0; recul < 3; recul += 1) {
+    if ((await codePourTranche(email, tranche - recul)) === code) return { valide: true };
+  }
+  return { valide: false, message: "Code incorrect ou expiré : demandez un nouvel e-mail." };
+}
+
 export async function signerLien(charge: string): Promise<string> {
   const secret = process.env["LOVABLE_API_KEY"] ?? "super-app-secours";
   const cle = await crypto.subtle.importKey(
