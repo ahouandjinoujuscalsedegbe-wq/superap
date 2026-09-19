@@ -19,6 +19,22 @@ function estEmbarquee(): boolean {
 
 async function appelerHttp(corps: Record<string, unknown>): Promise<{ ok: boolean; message?: string } | null> {
   try {
+    if (estEmbarquee()) {
+      const { CapacitorHttp } = await import("@capacitor/core");
+      const reponse = await CapacitorHttp.post({
+        url: `${RELAIS_MAJ}/api/public/compte/lien`,
+        headers: { "Content-Type": "application/json" },
+        data: corps,
+        connectTimeout: 15_000,
+        readTimeout: 30_000,
+      });
+      const donnees =
+        typeof reponse.data === "string"
+          ? (JSON.parse(reponse.data) as { ok?: boolean; message?: string })
+          : (reponse.data as { ok?: boolean; message?: string } | null);
+      const ok = reponse.status >= 200 && reponse.status < 300 && donnees?.ok === true;
+      return donnees?.message ? { ok, message: donnees.message } : { ok };
+    }
     const reponse = await fetch(`${RELAIS_MAJ}/api/public/compte/lien`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
