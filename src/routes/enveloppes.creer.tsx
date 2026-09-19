@@ -278,9 +278,16 @@ function CreerEnveloppePage() {
       dotation: 0,
       montantPeriode: confirmation.dotation,
     });
-    if (id) {
-      remplirEnveloppe(id, confirmation.dotation, confirmation.compteSource, "periode");
+    // Sans identifiant, rien n'a été créé : on le dit clairement et on reste
+    // sur le formulaire pour ne rien perdre de la saisie.
+    if (!id) {
+      setConfirmation(null);
+      setErreur(
+        "L'enveloppe n'a pas pu être créée. Vérifiez le nom et les montants, puis réessayez.",
+      );
+      return;
     }
+    remplirEnveloppe(id, confirmation.dotation, confirmation.compteSource, "periode");
     // L'IA locale retient l'association nom → icône pour s'améliorer.
     apprendreIcone(confirmation.nom, confirmation.emoji);
     enregistrerActionEnveloppe({
