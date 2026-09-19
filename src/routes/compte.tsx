@@ -137,7 +137,51 @@ function PageCompte() {
     terminer();
   }
 
+  async function reinitialiserMotDePasse() {
+    setErreur(null);
+    if (!estEmailValide(email)) {
+      setErreur("Entrez l'adresse e-mail de votre compte.");
+      return;
+    }
+    if (!motDePasseValide(motDePasse)) {
+      setErreur("Choisissez un nouveau mot de passe de 8 caractères minimum.");
+      return;
+    }
+    if (motDePasse !== confirmation) {
+      setErreur("Les deux mots de passe ne sont pas identiques.");
+      return;
+    }
+    const aDesDonnees =
+      compteConnecte() ||
+      (app.transactions?.length ?? 0) > 0 ||
+      (app.comptes?.length ?? 0) > 0;
+    if (!aDesDonnees) {
+      setErreur(
+        "Impossible ici : ce téléphone ne contient aucune de vos données et tout est chiffré avec l'ancien mot de passe. Sans lui, personne ne peut les lire. Retrouvez le mot de passe, ou utilisez le téléphone qui contient encore vos données.",
+      );
+      return;
+    }
+    setEnCours(true);
+    const resultat = await changerMotDePasse(
+      instantaneEtat(app as unknown as Etat),
+      motDePasse,
+      lireReglagesMulti().cetAppareil,
+    );
+    setEnCours(false);
+    if (!resultat.ok) {
+      setErreur("Le changement n'a pas abouti. Réessayez.");
+      return;
+    }
+    toast.success("Mot de passe changé.", {
+      description: resultat.copieDeposee
+        ? "Une copie complète de vos données a été enregistrée, chiffrée avec le nouveau mot de passe."
+        : "Le nouveau mot de passe est actif ; la copie sera renvoyée dès que le réseau le permet.",
+    });
+    terminer();
+  }
+
   const creation = mode === "creation";
+  const oubli = mode === "oubli";
 
   return (
     <section className="min-h-[70vh] pb-[calc(var(--app-keyboard-height,0px)+2rem)] pt-4">
