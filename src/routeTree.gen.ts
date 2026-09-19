@@ -56,6 +56,7 @@ import { Route as EnveloppesSecoursRouteImport } from './routes/enveloppes.secou
 import { Route as HistoriqueDepensesRouteImport } from './routes/historique.depenses'
 import { Route as HistoriqueRevenusRouteImport } from './routes/historique.revenus'
 import { Route as ObjectifsIndexRouteImport } from './routes/objectifs.index'
+import { Route as ObjectifsSuiviRouteImport } from './routes/objectifs.suivi'
 import { Route as ParametresIndexRouteImport } from './routes/parametres.index'
 import { Route as ParametresAlarmesRouteImport } from './routes/parametres.alarmes'
 import { Route as ParametresClavierRouteImport } from './routes/parametres.clavier'
@@ -323,6 +324,11 @@ const ObjectifsIndexRoute = ObjectifsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ObjectifsRoute,
 } as any)
+const ObjectifsSuiviRoute = ObjectifsSuiviRouteImport.update({
+  id: '/suivi',
+  path: '/suivi',
+  getParentRoute: () => ObjectifsRoute,
+} as any)
 const ParametresIndexRoute = ParametresIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -522,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
+  '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -595,6 +602,7 @@ export interface FileRoutesByTo {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
+  '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -675,6 +683,7 @@ export interface FileRoutesById {
   '/enveloppes/secours': typeof EnveloppesSecoursRoute
   '/historique/depenses': typeof HistoriqueDepensesRoute
   '/historique/revenus': typeof HistoriqueRevenusRoute
+  '/objectifs/suivi': typeof ObjectifsSuiviRoute
   '/parametres/alarmes': typeof ParametresAlarmesRoute
   '/parametres/clavier': typeof ParametresClavierRoute
   '/parametres/donnees': typeof ParametresDonneesRoute
@@ -756,6 +765,7 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
+    | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -829,6 +839,7 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
+    | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -908,6 +919,7 @@ export interface FileRouteTypes {
     | '/enveloppes/secours'
     | '/historique/depenses'
     | '/historique/revenus'
+    | '/objectifs/suivi'
     | '/parametres/alarmes'
     | '/parametres/clavier'
     | '/parametres/donnees'
@@ -1309,6 +1321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObjectifsIndexRouteImport
       parentRoute: typeof ObjectifsRoute
     }
+    '/objectifs/suivi': {
+      id: '/objectifs/suivi'
+      path: '/suivi'
+      fullPath: '/objectifs/suivi'
+      preLoaderRoute: typeof ObjectifsSuiviRouteImport
+      parentRoute: typeof ObjectifsRoute
+    }
     '/parametres/': {
       id: '/parametres/'
       path: '/'
@@ -1630,6 +1649,7 @@ const EnveloppesRouteWithChildren = EnveloppesRoute._addFileChildren(
 )
 
 interface ObjectifsRouteChildren {
+  ObjectifsSuiviRoute: typeof ObjectifsSuiviRoute
   ObjectifsIndexRoute: typeof ObjectifsIndexRoute
   ObjectifsActionCreerRoute: typeof ObjectifsActionCreerRoute
   ObjectifsActionGererRoute: typeof ObjectifsActionGererRoute
@@ -1637,6 +1657,7 @@ interface ObjectifsRouteChildren {
 }
 
 const ObjectifsRouteChildren: ObjectifsRouteChildren = {
+  ObjectifsSuiviRoute: ObjectifsSuiviRoute,
   ObjectifsIndexRoute: ObjectifsIndexRoute,
   ObjectifsActionCreerRoute: ObjectifsActionCreerRoute,
   ObjectifsActionGererRoute: ObjectifsActionGererRoute,

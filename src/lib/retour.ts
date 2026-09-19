@@ -48,6 +48,7 @@ const PARENTS_EXACTS: Readonly<Record<string, string>> = {
   "/objectifs/action": "/objectifs",
   "/objectifs/action/creer": "/objectifs/action",
   "/objectifs/action/gerer": "/objectifs/action",
+  "/objectifs/suivi": "/objectifs",
   "/tontines": "/objectifs",
 
   // Conseiller

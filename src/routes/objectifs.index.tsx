@@ -163,6 +163,16 @@ function PageObjectifs() {
           Objectifs
         </h1>
         <Link
+          to="/objectifs/suivi"
+          className="carte flex items-center justify-between gap-2 p-3 text-sm font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" aria-hidden />
+            Suivi des objectifs (épargne et achats)
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden />
+        </Link>
+        <Link
           to="/tontines"
           className="carte flex items-center justify-between gap-2 p-3 text-sm font-semibold"
         >
