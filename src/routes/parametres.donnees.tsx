@@ -9,12 +9,12 @@ export const Route = createFileRoute("/parametres/donnees")({
       {
         name: "description",
         content:
-          "Réinitialisation, points de restauration, journal des données et purge des anciennes opérations.",
+          "Points de restauration et corbeille : retrouvez une opération supprimée ou revenez à un état précédent.",
       },
       { property: "og:title", content: "Données locales — SUPER APP" },
       {
         property: "og:description",
-        content: "Réinitialisation, restauration, journal et purge des données locales.",
+        content: "Points de restauration et corbeille des données locales.",
       },
     ],
   }),
