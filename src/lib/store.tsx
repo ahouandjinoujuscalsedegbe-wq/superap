@@ -192,6 +192,8 @@ export type Transfert = {
   fraisSur?: "source" | "destination" | undefined;
   /** Fiche de dette ou de créance à l'origine de ce transfert. */
   detteId?: string | undefined;
+  /** Objectif (tontine, épargne…) auquel ce mouvement est rattaché. */
+  objectifId?: string | undefined;
 };
 
 /**
@@ -517,7 +519,12 @@ type Contexte = Etat & {
    * Cotisation de tontine confirmée : l'enveloppe associée renvoie tout son
    * contenu vers le compte « Tontines ».
    */
-  verserEnveloppeVersTontines: (enveloppeId: string, date?: string, note?: string) => void;
+  verserEnveloppeVersTontines: (
+    enveloppeId: string,
+    date?: string,
+    note?: string,
+    objectifId?: string,
+  ) => void;
   /** Déplace une dotation d'une enveloppe vers une autre (plan de secours). */
   transfererEntreEnveloppes: (sourceId: string, cibleId: string, montant: number) => void;
   modifierEnveloppe: (id: string, e: Partial<Omit<Enveloppe, "id">>) => void;
@@ -1208,7 +1215,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
    * depuis le compte qui alimentait l'enveloppe, et l'enveloppe repart à zéro.
    */
   const verserEnveloppeVersTontines = useCallback(
-    (enveloppeId: string, date = new Date().toISOString().slice(0, 10), note = "") => {
+    (
+      enveloppeId: string,
+      date = new Date().toISOString().slice(0, 10),
+      note = "",
+      objectifId = "",
+    ) => {
       setEtat((e) => {
         const env = e.enveloppes.find((x) => x.id === enveloppeId);
         if (!env) return e;
@@ -1222,6 +1234,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
           montant: contenu,
           note: note || `Tontine : enveloppe ${env.nom}`,
           date,
+          ...(objectifId ? { objectifId } : {}),
         });
         if (!transfert) return e;
         journaliser(

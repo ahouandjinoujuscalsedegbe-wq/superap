@@ -28,6 +28,7 @@ import { Route as SaisieRouteImport } from './routes/saisie'
 import { Route as SauvegardeRouteImport } from './routes/sauvegarde'
 import { Route as SimulationRouteImport } from './routes/simulation'
 import { Route as SynchronisationRouteImport } from './routes/synchronisation'
+import { Route as TontinesRouteImport } from './routes/tontines'
 import { Route as BudgetIndexRouteImport } from './routes/budget.index'
 import { Route as BudgetAutoRouteImport } from './routes/budget.auto'
 import { Route as BudgetBilanRouteImport } from './routes/budget.bilan'
@@ -179,6 +180,11 @@ const SimulationRoute = SimulationRouteImport.update({
 const SynchronisationRoute = SynchronisationRouteImport.update({
   id: '/synchronisation',
   path: '/synchronisation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TontinesRoute = TontinesRouteImport.update({
+  id: '/tontines',
+  path: '/tontines',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BudgetIndexRoute = BudgetIndexRouteImport.update({
@@ -492,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
   '/synchronisation': typeof SynchronisationRoute
+  '/tontines': typeof TontinesRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
@@ -565,6 +572,7 @@ export interface FileRoutesByTo {
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
   '/synchronisation': typeof SynchronisationRoute
+  '/tontines': typeof TontinesRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
@@ -643,6 +651,7 @@ export interface FileRoutesById {
   '/sauvegarde': typeof SauvegardeRoute
   '/simulation': typeof SimulationRoute
   '/synchronisation': typeof SynchronisationRoute
+  '/tontines': typeof TontinesRoute
   '/budget/auto': typeof BudgetAutoRoute
   '/budget/bilan': typeof BudgetBilanRoute
   '/budget/confirmations': typeof BudgetConfirmationsRoute
@@ -723,6 +732,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/simulation'
     | '/synchronisation'
+    | '/tontines'
     | '/budget/auto'
     | '/budget/bilan'
     | '/budget/confirmations'
@@ -796,6 +806,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/simulation'
     | '/synchronisation'
+    | '/tontines'
     | '/budget/auto'
     | '/budget/bilan'
     | '/budget/confirmations'
@@ -873,6 +884,7 @@ export interface FileRouteTypes {
     | '/sauvegarde'
     | '/simulation'
     | '/synchronisation'
+    | '/tontines'
     | '/budget/auto'
     | '/budget/bilan'
     | '/budget/confirmations'
@@ -952,6 +964,7 @@ export interface RootRouteChildren {
   SauvegardeRoute: typeof SauvegardeRoute
   SimulationRoute: typeof SimulationRoute
   SynchronisationRoute: typeof SynchronisationRoute
+  TontinesRoute: typeof TontinesRoute
   ConseillerDonneesRoute: typeof ConseillerDonneesRoute
   HistoriqueDepensesRoute: typeof HistoriqueDepensesRoute
   HistoriqueRevenusRoute: typeof HistoriqueRevenusRoute
@@ -1098,6 +1111,13 @@ declare module '@tanstack/react-router' {
       path: '/synchronisation'
       fullPath: '/synchronisation'
       preLoaderRoute: typeof SynchronisationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tontines': {
+      id: '/tontines'
+      path: '/tontines'
+      fullPath: '/tontines'
+      preLoaderRoute: typeof TontinesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/budget/': {
@@ -1671,6 +1691,7 @@ const rootRouteChildren: RootRouteChildren = {
   SauvegardeRoute: SauvegardeRoute,
   SimulationRoute: SimulationRoute,
   SynchronisationRoute: SynchronisationRoute,
+  TontinesRoute: TontinesRoute,
   ConseillerDonneesRoute: ConseillerDonneesRoute,
   HistoriqueDepensesRoute: HistoriqueDepensesRoute,
   HistoriqueRevenusRoute: HistoriqueRevenusRoute,

@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { PiggyBank, Target } from "lucide-react";
+import { ChevronRight, HandCoins, PiggyBank, Target } from "lucide-react";
 import { HistoriqueRappels } from "@/components/HistoriqueRappels";
 
 import { useSuperApp, type TypeObjectif, type UniteRappel } from "@/lib/store";
@@ -157,11 +157,21 @@ function PageObjectifs() {
 
   return (
     <div className="space-y-5 pt-4">
-      <header>
+      <header className="space-y-3">
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Target className="h-6 w-6 text-primary" aria-hidden />
           Objectifs
         </h1>
+        <Link
+          to="/tontines"
+          className="carte flex items-center justify-between gap-2 p-3 text-sm font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <HandCoins className="h-5 w-5 text-primary" aria-hidden />
+            Suivi des tontines en temps réel
+          </span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden />
+        </Link>
       </header>
 
       {suivis.length === 0 && (
