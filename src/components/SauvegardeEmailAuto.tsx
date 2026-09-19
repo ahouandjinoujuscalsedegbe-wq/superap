@@ -211,12 +211,20 @@ export function SauvegardeEmailAuto() {
           taille: colis.taille,
           detail: "sauvegarde sur l'appareil impossible",
         });
-        await confierColisArrierePlan({
+        const relais = await confierColisArrierePlan({
           email: actuel.email,
           appareil: actuel.appareil,
           colis: colis.contenu,
           creeLe: new Date(colis.creeLe).toLocaleString("fr-FR"),
         });
+        if (!relais) {
+          // Aucun relais système : sans l'application ouverte, rien ne partira.
+          toast.warning("Une copie de secours attend d'être envoyée.", {
+            description:
+              "Gardez l'application ouverte quelques secondes avec Internet, le temps qu'elle parte.",
+            id: "colis-en-attente",
+          });
+        }
         await envoyer();
       })();
     }, rangement.nouveau ? DELAI_SAISIE_NOMMEE : DELAI_CHIFFREMENT);
@@ -242,6 +250,19 @@ export function SauvegardeEmailAuto() {
       if (document.visibilityState === "visible") reprendre();
     };
     document.addEventListener("visibilitychange", auRetour);
+    const surveiller = () => {
+      const attente = lireFile();
+      if (!attente) return;
+      const ageH = (Date.now() - new Date(attente.creeLe).getTime()) / 3_600_000;
+      if (ageH >= 2) {
+        toast.error("Une copie de sauvegarde n'est toujours pas partie.", {
+          description: `En attente depuis ${Math.floor(ageH)} h. Vérifiez votre connexion, puis ouvrez la page Sauvegarde.`,
+          id: "colis-bloque",
+        });
+      }
+    };
+    surveiller();
+    const veille = window.setInterval(surveiller, 30 * 60_000);
     const minuterie = window.setInterval(reprendre, DELAI_REESSAI);
     reprendre();
     return () => {
@@ -250,6 +271,7 @@ export function SauvegardeEmailAuto() {
       window.removeEventListener("pagehide", reprendre);
       document.removeEventListener("visibilitychange", auRetour);
       window.clearInterval(minuterie);
+      window.clearInterval(veille);
     };
   }, [envoyer]);
 

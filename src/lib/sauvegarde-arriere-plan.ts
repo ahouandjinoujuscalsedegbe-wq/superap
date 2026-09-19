@@ -87,10 +87,11 @@ export function preparerArrierePlan(): Promise<ServiceWorkerRegistration | null>
  * Confie le colis au service worker et demande son envoi dès que possible,
  * y compris après la fermeture de l'application.
  */
-export async function confierColisArrierePlan(colis: ColisArrierePlan): Promise<void> {
-  if (!disponible()) return;
+export async function confierColisArrierePlan(colis: ColisArrierePlan): Promise<boolean> {
+  // false = aucun relais système : seule l'application ouverte pourra envoyer.
+  if (!disponible()) return false;
   const reg = await preparerArrierePlan();
-  if (!reg) return;
+  if (!reg) return false;
   await ecrire("courant", colis);
   const sync = (
     reg as ServiceWorkerRegistration & {
@@ -103,6 +104,7 @@ export async function confierColisArrierePlan(colis: ColisArrierePlan): Promise<
     /* Background Sync indisponible */
   }
   reg.active?.postMessage({ type: "envoyer-maintenant" });
+  return Boolean(reg.active);
 }
 
 /** Retire le colis confié (l'envoi a déjà réussi depuis l'application). */
