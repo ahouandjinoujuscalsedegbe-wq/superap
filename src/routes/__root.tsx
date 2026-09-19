@@ -187,7 +187,8 @@ function RootComponent() {
   }, [pathname]);
 
   // Plein écran pour les conversations immersives (coach, discussion vocale).
-  const pleinEcran = pathname === "/notifications" || pathname === "/coffre";
+  const pleinEcran =
+    pathname === "/notifications" || pathname === "/coffre" || pathname === "/compte";
 
   return (
     <QueryClientProvider client={queryClient}>
