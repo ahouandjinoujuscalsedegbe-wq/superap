@@ -8,6 +8,10 @@ import {
   Database,
   CloudUpload,
   AlarmClock,
+  Keyboard,
+  LifeBuoy,
+  Bell,
+  Search,
 } from "lucide-react";
 
 export const Route = createFileRoute("/parametres/")({
