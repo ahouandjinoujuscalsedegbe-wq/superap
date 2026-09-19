@@ -147,10 +147,13 @@ export function CarteEnveloppe({
   e,
   estOuverte,
   onToggle,
+  sansBoutonDetails = false,
 }: {
   e: Enveloppe;
   estOuverte: boolean;
   onToggle: () => void;
+  /** Masque le bouton « Détails » : le contenu détaillé suit directement la carte. */
+  sansBoutonDetails?: boolean;
 }) {
   const { depensesParEnveloppe, budgets, transactions } = useSuperApp();
   const utilise = depensesParEnveloppe[e.id] ?? 0;
@@ -253,20 +256,22 @@ export function CarteEnveloppe({
         </div>
       </dl>
 
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={estOuverte}
-        className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
-      >
-        <span className="min-w-0 truncate text-left">
-          Détails · {formatFCFA(etat.restant)} restants · {Math.round(pourcentage)} %
-        </span>
-        <ChevronDown
-          aria-hidden
-          className={`h-4 w-4 shrink-0 transition-transform duration-300 ${estOuverte ? "rotate-180" : ""}`}
-        />
-      </button>
+      {!sansBoutonDetails && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={estOuverte}
+          className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-secondary/40 px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+        >
+          <span className="min-w-0 truncate text-left">
+            Détails · {formatFCFA(etat.restant)} restants · {Math.round(pourcentage)} %
+          </span>
+          <ChevronDown
+            aria-hidden
+            className={`h-4 w-4 shrink-0 transition-transform duration-300 ${estOuverte ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
 
       {estOuverte && (
         <div className="mt-3 space-y-4 rounded-lg bg-secondary/30 p-3">
