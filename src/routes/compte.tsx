@@ -23,6 +23,10 @@ import {
   memoriserCompte,
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
+import {
+  demanderCodeConfirmation,
+  verifierCodeConfirmation,
+} from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
   head: () => ({
@@ -52,6 +56,8 @@ function PageCompte() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [jeton, setJeton] = useState("");
+  const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
