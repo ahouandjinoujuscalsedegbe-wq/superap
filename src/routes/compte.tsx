@@ -208,10 +208,34 @@ function PageCompte() {
       return;
     }
     setLienEnvoye(true);
+    setCode("");
     toast.success("E-mail envoyé.", {
-      description: `Ouvrez la boîte de ${email.trim()} sur ce téléphone et touchez le lien reçu : SUPER APP s'ouvrira directement.`,
+      description: `Recopiez le code à 6 chiffres reçu sur ${email.trim()} : le nouveau mot de passe se choisit ici, dans l'application.`,
     });
   }
+
+  /** Étape 1 bis : le code recopié depuis l'e-mail ouvre l'écran du nouveau mot de passe. */
+  async function validerCode() {
+    setErreur(null);
+    const chiffres = code.replace(/\D/g, "");
+    if (chiffres.length !== 6) {
+      setErreur("Entrez les 6 chiffres reçus par e-mail.");
+      return;
+    }
+    setEnCours(true);
+    const verif = await verifierCode(email.trim(), chiffres);
+    setEnCours(false);
+    if (!verif.valide) {
+      setErreur(verif.message ?? "Code incorrect : demandez un nouvel e-mail.");
+      return;
+    }
+    setLien({ email: email.trim(), jeton: `code.${chiffres}` });
+    setMode("connexion");
+    setLienEnvoye(false);
+    setMotDePasse("");
+    setConfirmation("");
+  }
+
 
   /** Étape 2 (lien cliqué) : vérifie le jeton puis applique le nouveau mot de passe. */
   async function appliquerNouveauMotDePasse() {
