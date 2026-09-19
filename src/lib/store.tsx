@@ -192,6 +192,8 @@ export type Transfert = {
   fraisSur?: "source" | "destination" | undefined;
   /** Fiche de dette ou de créance à l'origine de ce transfert. */
   detteId?: string | undefined;
+  /** Objectif (tontine, épargne…) auquel ce mouvement est rattaché. */
+  objectifId?: string | undefined;
 };
 
 /**
