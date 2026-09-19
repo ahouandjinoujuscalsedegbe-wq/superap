@@ -86,12 +86,6 @@ const GROUPES = [
         titre: "Alarmes intelligentes",
         detail: "Rappels sonores des dépenses planifiées et alertes de prévision.",
       },
-      {
-        to: "/journal",
-        icone: FileText,
-        titre: "Journal de diagnostic",
-        detail: "Erreurs OCR, dictée et prétraitement, export JSON ou CSV.",
-      },
     ],
   },
 ] as const;
