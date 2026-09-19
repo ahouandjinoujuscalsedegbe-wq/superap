@@ -407,8 +407,9 @@ function CreerEnveloppePage() {
             </p>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Au-delà du plafond, vous entrez en réserve. Il doit rester inférieur ou égal à la
-              somme attribuée.
+              Au-delà du plafond, vous entrez en réserve et une alerte s'affiche. Il doit rester
+              inférieur ou égal à la somme attribuée. Laissez 0 pour une enveloppe sans limite :
+              aucune alerte de dépassement ne sera jamais affichée.
             </p>
           )}
         </section>

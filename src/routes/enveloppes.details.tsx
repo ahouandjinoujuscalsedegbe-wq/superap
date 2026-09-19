@@ -265,24 +265,32 @@ export function CarteEnveloppe({
           aide="argent mis dans l'enveloppe"
           valeur={formatFCFA(etat.dotation)}
         />
-        <Stat libelle="Plafond" aide="maximum avant alerte" valeur={formatFCFA(e.plafond)} />
+        <Stat
+          libelle="Plafond"
+          aide={e.plafond > 0 ? "maximum avant alerte" : "enveloppe sans limite"}
+          valeur={e.plafond > 0 ? formatFCFA(e.plafond) : "Aucune limite"}
+        />
         <Stat
           libelle="Dépensé"
           aide="déjà utilisé"
           valeur={formatFCFA(utilise)}
           ton={depasse ? "danger" : pourcentage >= 80 ? "alerte" : "neutre"}
         />
-        <Stat
-          libelle="Reste avant plafond"
-          aide="plafond − dépensé"
-          valeur={formatFCFA(etat.avantPlafond)}
-          ton={etat.avantPlafond > 0 ? "positif" : "danger"}
-        />
-        <Stat
-          libelle="Réserve"
-          aide="marge au-delà du plafond"
-          valeur={formatFCFA(etat.reserveDisponible)}
-        />
+        {e.plafond > 0 && (
+          <Stat
+            libelle="Reste avant plafond"
+            aide="plafond − dépensé"
+            valeur={formatFCFA(etat.avantPlafond)}
+            ton={etat.avantPlafond > 0 ? "positif" : "danger"}
+          />
+        )}
+        {e.plafond > 0 && (
+          <Stat
+            libelle="Réserve"
+            aide="marge au-delà du plafond"
+            valeur={formatFCFA(etat.reserveDisponible)}
+          />
+        )}
         <Stat
           libelle="Planifié par mois"
           aide={`${planifie.length} dépense${planifie.length > 1 ? "s" : ""} planifiée${planifie.length > 1 ? "s" : ""}`}
