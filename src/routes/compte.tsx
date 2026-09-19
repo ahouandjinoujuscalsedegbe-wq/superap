@@ -65,6 +65,7 @@ function PageCompte() {
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [lienEnvoye, setLienEnvoye] = useState(false);
+  const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
@@ -230,7 +231,10 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
-    const verif = await verifierLien(email.trim(), lien?.jeton ?? "");
+    const jeton = lien?.jeton ?? "";
+    const verif = jeton.startsWith("code.")
+      ? await verifierCode(email.trim(), jeton.slice(5))
+      : await verifierLien(email.trim(), jeton);
     if (!verif.valide) {
       setEnCours(false);
       setErreur(verif?.message ?? "Vérification du lien impossible. Réessayez.");
