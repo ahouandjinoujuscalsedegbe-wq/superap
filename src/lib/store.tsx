@@ -489,6 +489,7 @@ const ETAT_INITIAL: Etat = {
   iconesComptes: {},
   transferts: [],
   reglesTransfert: [],
+  comptesRelais: {},
   comptesReserves: [],
   remplissages: [],
   budgets: [],
