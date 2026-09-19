@@ -29,6 +29,7 @@ export function instantaneEtat(etat: Etat): InstantaneComplet {
     transferts: etat.transferts,
     reglesTransfert: etat.reglesTransfert,
     comptesReserves: etat.comptesReserves,
+    comptesRelais: etat.comptesRelais,
     remplissages: etat.remplissages,
     budgets: etat.budgets,
     dettes: etat.dettes,

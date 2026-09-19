@@ -38,6 +38,8 @@ function PageModifierCompte() {
     definirIconeCompte,
     definirCompteDisponible,
     definirCompteReserve,
+    definirCompteRelais,
+    comptesRelais,
     nomUtilisateur,
     soldesParCompte,
     ajouterTransaction,
@@ -119,6 +121,11 @@ function PageModifierCompte() {
         actif: true,
       });
     }
+    // Compte réellement débité pour les transferts automatiques de ce compte.
+    const relaisActuel = comptesRelais[demande.ancien] ?? "";
+    if (demande.relais !== relaisActuel) {
+      definirCompteRelais(demande.nom, demande.relais);
+    }
     const partActuelle = regle?.pourcentage ?? 0;
     const changements = [
       demande.nom !== demande.ancien ? `nom : « ${demande.ancien} » → « ${demande.nom} »` : null,
@@ -127,6 +134,9 @@ function PageModifierCompte() {
         : null,
       demande.pourcentage !== partActuelle
         ? `part de chaque revenu : ${partActuelle} % → ${demande.reserve ? demande.pourcentage : 0} %`
+        : null,
+      demande.relais !== (comptesRelais[demande.ancien] ?? "")
+        ? `compte à débiter : ${demande.relais || "ce compte lui-même"}`
         : null,
       demande.ajustement !== 0 ? `solde ajusté de ${formatFCFA(Math.abs(demande.ajustement))}` : null,
       demande.disponible === comptesExclus.includes(demande.ancien)
@@ -194,6 +204,11 @@ function PageModifierCompte() {
                     ? "Compte réservé"
                     : "Compte ordinaire",
                   apres: demande.reserve ? "Compte réservé" : "Compte ordinaire",
+                },
+                {
+                  label: "Compte à débiter",
+                  avant: comptesRelais[demande.ancien] || "Ce compte lui-même",
+                  apres: demande.relais || "Ce compte lui-même",
                 },
                 {
                   label: "Part de chaque revenu",

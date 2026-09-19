@@ -183,6 +183,13 @@ export function fusionnerDonneesCompte(local: Etat, recu: Partial<Etat>): Result
       etat["iconesComptes"] = fusion;
     }
   }
+  const relaisRecus = recu.comptesRelais;
+  if (relaisRecus && typeof relaisRecus === "object") {
+    const fusion = { ...(relaisRecus as Record<string, string>), ...(local.comptesRelais ?? {}) };
+    if (Object.keys(fusion).length > Object.keys(local.comptesRelais ?? {}).length) {
+      etat["comptesRelais"] = fusion;
+    }
+  }
   if (!local.nomUtilisateur && typeof recu.nomUtilisateur === "string" && recu.nomUtilisateur) {
     etat["nomUtilisateur"] = recu.nomUtilisateur;
   }
