@@ -532,6 +532,11 @@ type Contexte = Etat & {
   supprimerRegleTransfert: (id: string) => void;
   /** Marque un compte comme réservé aux transferts automatiques (ou non). */
   definirCompteReserve: (nom: string, reserve: boolean) => void;
+  /**
+   * Choisit le compte réellement débité quand un revenu arrive sur ce compte :
+   * chaîne vide = le compte crédité est débité lui-même.
+   */
+  definirCompteRelais: (nom: string, relais: string) => void;
   /** Crée l'enveloppe et renvoie son identifiant (null si refusée). */
   ajouterEnveloppe: (e: Omit<Enveloppe, "id">) => string | null;
   /** Verse un montant d'un compte vers une enveloppe (dotation + débit compte). */
@@ -672,6 +677,7 @@ function fusionnerPendantChargement(charge: Etat, actuel: Etat): Etat {
       ...ajouts(actuel.reglesTransfert, charge.reglesTransfert),
     ],
     comptesReserves: Array.from(new Set([...charge.comptesReserves, ...actuel.comptesReserves])),
+    comptesRelais: { ...charge.comptesRelais, ...actuel.comptesRelais },
     comptes: [
       ...charge.comptes,
       ...actuel.comptes.filter(
