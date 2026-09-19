@@ -11,3 +11,4 @@
 - [x] Supprimer les mots de passe imposés à l'ouverture (phrase de sauvegarde, deuxième coffre)
 - [x] Page dédiée aux débiteurs : solde dû, prochaine échéance, suivi des remboursements (comme les tontines)
 - [x] Page de connexion simple : e-mail + mot de passe, en français, sans étape de récupération
+- [x] Ouvrir le lien de changement de mot de passe directement dans l'application Android

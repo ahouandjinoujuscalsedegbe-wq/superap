@@ -5,7 +5,7 @@
  * chiffré de l'adresse e-mail reviennent automatiquement.
  *
  * Mot de passe oublié : l'utilisateur reçoit un e-mail contenant un lien
- * unique ; c'est en ouvrant ce lien (/?changement=1&email=…&jeton=…) qu'il
+ * unique ; ce lien ouvre directement l'application Android sur l'écran où il
  * peut réellement choisir son nouveau mot de passe.
  */
 
@@ -28,6 +28,11 @@ import {
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
 import { demanderLien, verifierLien } from "@/lib/lien-changement";
+import {
+  EVENEMENT_LIEN_APPLICATION,
+  prendreLienApplication,
+  type LienApplication,
+} from "@/lib/lien-application";
 
 export const Route = createFileRoute("/compte")({
   head: () => ({
@@ -52,9 +57,6 @@ export const Route = createFileRoute("/compte")({
 
 function PageCompte() {
   const navigate = useNavigate();
-  // Le lien reçu par e-mail (/compte?changement=1&email=…&jeton=…) est lu
-  // directement depuis l'URL : le validateur de recherche du routeur
-  // n'est pas appliqué de façon fiable sur cette page indépendante.
   const [lien, setLien] = useState<{ email: string; jeton: string } | null>(null);
   const depuisLien = !!lien;
   const app = useSuperApp();
@@ -68,17 +70,35 @@ function PageCompte() {
   const champRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const appliquerLien = (valeur: LienApplication) => {
+      setLien(valeur);
+      setEmail(valeur.email);
+      setMode("connexion");
+      setErreur(null);
+    };
+    const lienNatif = prendreLienApplication();
+    if (lienNatif) appliquerLien(lienNatif);
+
+    const gererLienNatif = (event: Event) => {
+      const detail = (event as CustomEvent<LienApplication>).detail;
+      if (detail) appliquerLien(detail);
+    };
+    window.addEventListener(EVENEMENT_LIEN_APPLICATION, gererLienNatif);
+
+    // Compatibilité avec les anciens liens web déjà envoyés en version 1.0.43.
     const params = new URLSearchParams(window.location.search);
     const courriel = params.get("email");
     const jetonLu = params.get("jeton");
     if (params.get("changement") === "1" && courriel && jetonLu) {
-      setLien({ email: courriel, jeton: jetonLu });
-      setEmail(courriel);
-    } else {
+      appliquerLien({ email: courriel, jeton: jetonLu });
+    } else if (!lienNatif) {
       setEmail(emailDuCompte());
     }
     const t = window.setTimeout(() => champRef.current?.focus(), 150);
-    return () => window.clearTimeout(t);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener(EVENEMENT_LIEN_APPLICATION, gererLienNatif);
+    };
   }, []);
 
   function terminer() {
@@ -185,7 +205,7 @@ function PageCompte() {
     }
     setLienEnvoye(true);
     toast.success("E-mail envoyé.", {
-      description: `Ouvrez la boîte de ${email.trim()} et cliquez le lien reçu : il est valable 15 minutes.`,
+      description: `Ouvrez la boîte de ${email.trim()} sur ce téléphone et touchez le lien reçu : SUPER APP s'ouvrira directement.`,
     });
   }
 
@@ -286,9 +306,9 @@ function PageCompte() {
         {oubli && lienEnvoye ? (
           <div className="space-y-3">
             <p className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
-              L'e-mail est parti vers <strong>{email.trim()}</strong>. Ouvrez-le et cliquez le lien
-              « Changer mon mot de passe » : vous reviendrez ici pour choisir le nouveau mot de
-              passe. Le lien est valable 15 minutes.
+              L'e-mail est parti vers <strong>{email.trim()}</strong>. Ouvrez-le sur ce téléphone et
+              touchez « Changer mon mot de passe » : SUPER APP s'ouvrira directement sur l'écran du
+              nouveau mot de passe. Le lien est valable 15 minutes.
             </p>
             <button
               type="button"

@@ -10,9 +10,7 @@ const SENDER_DOMAIN = "notify.superappbudget.com";
 const FROM_DOMAIN = "superappbudget.com";
 export const DUREE_LIEN_MS = 15 * 60 * 1000;
 
-const BASE_URL =
-  process.env["APP_PUBLIC_URL"] ??
-  "https://id-preview--b91e98b0-46c7-4862-bedb-54f46fe01199.lovable.app";
+const LIEN_APPLICATION = "superappbudget://compte";
 
 export const adresseValide = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 
@@ -48,16 +46,15 @@ export async function envoyerLienChangement(emailBrut: string): Promise<Resultat
   const signature = await signerLien(`${email}|${expire}`);
   const jeton = `${expire}.${signature}`;
   const lien =
-    `${BASE_URL}/compte?changement=1` +
-    `&email=${encodeURIComponent(email)}` +
+    `${LIEN_APPLICATION}?email=${encodeURIComponent(email)}` +
     `&jeton=${encodeURIComponent(jeton)}`;
 
   const texte = `SUPER APP — changement de mot de passe
 
 Vous avez demandé à changer le mot de passe de votre compte.
 
-Pour choisir votre nouveau mot de passe, ouvrez ce lien depuis le téléphone
-qui contient vos données :
+Pour choisir votre nouveau mot de passe, ouvrez ce lien sur le téléphone
+Android où SUPER APP est installée et qui contient vos données :
 
 ${lien}
 
@@ -68,13 +65,12 @@ Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.
   const html = `<div style="font-family:system-ui,sans-serif;line-height:1.6;color:#1f2937">
 <h2 style="margin:0 0 12px">Changement de mot de passe</h2>
 <p>Vous avez demandé à changer le mot de passe de votre compte SUPER APP.</p>
-<p>Pour choisir votre nouveau mot de passe, ouvrez ce lien <strong>depuis le téléphone qui contient vos données</strong> :</p>
+<p>Pour choisir votre nouveau mot de passe, touchez ce bouton sur le téléphone Android où <strong>SUPER APP est installée et contient vos données</strong>. L'application s'ouvrira directement :</p>
 <p style="margin:20px 0">
   <a href="${lien}" style="background:#0f766e;color:#ffffff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:700">
     Changer mon mot de passe
   </a>
 </p>
-<p style="word-break:break-all;font-size:12px;color:#6b7280">${lien}</p>
 <p style="font-size:13px;color:#6b7280">Ce lien est valable 15 minutes.</p>
 <p style="font-size:13px;color:#6b7280">Si vous n'avez pas demandé ce changement, ignorez ce message : rien ne change.</p>
 </div>`;

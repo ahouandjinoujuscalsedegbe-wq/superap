@@ -2,6 +2,7 @@ import { Component, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { getRouter } from "./router";
+import { recevoirLienApplication } from "./lib/lien-application";
 import "./styles.css";
 
 const racine = document.getElementById("root");
@@ -71,10 +72,19 @@ class FiletSecurite extends Component<{ children: ReactNode }, { panne: string |
   }
 }
 
-export function demarrerApplicationMobile() {
+export async function demarrerApplicationMobile() {
   if (!racine) throw new Error("Zone d'affichage absente.");
 
-  const router = getRouter(createMemoryHistory({ initialEntries: ["/"] }));
+  const { App } = await import("@capacitor/app");
+  const lancement = await App.getLaunchUrl().catch(() => undefined);
+  const ouvertParLien = lancement?.url ? recevoirLienApplication(lancement.url) : false;
+  const router = getRouter(createMemoryHistory({ initialEntries: [ouvertParLien ? "/compte" : "/"] }));
+
+  await App.addListener("appUrlOpen", ({ url }) => {
+    if (!recevoirLienApplication(url)) return;
+    void router.navigate({ to: "/compte", replace: true });
+  });
+
   createRoot(racine).render(
     <FiletSecurite>
       <RouterProvider router={router} />
