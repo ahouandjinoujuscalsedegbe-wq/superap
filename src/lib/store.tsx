@@ -1088,6 +1088,12 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         comptes: e.comptes.map((c) => (c === ancien ? propre : c)),
         comptesExclus: e.comptesExclus.map((c) => (c === ancien ? propre : c)),
         comptesReserves: e.comptesReserves.map((c) => (c === ancien ? propre : c)),
+        comptesRelais: Object.fromEntries(
+          Object.entries(e.comptesRelais).map(([c, r]) => [
+            c === ancien ? propre : c,
+            r === ancien ? propre : r,
+          ]),
+        ),
         reglesTransfert: e.reglesTransfert.map((r) => ({
           ...r,
           source: r.source === ancien ? propre : r.source,
@@ -1165,6 +1171,9 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
         comptes: e.comptes.filter((c) => c !== nom),
         comptesExclus: e.comptesExclus.filter((c) => c !== nom),
         comptesReserves: e.comptesReserves.filter((c) => c !== nom),
+        comptesRelais: Object.fromEntries(
+          Object.entries(e.comptesRelais).filter(([c, r]) => c !== nom && r !== nom),
+        ),
         iconesComptes: Object.fromEntries(
           Object.entries(e.iconesComptes).filter(([c]) => c !== nom),
         ),
@@ -1944,6 +1953,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       modifierRegleTransfert: proteger(modifierRegleTransfert, "Confirmez la modification."),
       supprimerRegleTransfert: proteger(supprimerRegleTransfert, "Confirmez la suppression."),
       definirCompteReserve: proteger(definirCompteReserve, "Confirmez la modification."),
+      definirCompteRelais: proteger(definirCompteRelais, "Confirmez la modification."),
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
@@ -2009,6 +2019,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       modifierRegleTransfert,
       supprimerRegleTransfert,
       definirCompteReserve,
+      definirCompteRelais,
       ajouterEnveloppe,
       remplirEnveloppe,
       transfererEntreEnveloppes,
