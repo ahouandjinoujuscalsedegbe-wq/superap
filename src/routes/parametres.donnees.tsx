@@ -31,24 +31,15 @@ function PageDonnees() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight">Données locales</h1>
 
-      <section className="carte space-y-3 p-4">
+      <section className="carte space-y-2 p-4">
         <h2 className="font-semibold">Stockage de l'appareil</h2>
         <p className="text-sm text-muted-foreground">
-          Toutes vos opérations sont stockées sur cet appareil uniquement.
+          Toutes vos opérations sont stockées sur cet appareil uniquement, et copiées chiffrées dans
+          votre coffre.
         </p>
-        <button
-          type="button"
-          onClick={() => reinitialiser()}
-          className="w-full rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive"
-        >
-          Réinitialiser les données
-        </button>
       </section>
 
       <SectionCorbeille />
-      <SectionRestauration />
-      <JournalDonnees />
-      <SectionPurge />
     </div>
   );
 }
