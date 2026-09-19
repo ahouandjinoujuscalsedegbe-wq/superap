@@ -79,6 +79,41 @@ export async function chercherDonneesCompte(
   }
 }
 
+/**
+ * Change le mot de passe du compte : le nouveau mot de passe devient la clé
+ * et une copie complète des données présentes sur ce téléphone est aussitôt
+ * redéposée, chiffrée avec ce nouveau mot de passe. L'adresse e-mail ne
+ * change pas ; les copies futures utiliseront le nouveau mot de passe.
+ *
+ * Important : les anciennes copies chiffrées avec l'ancien mot de passe ne
+ * peuvent pas être réécrites (le chiffrement est irréversible sans la clé).
+ * Ce changement n'est donc possible que si ce téléphone contient encore les
+ * données — sinon personne ne peut les récupérer sans le mot de passe.
+ */
+export async function changerMotDePasse(
+  etat: unknown,
+  nouveauMotDePasse: string,
+  appareil: string,
+): Promise<{ ok: boolean; copieDeposee: boolean }> {
+  const email = emailDuCompte();
+  if (!email || !motDePasseValide(nouveauMotDePasse)) {
+    return { ok: false, copieDeposee: false };
+  }
+  await memoriserCompte(email, nouveauMotDePasse);
+  let copieDeposee = false;
+  try {
+    const colis = await preparerColis(etat, nouveauMotDePasse.trim());
+    copieDeposee = await deposerDansCloud(email, nouveauMotDePasse.trim(), appareil || "MON TÉLÉPHONE", {
+      contenu: colis.contenu,
+      empreinte: colis.empreinte,
+      taille: colis.taille,
+    });
+  } catch {
+    copieDeposee = false;
+  }
+  return { ok: true, copieDeposee };
+}
+
 /** Dépose tout de suite une première copie chiffrée dans l'espace du compte. */
 export async function deposerPremiereCopie(etat: unknown, appareil: string): Promise<boolean> {
   const email = emailDuCompte();
