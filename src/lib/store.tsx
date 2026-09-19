@@ -15,6 +15,7 @@ import { CLE_BROUILLONS } from "./brouillons";
 import { montantSurRevenu } from "./remplissage";
 import { ecrireSecurise, estChiffre, lireSecuriseDetail } from "./coffre-local";
 import { camouflageEnCours } from "./securite-avancee";
+import { toast } from "sonner";
 import { journaliser } from "./journal";
 import { dotationDe } from "./enveloppe-etat";
 import { demanderMotDePasse } from "./mot-de-passe-actions";
@@ -596,6 +597,8 @@ type Contexte = Etat & {
   reservesParCompte: Record<string, number>;
   /** true quand des données existent mais n'ont pas pu être déchiffrées. */
   stockageIllisible: boolean;
+  /** true quand la dernière écriture protégée sur le téléphone a échoué. */
+  enregistrementEnEchec: boolean;
   /** true tant que la lecture chiffrée initiale n'est pas terminée. */
   chargement: boolean;
 };
@@ -670,6 +673,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
   // cela évite d'écraser les données existantes par l'état initial.
   const pret = useRef(false);
   const [illisible, setIllisible] = useState(false);
+  const [echecEcriture, setEchecEcriture] = useState(false);
   const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
@@ -734,13 +738,23 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
     // Chiffrement AES-GCM avant toute écriture sur le téléphone.
     // En mode camouflage, rien n'est jamais écrit : les vraies données restent intactes.
     if (pret.current && !illisible && !camouflageEnCours()) {
-      void ecrireSecurise(CLE, JSON.stringify(etat)).catch(() => {
-        journaliser(
-          "erreur",
-          "stockage",
-          "Écriture chiffrée impossible : espace insuffisant ou stockage indisponible.",
-        );
-      });
+      void ecrireSecurise(CLE, JSON.stringify(etat)).then(
+        () => setEchecEcriture(false),
+        () => {
+          journaliser(
+            "erreur",
+            "stockage",
+            "Écriture chiffrée impossible : espace insuffisant ou stockage indisponible.",
+          );
+          // L'utilisateur doit le savoir tout de suite : sinon il croit sa
+          // saisie enregistrée alors qu'elle disparaîtra à la réouverture.
+          setEchecEcriture(true);
+          toast.error("Cette saisie n'a pas pu être enregistrée sur le téléphone.", {
+            description: "Libérez de l'espace, puis ressaisissez-la ou réessayez.",
+            id: "echec-enregistrement",
+          });
+        },
+      );
     }
     document.documentElement.style.setProperty("--surface-alpha", String(etat.transparence / 100));
   }, [etat, illisible]);
@@ -2088,6 +2102,7 @@ export function SuperAppProvider({ children }: { children: ReactNode }) {
       soldesParCompte,
       reservesParCompte,
       stockageIllisible: illisible,
+      enregistrementEnEchec: echecEcriture,
       chargement,
     }),
     [
