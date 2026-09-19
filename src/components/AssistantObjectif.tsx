@@ -613,9 +613,13 @@ export function AssistantObjectif({ onTermine }: { onTermine: () => void }) {
               <Ligne
                 t="Rappels"
                 v={
-                  rappelActif
-                    ? libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)
-                    : "Désactivés"
+                  !rappelActif
+                    ? "Désactivés"
+                    : modeRappel === "date"
+                      ? rappelDateUnique
+                        ? `Une seule fois, le ${rappelDateUnique}`
+                        : "Une seule fois (date à choisir)"
+                      : libelleRythme(Number(rappelIntervalle) || 1, rappelUnite)
                 }
               />
               <Ligne
