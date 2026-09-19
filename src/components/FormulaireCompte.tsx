@@ -19,6 +19,8 @@ export type DemandeCompte =
       reserve: boolean;
       /** Part de chaque revenu transférée automatiquement vers ce compte (0 = aucune). */
       pourcentage: number;
+      /** Compte débité à la place de celui-ci pour les transferts automatiques. */
+      relais: string;
     }
   | {
       type: "renommage";
@@ -29,6 +31,7 @@ export type DemandeCompte =
       emoji: string;
       reserve: boolean;
       pourcentage: number;
+      relais: string;
     };
 
 const champ =
@@ -51,6 +54,7 @@ export function FormulaireCompte({
     iconesComptes,
     soldesParCompte,
     reglesTransfert,
+    comptesRelais,
   } = useSuperApp();
   const creation = compte === undefined;
 
@@ -79,6 +83,9 @@ export function FormulaireCompte({
   const [pourcentage, setPourcentage] = useState(
     regleExistante ? String(regleExistante.pourcentage) : "",
   );
+  const [relais, setRelais] = useState(
+    compte !== undefined ? (comptesRelais[compte] ?? "") : "",
+  );
   const [erreur, setErreur] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<{
     nom?: string;
@@ -89,6 +96,7 @@ export function FormulaireCompte({
 
   const reserveActuelle = compte !== undefined ? comptesReserves.includes(compte) : false;
   const pourcentageActuel = regleExistante?.pourcentage ?? 0;
+  const relaisActuel = compte !== undefined ? (comptesRelais[compte] ?? "") : "";
 
   function auTexteDicte(texte: string) {
     const lu = analyserCompteDicte(texte);
@@ -144,6 +152,7 @@ export function FormulaireCompte({
         emoji: emoji.trim() || suggererIcone(valeur, "compte"),
         reserve,
         pourcentage: part,
+        relais: relais === valeur ? "" : relais,
       });
       return;
     }
@@ -157,10 +166,11 @@ export function FormulaireCompte({
       disponible === disponibleActuel &&
       emoji.trim() === iconeActuelle &&
       reserve === reserveActuelle &&
-      part === pourcentageActuel
+      part === pourcentageActuel &&
+      relais === relaisActuel
     ) {
       setErreur(
-        "Rien n'a changé : modifiez le nom, le solde, le logo, le disponible ou la part automatique, ou annulez.",
+        "Rien n'a changé : modifiez le nom, le solde, le logo, le disponible, la part automatique ou le compte à débiter, ou annulez.",
       );
       return;
     }
@@ -173,6 +183,7 @@ export function FormulaireCompte({
       emoji: emoji.trim(),
       reserve,
       pourcentage: part,
+      relais: relais === valeur ? "" : relais,
     });
   }
 
@@ -334,6 +345,34 @@ export function FormulaireCompte({
               )}
             </div>
           )}
+        </fieldset>
+
+        <fieldset className="rounded-xl border border-input bg-background/60 p-3">
+          <legend className="px-1 text-sm font-medium">Compte à débiter</legend>
+          <label htmlFor="c-relais" className="text-sm">
+            Quand un revenu arrive sur ce compte, quel compte doit être débité pour les transferts
+            automatiques ?
+          </label>
+          <select
+            id="c-relais"
+            data-clavier="off"
+            value={relais}
+            onChange={(ev) => setRelais(ev.target.value)}
+            className={champ}
+          >
+            <option value="">Ce compte lui-même</option>
+            {comptes
+              .filter((c) => c !== (compte ?? nom.trim()))
+              .map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Exemple : les revenus entrent en espèces, mais les parts automatiques sortent du compte
+            choisi ici. Les espèces ne sont alors jamais entamées.
+          </p>
         </fieldset>
 
         <div className="flex gap-2">
