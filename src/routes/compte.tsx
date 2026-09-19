@@ -252,7 +252,7 @@ function PageCompte() {
         </h1>
         <p className="text-sm text-muted-foreground">
           {oubli
-            ? "Choisissez un nouveau mot de passe. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
+            ? "Choisissez un nouveau mot de passe : nous envoyons un code de confirmation à votre adresse e-mail, et le changement n'est appliqué qu'après ce code. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
             : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
         </p>
 
@@ -280,7 +280,13 @@ function PageCompte() {
           className="space-y-3"
           onSubmit={(ev) => {
             ev.preventDefault();
-            void (creation ? creerCompte() : oubli ? reinitialiserMotDePasse() : seConnecter());
+            void (creation
+              ? creerCompte()
+              : oubli
+                ? attenteCode
+                  ? confirmerCode()
+                  : envoyerCode()
+                : seConnecter());
           }}
         >
           <div>
@@ -348,6 +354,31 @@ function PageCompte() {
             </div>
           )}
 
+          {attenteCode && (
+            <div>
+              <label htmlFor="code-confirmation" className="text-sm font-medium">
+                Code reçu par e-mail
+              </label>
+              <input
+                id="code-confirmation"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={code}
+                onChange={(ev) => {
+                  setCode(ev.target.value.replace(/\D/g, "").slice(0, 6));
+                  setErreur(null);
+                }}
+                placeholder="6 chiffres"
+                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-center text-lg tracking-[0.4em] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Nous avons envoyé un code à 6 chiffres à {email.trim()}. Il est valable 15 minutes.
+              </p>
+            </div>
+          )}
+
           {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
 
           <button
@@ -359,27 +390,45 @@ function PageCompte() {
               ? creation
                 ? "Création…"
                 : oubli
-                  ? "Changement…"
+                  ? attenteCode
+                    ? "Vérification…"
+                    : "Envoi du code…"
                   : "Connexion…"
               : creation
                 ? "Créer mon compte"
                 : oubli
-                  ? "Changer mon mot de passe"
+                  ? attenteCode
+                    ? "Confirmer et changer mon mot de passe"
+                    : "Recevoir le code par e-mail"
                   : "Se connecter"}
           </button>
 
           {oubli ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("connexion");
-                setErreur(null);
-                setConfirmation("");
-              }}
-              className="w-full py-2 text-sm font-semibold text-muted-foreground"
-            >
-              Retour à la connexion
-            </button>
+            <>
+              {attenteCode && (
+                <button
+                  type="button"
+                  disabled={enCours}
+                  onClick={() => void envoyerCode()}
+                  className="w-full py-2 text-sm font-semibold text-primary disabled:opacity-60"
+                >
+                  Renvoyer un nouveau code
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("connexion");
+                  setErreur(null);
+                  setConfirmation("");
+                  setJeton("");
+                  setCode("");
+                }}
+                className="w-full py-2 text-sm font-semibold text-muted-foreground"
+              >
+                Retour à la connexion
+              </button>
+            </>
           ) : (
             <button
               type="button"
@@ -387,6 +436,8 @@ function PageCompte() {
                 setMode("oubli");
                 setErreur(null);
                 setConfirmation("");
+                setJeton("");
+                setCode("");
               }}
               className="w-full py-2 text-sm font-semibold text-primary"
             >
