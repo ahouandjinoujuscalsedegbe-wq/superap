@@ -21,7 +21,6 @@ const EXCLUS = [
   "superapp:securite:pin-jour",
   "superapp:securite:activite",
   "superapp:securite:actions-ouvertes",
-  "superapp:coffre-sensible:ouvert",
   "superapp:maj:derniere",
   "superapp:maj:ignoree",
   "superapp:maj:tentative",
