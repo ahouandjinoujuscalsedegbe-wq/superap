@@ -337,10 +337,41 @@ function PageCompte() {
         {oubli && lienEnvoye ? (
           <div className="space-y-3">
             <p className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
-              L'e-mail est parti vers <strong>{email.trim()}</strong>. Ouvrez-le sur ce téléphone et
-              touchez « Changer mon mot de passe » : SUPER APP s'ouvrira directement sur l'écran du
-              nouveau mot de passe. Le lien est valable 15 minutes.
+              L'e-mail est parti vers <strong>{email.trim()}</strong>. Il contient un code à 6
+              chiffres : recopiez-le ici pour choisir votre nouveau mot de passe dans l'application.
+              Le code est valable 15 minutes.
             </p>
+            <form
+              className="space-y-3"
+              onSubmit={(ev) => {
+                ev.preventDefault();
+                void validerCode();
+              }}
+            >
+              <div>
+                <label htmlFor="code-recu" className="text-sm font-semibold">
+                  Code reçu par e-mail
+                </label>
+                <input
+                  id="code-recu"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  data-clavier="off"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-center text-2xl font-bold tracking-[0.4em] outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
+              <button
+                type="submit"
+                disabled={enCours}
+                className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {enCours ? "Vérification…" : "Valider le code"}
+              </button>
+            </form>
             <button
               type="button"
               disabled={enCours}
