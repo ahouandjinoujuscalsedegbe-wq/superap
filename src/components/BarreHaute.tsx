@@ -30,8 +30,6 @@ import logoSuperApp from "@/assets/logo-super-app.png";
 const ENTREES = [
   { to: "/parametres", label: "Paramètres", icone: Settings },
   { to: "/sauvegarde", label: "Sauvegarde et chiffrement", icone: ShieldCheck },
-  { to: "/synchronisation", label: "Synchronisation e-mail", icone: RefreshCw },
-  { to: "/journal", label: "Journal de diagnostic", icone: Stethoscope },
   { to: "/aide", label: "Aide", icone: HelpCircle },
 ] as const;
 
