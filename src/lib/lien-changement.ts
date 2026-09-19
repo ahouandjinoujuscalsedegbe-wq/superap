@@ -40,7 +40,7 @@ async function appelerHttp(corps: Record<string, unknown>): Promise<{ ok: boolea
   }
 }
 
-export type ResultatLien = { envoye: boolean; message?: string };
+export type ResultatLien = { envoye: boolean; message?: string | undefined };
 
 /** Envoie à l'adresse du compte l'e-mail contenant le lien de changement. */
 export async function demanderLien(email: string): Promise<ResultatLien> {
@@ -58,7 +58,7 @@ export async function demanderLien(email: string): Promise<ResultatLien> {
 }
 
 /** Vérifie le jeton porté par le lien reçu par e-mail. */
-export async function verifierLien(email: string, jeton: string): Promise<{ valide: boolean; message?: string }> {
+export async function verifierLien(email: string, jeton: string): Promise<{ valide: boolean; message?: string | undefined }> {
   if (estEmbarquee()) {
     const r = await appelerHttp({ action: "verifier", email, jeton });
     if (r === null) return { valide: false, message: "Connexion impossible : vérifiez votre réseau." };
