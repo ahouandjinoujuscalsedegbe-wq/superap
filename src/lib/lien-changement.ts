@@ -32,10 +32,8 @@ async function appelerHttp(corps: Record<string, unknown>): Promise<{ ok: boolea
         typeof reponse.data === "string"
           ? (JSON.parse(reponse.data) as { ok?: boolean; message?: string })
           : (reponse.data as { ok?: boolean; message?: string } | null);
-      return {
-        ok: reponse.status >= 200 && reponse.status < 300 && donnees?.ok === true,
-        message: donnees?.message,
-      };
+      const ok = reponse.status >= 200 && reponse.status < 300 && donnees?.ok === true;
+      return donnees?.message ? { ok, message: donnees.message } : { ok };
     }
     const reponse = await fetch(`${RELAIS_MAJ}/api/public/compte/lien`, {
       method: "POST",
