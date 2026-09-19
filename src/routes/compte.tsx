@@ -137,7 +137,8 @@ function PageCompte() {
     terminer();
   }
 
-  async function reinitialiserMotDePasse() {
+  /** Étape 1 : vérifie la demande puis envoie le code de confirmation par e-mail. */
+  async function envoyerCode() {
     setErreur(null);
     if (!estEmailValide(email)) {
       setErreur("Entrez l'adresse e-mail de votre compte.");
@@ -162,6 +163,51 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
+    let reponse: Awaited<ReturnType<typeof demanderCodeConfirmation>> | null = null;
+    try {
+      reponse = await demanderCodeConfirmation({
+        data: { email: email.trim(), appareil: lireReglagesMulti().cetAppareil },
+      });
+    } catch {
+      reponse = null;
+    }
+    setEnCours(false);
+    if (!reponse?.envoye || !reponse.jeton) {
+      setErreur(
+        reponse?.message
+          ? `Le code n'a pas pu être envoyé : ${reponse.message}`
+          : "Le code n'a pas pu être envoyé. Vérifiez votre réseau et réessayez.",
+      );
+      return;
+    }
+    setJeton(reponse.jeton);
+    setCode("");
+    toast.success("Code envoyé par e-mail.", {
+      description: `Ouvrez la boîte de ${email.trim()} : le code à 6 chiffres est valable 15 minutes.`,
+    });
+  }
+
+  /** Étape 2 : confirme le code reçu par e-mail, puis change le mot de passe. */
+  async function confirmerCode() {
+    setErreur(null);
+    if (!/^\d{6}$/.test(code.trim())) {
+      setErreur("Entrez le code à 6 chiffres reçu par e-mail.");
+      return;
+    }
+    setEnCours(true);
+    let verif: { valide: boolean; message?: string } | null = null;
+    try {
+      verif = await verifierCodeConfirmation({
+        data: { email: email.trim(), code: code.trim(), jeton },
+      });
+    } catch {
+      verif = null;
+    }
+    if (!verif?.valide) {
+      setEnCours(false);
+      setErreur(verif?.message ?? "Vérification impossible. Réessayez.");
+      return;
+    }
     const resultat = await changerMotDePasse(
       instantaneEtat(app as unknown as Etat),
       motDePasse,
@@ -172,6 +218,8 @@ function PageCompte() {
       setErreur("Le changement n'a pas abouti. Réessayez.");
       return;
     }
+    setJeton("");
+    setCode("");
     toast.success("Mot de passe changé.", {
       description: resultat.copieDeposee
         ? "Une copie complète de vos données a été enregistrée, chiffrée avec le nouveau mot de passe."
