@@ -7,7 +7,7 @@
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { LogIn, UserPlus } from "lucide-react";
+import { KeyRound, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSuperApp, type Etat } from "@/lib/store";
@@ -220,12 +220,13 @@ function PageCompte() {
             </button>
           ))}
         </div>
+        )}
 
         <form
           className="space-y-3"
           onSubmit={(ev) => {
             ev.preventDefault();
-            void (creation ? creerCompte() : seConnecter());
+            void (creation ? creerCompte() : oubli ? reinitialiserMotDePasse() : seConnecter());
           }}
         >
           <div>
@@ -251,7 +252,7 @@ function PageCompte() {
 
           <div>
             <label htmlFor="mdp-compte" className="text-sm font-medium">
-              Mot de passe
+              {oubli ? "Nouveau mot de passe" : "Mot de passe"}
             </label>
             <input
               id="mdp-compte"
@@ -265,13 +266,33 @@ function PageCompte() {
               placeholder="8 caractères minimum"
               className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
             />
-            {creation ? (
+            {creation || oubli ? (
               <p className="mt-1 text-xs text-muted-foreground">
                 Ce mot de passe est la seule clé de vos données chiffrées : notez-le en lieu sûr, il
                 ne peut pas être retrouvé.
               </p>
             ) : null}
           </div>
+
+          {oubli && (
+            <div>
+              <label htmlFor="mdp-confirmation" className="text-sm font-medium">
+                Confirmez le nouveau mot de passe
+              </label>
+              <input
+                id="mdp-confirmation"
+                type="password"
+                autoComplete="new-password"
+                value={confirmation}
+                onChange={(ev) => {
+                  setConfirmation(ev.target.value);
+                  setErreur(null);
+                }}
+                placeholder="Retapez le même mot de passe"
+                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
 
           {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
 
@@ -283,11 +304,41 @@ function PageCompte() {
             {enCours
               ? creation
                 ? "Création…"
-                : "Connexion…"
+                : oubli
+                  ? "Changement…"
+                  : "Connexion…"
               : creation
                 ? "Créer mon compte"
-                : "Se connecter"}
+                : oubli
+                  ? "Changer mon mot de passe"
+                  : "Se connecter"}
           </button>
+
+          {oubli ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("connexion");
+                setErreur(null);
+                setConfirmation("");
+              }}
+              className="w-full py-2 text-sm font-semibold text-muted-foreground"
+            >
+              Retour à la connexion
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("oubli");
+                setErreur(null);
+                setConfirmation("");
+              }}
+              className="w-full py-2 text-sm font-semibold text-primary"
+            >
+              Mot de passe oublié ?
+            </button>
+          )}
         </form>
       </div>
     </section>
