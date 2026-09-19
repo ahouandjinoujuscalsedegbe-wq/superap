@@ -418,6 +418,23 @@ function assainirIconesComptes(brut: unknown): Record<string, string> {
   return sortie;
 }
 
+/**
+ * Ne conserve que des paires « compte crédité → compte à débiter » valides :
+ * les deux comptes existent et sont différents.
+ */
+function assainirComptesRelais(brut: unknown, comptes: string[]): Record<string, string> {
+  if (!brut || typeof brut !== "object") return {};
+  const sortie: Record<string, string> = {};
+  for (const [cle, valeur] of Object.entries(brut as Record<string, unknown>)) {
+    const credite = texteSur(cle, 60);
+    const relais = texteSur(valeur, 60);
+    if (!credite || !relais || credite === relais) continue;
+    if (!comptes.includes(credite) || !comptes.includes(relais)) continue;
+    sortie[credite] = relais;
+  }
+  return sortie;
+}
+
 export function assainirEtat(brut: Partial<Etat>): Etat {
   const enveloppes = assainirListe(brut.enveloppes, assainirEnveloppe);
   const comptesLus = assainirComptes(brut.comptes);
