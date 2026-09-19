@@ -107,14 +107,26 @@ export async function chercherDonneesCompte(
  */
 export async function changerMotDePasse(
   etat: unknown,
+  emailConfirme: string,
   nouveauMotDePasse: string,
   appareil: string,
-): Promise<{ ok: boolean; copieDeposee: boolean }> {
-  const email = emailDuCompte();
-  if (!email || !motDePasseValide(nouveauMotDePasse)) {
-    return { ok: false, copieDeposee: false };
+): Promise<{ ok: boolean; copieDeposee: boolean; message?: string }> {
+  const email = emailConfirme.trim();
+  if (!estEmailValide(email)) {
+    return { ok: false, copieDeposee: false, message: "L’adresse e-mail confirmée est invalide." };
   }
-  await memoriserCompte(email, nouveauMotDePasse);
+  if (!motDePasseValide(nouveauMotDePasse)) {
+    return { ok: false, copieDeposee: false, message: "Le nouveau mot de passe est trop court." };
+  }
+  try {
+    await memoriserCompte(email, nouveauMotDePasse);
+  } catch {
+    return {
+      ok: false,
+      copieDeposee: false,
+      message: "Le nouveau mot de passe n’a pas pu être enregistré sur ce téléphone.",
+    };
+  }
   let copieDeposee = false;
   try {
     const colis = await preparerColis(etat, nouveauMotDePasse.trim());

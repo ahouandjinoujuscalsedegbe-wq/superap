@@ -266,12 +266,13 @@ function PageCompte() {
     }
     const resultat = await changerMotDePasse(
       instantaneEtat(app as unknown as Etat),
+      email.trim(),
       motDePasse,
       lireReglagesMulti().cetAppareil,
     );
     setEnCours(false);
     if (!resultat.ok) {
-      setErreur("Le changement n'a pas abouti. Réessayez.");
+      setErreur(resultat.message ?? "Le changement n'a pas abouti. Réessayez.");
       return;
     }
     toast.success("Mot de passe changé.", {
