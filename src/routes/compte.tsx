@@ -23,6 +23,10 @@ import {
   memoriserCompte,
   motDePasseValide,
 } from "@/lib/compte-utilisateur";
+import {
+  demanderCodeConfirmation,
+  verifierCodeConfirmation,
+} from "@/lib/code-confirmation.functions";
 
 export const Route = createFileRoute("/compte")({
   head: () => ({
@@ -52,6 +56,8 @@ function PageCompte() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [jeton, setJeton] = useState("");
+  const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const champRef = useRef<HTMLInputElement>(null);
@@ -137,7 +143,8 @@ function PageCompte() {
     terminer();
   }
 
-  async function reinitialiserMotDePasse() {
+  /** Étape 1 : vérifie la demande puis envoie le code de confirmation par e-mail. */
+  async function envoyerCode() {
     setErreur(null);
     if (!estEmailValide(email)) {
       setErreur("Entrez l'adresse e-mail de votre compte.");
@@ -162,6 +169,51 @@ function PageCompte() {
       return;
     }
     setEnCours(true);
+    let reponse: Awaited<ReturnType<typeof demanderCodeConfirmation>> | null = null;
+    try {
+      reponse = await demanderCodeConfirmation({
+        data: { email: email.trim(), appareil: lireReglagesMulti().cetAppareil },
+      });
+    } catch {
+      reponse = null;
+    }
+    setEnCours(false);
+    if (!reponse?.envoye || !reponse.jeton) {
+      setErreur(
+        reponse?.message
+          ? `Le code n'a pas pu être envoyé : ${reponse.message}`
+          : "Le code n'a pas pu être envoyé. Vérifiez votre réseau et réessayez.",
+      );
+      return;
+    }
+    setJeton(reponse.jeton);
+    setCode("");
+    toast.success("Code envoyé par e-mail.", {
+      description: `Ouvrez la boîte de ${email.trim()} : le code à 6 chiffres est valable 15 minutes.`,
+    });
+  }
+
+  /** Étape 2 : confirme le code reçu par e-mail, puis change le mot de passe. */
+  async function confirmerCode() {
+    setErreur(null);
+    if (!/^\d{6}$/.test(code.trim())) {
+      setErreur("Entrez le code à 6 chiffres reçu par e-mail.");
+      return;
+    }
+    setEnCours(true);
+    let verif: { valide: boolean; message?: string } | null = null;
+    try {
+      verif = await verifierCodeConfirmation({
+        data: { email: email.trim(), code: code.trim(), jeton },
+      });
+    } catch {
+      verif = null;
+    }
+    if (!verif?.valide) {
+      setEnCours(false);
+      setErreur(verif?.message ?? "Vérification impossible. Réessayez.");
+      return;
+    }
     const resultat = await changerMotDePasse(
       instantaneEtat(app as unknown as Etat),
       motDePasse,
@@ -172,6 +224,8 @@ function PageCompte() {
       setErreur("Le changement n'a pas abouti. Réessayez.");
       return;
     }
+    setJeton("");
+    setCode("");
     toast.success("Mot de passe changé.", {
       description: resultat.copieDeposee
         ? "Une copie complète de vos données a été enregistrée, chiffrée avec le nouveau mot de passe."
@@ -182,6 +236,7 @@ function PageCompte() {
 
   const creation = mode === "creation";
   const oubli = mode === "oubli";
+  const attenteCode = oubli && jeton !== "";
 
   return (
     <section className="min-h-[70vh] pb-[calc(var(--app-keyboard-height,0px)+2rem)] pt-4">
@@ -198,7 +253,7 @@ function PageCompte() {
         </h1>
         <p className="text-sm text-muted-foreground">
           {oubli
-            ? "Choisissez un nouveau mot de passe. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
+            ? "Choisissez un nouveau mot de passe : nous envoyons un code de confirmation à votre adresse e-mail, et le changement n'est appliqué qu'après ce code. C'est possible uniquement parce que vos données sont encore sur ce téléphone : une copie complète sera aussitôt enregistrée, chiffrée avec le nouveau mot de passe."
             : "Votre adresse e-mail est votre compte. Toutes vos données y sont enregistrées chiffrées, automatiquement et sans aucun e-mail envoyé. Sur n'importe quel téléphone, la même adresse et le même mot de passe ramènent tout."}
         </p>
 
@@ -226,7 +281,13 @@ function PageCompte() {
           className="space-y-3"
           onSubmit={(ev) => {
             ev.preventDefault();
-            void (creation ? creerCompte() : oubli ? reinitialiserMotDePasse() : seConnecter());
+            void (creation
+              ? creerCompte()
+              : oubli
+                ? attenteCode
+                  ? confirmerCode()
+                  : envoyerCode()
+                : seConnecter());
           }}
         >
           <div>
@@ -294,6 +355,31 @@ function PageCompte() {
             </div>
           )}
 
+          {attenteCode && (
+            <div>
+              <label htmlFor="code-confirmation" className="text-sm font-medium">
+                Code reçu par e-mail
+              </label>
+              <input
+                id="code-confirmation"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={code}
+                onChange={(ev) => {
+                  setCode(ev.target.value.replace(/\D/g, "").slice(0, 6));
+                  setErreur(null);
+                }}
+                placeholder="6 chiffres"
+                className="mt-1.5 w-full rounded-xl border border-input bg-background/60 px-3 py-2.5 text-center text-lg tracking-[0.4em] outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Nous avons envoyé un code à 6 chiffres à {email.trim()}. Il est valable 15 minutes.
+              </p>
+            </div>
+          )}
+
           {erreur && <p className="text-sm font-semibold text-destructive">{erreur}</p>}
 
           <button
@@ -305,27 +391,45 @@ function PageCompte() {
               ? creation
                 ? "Création…"
                 : oubli
-                  ? "Changement…"
+                  ? attenteCode
+                    ? "Vérification…"
+                    : "Envoi du code…"
                   : "Connexion…"
               : creation
                 ? "Créer mon compte"
                 : oubli
-                  ? "Changer mon mot de passe"
+                  ? attenteCode
+                    ? "Confirmer et changer mon mot de passe"
+                    : "Recevoir le code par e-mail"
                   : "Se connecter"}
           </button>
 
           {oubli ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("connexion");
-                setErreur(null);
-                setConfirmation("");
-              }}
-              className="w-full py-2 text-sm font-semibold text-muted-foreground"
-            >
-              Retour à la connexion
-            </button>
+            <>
+              {attenteCode && (
+                <button
+                  type="button"
+                  disabled={enCours}
+                  onClick={() => void envoyerCode()}
+                  className="w-full py-2 text-sm font-semibold text-primary disabled:opacity-60"
+                >
+                  Renvoyer un nouveau code
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("connexion");
+                  setErreur(null);
+                  setConfirmation("");
+                  setJeton("");
+                  setCode("");
+                }}
+                className="w-full py-2 text-sm font-semibold text-muted-foreground"
+              >
+                Retour à la connexion
+              </button>
+            </>
           ) : (
             <button
               type="button"
@@ -333,6 +437,8 @@ function PageCompte() {
                 setMode("oubli");
                 setErreur(null);
                 setConfirmation("");
+                setJeton("");
+                setCode("");
               }}
               className="w-full py-2 text-sm font-semibold text-primary"
             >
