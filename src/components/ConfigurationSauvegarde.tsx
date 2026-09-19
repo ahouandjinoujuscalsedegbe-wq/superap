@@ -49,15 +49,7 @@ export function ConfigurationSauvegarde({
       return;
     }
     if (phrase.trim().length < 8) {
-      setErreur("La phrase de récupération doit contenir au moins 8 caractères.");
-      return;
-    }
-    if (phrase !== confirmation) {
-      setErreur("Les deux phrases saisies ne sont pas identiques.");
-      return;
-    }
-    if (!phraseNotee) {
-      setErreur("Confirmez d'abord que vous avez noté votre phrase de récupération.");
+      setErreur("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
     await enregistrerPhrase(phrase);
